@@ -11,17 +11,12 @@ export const apiClient = axios.create({
 apiClient.interceptors.request.use((config) => {
   const token = authStore.getToken();
   const tenantId = tenantStore.getTenantId();
+  config.headers = config.headers ?? {};
   if (token) {
-    config.headers = {
-      ...config.headers,
-      Authorization: `Bearer ${token}`,
-    };
+    config.headers.Authorization = `Bearer ${token}`;
   }
   if (tenantId) {
-    config.headers = {
-      ...config.headers,
-      "X-Tenant-ID": tenantId,
-    };
+    (config.headers as Record<string, string>)["X-Tenant-ID"] = tenantId;
   }
   return config;
 });
