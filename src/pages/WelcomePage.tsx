@@ -16,7 +16,7 @@ export function WelcomePage() {
   const { isAuthenticated } = useAuth();
 
   const handleEnter = () => {
-    navigate(isAuthenticated ? "/app" : "/login");
+    navigate(isAuthenticated ? "/app/dashboard" : "/login");
   };
 
   return (

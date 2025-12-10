@@ -7,6 +7,12 @@ import { StatusPage } from "@/features/status/pages/StatusPage";
 import { AuthProvider } from "@/features/auth/hooks/useAuth";
 import { WelcomePage } from "@/pages/WelcomePage";
 import { RouteErrorBoundary } from "./error-boundary";
+import { DashboardPage } from "@/pages/DashboardPage";
+import { LoanApplicationsPage } from "@/pages/LoanApplicationsPage";
+import { LoansPage } from "@/pages/LoansPage";
+import { OrganizationsPage } from "@/pages/OrganizationsPage";
+import { PlatformSettingsPage } from "@/pages/PlatformSettingsPage";
+import { UserSettingsPage } from "@/pages/UserSettingsPage";
 
 const routes = [
   {
@@ -37,24 +43,16 @@ const routes = [
           </ProtectedRoute>
         ),
         children: [
-          { index: true, element: <Placeholder label="Dashboard" /> },
-          { path: "onboarding/users", element: <Placeholder label="Onboarding" /> },
-          { path: "users", element: <Placeholder label="Users" /> },
-          { path: "employees", element: <Placeholder label="Employees" /> },
-          { path: "settings", element: <Placeholder label="Settings" /> },
-          { path: "loan-products", element: <Placeholder label="Loan Products" /> },
-          { path: "loan-applications", element: <Placeholder label="Loan Applications" /> },
-          { path: "loans", element: <Placeholder label="Loans" /> },
-          { path: "reports", element: <Placeholder label="Reports" /> },
-          { path: "audit-logs", element: <Placeholder label="Audit Logs" /> },
+          { index: true, element: <Navigate to="/app/dashboard" replace /> },
+          { path: "dashboard", element: <DashboardPage /> },
+          { path: "loan-applications", element: <LoanApplicationsPage /> },
+          { path: "loans", element: <LoansPage /> },
+          { path: "organizations", element: <OrganizationsPage /> },
+          { path: "platform-settings", element: <PlatformSettingsPage /> },
+          { path: "user-settings", element: <UserSettingsPage /> },
         ],
       },
     ],
   },
 ];
-
-function Placeholder({ label }: { label: string }) {
-  return <div style={{ padding: "1rem" }}>{label} coming soon</div>;
-}
-
 export const router = createBrowserRouter(routes);
