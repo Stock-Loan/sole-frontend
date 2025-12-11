@@ -1,0 +1,16 @@
+export const routes = {
+	root: "/",
+	login: "/login",
+	changePassword: "/change-password",
+	status: "/status",
+	appRoot: "/app",
+	overview: "/app/overview",
+	users: "/app/users",
+	roles: "/app/roles",
+	departments: "/app/departments",
+	announcements: "/app/announcements",
+	orgSettings: "/app/settings",
+	notAuthorized: "/not-authorized",
+} as const;
+
+export type AppRoute = (typeof routes)[keyof typeof routes];
