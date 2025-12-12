@@ -1,8 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import { Loader2, RefreshCw, Search, Users as UsersIcon } from "lucide-react";
+import {
+	Loader2,
+	RefreshCw,
+	Search,
+	Upload,
+	UserPlus,
+	Users as UsersIcon,
+} from "lucide-react";
 import { isAxiosError } from "axios";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 import { PageHeader } from "@/components/common/PageHeader";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,6 +31,23 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import {
+	Dialog,
+	DialogContent,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+	DialogDescription,
+	DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+	Form,
+	FormControl,
+	FormField,
+	FormItem,
+	FormLabel,
+	FormMessage,
+} from "@/components/ui/form";
+import {
 	Table,
 	TableBody,
 	TableCell,
@@ -28,10 +55,13 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
+import { TimezoneSelect } from "@/features/meta/components/TimezoneSelect";
 import { queryKeys } from "@/lib/queryKeys";
 import { cn } from "@/lib/utils";
 import { toast } from "@/components/ui/use-toast";
+import { useApiErrorToast } from "@/hooks/useApiErrorToast";
 import { listOrgUsers } from "../api/orgUsers.api";
+import { onboardOrgUser } from "../api/orgUsers.api";
 import type {
 	EmploymentStatus,
 	OrgUsersListParams,
@@ -80,6 +110,31 @@ export function OrgUsersListPage() {
 		"all",
 	);
 	const [page, setPage] = useState(1);
+	const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+	const apiErrorToast = useApiErrorToast();
+
+	const formSchema = z.object({
+		email: z.string().email("Enter a valid email"),
+		firstName: z.string().min(1, "First name is required"),
+		lastName: z.string().min(1, "Last name is required"),
+		phoneNumber: z.string().optional(),
+		timezone: z.string().optional(),
+		employeeId: z.string().optional(),
+		employmentStartDate: z.string().optional(),
+		employmentStatus: z.enum(["active", "inactive", "leave", "terminated"]),
+	});
+
+	type FormValues = z.infer<typeof formSchema>;
+
+	const form = useForm<FormValues>({
+		resolver: zodResolver(formSchema),
+		defaultValues: {
+			email: "",
+			firstName: "",
+			lastName: "",
+			employmentStatus: "active",
+		},
+	});
 
 	useEffect(() => {
 		const timer = setTimeout(() => setDebouncedSearch(searchTerm), 300);
@@ -136,6 +191,43 @@ export function OrgUsersListPage() {
 		}
 	}, [error, isError]);
 
+	const onboardUser = async (values: FormValues) => {
+		await onboardOrgUser({
+			email: values.email,
+			firstName: values.firstName,
+			lastName: values.lastName,
+			phoneNumber: values.phoneNumber || undefined,
+			timezone: values.timezone || undefined,
+			employeeId: values.employeeId || undefined,
+			employmentStartDate: values.employmentStartDate || undefined,
+			employmentStatus: values.employmentStatus as EmploymentStatus,
+		});
+	};
+
+	const handleAddUser = async (values: FormValues) => {
+		try {
+			await onboardUser(values);
+			toast({
+				title: "User onboarded",
+				description: "The user has been added to this organization.",
+			});
+			form.reset({
+				email: "",
+				firstName: "",
+				lastName: "",
+				employmentStatus: "active",
+				employeeId: "",
+				phoneNumber: "",
+				timezone: "",
+				employmentStartDate: "",
+			});
+			setIsAddModalOpen(false);
+			refetch();
+		} catch (err) {
+			apiErrorToast(err, "Unable to onboard user right now.");
+		}
+	};
+
 	const total = data?.total ?? 0;
 	const pageSize = data?.page_size ?? listParams.page_size ?? 10;
 	const totalPages = Math.max(1, Math.ceil(total / pageSize));
@@ -146,12 +238,175 @@ export function OrgUsersListPage() {
 		<div className="space-y-6">
 			<PageHeader
 				title="Org users"
-				subtitle="View organization users, statuses, and invitation state. Data is scoped to your current organization."
+				subtitle="View organization users and core statuses. Data is scoped to your current organization."
 				actions={
-					<Button variant="outline" size="sm" onClick={() => refetch()}>
-						<RefreshCw className="mr-2 h-4 w-4" />
-						Refresh
-					</Button>
+					<div className="flex gap-2">
+						<Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
+							<DialogTrigger asChild>
+								<Button variant="outline" size="sm">
+									<UserPlus className="mr-2 h-4 w-4" />
+									Add user
+								</Button>
+							</DialogTrigger>
+							<DialogContent className="w-[calc(100%-1.5rem)] max-w-lg max-h-[90vh]">
+								<DialogHeader>
+									<DialogTitle>Onboard a user</DialogTitle>
+									<DialogDescription>
+										Add a single user to this organization.
+									</DialogDescription>
+								</DialogHeader>
+								<Form {...form}>
+									<form className="flex flex-1 flex-col gap-4 overflow-hidden" onSubmit={form.handleSubmit(handleAddUser)}>
+										<div className="flex-1 space-y-4 overflow-auto pr-1">
+											<div className="grid gap-3 md:grid-cols-2">
+												<FormField
+													control={form.control}
+													name="firstName"
+													render={({ field }) => (
+														<FormItem>
+															<FormLabel>First name</FormLabel>
+															<FormControl>
+																<Input placeholder="Ada" {...field} />
+															</FormControl>
+															<FormMessage />
+														</FormItem>
+													)}
+												/>
+												<FormField
+													control={form.control}
+													name="lastName"
+													render={({ field }) => (
+														<FormItem>
+															<FormLabel>Last name</FormLabel>
+															<FormControl>
+																<Input placeholder="Lovelace" {...field} />
+															</FormControl>
+															<FormMessage />
+														</FormItem>
+													)}
+												/>
+											</div>
+											<FormField
+												control={form.control}
+												name="email"
+												render={({ field }) => (
+													<FormItem>
+														<FormLabel>Email</FormLabel>
+														<FormControl>
+															<Input type="email" placeholder="user@example.com" {...field} />
+														</FormControl>
+														<FormMessage />
+													</FormItem>
+												)}
+											/>
+											<div className="grid gap-3 md:grid-cols-2">
+												<FormField
+													control={form.control}
+													name="phoneNumber"
+													render={({ field }) => (
+														<FormItem>
+															<FormLabel>Phone</FormLabel>
+															<FormControl>
+																<Input placeholder="+1 555 0100" {...field} />
+															</FormControl>
+															<FormMessage />
+														</FormItem>
+													)}
+												/>
+												<FormField
+													control={form.control}
+													name="timezone"
+													render={({ field }) => (
+														<FormItem>
+															<FormLabel>Timezone</FormLabel>
+															<TimezoneSelect
+																value={field.value}
+																onChange={field.onChange}
+																placeholder="Search timezones"
+															/>
+															<FormMessage />
+														</FormItem>
+													)}
+												/>
+											</div>
+											<div className="grid gap-3 md:grid-cols-2">
+												<FormField
+													control={form.control}
+													name="employeeId"
+													render={({ field }) => (
+														<FormItem>
+															<FormLabel>Employee ID</FormLabel>
+															<FormControl>
+																<Input placeholder="EMP-1234" {...field} />
+															</FormControl>
+															<FormMessage />
+														</FormItem>
+													)}
+												/>
+												<FormField
+													control={form.control}
+													name="employmentStartDate"
+													render={({ field }) => (
+														<FormItem>
+															<FormLabel>Employment start date</FormLabel>
+															<FormControl>
+																<Input type="date" {...field} />
+															</FormControl>
+															<FormMessage />
+														</FormItem>
+													)}
+												/>
+											</div>
+											<FormField
+												control={form.control}
+												name="employmentStatus"
+												render={({ field }) => (
+													<FormItem>
+														<FormLabel>Employment status</FormLabel>
+														<FormControl>
+															<Select
+																value={field.value}
+																onValueChange={(val) => field.onChange(val as EmploymentStatus)}
+															>
+																<SelectTrigger>
+																	<SelectValue placeholder="Select status" />
+																</SelectTrigger>
+																<SelectContent>
+																	<SelectItem value="active">Active</SelectItem>
+																	<SelectItem value="inactive">Inactive</SelectItem>
+																	<SelectItem value="leave">Leave</SelectItem>
+																	<SelectItem value="terminated">Terminated</SelectItem>
+																</SelectContent>
+															</Select>
+														</FormControl>
+														<FormMessage />
+													</FormItem>
+												)}
+											/>
+										</div>
+										<DialogFooter className="flex flex-col gap-2 sm:flex-row sm:justify-end sm:space-x-2">
+											<Button type="button" variant="outline" onClick={() => setIsAddModalOpen(false)}>
+												Cancel
+											</Button>
+											<Button type="submit" className="sm:w-auto">
+												Add user
+											</Button>
+										</DialogFooter>
+									</form>
+								</Form>
+							</DialogContent>
+						</Dialog>
+						<Button variant="outline" size="sm" asChild>
+							<Link to="/app/users/onboard">
+								<Upload className="mr-2 h-4 w-4" />
+								Bulk onboarding
+							</Link>
+						</Button>
+						<Button variant="outline" size="sm" onClick={() => refetch()}>
+							<RefreshCw className="mr-2 h-4 w-4" />
+							Refresh
+						</Button>
+					</div>
 				}
 			/>
 			<Card>
@@ -215,7 +470,7 @@ export function OrgUsersListPage() {
 					</div>
 				</CardHeader>
 				<CardContent className="space-y-4">
-					<div className="overflow-hidden rounded-xl border border-border/70">
+					<div className="overflow-x-auto rounded-xl border border-border/70">
 						<Table>
 							<TableHeader>
 								<TableRow className="bg-muted/40">

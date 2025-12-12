@@ -10,6 +10,7 @@ import { NotAuthorizedPage } from "@/pages/NotAuthorizedPage";
 import { NotFoundPage } from "@/pages/NotFoundPage";
 import { OrgUsersListPage } from "@/features/org-users/pages/OrgUsersListPage";
 import { OrgUserDetailPage } from "@/features/org-users/pages/OrgUserDetailPage";
+import { OrgUserOnboardingPage } from "@/features/org-users/pages/OrgUserOnboardingPage";
 import { OverviewPage } from "@/pages/OverviewPage";
 import { PlaceholderPage } from "@/pages/PlaceholderPage";
 import { AppErrorBoundary } from "./error-boundary";
@@ -64,6 +65,10 @@ export const router = createBrowserRouter([
 			{
 				path: "users",
 				element: <OrgUsersListPage />,
+			},
+			{
+				path: "users/onboard",
+				element: <OrgUserOnboardingPage />,
 			},
 			{
 				path: "users/:membershipId",

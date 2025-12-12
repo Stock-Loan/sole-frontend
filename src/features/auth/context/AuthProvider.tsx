@@ -10,15 +10,63 @@ import { AuthContext } from "./auth-context";
 import type { AuthContextValue } from "./auth-context";
 import { routes } from "@/lib/routes";
 
+const STORAGE_KEY = "sole.auth.session";
+
+type PersistedSession = {
+	user: AuthUser | null;
+	tokens: TokenPair | null;
+};
+
+function loadPersistedSession(): PersistedSession {
+	if (typeof localStorage === "undefined") {
+		return { user: null, tokens: null };
+	}
+	try {
+		const raw = localStorage.getItem(STORAGE_KEY);
+		if (!raw) {
+			return { user: null, tokens: null };
+		}
+		const parsed = JSON.parse(raw) as PersistedSession;
+		return {
+			user: parsed?.user ?? null,
+			tokens: parsed?.tokens ?? null,
+		};
+	} catch (error) {
+		console.warn("Failed to load session from storage", error);
+		return { user: null, tokens: null };
+	}
+}
+
+function persistSession(session: PersistedSession) {
+	if (typeof localStorage === "undefined") return;
+	try {
+		localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+	} catch (error) {
+		console.warn("Failed to persist session", error);
+	}
+}
+
+function clearPersistedSession() {
+	if (typeof localStorage === "undefined") return;
+	try {
+		localStorage.removeItem(STORAGE_KEY);
+	} catch (error) {
+		console.warn("Failed to clear session", error);
+	}
+}
+
 export function AuthProvider({ children }: PropsWithChildren) {
-	const [user, setUser] = useState<AuthUser | null>(null);
-	const [tokens, setTokens] = useState<TokenPair | null>(null);
+	const persisted = loadPersistedSession();
+
+	const [user, setUser] = useState<AuthUser | null>(persisted.user);
+	const [tokens, setTokens] = useState<TokenPair | null>(persisted.tokens);
 	const [isAuthenticating, setIsAuthenticating] = useState(false);
 
 	const setSession = useCallback(
 		(nextTokens: TokenPair, nextUser: AuthUser) => {
 			setTokens(nextTokens);
 			setUser(nextUser);
+			persistSession({ tokens: nextTokens, user: nextUser });
 			setIsAuthenticating(false);
 		},
 		[]
@@ -27,6 +75,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 	const clearSession = useCallback(() => {
 		setUser(null);
 		setTokens(null);
+		clearPersistedSession();
 		setIsAuthenticating(false);
 	}, []);
 

@@ -62,3 +62,25 @@ export interface OnboardUserPayload {
 	employmentStartDate?: string;
 	employmentStatus?: EmploymentStatus;
 }
+
+export interface OnboardUserResponse {
+	membershipId: string;
+	userId: string;
+	email: string;
+}
+
+export type BulkOnboardingRowStatus = "success" | "failure";
+
+export interface BulkOnboardingRowResult {
+	row: number;
+	email?: string;
+	status: BulkOnboardingRowStatus;
+	message?: string;
+}
+
+export interface BulkOnboardingResult {
+	results: BulkOnboardingRowResult[];
+	total_rows: number;
+	success_count: number;
+	failure_count: number;
+}

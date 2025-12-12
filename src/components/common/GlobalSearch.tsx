@@ -128,7 +128,7 @@ export function GlobalSearch({ compact = false, className }: GlobalSearchProps) 
 					) : null}
 				</button>
 			</DialogTrigger>
-			<DialogContent className="max-w-3xl border border-border/70 bg-background/95 p-0 shadow-2xl">
+			<DialogContent className="w-[calc(100%-1.5rem)] max-w-3xl max-h-[90vh] overflow-auto border border-border/70 bg-background/95 p-0 shadow-2xl">
 				<div className="flex flex-col gap-4 p-5 pt-10">
 					<div className="flex items-center gap-3 rounded-xl border border-border/60 bg-muted/30 px-3 py-3 shadow-inner">
 						<Search className="h-4 w-4 text-muted-foreground" />

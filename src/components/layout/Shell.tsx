@@ -17,7 +17,7 @@ export function Shell() {
 	return (
 		<div className="flex min-h-screen bg-muted/20">
 			<DashboardSidebar />
-			<div className="flex flex-1 flex-col">
+			<div className="flex flex-1 flex-col min-w-0">
 				<DashboardNavbar
 					onOpenMobileNav={() => setIsMobileNavOpen(true)}
 					currentLabel={currentLabel}
@@ -39,8 +39,8 @@ export function Shell() {
 						</div>
 					</SheetContent>
 				</Sheet>
-				<main className="flex-1">
-					<div className="mx-auto px-4 py-6 sm:px-6 lg:px-8">
+				<main className="flex-1 min-w-0">
+					<div className="mx-auto w-full px-4 py-6 sm:px-6 lg:px-8">
 						<Outlet />
 					</div>
 				</main>

@@ -1,5 +1,4 @@
 import { Menu } from "lucide-react";
-import { useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { GlobalSearch } from "@/components/common/GlobalSearch";
 import { OrgSwitcher } from "@/features/organizations/components/OrgSwitcher";
@@ -11,12 +10,7 @@ interface DashboardNavbarProps {
 	currentLabel?: string;
 }
 
-export function DashboardNavbar({
-	onOpenMobileNav,
-	currentLabel,
-}: DashboardNavbarProps) {
-	const location = useLocation();
-
+export function DashboardNavbar({ onOpenMobileNav }: DashboardNavbarProps) {
 	return (
 		<header className="sticky top-0 z-30 flex items-center justify-between gap-4 bg-background/95 px-4 py-5 shadow-sm backdrop-blur">
 			<div className="flex items-center gap-3">
@@ -29,15 +23,6 @@ export function DashboardNavbar({
 				>
 					<Menu className="h-4 w-4" />
 				</Button>
-				<div className="hidden flex-col sm:flex">
-					<span className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
-						Now viewing
-					</span>
-					<div className="flex items-center gap-2 text-base font-semibold text-foreground">
-						<span className="h-1.5 w-1.5 rounded-full bg-primary/80" />
-						<span>{currentLabel || location.pathname}</span>
-					</div>
-				</div>
 			</div>
 			<div className="flex flex-1 items-center justify-end gap-3">
 				<div className="hidden flex-1 items-center justify-center gap-3 lg:flex">
