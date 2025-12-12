@@ -206,7 +206,17 @@ export function OrgUserOnboardingPage() {
 						<button
 							type="button"
 							className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-dashed border-border/80 text-muted-foreground transition hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
-							onClick={() => fileInputRef.current?.click()}
+							onClick={(event) => {
+								event.stopPropagation();
+								fileInputRef.current?.click();
+							}}
+							onKeyDown={(event) => {
+								event.stopPropagation();
+								if (event.key === "Enter" || event.key === " ") {
+									event.preventDefault();
+									fileInputRef.current?.click();
+								}
+							}}
 						>
 							<Upload className="h-8 w-8" />
 						</button>

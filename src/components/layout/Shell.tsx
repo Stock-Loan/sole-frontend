@@ -15,9 +15,9 @@ export function Shell() {
 	const currentLabel = getRouteLabel(location.pathname);
 
 	return (
-		<div className="flex min-h-screen bg-muted/20">
+		<div className="flex h-screen overflow-hidden bg-muted/20">
 			<DashboardSidebar />
-			<div className="flex flex-1 flex-col min-w-0">
+			<div className="flex min-w-0 flex-1 flex-col">
 				<DashboardNavbar
 					onOpenMobileNav={() => setIsMobileNavOpen(true)}
 					currentLabel={currentLabel}
@@ -39,7 +39,7 @@ export function Shell() {
 						</div>
 					</SheetContent>
 				</Sheet>
-				<main className="flex-1 min-w-0">
+				<main className="min-w-0 flex-1 overflow-y-auto">
 					<div className="mx-auto w-full px-4 py-6 sm:px-6 lg:px-8">
 						<Outlet />
 					</div>
