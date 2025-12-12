@@ -7,6 +7,7 @@ import type {
 	OnboardUserResponse,
 	BulkOnboardingResult,
 	UpdateOrgUserStatusPayload,
+	UpdateOrgUserProfilePayload,
 } from "../types";
 
 export async function listOrgUsers(
@@ -29,6 +30,17 @@ export async function updateOrgUserStatus(
 ): Promise<OrgUserListItem> {
 	const response = await apiClient.patch<OrgUserListItem>(
 		`/org/users/${membershipId}`,
+		payload,
+	);
+	return response.data;
+}
+
+export async function updateOrgUserProfile(
+	membershipId: string,
+	payload: UpdateOrgUserProfilePayload,
+): Promise<OrgUserListItem> {
+	const response = await apiClient.patch<OrgUserListItem>(
+		`/org/users/${membershipId}/profile`,
 		payload,
 	);
 	return response.data;

@@ -10,5 +10,8 @@ export const queryKeys = {
 	},
 	meta: {
 		timezones: () => ["meta", "timezones"] as const,
+		countries: () => ["meta", "countries"] as const,
+		subdivisions: (countryCode: string) =>
+			["meta", "subdivisions", countryCode] as const,
 	},
 };

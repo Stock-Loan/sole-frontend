@@ -5,13 +5,6 @@ import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/common/PageHeader";
 import { Button } from "@/components/ui/button";
 import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
-import {
 	Table,
 	TableBody,
 	TableCell,
@@ -21,7 +14,11 @@ import {
 } from "@/components/ui/table";
 import { useToast } from "@/components/ui/use-toast";
 import { useApiErrorToast } from "@/hooks/useApiErrorToast";
-import { downloadOnboardingTemplate, uploadOnboardingCsv } from "../api/orgUsers.api";
+import {
+	downloadOnboardingTemplate,
+	uploadOnboardingCsv,
+} from "../api/orgUsers.api";
+import { BulkUploadPreview } from "../components/BulkUploadPreview";
 import type { BulkOnboardingResult } from "../types";
 
 export function OrgUserOnboardingPage() {
@@ -30,7 +27,13 @@ export function OrgUserOnboardingPage() {
 	const { toast } = useToast();
 	const apiErrorToast = useApiErrorToast();
 	const fileInputRef = useRef<HTMLInputElement | null>(null);
-	const [bulkResult, setBulkResult] = useState<BulkOnboardingResult | null>(null);
+	const [bulkResult, setBulkResult] = useState<BulkOnboardingResult | null>(
+		null
+	);
+	const [selectedFile, setSelectedFile] = useState<File | null>(null);
+	const [previewHeaders, setPreviewHeaders] = useState<string[]>([]);
+	const [previewRows, setPreviewRows] = useState<string[][]>([]);
+	const [previewError, setPreviewError] = useState<string | null>(null);
 
 	const downloadMutation = useMutation({
 		mutationFn: downloadOnboardingTemplate,
@@ -62,18 +65,69 @@ export function OrgUserOnboardingPage() {
 			});
 		},
 		onError: (error) =>
-			apiErrorToast(error, "Upload failed. Please check the file and try again."),
+			apiErrorToast(
+				error,
+				"Upload failed. Please check the file and try again."
+			),
 	});
+
+	const bulkRows = useMemo(() => bulkResult?.results ?? [], [bulkResult]);
+
+	const parseCsv = (text: string) => {
+		const lines = text.split(/\r?\n/).filter((line) => line.trim().length > 0);
+		if (lines.length === 0) {
+			throw new Error("CSV appears empty.");
+		}
+		const headers = lines[0].split(",").map((h) => h.trim());
+		const rows = lines.slice(1).map((line) => line.split(",").map((cell) => cell.trim()));
+		return {
+			headers,
+			rows: rows.slice(0, 50), // limit preview
+		};
+	};
+
+	const handleFile = async (file: File) => {
+		setPreviewError(null);
+		setSelectedFile(file);
+		setBulkResult(null);
+		setPreviewHeaders([]);
+		setPreviewRows([]);
+
+		try {
+			const text = await file.text();
+			const parsed = parseCsv(text);
+			setPreviewHeaders(parsed.headers);
+			setPreviewRows(parsed.rows);
+		} catch (err) {
+			console.error("CSV parse error", err);
+			setPreviewError("Could not read this CSV. Please check the file and try again.");
+		}
+	};
 
 	const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		const file = event.target.files?.[0];
 		if (file) {
-			uploadMutation.mutate(file);
+			void handleFile(file);
 			event.target.value = "";
 		}
 	};
 
-	const bulkRows = useMemo(() => bulkResult?.results ?? [], [bulkResult]);
+	const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
+		event.preventDefault();
+		const file = event.dataTransfer.files?.[0];
+		if (file) {
+			void handleFile(file);
+		}
+	};
+
+	const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
+		event.preventDefault();
+	};
+
+	const handleUpload = () => {
+		if (!selectedFile) return;
+		uploadMutation.mutate(selectedFile);
+	};
 
 	return (
 		<div className="space-y-6">
@@ -82,22 +136,6 @@ export function OrgUserOnboardingPage() {
 				subtitle="Download the CSV template and upload a completed file to onboard multiple users."
 				actions={
 					<div className="flex gap-2">
-						<Button variant="outline" size="sm" onClick={() => navigate("/app/users")}>
-							<ArrowLeft className="mr-2 h-4 w-4" />
-							Back to users
-						</Button>
-					</div>
-				}
-			/>
-			<Card>
-				<CardHeader>
-					<div className="flex items-center justify-between gap-3">
-						<div>
-							<CardTitle>Bulk onboarding via CSV</CardTitle>
-							<CardDescription>
-								Use the template, then upload your completed file.
-							</CardDescription>
-						</div>
 						<Button
 							variant="outline"
 							size="sm"
@@ -111,72 +149,150 @@ export function OrgUserOnboardingPage() {
 							)}
 							Template
 						</Button>
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={() => navigate("/app/users")}
+						>
+							<ArrowLeft className="mr-2 h-4 w-4" />
+							Back to users
+						</Button>
 					</div>
-				</CardHeader>
-				<CardContent className="space-y-4">
-					<div className="flex items-center justify-between rounded-lg border border-dashed border-border/70 bg-muted/30 px-4 py-3">
+				}
+			/>
+
+			{!selectedFile ? (
+				<div
+					className="flex flex-col gap-3 rounded-lg border border-dashed border-border/70 bg-muted/30 px-4 py-4"
+					onDrop={handleDrop}
+					onDragOver={handleDragOver}
+					role="button"
+					tabIndex={0}
+					onClick={() => fileInputRef.current?.click()}
+					onKeyDown={(e) => {
+						if (e.key === "Enter" || e.key === " ") {
+							fileInputRef.current?.click();
+						}
+					}}
+				>
+					<div className="flex items-start justify-between gap-3">
 						<div className="space-y-1 text-sm text-muted-foreground">
-							<p>Upload your completed CSV to process onboarding in bulk.</p>
+							<p className="text-foreground font-semibold">Drop your CSV here or click to browse.</p>
 							<p className="text-xs">
 								Columns: email, first_name, last_name, timezone, phone_number, employee_id,
 								employment_start_date, employment_status.
 							</p>
 						</div>
-						<Button
-							variant="default"
-							size="sm"
-							onClick={() => fileInputRef.current?.click()}
-							disabled={uploadMutation.isPending}
-						>
-							{uploadMutation.isPending ? (
-								<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-							) : (
-								<Upload className="mr-2 h-4 w-4" />
-							)}
-							Upload CSV
-						</Button>
-						<input
-							ref={fileInputRef}
-							type="file"
-							accept=".csv"
-							className="hidden"
-							onChange={handleFileChange}
-						/>
-					</div>
-					{bulkRows.length > 0 ? (
-						<div className="overflow-hidden rounded-lg border border-border/60">
-							<Table>
-								<TableHeader>
-									<TableRow className="bg-muted/40">
-										<TableHead>Row</TableHead>
-										<TableHead>Email</TableHead>
-										<TableHead>Status</TableHead>
-										<TableHead>Message</TableHead>
-									</TableRow>
-								</TableHeader>
-								<TableBody>
-									{bulkRows.map((row) => (
-										<TableRow key={`${row.row}-${row.email ?? row.status}`}>
-											<TableCell className="font-semibold">{row.row}</TableCell>
-											<TableCell>{row.email || "—"}</TableCell>
-											<TableCell className="capitalize">{row.status}</TableCell>
-											<TableCell className="text-sm text-muted-foreground">
-												{row.message || "—"}
-											</TableCell>
-										</TableRow>
-									))}
-								</TableBody>
-							</Table>
+						<div className="flex items-center gap-2 text-xs text-muted-foreground">
+							<Upload className="h-4 w-4" />
+							<span>No file selected</span>
 						</div>
-					) : null}
-					{bulkResult ? (
-						<p className="text-xs text-muted-foreground">
-							Processed {bulkResult.total_rows} rows • {bulkResult.success_count} succeeded,{" "}
-							{bulkResult.failure_count} failed.
-						</p>
-					) : null}
-				</CardContent>
-			</Card>
+					</div>
+					<input
+						ref={fileInputRef}
+						type="file"
+						accept=".csv"
+						className="hidden"
+						onChange={handleFileChange}
+					/>
+					<div className="text-xs text-muted-foreground">
+						{previewError ? (
+							<p className="text-destructive">{previewError}</p>
+						) : (
+							<p>Drag and drop a CSV file to preview before uploading.</p>
+						)}
+					</div>
+					<div className="flex justify-center">
+						<button
+							type="button"
+							className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-dashed border-border/80 text-muted-foreground transition hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+							onClick={() => fileInputRef.current?.click()}
+						>
+							<Upload className="h-8 w-8" />
+						</button>
+					</div>
+				</div>
+			) : (
+				<div className="space-y-3 rounded-lg border border-border/70 bg-muted/20 p-4">
+					<div className="flex items-center justify-between gap-2">
+						<div className="space-y-1 text-sm">
+							<p className="font-semibold text-foreground">{selectedFile.name}</p>
+							<p className="text-xs text-muted-foreground">
+								Review the preview below, then upload to process.
+							</p>
+						</div>
+						<div className="flex gap-2">
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={() => {
+									setSelectedFile(null);
+									setPreviewHeaders([]);
+									setPreviewRows([]);
+									setPreviewError(null);
+									setBulkResult(null);
+								}}
+							>
+								Clear
+							</Button>
+							<Button
+								variant="default"
+								size="sm"
+								disabled={uploadMutation.isPending}
+								onClick={handleUpload}
+							>
+								{uploadMutation.isPending ? (
+									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+								) : (
+									<Upload className="mr-2 h-4 w-4" />
+								)}
+								Upload
+							</Button>
+						</div>
+					</div>
+					<BulkUploadPreview
+						headers={previewHeaders}
+						rows={previewRows}
+						fileName={selectedFile?.name}
+					/>
+				</div>
+			)}
+			{bulkRows.length > 0 ? (
+				<div className="overflow-hidden rounded-lg border border-border/60">
+					<Table>
+						<TableHeader>
+							<TableRow className="bg-muted/40">
+								<TableHead>Row</TableHead>
+								<TableHead>Email</TableHead>
+								<TableHead>Status</TableHead>
+								<TableHead>Message</TableHead>
+							</TableRow>
+						</TableHeader>
+					</Table>
+					<div className="max-h-80 overflow-y-auto">
+						<Table>
+							<TableBody>
+								{bulkRows.map((row) => (
+									<TableRow key={`${row.row}-${row.email ?? row.status}`}>
+										<TableCell className="font-semibold">{row.row}</TableCell>
+										<TableCell>{row.email || "—"}</TableCell>
+										<TableCell className="capitalize">{row.status}</TableCell>
+										<TableCell className="text-sm text-muted-foreground">
+											{row.message || "—"}
+										</TableCell>
+									</TableRow>
+								))}
+							</TableBody>
+						</Table>
+					</div>
+				</div>
+			) : null}
+			{bulkResult ? (
+				<p className="text-xs text-muted-foreground">
+					Processed {bulkResult.total_rows} rows • {bulkResult.success_count}{" "}
+					succeeded, {bulkResult.failure_count} failed.
+				</p>
+			) : null}
 		</div>
 	);
 }

@@ -6,3 +6,10 @@ export interface OrgSummary {
 	slug?: string;
 	status?: "active" | "inactive" | "suspended";
 }
+
+export interface TenantContextValue {
+  orgs: OrgSummary[];
+  currentOrgId: string | null;
+  setCurrentOrgId: (orgId: string | null) => void;
+  setOrgs: (orgs: OrgSummary[]) => void;
+}

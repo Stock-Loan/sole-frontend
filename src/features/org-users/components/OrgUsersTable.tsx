@@ -99,17 +99,22 @@ export function OrgUsersTable({
 									.trim() ||
 								item.user.email;
 							const employmentStatus = item.membership.employment_status || "";
+							const location = [item.user.state, item.user.country]
+								.filter(Boolean)
+								.join(", ");
 							return (
 								<TableRow key={item.user.id}>
-									<TableCell className="font-semibold text-foreground">
-										{name}
+									<TableCell className="space-y-1 font-semibold text-foreground">
+										<div>{name}</div>
+										<div className="text-xs font-normal text-muted-foreground">
+											{item.user.email}
+											{location ? ` • ${location}` : ""}
+										</div>
 									</TableCell>
 									<TableCell className="text-muted-foreground">
 										{item.membership.employee_id || "—"}
 									</TableCell>
-									<TableCell className="text-muted-foreground">
-										{item.user.email}
-									</TableCell>
+									<TableCell className="text-muted-foreground">{item.user.email}</TableCell>
 									<TableCell>
 										<StatusBadge
 											label={employmentStatus}

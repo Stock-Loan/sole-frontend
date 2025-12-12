@@ -39,6 +39,12 @@ export interface OrgUserDto {
 	preferred_name?: string | null;
 	timezone?: string | null;
 	phone_number?: string | null;
+	marital_status?: string | null;
+	country?: string | null;
+	state?: string | null;
+	address_line1?: string | null;
+	address_line2?: string | null;
+	postal_code?: string | null;
 	is_active?: boolean;
 	is_superuser?: boolean;
 	created_at?: string;
@@ -91,8 +97,16 @@ export interface OnboardUserPayload {
 	email: string;
 	first_name: string;
 	last_name: string;
+	middle_name?: string;
+	preferred_name?: string;
 	timezone?: string;
 	phone_number?: string;
+	marital_status?: string;
+	country?: string;
+	state?: string;
+	address_line1?: string;
+	address_line2?: string;
+	postal_code?: string;
 	employee_id?: string;
 	employment_start_date?: string;
 	employment_status?: EmploymentStatus;
@@ -102,6 +116,23 @@ export interface OnboardUserResponse {
 	user: OrgUserDto;
 	membership: OrgMembershipDto;
 	temporary_password?: string;
+}
+
+export interface UpdateOrgUserProfilePayload {
+	email?: string;
+	first_name?: string;
+	middle_name?: string;
+	last_name?: string;
+	preferred_name?: string;
+	timezone?: string;
+	phone_number?: string;
+	marital_status?: string;
+	country?: string;
+	state?: string;
+	address_line1?: string;
+	address_line2?: string;
+	postal_code?: string;
+	employee_id?: string;
 }
 
 export type BulkOnboardingRowStatus = "success" | "failure";
