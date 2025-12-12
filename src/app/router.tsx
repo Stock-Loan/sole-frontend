@@ -8,6 +8,8 @@ import { WelcomePage } from "@/features/public/pages/WelcomePage";
 import { routes } from "@/lib/routes";
 import { NotAuthorizedPage } from "@/pages/NotAuthorizedPage";
 import { NotFoundPage } from "@/pages/NotFoundPage";
+import { OrgUsersListPage } from "@/features/org-users/pages/OrgUsersListPage";
+import { OrgUserDetailPage } from "@/features/org-users/pages/OrgUserDetailPage";
 import { OverviewPage } from "@/pages/OverviewPage";
 import { PlaceholderPage } from "@/pages/PlaceholderPage";
 import { AppErrorBoundary } from "./error-boundary";
@@ -61,12 +63,11 @@ export const router = createBrowserRouter([
 			},
 			{
 				path: "users",
-				element: (
-					<PlaceholderPage
-						title="Org users"
-						description="Org-scoped user management and onboarding will render here."
-					/>
-				),
+				element: <OrgUsersListPage />,
+			},
+			{
+				path: "users/:membershipId",
+				element: <OrgUserDetailPage />,
 			},
 			{
 				path: "roles",

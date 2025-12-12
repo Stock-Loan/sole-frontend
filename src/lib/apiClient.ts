@@ -51,7 +51,10 @@ apiClient.interceptors.response.use(
 	(response) => response,
 	(error) => {
 		if (error?.response?.status === 401) {
-			unauthorizedHandler?.();
+			const hasToken = Boolean(accessTokenResolver());
+			if (hasToken) {
+				unauthorizedHandler?.();
+			}
 		}
 
 		return Promise.reject(error);

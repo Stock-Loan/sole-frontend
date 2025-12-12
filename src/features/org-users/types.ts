@@ -6,16 +6,19 @@ export interface UserSummary {
 	id: string;
 	email: string;
 	fullName: string;
-	department?: string | null;
+	firstName?: string | null;
+	lastName?: string | null;
 }
 
 export interface OrgMembershipSummary {
 	membershipId: string;
 	orgId: string;
 	user: UserSummary;
+	department?: string | null;
 	employmentStatus: EmploymentStatus;
 	platformStatus: PlatformStatus;
 	invitationStatus?: InvitationStatus;
+	lastActiveAt?: string | null;
 	roles?: string[];
 }
 
@@ -25,6 +28,29 @@ export interface OrgUserDetail extends OrgMembershipSummary {
 	employeeId?: string | null;
 	employmentStartDate?: string | null;
 }
+
+export interface OrgUsersListParams {
+	search?: string;
+	employment_status?: EmploymentStatus;
+	platform_status?: PlatformStatus;
+	invitation_status?: InvitationStatus;
+	page?: number;
+	page_size?: number;
+}
+
+export interface OrgUsersListResponse {
+	items: OrgMembershipSummary[];
+	total: number;
+	page: number;
+	page_size: number;
+}
+
+export interface UpdateOrgUserStatusPayload {
+	employment_status?: EmploymentStatus;
+	platform_status?: PlatformStatus;
+}
+
+// PermissionCode-driven UI will later decide which actions to render (e.g., user.manage).
 
 export interface OnboardUserPayload {
 	email: string;

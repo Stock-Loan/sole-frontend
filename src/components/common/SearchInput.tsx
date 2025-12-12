@@ -3,8 +3,7 @@ import type { InputHTMLAttributes } from "react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
-interface SearchInputProps extends InputHTMLAttributes<HTMLInputElement> {
-}
+type SearchInputProps = InputHTMLAttributes<HTMLInputElement>;
 
 export function SearchInput({ className, ...props }: SearchInputProps) {
 	return (

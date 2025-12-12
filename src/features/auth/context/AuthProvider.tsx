@@ -8,6 +8,7 @@ import { logout as logoutApi } from "../api/auth.api";
 import type { AuthUser, RoleCode, TokenPair } from "../types";
 import { AuthContext } from "./auth-context";
 import type { AuthContextValue } from "./auth-context";
+import { routes } from "@/lib/routes";
 
 export function AuthProvider({ children }: PropsWithChildren) {
 	const [user, setUser] = useState<AuthUser | null>(null);
@@ -42,7 +43,10 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
 	useEffect(() => {
 		setAccessTokenResolver(() => tokens?.access_token ?? null);
-		setUnauthorizedHandler(clearSession);
+		setUnauthorizedHandler(() => {
+			clearSession();
+			window.location.assign(routes.login);
+		});
 
 		return () => setUnauthorizedHandler(null);
 	}, [tokens?.access_token, clearSession]);

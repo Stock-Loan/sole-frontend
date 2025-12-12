@@ -8,7 +8,7 @@ interface SidebarNavProps {
 
 export function SidebarNav({ onNavigate }: SidebarNavProps) {
 	return (
-		<nav className="space-y-1">
+		<nav className="space-y-2">
 			{dashboardRoutes.map((item) => {
 				const Icon = item.icon;
 				return (
@@ -18,14 +18,14 @@ export function SidebarNav({ onNavigate }: SidebarNavProps) {
 						onClick={onNavigate}
 						className={({ isActive }) =>
 							cn(
-								"group flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+								"group flex items-center gap-4 rounded-md px-4 py-3 text-sm font-semibold transition-colors",
 								isActive
 									? "bg-primary text-primary-foreground shadow-sm"
 									: "text-muted-foreground hover:bg-muted hover:text-foreground",
 							)
 						}
 					>
-						<Icon className="h-4 w-4" aria-hidden="true" />
+						<Icon className="h-5 w-5" aria-hidden="true" />
 						<span>{item.label}</span>
 					</NavLink>
 				);

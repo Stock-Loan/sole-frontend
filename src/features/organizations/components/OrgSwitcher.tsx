@@ -12,18 +12,28 @@ export function OrgSwitcher() {
 		[orgs, currentOrgId],
 	);
 
+	const isMultiTenant = orgs.length > 1;
+	const label = currentOrg?.name ?? "Organization";
+
+	if (!isMultiTenant) {
+		return (
+			<div className="inline-flex items-center gap-2 rounded-full bg-muted/50 px-3 py-2 text-sm font-semibold text-foreground">
+				<Building2 className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+				<span>{label}</span>
+			</div>
+		);
+	}
+
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
 				<Button
 					variant="outline"
 					size="sm"
-					className="inline-flex items-center gap-2 rounded-full border-dashed"
+					className="inline-flex items-center gap-2 rounded-full border-border/70 bg-background/80"
 				>
 					<Building2 className="h-4 w-4" aria-hidden="true" />
-					<span className="text-sm font-medium">
-						{currentOrg?.name ?? "Select org"}
-					</span>
+					<span className="text-sm font-medium">{label}</span>
 					<ChevronDown className="h-4 w-4" aria-hidden="true" />
 				</Button>
 			</DropdownMenuTrigger>
@@ -34,7 +44,7 @@ export function OrgSwitcher() {
 					orgs.map((org) => (
 						<DropdownMenuItem key={org.id} onClick={() => setCurrentOrgId(org.id)}>
 							<div className="flex flex-col">
-								<span className="text-sm font-medium">{org.name}</span>
+								<span className="text-sm font-semibold">{org.name}</span>
 								{org.slug ? (
 									<span className="text-xs text-muted-foreground">{org.slug}</span>
 								) : null}
