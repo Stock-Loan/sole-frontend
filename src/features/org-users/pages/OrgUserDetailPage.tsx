@@ -27,7 +27,7 @@ import { cn } from "@/lib/utils";
 import { getOrgUser, updateOrgUserStatus } from "../api/orgUsers.api";
 import type {
 	EmploymentStatus,
-	OrgUserDetail,
+	OrgUserListItem,
 	PlatformStatus,
 	UpdateOrgUserStatusPayload,
 } from "../types";
@@ -43,13 +43,19 @@ const badgeTone: Record<string, string> = {
 	pending: "border-amber-200 bg-amber-50 text-amber-700",
 	accepted: "border-emerald-200 bg-emerald-50 text-emerald-700",
 	expired: "border-rose-200 bg-rose-50 text-rose-700",
+	invited: "border-amber-200 bg-amber-50 text-amber-700",
 };
 
 function StatusPill({ label }: { label: string }) {
-	const tone = badgeTone[label] || "border-border bg-muted/50 text-foreground";
+	const normalized = (label || "").toLowerCase();
+	const tone = badgeTone[normalized] || "border-border bg-muted/50 text-foreground";
+	const displayLabel = (label || "")
+		.replace(/_/g, " ")
+		.toLowerCase()
+		.replace(/^\w/, (c) => c.toUpperCase());
 	return (
 		<span className={cn("inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-semibold capitalize", tone)}>
-			{label}
+			{displayLabel}
 		</span>
 	);
 }
@@ -64,13 +70,22 @@ export function OrgUserDetailPage() {
 		null,
 	);
 
-	const { data, isLoading, isError, error } = useQuery({
+	const normalizeEmploymentStatus = (status?: EmploymentStatus | null) =>
+		status ? (status.toString().toUpperCase() as EmploymentStatus) : null;
+	const normalizePlatformStatus = (status?: PlatformStatus | null) =>
+		status ? (status.toString().toUpperCase() as PlatformStatus) : null;
+
+	const { data, isLoading, isError } = useQuery<OrgUserListItem>({
 		enabled: Boolean(membershipId),
 		queryKey: membershipId ? queryKeys.orgUsers.detail(membershipId) : [],
 		queryFn: () => getOrgUser(membershipId || ""),
 		onSuccess: (user) => {
-			setEmploymentStatus(user.employmentStatus);
-			setPlatformStatus(user.platformStatus);
+			setEmploymentStatus(
+				normalizeEmploymentStatus(user.membership.employment_status),
+			);
+			setPlatformStatus(
+				normalizePlatformStatus(user.membership.platform_status),
+			);
 		},
 	});
 
@@ -78,6 +93,12 @@ export function OrgUserDetailPage() {
 		mutationFn: (payload: UpdateOrgUserStatusPayload) =>
 			updateOrgUserStatus(membershipId || "", payload),
 		onSuccess: (updated) => {
+			setEmploymentStatus(
+				normalizeEmploymentStatus(updated.membership.employment_status),
+			);
+			setPlatformStatus(
+				normalizePlatformStatus(updated.membership.platform_status),
+			);
 			queryClient.invalidateQueries({
 				predicate: (query) =>
 					Array.isArray(query.queryKey) && query.queryKey[0] === "org-users",
@@ -112,22 +133,29 @@ export function OrgUserDetailPage() {
 		},
 	});
 
-	const user = data as OrgUserDetail | undefined;
+	const user = data as OrgUserListItem | undefined;
 	const name = useMemo(() => {
 		if (!user) return "User";
 		return (
-			user.user.fullName ||
-			[user.user.firstName, user.user.lastName].filter(Boolean).join(" ") ||
+			user.user.full_name ||
+			[user.user.first_name, user.user.last_name].filter(Boolean).join(" ") ||
 			user.user.email
 		);
 	}, [user]);
 
+	const toEmploymentStatus = (status?: EmploymentStatus | null) =>
+		status ? (status.toString().toUpperCase() as EmploymentStatus) : undefined;
+
+	const toPlatformStatus = (status?: PlatformStatus | null) =>
+		status ? (status.toString().toUpperCase() as PlatformStatus) : undefined;
+
 	const handleSave = () => {
-		if (!employmentStatus && !platformStatus) return;
-		mutation.mutate({
-			employment_status: employmentStatus || undefined,
-			platform_status: platformStatus || undefined,
-		});
+		const payload: UpdateOrgUserStatusPayload = {
+			employment_status: toEmploymentStatus(employmentStatus),
+			platform_status: toPlatformStatus(platformStatus),
+		};
+		if (!payload.employment_status && !payload.platform_status) return;
+		mutation.mutate(payload);
 	};
 
 	const loadingContent = (
@@ -180,34 +208,45 @@ export function OrgUserDetailPage() {
 								</div>
 							</div>
 							<div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-								{user.invitationStatus ? (
-									<StatusPill label={user.invitationStatus} />
+								{user.membership.invitation_status ? (
+									<StatusPill label={user.membership.invitation_status} />
 								) : null}
-								{user.orgId ? (
+								{user.membership.org_id ? (
 									<span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold">
-										Org {user.orgId}
+										Org {user.membership.org_id}
 									</span>
 								) : null}
-								{user.lastActiveAt ? (
+								{user.membership.last_active_at ? (
 									<span className="text-[11px]">
-										Last active: {new Date(user.lastActiveAt).toLocaleString()}
+										Last active:{" "}
+										{new Date(
+											user.membership.last_active_at
+										).toLocaleString()}
 									</span>
 								) : null}
 							</div>
 						</CardHeader>
 						<CardContent className="space-y-4">
 							<div className="grid gap-4 md:grid-cols-2">
-								<InfoItem label="Employee ID" value={user.employeeId || "—"} />
+								<InfoItem
+									label="Employee ID"
+									value={user.membership.employee_id || "—"}
+								/>
 								<InfoItem
 									label="Employment start"
 									value={
-										user.employmentStartDate
-											? new Date(user.employmentStartDate).toLocaleDateString()
+										user.membership.employment_start_date
+											? new Date(
+													user.membership.employment_start_date
+											  ).toLocaleDateString()
 											: "—"
 									}
 								/>
-								<InfoItem label="Phone" value={user.phoneNumber || "—"} />
-								<InfoItem label="Timezone" value={user.timezone || "—"} />
+								<InfoItem
+									label="Phone"
+									value={user.user.phone_number || "—"}
+								/>
+								<InfoItem label="Timezone" value={user.user.timezone || "—"} />
 							</div>
 							<Separator />
 							<div className="grid gap-4 md:grid-cols-2">
@@ -223,10 +262,10 @@ export function OrgUserDetailPage() {
 											<SelectValue />
 										</SelectTrigger>
 										<SelectContent>
-											<SelectItem value="active">Active</SelectItem>
-											<SelectItem value="inactive">Inactive</SelectItem>
-											<SelectItem value="leave">Leave</SelectItem>
-											<SelectItem value="terminated">Terminated</SelectItem>
+											<SelectItem value="ACTIVE">Active</SelectItem>
+											<SelectItem value="INACTIVE">Inactive</SelectItem>
+											<SelectItem value="LEAVE">Leave</SelectItem>
+											<SelectItem value="TERMINATED">Terminated</SelectItem>
 										</SelectContent>
 									</Select>
 								</div>
@@ -242,9 +281,11 @@ export function OrgUserDetailPage() {
 											<SelectValue />
 										</SelectTrigger>
 										<SelectContent>
-											<SelectItem value="enabled">Enabled</SelectItem>
-											<SelectItem value="disabled">Disabled</SelectItem>
-											<SelectItem value="locked">Locked</SelectItem>
+											<SelectItem value="INVITED">Invited</SelectItem>
+											<SelectItem value="ENABLED">Enabled</SelectItem>
+											<SelectItem value="DISABLED">Disabled</SelectItem>
+											<SelectItem value="LOCKED">Locked</SelectItem>
+											<SelectItem value="ACTIVE">Active</SelectItem>
 										</SelectContent>
 									</Select>
 								</div>
@@ -273,19 +314,19 @@ export function OrgUserDetailPage() {
 							</CardDescription>
 						</CardHeader>
 						<CardContent className="space-y-3">
-							<InfoItem label="Membership ID" value={user.membershipId} />
-							<InfoItem label="Org ID" value={user.orgId} />
+							<InfoItem label="Membership ID" value={user.membership.id} />
+							<InfoItem label="Org ID" value={user.membership.org_id} />
 							<InfoItem
 								label="Roles"
 								value={
-									user.roles && user.roles.length > 0
-										? user.roles.join(", ")
+									user.membership.roles && user.membership.roles.length > 0
+										? user.membership.roles.join(", ")
 										: "—"
 								}
 							/>
 							<InfoItem
 								label="Invitation status"
-								value={user.invitationStatus || "—"}
+								value={user.membership.invitation_status || "—"}
 							/>
 						</CardContent>
 					</Card>

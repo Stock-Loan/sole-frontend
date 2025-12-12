@@ -1,7 +1,12 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowUpRight, Search } from "lucide-react";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import {
+	Dialog,
+	DialogBody,
+	DialogContent,
+	DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { dashboardRoutes } from "@/app/dashboard-routes";
@@ -54,16 +59,20 @@ interface GlobalSearchProps {
 	className?: string;
 }
 
-export function GlobalSearch({ compact = false, className }: GlobalSearchProps) {
+export function GlobalSearch({
+	compact = false,
+	className,
+}: GlobalSearchProps) {
 	const navigate = useNavigate();
 	const [open, setOpen] = useState(false);
 	const [query, setQuery] = useState("");
 
-	useEffect(() => {
-		if (!open) {
+	const handleOpenChange = (nextOpen: boolean) => {
+		setOpen(nextOpen);
+		if (!nextOpen) {
 			setQuery("");
 		}
-	}, [open]);
+	};
 
 	const results = useMemo(() => {
 		const term = query.trim().toLowerCase();
@@ -74,7 +83,7 @@ export function GlobalSearch({ compact = false, className }: GlobalSearchProps) 
 			(item) =>
 				item.title.toLowerCase().includes(term) ||
 				item.description.toLowerCase().includes(term) ||
-				item.category.toLowerCase().includes(term),
+				item.category.toLowerCase().includes(term)
 		);
 	}, [query]);
 
@@ -91,7 +100,7 @@ export function GlobalSearch({ compact = false, className }: GlobalSearchProps) 
 			.map((category) => [category, groups.get(category) ?? []] as const);
 
 		const extras = Array.from(groups.entries()).filter(
-			([category]) => !orderedCategories.includes(category),
+			([category]) => !orderedCategories.includes(category)
 		);
 
 		return [...sorted, ...extras];
@@ -108,7 +117,7 @@ export function GlobalSearch({ compact = false, className }: GlobalSearchProps) 
 		: "group relative flex w-full min-w-[260px] max-w-lg items-center gap-3 rounded-xl border border-border/60 bg-background/80 px-3 py-2 text-left text-sm shadow-sm transition hover:-translate-y-[1px] hover:border-primary/50 hover:shadow-md focus-visible:outline-none focus-visible:ring-0";
 
 	return (
-		<Dialog open={open} onOpenChange={setOpen}>
+		<Dialog open={open} onOpenChange={handleOpenChange}>
 			<DialogTrigger asChild>
 				<button type="button" className={cn(triggerClasses, className)}>
 					<Search className="h-4 w-4 text-muted-foreground" />
@@ -128,8 +137,8 @@ export function GlobalSearch({ compact = false, className }: GlobalSearchProps) 
 					) : null}
 				</button>
 			</DialogTrigger>
-			<DialogContent className="w-[calc(100%-1.5rem)] max-w-3xl max-h-[90vh] overflow-auto border border-border/70 bg-background/95 p-0 shadow-2xl">
-				<div className="flex flex-col gap-4 p-5 pt-10">
+			<DialogContent>
+				<DialogBody className="flex flex-col gap-4 p-5 pt-10">
 					<div className="flex items-center gap-3 rounded-xl border border-border/60 bg-muted/30 px-3 py-3 shadow-inner">
 						<Search className="h-4 w-4 text-muted-foreground" />
 						<Input
@@ -180,7 +189,7 @@ export function GlobalSearch({ compact = false, className }: GlobalSearchProps) 
 							))
 						)}
 					</div>
-				</div>
+				</DialogBody>
 			</DialogContent>
 		</Dialog>
 	);

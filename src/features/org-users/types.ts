@@ -1,32 +1,69 @@
-export type EmploymentStatus = "active" | "inactive" | "terminated" | "leave";
-export type PlatformStatus = "enabled" | "disabled" | "locked";
-export type InvitationStatus = "pending" | "accepted" | "expired";
+export type EmploymentStatus =
+	| "ACTIVE"
+	| "INACTIVE"
+	| "TERMINATED"
+	| "LEAVE"
+	| "active"
+	| "inactive"
+	| "terminated"
+	| "leave";
+export type PlatformStatus =
+	| "INVITED"
+	| "ENABLED"
+	| "DISABLED"
+	| "LOCKED"
+	| "ACTIVE"
+	| "invited"
+	| "enabled"
+	| "disabled"
+	| "locked"
+	| "active";
+export type InvitationStatus =
+	| "PENDING"
+	| "ACCEPTED"
+	| "EXPIRED"
+	| "INVITED"
+	| "pending"
+	| "accepted"
+	| "expired"
+	| "invited";
 
-export interface UserSummary {
+export interface OrgUserDto {
 	id: string;
+	org_id: string;
 	email: string;
-	fullName: string;
-	firstName?: string | null;
-	lastName?: string | null;
+	full_name?: string | null;
+	first_name?: string | null;
+	middle_name?: string | null;
+	last_name?: string | null;
+	preferred_name?: string | null;
+	timezone?: string | null;
+	phone_number?: string | null;
+	is_active?: boolean;
+	is_superuser?: boolean;
+	created_at?: string;
 }
 
-export interface OrgMembershipSummary {
-	membershipId: string;
-	orgId: string;
-	user: UserSummary;
+export interface OrgMembershipDto {
+	id: string;
+	org_id: string;
+	user_id: string;
+	employee_id?: string | null;
+	employment_start_date?: string | null;
+	employment_status: EmploymentStatus;
+	platform_status: PlatformStatus;
+	invitation_status?: InvitationStatus;
+	invited_at?: string | null;
+	accepted_at?: string | null;
+	created_at?: string | null;
 	department?: string | null;
-	employmentStatus: EmploymentStatus;
-	platformStatus: PlatformStatus;
-	invitationStatus?: InvitationStatus;
-	lastActiveAt?: string | null;
+	last_active_at?: string | null;
 	roles?: string[];
 }
 
-export interface OrgUserDetail extends OrgMembershipSummary {
-	phoneNumber?: string | null;
-	timezone?: string | null;
-	employeeId?: string | null;
-	employmentStartDate?: string | null;
+export interface OrgUserListItem {
+	user: OrgUserDto;
+	membership: OrgMembershipDto;
 }
 
 export interface OrgUsersListParams {
@@ -39,10 +76,10 @@ export interface OrgUsersListParams {
 }
 
 export interface OrgUsersListResponse {
-	items: OrgMembershipSummary[];
-	total: number;
-	page: number;
-	page_size: number;
+	items: OrgUserListItem[];
+	total?: number;
+	page?: number;
+	page_size?: number;
 }
 
 export interface UpdateOrgUserStatusPayload {
@@ -50,23 +87,21 @@ export interface UpdateOrgUserStatusPayload {
 	platform_status?: PlatformStatus;
 }
 
-// PermissionCode-driven UI will later decide which actions to render (e.g., user.manage).
-
 export interface OnboardUserPayload {
 	email: string;
-	firstName: string;
-	lastName: string;
+	first_name: string;
+	last_name: string;
 	timezone?: string;
-	phoneNumber?: string;
-	employeeId?: string;
-	employmentStartDate?: string;
-	employmentStatus?: EmploymentStatus;
+	phone_number?: string;
+	employee_id?: string;
+	employment_start_date?: string;
+	employment_status?: EmploymentStatus;
 }
 
 export interface OnboardUserResponse {
-	membershipId: string;
-	userId: string;
-	email: string;
+	user: OrgUserDto;
+	membership: OrgMembershipDto;
+	temporary_password?: string;
 }
 
 export type BulkOnboardingRowStatus = "success" | "failure";

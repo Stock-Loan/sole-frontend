@@ -1,6 +1,6 @@
 import { apiClient } from "@/lib/apiClient";
 import type {
-	OrgUserDetail,
+	OrgUserListItem,
 	OrgUsersListParams,
 	OrgUsersListResponse,
 	OnboardUserPayload,
@@ -8,8 +8,6 @@ import type {
 	BulkOnboardingResult,
 	UpdateOrgUserStatusPayload,
 } from "../types";
-
-// Endpoint references live in docs/backend-endpoints.md. Org user endpoints below mirror that contract.
 
 export async function listOrgUsers(
 	params: OrgUsersListParams = {},
@@ -20,19 +18,17 @@ export async function listOrgUsers(
 	return response.data;
 }
 
-export async function getOrgUser(membershipId: string): Promise<OrgUserDetail> {
-	const response = await apiClient.get<OrgUserDetail>(
-		`/org/users/${membershipId}`,
-	);
+export async function getOrgUser(membershipId: string): Promise<OrgUserListItem> {
+	const response = await apiClient.get<OrgUserListItem>(`/org/users/${membershipId}`);
 	return response.data;
 }
 
 export async function updateOrgUserStatus(
 	membershipId: string,
 	payload: UpdateOrgUserStatusPayload,
-): Promise<OrgUserDetail> {
-	const response = await apiClient.patch<OrgUserDetail>(
-		`/org/users/${membershipId}/status`,
+): Promise<OrgUserListItem> {
+	const response = await apiClient.patch<OrgUserListItem>(
+		`/org/users/${membershipId}`,
 		payload,
 	);
 	return response.data;
