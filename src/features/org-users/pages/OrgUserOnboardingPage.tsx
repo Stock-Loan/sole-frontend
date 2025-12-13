@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState, useCallback } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Upload, FileDown, Loader2, ArrowLeft } from "lucide-react";
+import { Upload, FileDown, Loader2, ArrowLeft, Info } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/common/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -69,7 +69,9 @@ export function OrgUserOnboardingPage() {
 					: 0);
 			toast({
 				title: "Upload processed",
-				description: `${successCount ?? 0} succeeded, ${failureCount ?? 0} failed.`,
+				description: `${successCount ?? 0} succeeded, ${
+					failureCount ?? 0
+				} failed.`,
 			});
 			queryClient.invalidateQueries({
 				predicate: (query) =>
@@ -145,7 +147,10 @@ export function OrgUserOnboardingPage() {
 
 	const simplifyError = useCallback((raw: string | undefined | null) => {
 		if (!raw) return "Unable to process this row.";
-		const lines = raw.split("\n").map((l) => l.trim()).filter(Boolean);
+		const lines = raw
+			.split("\n")
+			.map((l) => l.trim())
+			.filter(Boolean);
 		return lines.slice(0, 3).join(" • ");
 	}, []);
 
@@ -215,6 +220,58 @@ export function OrgUserOnboardingPage() {
 					</div>
 				}
 			/>
+
+			<details className="group rounded-lg border border-dashed border-border/70 bg-muted/10 p-3 text-sm text-muted-foreground">
+				<summary className="flex cursor-pointer items-center gap-2 text-foreground">
+					<Info className="h-4 w-4 text-muted-foreground group-open:text-primary" />
+					<span className="font-semibold">CSV field guide</span>
+					<span className="text-xs text-muted-foreground">
+						(click to expand)
+					</span>
+				</summary>
+				<div className="mt-2 space-y-2 pl-6 text-xs leading-5">
+					<ol className="list-decimal space-y-1 pl-4">
+						<li>
+							Required columns: <strong>email</strong>,{" "}
+							<strong>first_name</strong>, <strong>last_name</strong>,{" "}
+							<strong>employee_id</strong>. Optional (recommended):
+							employment_start_date, employment_status, marital_status, country,
+							state, timezone, phone_number, address fields.
+						</li>
+						<li>
+							Date format: ISO <code>YYYY-MM-DD</code>. If exporting from Excel,
+							save dates as text/ISO (backend accepts serials, but ISO is
+							safer).
+						</li>
+						<li>
+							Country & state: names or codes. Examples — Countries: United
+							States / USA / US, United Kingdom / UK / GB, India / IN. States:
+							CA or California, NY or New York, England, London (maps to City of
+							London), Maharashtra (diacritics handled).
+						</li>
+						<li>
+							Timezone: IANA IDs (e.g., America/Los_Angeles, Europe/London,
+							Asia/Tokyo). Use the timezone list if unsure.
+						</li>
+						<li>
+							Marital status: SINGLE_NEVER_MARRIED, MARRIED, DIVORCED, WIDOWED,
+							SEPARATED (case-insensitive).
+						</li>
+						<li>
+							Address: address_line1, address_line2 (optional), postal_code as
+							text (preserve leading zeros).
+						</li>
+						<li>
+							Avoid merged cells/formatting: plain CSV, header row unchanged, no
+							extra columns.
+						</li>
+						<li>
+							Validation feedback: upload to see per-row successes/errors (row
+							numbers, messages). Fix only rows under errors and reupload.
+						</li>
+					</ol>
+				</div>
+			</details>
 
 			{!selectedFile ? (
 				<div
@@ -341,7 +398,9 @@ export function OrgUserOnboardingPage() {
 								{bulkRows.map((row) => (
 									<TableRow key={`${row.row}-${row.email ?? row.status}`}>
 										<TableCell className="font-semibold">{row.row}</TableCell>
-										<TableCell className="capitalize whitespace-nowrap">{row.status}</TableCell>
+										<TableCell className="capitalize whitespace-nowrap">
+											{row.status}
+										</TableCell>
 										<TableCell className="text-sm text-muted-foreground">
 											{row.message || "—"}
 										</TableCell>

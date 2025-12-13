@@ -12,7 +12,11 @@ import { AddUserDialog } from "../components/AddUserDialog";
 import { OrgUsersFilters } from "../components/OrgUsersFilters";
 import { OrgUsersTable } from "../components/OrgUsersTable";
 import { OrgUserSidePanel } from "../components/OrgUserSidePanel";
-import { listOrgUsers, onboardOrgUser } from "../api/orgUsers.api";
+import {
+	bulkDeleteOrgUsers,
+	listOrgUsers,
+	onboardOrgUser,
+} from "../api/orgUsers.api";
 import type {
 	EmploymentStatus,
 	OrgUsersListParams,
@@ -36,6 +40,7 @@ export function OrgUsersListPage() {
 		string | null
 	>(null);
 	const [isSidePanelOpen, setIsSidePanelOpen] = useState(false);
+	const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
 	useEffect(() => {
 		const timer = setTimeout(() => setDebouncedSearch(searchTerm), 300);
@@ -49,7 +54,7 @@ export function OrgUsersListPage() {
 				employmentStatus === "ALL" ? undefined : employmentStatus,
 			platform_status: platformStatus === "ALL" ? undefined : platformStatus,
 			page,
-			page_size: 10,
+			page_size: 7,
 		}),
 		[debouncedSearch, employmentStatus, platformStatus, page]
 	);
@@ -118,6 +123,51 @@ export function OrgUsersListPage() {
 		setIsSidePanelOpen(true);
 	};
 
+	const handleToggleSelect = (membershipId: string, checked: boolean) => {
+		setSelectedIds((prev) => {
+			const next = new Set(prev);
+			if (checked) {
+				next.add(membershipId);
+			} else {
+				next.delete(membershipId);
+			}
+			return next;
+		});
+	};
+
+	const handleToggleSelectAll = (checked: boolean, ids: string[]) => {
+		setSelectedIds((prev) => {
+			const next = new Set(prev);
+			if (checked) {
+				ids.forEach((id) => next.add(id));
+			} else {
+				ids.forEach((id) => next.delete(id));
+			}
+			return next;
+		});
+	};
+
+	const handleClearSelection = () => setSelectedIds(new Set());
+
+	const handleBulkDelete = async () => {
+		if (selectedIds.size === 0) return;
+		try {
+			const response = await bulkDeleteOrgUsers(Array.from(selectedIds));
+			const deletedUsers = response.deleted ?? 0;
+			const notFound = response.not_found ?? [];
+			toast({
+				title: "Users removed",
+				description: `${deletedUsers} users deleted${
+					notFound.length ? ` • Not found: ${notFound.join(", ")}` : ""
+				}.`,
+			});
+			handleClearSelection();
+			refetch();
+		} catch (err) {
+			apiErrorToast(err, "Could not delete selected users. Please try again.");
+		}
+	};
+
 	const total = data?.total;
 	const pageSize = data?.page_size ?? listParams.page_size ?? 10;
 	const hasNext =
@@ -143,6 +193,14 @@ export function OrgUsersListPage() {
 								</Button>
 							}
 						/>
+						<Button
+							variant="destructive"
+							size="sm"
+							disabled={selectedIds.size === 0}
+							onClick={handleBulkDelete}
+						>
+							Delete selected ({selectedIds.size})
+						</Button>
 						<Button variant="outline" size="sm" asChild>
 							<Link to="/app/users/onboard">
 								<Upload className="mr-2 h-4 w-4" />
@@ -172,6 +230,9 @@ export function OrgUsersListPage() {
 				isFetching={isFetching}
 				onRefresh={() => refetch()}
 				onSelect={handleSelectUser}
+				selectedIds={selectedIds}
+				onToggleSelect={handleToggleSelect}
+				onToggleSelectAll={handleToggleSelectAll}
 			/>
 			<Pagination
 				page={page}

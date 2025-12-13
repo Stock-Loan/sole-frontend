@@ -8,6 +8,7 @@ import type {
 	BulkOnboardingResult,
 	UpdateOrgUserStatusPayload,
 	UpdateOrgUserProfilePayload,
+	BulkDeleteMembershipsResponse,
 } from "../types";
 
 export async function listOrgUsers(
@@ -69,4 +70,18 @@ export async function uploadOnboardingCsv(file: File): Promise<BulkOnboardingRes
 		},
 	});
 	return response.data;
+}
+
+export async function deleteOrgUser(membershipId: string): Promise<void> {
+	await apiClient.delete(`/org/users/${membershipId}`);
+}
+
+export async function bulkDeleteOrgUsers(
+	membershipIds: string[],
+): Promise<BulkDeleteMembershipsResponse> {
+	const { data } = await apiClient.post<BulkDeleteMembershipsResponse>(
+		"/org/users/bulk/delete",
+		{ membership_ids: membershipIds },
+	);
+	return data;
 }

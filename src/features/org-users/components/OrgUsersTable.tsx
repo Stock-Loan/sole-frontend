@@ -45,6 +45,9 @@ interface OrgUsersTableProps {
 	isFetching: boolean;
 	onRefresh: () => void;
 	onSelect: (membershipId: string) => void;
+	selectedIds: Set<string>;
+	onToggleSelect: (membershipId: string, checked: boolean) => void;
+	onToggleSelectAll: (checked: boolean, ids: string[]) => void;
 }
 
 export function OrgUsersTable({
@@ -54,12 +57,32 @@ export function OrgUsersTable({
 	isFetching,
 	onRefresh,
 	onSelect,
+	selectedIds,
+	onToggleSelect,
+	onToggleSelectAll,
 }: OrgUsersTableProps) {
+	const visibleIds = items.map((item) => item.membership.id);
+	const allSelected =
+		visibleIds.length > 0 &&
+		visibleIds.every((id) => selectedIds.has(id));
+	const someSelected =
+		visibleIds.some((id) => selectedIds.has(id)) && !allSelected;
+
 	return (
 		<div className="overflow-x-auto rounded-xl border border-border/70">
 			<Table>
 				<TableHeader>
 					<TableRow className="bg-muted/40">
+						<TableHead className="w-10">
+							<Checkbox
+								checked={allSelected}
+								indeterminate={someSelected}
+								onCheckedChange={(checked) =>
+									onToggleSelectAll(Boolean(checked), visibleIds)
+								}
+								aria-label="Select all users on this page"
+							/>
+						</TableHead>
 						<TableHead className="min-w-[180px]">Full name</TableHead>
 						<TableHead>Employee ID</TableHead>
 						<TableHead>Email</TableHead>
@@ -104,6 +127,15 @@ export function OrgUsersTable({
 								.join(", ");
 							return (
 								<TableRow key={item.user.id}>
+									<TableCell className="w-10">
+										<Checkbox
+											checked={selectedIds.has(item.membership.id)}
+											onCheckedChange={(checked) =>
+												onToggleSelect(item.membership.id, Boolean(checked))
+											}
+											aria-label={`Select ${name}`}
+										/>
+									</TableCell>
 									<TableCell className="space-y-1 font-semibold text-foreground">
 										<div>{name}</div>
 										<div className="text-xs font-normal text-muted-foreground">
@@ -149,3 +181,4 @@ export function OrgUsersTable({
 		</div>
 	);
 }
+import { Checkbox } from "@/components/ui/checkbox";

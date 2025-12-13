@@ -163,3 +163,8 @@ export interface BulkOnboardingResult {
 	success_count: number;
 	failure_count: number;
 }
+
+export interface BulkDeleteMembershipsResponse {
+	deleted: number;
+	not_found?: string[];
+}

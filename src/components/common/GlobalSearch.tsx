@@ -27,6 +27,12 @@ const searchIndex: SearchItem[] = [
 		path: route.path,
 	})),
 	{
+		title: "Search org users",
+		description: "Open the org users table to filter and manage users",
+		category: "Data",
+		path: "/app/users",
+	},
+	{
 		title: "Change password",
 		description: "Update your credentials securely",
 		category: "Account",
