@@ -13,24 +13,25 @@ interface BulkUploadPreviewProps {
 	fileName?: string;
 }
 
-export function BulkUploadPreview({ headers, rows, fileName }: BulkUploadPreviewProps) {
+export function BulkUploadPreview({ headers, rows }: BulkUploadPreviewProps) {
 	if (headers.length === 0 || rows.length === 0) {
 		return null;
 	}
 
 	return (
-		<div className="space-y-2 rounded-lg border border-border/60 bg-muted/20 p-3">
-			<div className="flex items-center justify-between text-xs text-muted-foreground">
-				<span className="font-semibold text-foreground">Preview</span>
-				{fileName ? <span className="truncate">File: {fileName}</span> : null}
-			</div>
+		<div className="space-y-2 ">
 			<div className="max-h-[60vh] overflow-auto rounded-md border border-border/60">
 				<Table className="min-w-full">
-					<TableHeader className="sticky top-0 z-10 bg-muted/70 backdrop-blur">
-						<TableRow>
-							<TableHead className="w-12 min-w-[3rem] text-xs">#</TableHead>
+					<TableHeader>
+						<TableRow className="bg-muted/90 backdrop-blur supports-[backdrop-filter]:bg-muted/70">
+							<TableHead className="sticky top-0 z-20 w-12 min-w-[3rem] text-xs bg-inherit">
+								#
+							</TableHead>
 							{headers.map((header) => (
-								<TableHead key={header} className="text-xs capitalize whitespace-nowrap">
+								<TableHead
+									key={header}
+									className="sticky top-0 z-20 bg-inherit text-xs capitalize whitespace-nowrap"
+								>
 									{header}
 								</TableHead>
 							))}

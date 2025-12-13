@@ -140,12 +140,25 @@ export type BulkOnboardingRowStatus = "success" | "failure";
 export interface BulkOnboardingRowResult {
 	row: number;
 	email?: string;
+	employee_id?: string;
 	status: BulkOnboardingRowStatus;
 	message?: string;
 }
 
 export interface BulkOnboardingResult {
-	results: BulkOnboardingRowResult[];
+	results?: BulkOnboardingRowResult[];
+	errors?: Array<{
+		row_number: number;
+		email?: string;
+		employee_id?: string;
+		error: string;
+	}>;
+	successes?: Array<{
+		row_number: number;
+		email?: string;
+		employee_id?: string;
+		message?: string;
+	}>;
 	total_rows: number;
 	success_count: number;
 	failure_count: number;

@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, useCallback } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Upload, FileDown, Loader2, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -19,7 +19,7 @@ import {
 	uploadOnboardingCsv,
 } from "../api/orgUsers.api";
 import { BulkUploadPreview } from "../components/BulkUploadPreview";
-import type { BulkOnboardingResult } from "../types";
+import type { BulkOnboardingResult, BulkOnboardingRowResult } from "../types";
 
 export function OrgUserOnboardingPage() {
 	const navigate = useNavigate();
@@ -55,9 +55,21 @@ export function OrgUserOnboardingPage() {
 		mutationFn: uploadOnboardingCsv,
 		onSuccess: (result) => {
 			setBulkResult(result);
+			const successCount =
+				result.success_count ??
+				(result.successes ? result.successes.length : undefined) ??
+				(result.results
+					? result.results.filter((row) => row.status === "success").length
+					: 0);
+			const failureCount =
+				result.failure_count ??
+				(result.errors ? result.errors.length : undefined) ??
+				(result.results
+					? result.results.filter((row) => row.status === "failure").length
+					: 0);
 			toast({
 				title: "Upload processed",
-				description: `${result.success_count} succeeded, ${result.failure_count} failed.`,
+				description: `${successCount ?? 0} succeeded, ${failureCount ?? 0} failed.`,
 			});
 			queryClient.invalidateQueries({
 				predicate: (query) =>
@@ -71,15 +83,15 @@ export function OrgUserOnboardingPage() {
 			),
 	});
 
-	const bulkRows = useMemo(() => bulkResult?.results ?? [], [bulkResult]);
-
 	const parseCsv = (text: string) => {
 		const lines = text.split(/\r?\n/).filter((line) => line.trim().length > 0);
 		if (lines.length === 0) {
 			throw new Error("CSV appears empty.");
 		}
 		const headers = lines[0].split(",").map((h) => h.trim());
-		const rows = lines.slice(1).map((line) => line.split(",").map((cell) => cell.trim()));
+		const rows = lines
+			.slice(1)
+			.map((line) => line.split(",").map((cell) => cell.trim()));
 		return {
 			headers,
 			rows: rows.slice(0, 50), // limit preview
@@ -100,7 +112,9 @@ export function OrgUserOnboardingPage() {
 			setPreviewRows(parsed.rows);
 		} catch (err) {
 			console.error("CSV parse error", err);
-			setPreviewError("Could not read this CSV. Please check the file and try again.");
+			setPreviewError(
+				"Could not read this CSV. Please check the file and try again."
+			);
 		}
 	};
 
@@ -128,6 +142,47 @@ export function OrgUserOnboardingPage() {
 		if (!selectedFile) return;
 		uploadMutation.mutate(selectedFile);
 	};
+
+	const simplifyError = useCallback((raw: string | undefined | null) => {
+		if (!raw) return "Unable to process this row.";
+		const lines = raw.split("\n").map((l) => l.trim()).filter(Boolean);
+		return lines.slice(0, 3).join(" • ");
+	}, []);
+
+	const mapErrorRows = useMemo(
+		() => (result: BulkOnboardingResult | null) => {
+			if (!result) return [];
+			const errors = result.errors ?? [];
+			const successes = result.successes ?? [];
+			const normalizedErrors: BulkOnboardingRowResult[] = errors.map((err) => ({
+				row: err.row_number,
+				email: err.email,
+				employee_id: err.employee_id,
+				status: "failure",
+				message: simplifyError(err.error),
+			}));
+			const normalizedSuccesses: BulkOnboardingRowResult[] = successes.map(
+				(row) => ({
+					row: row.row_number,
+					email: row.email,
+					employee_id: row.employee_id,
+					status: "success",
+					message: row.message || "Processed",
+				})
+			);
+			return [...normalizedSuccesses, ...normalizedErrors].sort(
+				(a, b) => a.row - b.row
+			);
+		},
+		[simplifyError]
+	);
+
+	const bulkRows = useMemo(() => {
+		if (bulkResult?.results && bulkResult.results.length > 0) {
+			return bulkResult.results;
+		}
+		return mapErrorRows(bulkResult);
+	}, [bulkResult, mapErrorRows]);
 
 	return (
 		<div className="space-y-6">
@@ -177,10 +232,12 @@ export function OrgUserOnboardingPage() {
 				>
 					<div className="flex items-start justify-between gap-3">
 						<div className="space-y-1 text-sm text-muted-foreground">
-							<p className="text-foreground font-semibold">Drop your CSV here or click to browse.</p>
+							<p className="text-foreground font-semibold">
+								Drop your CSV here or click to browse.
+							</p>
 							<p className="text-xs">
-								Columns: email, first_name, last_name, timezone, phone_number, employee_id,
-								employment_start_date, employment_status.
+								Columns: email, first_name, last_name, timezone, phone_number,
+								employee_id, employment_start_date, employment_status.
 							</p>
 						</div>
 						<div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -226,7 +283,9 @@ export function OrgUserOnboardingPage() {
 				<div className="space-y-3 rounded-lg border border-border/70 bg-muted/20 p-4">
 					<div className="flex items-center justify-between gap-2">
 						<div className="space-y-1 text-sm">
-							<p className="font-semibold text-foreground">{selectedFile.name}</p>
+							<p className="font-semibold text-foreground">
+								{selectedFile.name}
+							</p>
 							<p className="text-xs text-muted-foreground">
 								Review the preview below, then upload to process.
 							</p>
@@ -269,24 +328,20 @@ export function OrgUserOnboardingPage() {
 			)}
 			{bulkRows.length > 0 ? (
 				<div className="overflow-hidden rounded-lg border border-border/60">
-					<Table>
-						<TableHeader>
-							<TableRow className="bg-muted/40">
-								<TableHead>Row</TableHead>
-								<TableHead>Email</TableHead>
-								<TableHead>Status</TableHead>
-								<TableHead>Message</TableHead>
-							</TableRow>
-						</TableHeader>
-					</Table>
 					<div className="max-h-80 overflow-y-auto">
-						<Table>
+						<Table className="min-w-full">
+							<TableHeader className="sticky top-0 z-10 bg-muted/70 backdrop-blur">
+								<TableRow>
+									<TableHead className="w-16">Row</TableHead>
+									<TableHead className="w-32">Status</TableHead>
+									<TableHead>Message</TableHead>
+								</TableRow>
+							</TableHeader>
 							<TableBody>
 								{bulkRows.map((row) => (
 									<TableRow key={`${row.row}-${row.email ?? row.status}`}>
 										<TableCell className="font-semibold">{row.row}</TableCell>
-										<TableCell>{row.email || "—"}</TableCell>
-										<TableCell className="capitalize">{row.status}</TableCell>
+										<TableCell className="capitalize whitespace-nowrap">{row.status}</TableCell>
 										<TableCell className="text-sm text-muted-foreground">
 											{row.message || "—"}
 										</TableCell>

@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import { Loader2, RefreshCw, Upload, UserPlus } from "lucide-react";
+import { RefreshCw, Upload, UserPlus } from "lucide-react";
 import { isAxiosError } from "axios";
 import { PageHeader } from "@/components/common/PageHeader";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import { queryKeys } from "@/lib/queryKeys";
+import { Pagination } from "@/components/ui/pagination";
 import { AddUserDialog } from "../components/AddUserDialog";
 import { OrgUsersFilters } from "../components/OrgUsersFilters";
 import { OrgUsersTable } from "../components/OrgUsersTable";
@@ -117,11 +118,12 @@ export function OrgUsersListPage() {
 		setIsSidePanelOpen(true);
 	};
 
-	const total = data?.total ?? data?.items?.length ?? 0;
+	const total = data?.total;
 	const pageSize = data?.page_size ?? listParams.page_size ?? 10;
-	const totalPages = Math.max(1, Math.ceil(total / pageSize));
-	const hasNext = page < totalPages;
-	const hasPrev = page > 1;
+	const hasNext =
+		typeof total === "number"
+			? page * pageSize < total
+			: (data?.items?.length ?? 0) === pageSize;
 
 	return (
 		<div className="space-y-6">
@@ -171,37 +173,14 @@ export function OrgUsersListPage() {
 				onRefresh={() => refetch()}
 				onSelect={handleSelectUser}
 			/>
-			<div className="flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
-				<div className="flex items-center gap-2">
-					<span>
-						Page {page} of {totalPages} • {total} users
-					</span>
-					{isFetching ? (
-						<span className="flex items-center gap-1 text-xs">
-							<Loader2 className="h-3.5 w-3.5 animate-spin" />
-							Updating…
-						</span>
-					) : null}
-				</div>
-				<div className="flex items-center gap-2">
-					<Button
-						variant="outline"
-						size="sm"
-						disabled={!hasPrev || isFetching}
-						onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-					>
-						Previous
-					</Button>
-					<Button
-						variant="outline"
-						size="sm"
-						disabled={!hasNext || isFetching}
-						onClick={() => setPage((prev) => prev + 1)}
-					>
-						Next
-					</Button>
-				</div>
-			</div>
+			<Pagination
+				page={page}
+				pageSize={pageSize}
+				total={total}
+				hasNext={hasNext}
+				isLoading={isFetching}
+				onPageChange={setPage}
+			/>
 			<OrgUserSidePanel
 				membershipId={selectedMembershipId}
 				open={isSidePanelOpen}
