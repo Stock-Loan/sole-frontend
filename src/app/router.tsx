@@ -12,6 +12,7 @@ import { OrgUsersListPage } from "@/features/org-users/pages/OrgUsersListPage";
 import { OrgUserOnboardingPage } from "@/features/org-users/pages/OrgUserOnboardingPage";
 import { OverviewPage } from "@/pages/OverviewPage";
 import { PlaceholderPage } from "@/pages/PlaceholderPage";
+import { UserSettingsPage } from "@/features/user-settings/pages/UserSettingsPage";
 import { AppErrorBoundary } from "./error-boundary";
 
 export const router = createBrowserRouter([
@@ -104,6 +105,10 @@ export const router = createBrowserRouter([
 						description="Org-level privacy, security, and retention configuration."
 					/>
 				),
+			},
+			{
+				path: "user-settings",
+				element: <UserSettingsPage />,
 			},
 		],
 	},

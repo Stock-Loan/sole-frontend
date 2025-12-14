@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import { SideModal } from "@/components/ui/side-modal";
@@ -22,22 +22,30 @@ export function OrgUserSidePanel({
 	onUpdated = () => undefined,
 }: OrgUserSidePanelProps) {
 	const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
+	const enabled = open && Boolean(membershipId);
+	const detailKey = useMemo(
+		() => queryKeys.orgUsers.detail(membershipId || "pending"),
+		[membershipId]
+	);
 
 	const {
 		data: user,
 		isLoading,
-	} = useQuery<OrgUserListItem>({
-		enabled: open && Boolean(membershipId),
-		queryKey: membershipId ? queryKeys.orgUsers.detail(membershipId) : [],
+		isError,
+	} = useQuery<OrgUserListItem, Error, OrgUserListItem>({
+		enabled,
+		queryKey: detailKey,
 		queryFn: () => getOrgUser(membershipId || ""),
-		onError: () => {
-			toast({
-				variant: "destructive",
-				title: "Failed to load user",
-				description: "Unable to fetch this user right now. Please try again.",
-			});
-		},
 	});
+
+	useEffect(() => {
+		if (!isError) return;
+		toast({
+			variant: "destructive",
+			title: "Failed to load user",
+			description: "Unable to fetch this user right now. Please try again.",
+		});
+	}, [isError]);
 
 	const infoItems =
 		user?.user && user?.membership

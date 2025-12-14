@@ -10,6 +10,7 @@ export const routes = {
 	departments: "/app/departments",
 	announcements: "/app/announcements",
 	orgSettings: "/app/settings",
+	userSettings: "/app/user-settings",
 	notAuthorized: "/not-authorized",
 } as const;
 

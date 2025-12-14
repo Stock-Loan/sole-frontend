@@ -110,6 +110,7 @@ export interface OnboardUserPayload {
 	employee_id?: string;
 	employment_start_date?: string;
 	employment_status?: EmploymentStatus;
+	temporary_password?: string;
 }
 
 export interface OnboardUserResponse {

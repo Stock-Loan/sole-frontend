@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import { queryKeys } from "@/lib/queryKeys";
 import { Pagination } from "@/components/ui/pagination";
+import { useApiErrorToast } from "@/hooks/useApiErrorToast";
 import { AddUserDialog } from "../components/AddUserDialog";
 import { OrgUsersFilters } from "../components/OrgUsersFilters";
 import { OrgUsersTable } from "../components/OrgUsersTable";
@@ -41,6 +42,7 @@ export function OrgUsersListPage() {
 	>(null);
 	const [isSidePanelOpen, setIsSidePanelOpen] = useState(false);
 	const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+	const apiErrorToast = useApiErrorToast();
 
 	useEffect(() => {
 		const timer = setTimeout(() => setDebouncedSearch(searchTerm), 300);
@@ -51,8 +53,13 @@ export function OrgUsersListPage() {
 		() => ({
 			search: debouncedSearch || undefined,
 			employment_status:
-				employmentStatus === "ALL" ? undefined : employmentStatus,
-			platform_status: platformStatus === "ALL" ? undefined : platformStatus,
+				employmentStatus === "ALL"
+					? undefined
+					: (employmentStatus?.toString().toUpperCase() as EmploymentStatus),
+			platform_status:
+				platformStatus === "ALL"
+					? undefined
+					: (platformStatus?.toString().toUpperCase() as PlatformStatus),
 			page,
 			page_size: 7,
 		}),
@@ -63,7 +70,7 @@ export function OrgUsersListPage() {
 		useQuery<OrgUsersListResponse>({
 			queryKey: queryKeys.orgUsers.list(listParams),
 			queryFn: () => listOrgUsers(listParams),
-			keepPreviousData: true,
+			placeholderData: (previousData) => previousData,
 		});
 
 	useEffect(() => {

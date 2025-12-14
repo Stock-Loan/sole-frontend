@@ -104,7 +104,9 @@ export function OrgUserProfileDialog({
 	useEffect(() => {
 		if (!user) return;
 		const normalizedEmployment =
-			(user.membership.employment_status || "ACTIVE").toString().toUpperCase() as EmploymentStatus;
+			(user.membership.employment_status || "ACTIVE")
+				.toString()
+				.toUpperCase() as ProfileFormValues["employment_status"];
 		form.reset({
 			email: user.user.email || "",
 			first_name: user.user.first_name || "",
@@ -176,10 +178,10 @@ export function OrgUserProfileDialog({
 			description="Update user contact, address, and employment status."
 			actions={[
 				{
-					label: profileMutation.isLoading ? "Saving..." : "Save profile",
+					label: profileMutation.isPending ? "Saving..." : "Save profile",
 					type: "submit",
 					form: "profile-edit-form",
-					loading: profileMutation.isLoading,
+					loading: profileMutation.isPending,
 				},
 			]}
 		>

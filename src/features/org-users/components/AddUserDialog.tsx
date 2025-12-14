@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { isAxiosError } from "axios";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -22,7 +23,7 @@ import {
 import { TimezoneSelect } from "@/features/meta/components/TimezoneSelect";
 import { useCountries } from "@/features/meta/hooks/useCountries";
 import { useSubdivisions } from "@/features/meta/hooks/useSubdivisions";
-import { useApiErrorToast } from "@/hooks/useApiErrorToast";
+import { useToast } from "@/components/ui/use-toast";
 import type { EmploymentStatus, OnboardUserPayload } from "../types";
 
 const formSchema = z.object({
@@ -42,6 +43,7 @@ const formSchema = z.object({
 	employee_id: z.string().optional(),
 	employment_start_date: z.string().optional(),
 	employment_status: z.enum(["ACTIVE", "INACTIVE", "LEAVE", "TERMINATED"]),
+	temporary_password: z.string().optional(),
 });
 
 export type AddUserFormValues = z.infer<typeof formSchema>;
@@ -63,6 +65,7 @@ const defaultValues: AddUserFormValues = {
 	address_line1: "",
 	address_line2: "",
 	postal_code: "",
+	temporary_password: "",
 };
 
 interface AddUserDialogProps {
@@ -78,7 +81,7 @@ export function AddUserDialog({
 	onSubmit,
 	trigger,
 }: AddUserDialogProps) {
-	const apiErrorToast = useApiErrorToast();
+	const { toast } = useToast();
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [selectedCountry, setSelectedCountry] = useState<string>("");
 
@@ -111,7 +114,13 @@ export function AddUserDialog({
 			form.reset(defaultValues);
 			onOpenChange(false);
 		} catch (err) {
-			apiErrorToast(err, "Unable to onboard user right now.");
+			const message =
+				extractErrorMessage(err) || "Unable to onboard user right now.";
+			toast({
+				variant: "destructive",
+				title: "Onboarding failed",
+				description: message,
+			});
 		} finally {
 			setIsSubmitting(false);
 		}
@@ -195,33 +204,64 @@ export function AddUserDialog({
 							)}
 						/>
 					</div>
-					<FormField
-						control={form.control}
-						name="email"
-						render={({ field }) => (
-							<FormItem>
-								<FormLabel>Email</FormLabel>
-								<FormControl>
-									<Input
-										type="email"
-										placeholder="user@example.com"
-										{...field}
-									/>
-								</FormControl>
-								<FormMessage />
-							</FormItem>
-						)}
-					/>
+
+					<div className="grid gap-3 md:grid-cols-2">
+						<FormField
+							control={form.control}
+							name="email"
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>Email</FormLabel>
+									<FormControl>
+										<Input
+											type="email"
+											placeholder="user@example.com"
+											{...field}
+										/>
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+						<FormField
+							control={form.control}
+							name="employment_status"
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>Employment status</FormLabel>
+									<FormControl>
+										<Select
+											value={field.value}
+											onValueChange={(val) =>
+												field.onChange(val as EmploymentStatus)
+											}
+										>
+											<SelectTrigger>
+												<SelectValue placeholder="Select status" />
+											</SelectTrigger>
+											<SelectContent>
+												<SelectItem value="ACTIVE">Active</SelectItem>
+												<SelectItem value="INACTIVE">Inactive</SelectItem>
+												<SelectItem value="LEAVE">Leave</SelectItem>
+												<SelectItem value="TERMINATED">Terminated</SelectItem>
+											</SelectContent>
+										</Select>
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+					</div>
 					<div className="grid gap-3 md:grid-cols-2">
 						<FormField
 							control={form.control}
 							name="phone_number"
 							render={({ field }) => (
-							<FormItem>
-								<FormLabel>Phone</FormLabel>
-								<FormControl>
-									<Input placeholder="+1 555 0100" {...field} />
-								</FormControl>
+								<FormItem>
+									<FormLabel>Phone</FormLabel>
+									<FormControl>
+										<Input placeholder="+1 555 0100" {...field} />
+									</FormControl>
 									<FormMessage />
 								</FormItem>
 							)}
@@ -278,7 +318,13 @@ export function AddUserDialog({
 										onValueChange={(code) => handleCountryChange(code)}
 									>
 										<SelectTrigger>
-											<SelectValue placeholder={isCountriesLoading ? "Loading countries..." : "Select country"} />
+											<SelectValue
+												placeholder={
+													isCountriesLoading
+														? "Loading countries..."
+														: "Select country"
+												}
+											/>
 										</SelectTrigger>
 										<SelectContent>
 											{countries.map((country) => (
@@ -315,7 +361,13 @@ export function AddUserDialog({
 										onValueChange={field.onChange}
 									>
 										<SelectTrigger>
-											<SelectValue placeholder={isSubLoading ? "Loading subdivisions..." : "Select state"} />
+											<SelectValue
+												placeholder={
+													isSubLoading
+														? "Loading subdivisions..."
+														: "Select state"
+												}
+											/>
 										</SelectTrigger>
 										<SelectContent>
 											{subdivisions.map((sub) => (
@@ -325,7 +377,9 @@ export function AddUserDialog({
 											))}
 										</SelectContent>
 									</Select>
-									{!isSubLoading && subdivisions.length === 0 && selectedCountry ? (
+									{!isSubLoading &&
+									subdivisions.length === 0 &&
+									selectedCountry ? (
 										<button
 											type="button"
 											className="text-xs font-semibold text-primary underline"
@@ -407,35 +461,59 @@ export function AddUserDialog({
 								</FormItem>
 							)}
 						/>
+						<FormField
+							control={form.control}
+							name="temporary_password"
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>Temporary password (optional)</FormLabel>
+									<FormControl>
+										<Input
+											type="text"
+											placeholder="TempPass123!"
+											autoComplete="new-password"
+											{...field}
+										/>
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
 					</div>
-					<FormField
-						control={form.control}
-						name="employment_status"
-						render={({ field }) => (
-							<FormItem>
-								<FormLabel>Employment status</FormLabel>
-								<FormControl>
-									<Select
-										value={field.value}
-										onValueChange={(val) => field.onChange(val as EmploymentStatus)}
-									>
-										<SelectTrigger>
-											<SelectValue placeholder="Select status" />
-										</SelectTrigger>
-										<SelectContent>
-											<SelectItem value="ACTIVE">Active</SelectItem>
-											<SelectItem value="INACTIVE">Inactive</SelectItem>
-											<SelectItem value="LEAVE">Leave</SelectItem>
-											<SelectItem value="TERMINATED">Terminated</SelectItem>
-										</SelectContent>
-									</Select>
-								</FormControl>
-								<FormMessage />
-							</FormItem>
-						)}
-					/>
 				</form>
 			</Form>
 		</AppDialog>
 	);
+}
+
+function extractErrorMessage(error: unknown): string | null {
+	if (isAxiosError(error)) {
+		const data = error.response?.data as
+			| { detail?: unknown; message?: unknown }
+			| string
+			| undefined;
+		if (typeof data === "string") return data;
+		const detail = data?.detail ?? data?.message;
+		const messageFromDetail = pickMessage(detail);
+		if (messageFromDetail) return messageFromDetail;
+		if (typeof error.message === "string") return error.message;
+	} else if (error instanceof Error) {
+		return error.message;
+	}
+	return null;
+}
+
+function pickMessage(detail: unknown): string | null {
+	if (!detail) return null;
+	if (typeof detail === "string") return detail;
+	if (Array.isArray(detail) && detail.length) {
+		return pickMessage(detail[0]);
+	}
+	if (typeof detail === "object") {
+		const record = detail as Record<string, unknown>;
+		if (typeof record.msg === "string") return record.msg;
+		if (typeof record.message === "string") return record.message;
+		if (typeof record.detail === "string") return record.detail;
+	}
+	return null;
 }

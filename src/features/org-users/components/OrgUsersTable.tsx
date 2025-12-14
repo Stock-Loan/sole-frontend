@@ -87,6 +87,7 @@ export function OrgUsersTable({
 						<TableHead>Employee ID</TableHead>
 						<TableHead>Email</TableHead>
 						<TableHead>Employment status</TableHead>
+						<TableHead>Platform status</TableHead>
 						<TableHead className="text-right">Actions</TableHead>
 					</TableRow>
 				</TableHeader>
@@ -122,6 +123,7 @@ export function OrgUsersTable({
 									.trim() ||
 								item.user.email;
 							const employmentStatus = item.membership.employment_status || "";
+							const platformStatus = item.membership.platform_status || "";
 							const location = [item.user.state, item.user.country]
 								.filter(Boolean)
 								.join(", ");
@@ -151,6 +153,12 @@ export function OrgUsersTable({
 										<StatusBadge
 											label={employmentStatus}
 											variant={employmentStatus}
+										/>
+									</TableCell>
+									<TableCell>
+										<StatusBadge
+											label={platformStatus}
+											variant={platformStatus}
 										/>
 									</TableCell>
 									<TableCell className="text-right">

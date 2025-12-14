@@ -235,8 +235,9 @@ export function OrgUserOnboardingPage() {
 							Required columns: <strong>email</strong>,{" "}
 							<strong>first_name</strong>, <strong>last_name</strong>,{" "}
 							<strong>employee_id</strong>. Optional (recommended):
-							employment_start_date, employment_status, marital_status, country,
-							state, timezone, phone_number, address fields.
+							temporary_password, employment_start_date, employment_status,
+							marital_status, country, state, timezone, phone_number, address
+							fields.
 						</li>
 						<li>
 							Date format: ISO <code>YYYY-MM-DD</code>. If exporting from Excel,
@@ -293,8 +294,9 @@ export function OrgUserOnboardingPage() {
 								Drop your CSV here or click to browse.
 							</p>
 							<p className="text-xs">
-								Columns: email, first_name, last_name, timezone, phone_number,
-								employee_id, employment_start_date, employment_status.
+							Columns: email, first_name, last_name, timezone, phone_number,
+								employee_id, employment_start_date, employment_status,
+								temporary_password.
 							</p>
 						</div>
 						<div className="flex items-center gap-2 text-xs text-muted-foreground">
