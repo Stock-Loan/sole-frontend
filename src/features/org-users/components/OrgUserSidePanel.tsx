@@ -132,7 +132,7 @@ function InfoGrid({ items }: { items: { label: string; value?: string | null }[]
 
 function InfoRow({ label, value }: { label: string; value?: string | null }) {
 	return (
-		<div className="space-y-1 rounded-lg border border-border/60 bg-muted/30 px-3 py-2">
+		<div className="space-y-1 px-3 py-2">
 			<p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
 				{label}
 			</p>
