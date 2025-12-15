@@ -1,8 +1,6 @@
 import { useState } from "react";
-import { isAxiosError } from "axios";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { AppDialog } from "@/components/ui/dialog";
 import {
 	Form,
@@ -24,56 +22,13 @@ import { TimezoneSelect } from "@/features/meta/components/TimezoneSelect";
 import { useCountries } from "@/features/meta/hooks/useCountries";
 import { useSubdivisions } from "@/features/meta/hooks/useSubdivisions";
 import { useToast } from "@/components/ui/use-toast";
-import type { EmploymentStatus, OnboardUserPayload } from "../types";
-
-const formSchema = z.object({
-	email: z.string().email("Enter a valid email"),
-	first_name: z.string().min(1, "First name is required"),
-	middle_name: z.string().optional(),
-	last_name: z.string().min(1, "Last name is required"),
-	preferred_name: z.string().optional(),
-	phone_number: z.string().optional(),
-	timezone: z.string().optional(),
-	marital_status: z.string().min(1, "Select marital status"),
-	country: z.string().min(1, "Select a country"),
-	state: z.string().min(1, "Select a state"),
-	address_line1: z.string().min(1, "Address line 1 is required"),
-	address_line2: z.string().optional(),
-	postal_code: z.string().min(1, "Postal code is required"),
-	employee_id: z.string().optional(),
-	employment_start_date: z.string().optional(),
-	employment_status: z.enum(["ACTIVE", "INACTIVE", "LEAVE", "TERMINATED"]),
-	temporary_password: z.string().optional(),
-});
-
-export type AddUserFormValues = z.infer<typeof formSchema>;
-
-const defaultValues: AddUserFormValues = {
-	email: "",
-	first_name: "",
-	middle_name: "",
-	last_name: "",
-	preferred_name: "",
-	employment_status: "ACTIVE",
-	timezone: "",
-	phone_number: "",
-	employee_id: "",
-	employment_start_date: "",
-	marital_status: "",
-	country: "",
-	state: "",
-	address_line1: "",
-	address_line2: "",
-	postal_code: "",
-	temporary_password: "",
-};
-
-interface AddUserDialogProps {
-	open: boolean;
-	onOpenChange: (open: boolean) => void;
-	onSubmit: (values: OnboardUserPayload) => Promise<void>;
-	trigger: React.ReactNode;
-}
+import type {
+	AddUserDialogProps,
+	AddUserFormValues,
+	EmploymentStatus,
+} from "../types";
+import { extractErrorMessage, formSchema } from "@/lib/utils";
+import { defaultValues } from "../constants";
 
 export function AddUserDialog({
 	open,
@@ -484,36 +439,4 @@ export function AddUserDialog({
 			</Form>
 		</AppDialog>
 	);
-}
-
-function extractErrorMessage(error: unknown): string | null {
-	if (isAxiosError(error)) {
-		const data = error.response?.data as
-			| { detail?: unknown; message?: unknown }
-			| string
-			| undefined;
-		if (typeof data === "string") return data;
-		const detail = data?.detail ?? data?.message;
-		const messageFromDetail = pickMessage(detail);
-		if (messageFromDetail) return messageFromDetail;
-		if (typeof error.message === "string") return error.message;
-	} else if (error instanceof Error) {
-		return error.message;
-	}
-	return null;
-}
-
-function pickMessage(detail: unknown): string | null {
-	if (!detail) return null;
-	if (typeof detail === "string") return detail;
-	if (Array.isArray(detail) && detail.length) {
-		return pickMessage(detail[0]);
-	}
-	if (typeof detail === "object") {
-		const record = detail as Record<string, unknown>;
-		if (typeof record.msg === "string") return record.msg;
-		if (typeof record.message === "string") return record.message;
-		if (typeof record.detail === "string") return record.detail;
-	}
-	return null;
 }

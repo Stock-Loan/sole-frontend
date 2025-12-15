@@ -7,16 +7,11 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import type { EmploymentStatus, PlatformStatus } from "../types";
-
-interface OrgUsersFiltersProps {
-	search: string;
-	onSearchChange: (value: string) => void;
-	employmentStatus: EmploymentStatus | "ALL";
-	onEmploymentChange: (value: EmploymentStatus | "ALL") => void;
-	platformStatus: PlatformStatus | "ALL";
-	onPlatformChange: (value: PlatformStatus | "ALL") => void;
-}
+import type {
+	EmploymentStatus,
+	OrgUsersFiltersProps,
+	PlatformStatus,
+} from "../types";
 
 export function OrgUsersFilters({
 	search,
@@ -27,7 +22,7 @@ export function OrgUsersFilters({
 	onPlatformChange,
 }: OrgUsersFiltersProps) {
 	return (
-		<div className="grid gap-3 md:grid-cols-[2fr_1fr_1fr]">
+		<div className="grid gap-3 md:grid-cols-[2fr_1fr_1fr] mb-5">
 			<div className="relative">
 				<Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 				<Input
@@ -39,7 +34,9 @@ export function OrgUsersFilters({
 			</div>
 			<Select
 				value={employmentStatus}
-				onValueChange={(value) => onEmploymentChange(value as EmploymentStatus | "ALL")}
+				onValueChange={(value) =>
+					onEmploymentChange(value as EmploymentStatus | "ALL")
+				}
 			>
 				<SelectTrigger>
 					<SelectValue placeholder="Employment status" />
@@ -54,7 +51,9 @@ export function OrgUsersFilters({
 			</Select>
 			<Select
 				value={platformStatus}
-				onValueChange={(value) => onPlatformChange(value as PlatformStatus | "ALL")}
+				onValueChange={(value) =>
+					onPlatformChange(value as PlatformStatus | "ALL")
+				}
 			>
 				<SelectTrigger>
 					<SelectValue placeholder="Platform status" />

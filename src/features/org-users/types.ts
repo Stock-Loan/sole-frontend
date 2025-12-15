@@ -1,3 +1,6 @@
+import type { formSchema, profileSchema } from "@/lib/utils";
+import { z } from "zod";
+
 export type EmploymentStatus =
 	| "ACTIVE"
 	| "INACTIVE"
@@ -65,6 +68,7 @@ export interface OrgMembershipDto {
 	department?: string | null;
 	last_active_at?: string | null;
 	roles?: string[];
+	role_ids?: string[];
 }
 
 export interface OrgUserListItem {
@@ -168,4 +172,49 @@ export interface BulkOnboardingResult {
 export interface BulkDeleteMembershipsResponse {
 	deleted: number;
 	not_found?: string[];
+}
+export interface BulkUploadPreviewProps {
+	headers: string[];
+	rows: string[][];
+	fileName?: string;
+}
+export interface AddUserDialogProps {
+	open: boolean;
+	onOpenChange: (open: boolean) => void;
+	onSubmit: (values: OnboardUserPayload) => Promise<void>;
+	trigger: React.ReactNode;
+}
+export type AddUserFormValues = z.infer<typeof formSchema>;
+export type ProfileFormValues = z.infer<typeof profileSchema>;
+export interface OrgUserProfileDialogProps {
+	open: boolean;
+	onOpenChange: (open: boolean) => void;
+	user: OrgUserListItem | null;
+	membershipId: string | null;
+	onUpdated: () => void;
+}
+export interface OrgUsersFiltersProps {
+	search: string;
+	onSearchChange: (value: string) => void;
+	employmentStatus: EmploymentStatus | "ALL";
+	onEmploymentChange: (value: EmploymentStatus | "ALL") => void;
+	platformStatus: PlatformStatus | "ALL";
+	onPlatformChange: (value: PlatformStatus | "ALL") => void;
+}
+export interface OrgUserSidePanelProps {
+	membershipId: string | null;
+	open: boolean;
+	onOpenChange: (open: boolean) => void;
+	onUpdated?: () => void;
+}
+export interface OrgUsersTableProps {
+	items: OrgUserListItem[];
+	isLoading: boolean;
+	isError: boolean;
+	isFetching: boolean;
+	onRefresh: () => void;
+	onSelect: (membershipId: string) => void;
+	selectedIds: Set<string>;
+	onToggleSelect: (membershipId: string, checked: boolean) => void;
+	onToggleSelectAll: (checked: boolean, ids: string[]) => void;
 }

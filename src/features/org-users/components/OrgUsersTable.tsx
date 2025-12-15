@@ -1,4 +1,5 @@
 import { Loader2, RefreshCw } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
 	Table,
@@ -9,14 +10,8 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import type { OrgUserListItem } from "../types";
-
-const statusTone: Record<string, string> = {
-	active: "border-emerald-200 bg-emerald-50 text-emerald-700",
-	inactive: "border-slate-200 bg-slate-50 text-slate-700",
-	terminated: "border-rose-200 bg-rose-50 text-rose-700",
-	leave: "border-amber-200 bg-amber-50 text-amber-700",
-};
+import { routes } from "@/lib/routes";
+import type { OrgUsersTableProps } from "../types";
 
 function StatusBadge({ label, variant }: { label: string; variant: string }) {
 	const normalized = (variant || "").toLowerCase();
@@ -38,18 +33,6 @@ function StatusBadge({ label, variant }: { label: string; variant: string }) {
 	);
 }
 
-interface OrgUsersTableProps {
-	items: OrgUserListItem[];
-	isLoading: boolean;
-	isError: boolean;
-	isFetching: boolean;
-	onRefresh: () => void;
-	onSelect: (membershipId: string) => void;
-	selectedIds: Set<string>;
-	onToggleSelect: (membershipId: string, checked: boolean) => void;
-	onToggleSelectAll: (checked: boolean, ids: string[]) => void;
-}
-
 export function OrgUsersTable({
 	items,
 	isLoading,
@@ -63,8 +46,7 @@ export function OrgUsersTable({
 }: OrgUsersTableProps) {
 	const visibleIds = items.map((item) => item.membership.id);
 	const allSelected =
-		visibleIds.length > 0 &&
-		visibleIds.every((id) => selectedIds.has(id));
+		visibleIds.length > 0 && visibleIds.every((id) => selectedIds.has(id));
 	const someSelected =
 		visibleIds.some((id) => selectedIds.has(id)) && !allSelected;
 
@@ -105,7 +87,9 @@ export function OrgUsersTable({
 						<TableRow>
 							<TableCell colSpan={8}>
 								<div className="flex items-center justify-between rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
-									<p>We couldn&rsquo;t load users right now. Please try again.</p>
+									<p>
+										We couldn&rsquo;t load users right now. Please try again.
+									</p>
 									<Button variant="outline" size="sm" onClick={onRefresh}>
 										<RefreshCw className="mr-2 h-4 w-4" />
 										Retry
@@ -139,7 +123,17 @@ export function OrgUsersTable({
 										/>
 									</TableCell>
 									<TableCell className="space-y-1 font-semibold text-foreground">
-										<div>{name}</div>
+										<div>
+											<Link
+												to={routes.userDetail.replace(
+													":membershipId",
+													item.membership.id
+												)}
+												className="text-primary underline-offset-4 hover:underline"
+											>
+												{name}
+											</Link>
+										</div>
 										<div className="text-xs font-normal text-muted-foreground">
 											{item.user.email}
 											{location ? ` • ${location}` : ""}
@@ -148,7 +142,9 @@ export function OrgUsersTable({
 									<TableCell className="text-muted-foreground">
 										{item.membership.employee_id || "—"}
 									</TableCell>
-									<TableCell className="text-muted-foreground">{item.user.email}</TableCell>
+									<TableCell className="text-muted-foreground">
+										{item.user.email}
+									</TableCell>
 									<TableCell>
 										<StatusBadge
 											label={employmentStatus}
@@ -162,8 +158,12 @@ export function OrgUsersTable({
 										/>
 									</TableCell>
 									<TableCell className="text-right">
-										<Button variant="outline" size="sm" onClick={() => onSelect(item.membership.id)}>
-											View
+										<Button
+											variant="outline"
+											size="sm"
+											onClick={() => onSelect(item.membership.id)}
+										>
+											Quick view
 										</Button>
 									</TableCell>
 								</TableRow>
@@ -190,3 +190,4 @@ export function OrgUsersTable({
 	);
 }
 import { Checkbox } from "@/components/ui/checkbox";
+import { statusTone } from "../constants";

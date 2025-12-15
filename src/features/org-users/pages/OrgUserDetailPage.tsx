@@ -1,0 +1,194 @@
+import { useMemo, useState } from "react";
+import { useParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
+import { PageContainer } from "@/components/layout/PageContainer";
+import { PageHeader } from "@/components/common/PageHeader";
+import { EmptyState } from "@/components/common/EmptyState";
+import { LoadingState } from "@/components/common/LoadingState";
+import { Button } from "@/components/ui/button";
+import {
+	Dialog,
+	DialogBody,
+	DialogContent,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
+import { queryKeys } from "@/lib/queryKeys";
+import { routes } from "@/lib/routes";
+import { getOrgUser } from "../api/orgUsers.api";
+import { UserRoleAssignments } from "@/features/roles/components/UserRoleAssignments";
+import { OrgUserProfileDialog } from "../components/OrgUserProfileDialog";
+import { useCountries } from "@/features/meta/hooks/useCountries";
+import { useSubdivisions } from "@/features/meta/hooks/useSubdivisions";
+import { formatDate } from "@/lib/format";
+import type { OrgUserListItem } from "../types";
+
+export function OrgUserDetailPage() {
+	const { membershipId } = useParams<{ membershipId: string }>();
+
+	const { data, isLoading, isError, refetch } = useQuery<OrgUserListItem>({
+		enabled: Boolean(membershipId),
+		queryKey: queryKeys.orgUsers.detail(membershipId || ""),
+		queryFn: () => getOrgUser(membershipId || ""),
+	});
+	const [rolesDialogOpen, setRolesDialogOpen] = useState(false);
+	const [profileDialogOpen, setProfileDialogOpen] = useState(false);
+	const { data: countries } = useCountries();
+	const countryCode = data?.user.country || "";
+	const { data: subdivisions } = useSubdivisions(countryCode || null);
+
+	const infoItems = useMemo(() => {
+		if (!data) return [];
+		const countryName =
+			countries?.find((c) => c.code === data.user.country)?.name ||
+			data.user.country;
+		const subdivisionName =
+			subdivisions?.find((s) => s.code === data.user.state)?.name ||
+			data.user.state;
+		return [
+			{ label: "User ID", value: data.user.id },
+			{ label: "Org ID", value: data.user.org_id },
+			{ label: "Email", value: data.user.email },
+			{ label: "First name", value: data.user.first_name },
+			{ label: "Middle name", value: data.user.middle_name },
+			{ label: "Last name", value: data.user.last_name },
+			{ label: "Preferred name", value: data.user.preferred_name },
+			{ label: "Timezone", value: data.user.timezone },
+			{ label: "Phone number", value: data.user.phone_number },
+			{ label: "Employee ID", value: data.membership.employee_id },
+			{
+				label: "Employment start date",
+				value: formatDate(data.membership.employment_start_date),
+			},
+			{ label: "Marital status", value: data.user.marital_status },
+			{ label: "Country", value: countryName },
+			{ label: "State", value: subdivisionName },
+			{ label: "Address line 1", value: data.user.address_line1 },
+			{ label: "Address line 2", value: data.user.address_line2 },
+			{ label: "Postal code", value: data.user.postal_code },
+			{ label: "Employment status", value: data.membership.employment_status },
+			{ label: "Platform status", value: data.membership.platform_status },
+			{ label: "Invitation status", value: data.membership.invitation_status },
+			{ label: "Invited at", value: formatDate(data.membership.invited_at) },
+			{ label: "Accepted at", value: formatDate(data.membership.accepted_at) },
+			{ label: "Created at", value: formatDate(data.membership.created_at) },
+		];
+	}, [data, countries, subdivisions]);
+
+	if (isLoading) {
+		return (
+			<PageContainer>
+				<LoadingState label="Loading user..." />
+			</PageContainer>
+		);
+	}
+
+	if (isError || !data) {
+		return (
+			<PageContainer>
+				<EmptyState
+					title="User not found"
+					message="We couldn't load this user. Please retry or return to the list."
+					actionLabel="Retry"
+					onRetry={refetch}
+				/>
+			</PageContainer>
+		);
+	}
+
+	const displayName =
+		data.user.full_name ||
+		[data.user.first_name, data.user.last_name]
+			.filter(Boolean)
+			.join(" ")
+			.trim() ||
+		data.user.email;
+
+	return (
+		<PageContainer className="space-y-6">
+			<PageHeader
+				title={displayName}
+				subtitle="User profile and access"
+				actions={
+					<div className="flex items-center gap-3">
+						<Button
+							variant="secondary"
+							size="sm"
+							onClick={() => refetch()}
+							disabled={isLoading}
+						>
+							Refresh
+						</Button>
+						<Button
+							size="sm"
+							variant="default"
+							onClick={() => setRolesDialogOpen(true)}
+						>
+							Manage roles
+						</Button>
+						<Button
+							size="sm"
+							variant="outline"
+							onClick={() => setProfileDialogOpen(true)}
+						>
+							Edit profile
+						</Button>
+						<Button asChild variant="outline" size="sm">
+							<Link to={routes.users}>Back to users</Link>
+						</Button>
+					</div>
+				}
+			/>
+
+			<div className="grid gap-3 md:grid-cols-2">
+				{infoItems.map((item) => (
+					<InfoRow key={item.label} label={item.label} value={item.value} />
+				))}
+			</div>
+
+			<Dialog open={rolesDialogOpen} onOpenChange={setRolesDialogOpen}>
+				<DialogContent size="sm">
+					<DialogHeader>
+						<DialogTitle>Manage roles</DialogTitle>
+					</DialogHeader>
+					<DialogBody>
+						<UserRoleAssignments
+							membershipId={data.membership.id}
+							assignedRoleIds={
+								data.membership.roles ?? data.membership.role_ids
+							}
+							disableAssignments={
+								(data.membership.employment_status || "").toUpperCase() !==
+									"ACTIVE" ||
+								(data.membership.platform_status || "").toUpperCase() !==
+									"ACTIVE"
+							}
+							disableReason="Assigning roles is disabled when employment or platform status is not Active."
+							onUpdated={() => refetch()}
+						/>
+					</DialogBody>
+				</DialogContent>
+			</Dialog>
+
+			<OrgUserProfileDialog
+				open={profileDialogOpen}
+				onOpenChange={setProfileDialogOpen}
+				user={data}
+				membershipId={data.membership.id}
+				onUpdated={() => refetch()}
+			/>
+		</PageContainer>
+	);
+}
+
+function InfoRow({ label, value }: { label: string; value?: string | null }) {
+	return (
+		<div className="rounded-lg border border-border/60 bg-card/60 px-4 py-3 shadow-sm">
+			<p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+				{label}
+			</p>
+			<p className="mt-1 break-words text-sm text-foreground">{value || "—"}</p>
+		</div>
+	);
+}

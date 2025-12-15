@@ -10,6 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { queryKeys } from "@/lib/queryKeys";
 import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
+import { formatDate } from "@/lib/format";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { getUserSettings } from "@/features/user-settings/api/userSettings.api";
 import { listOrgUsers } from "@/features/org-users/api/orgUsers.api";
@@ -269,11 +270,4 @@ function SectionGrid({ items }: { items: { label: string; value: string }[] }) {
 			))}
 		</div>
 	);
-}
-
-function formatDate(value?: string | null) {
-	if (!value) return "";
-	const date = new Date(value);
-	if (Number.isNaN(date.getTime())) return value;
-	return date.toLocaleDateString();
 }

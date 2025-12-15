@@ -6,12 +6,7 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-
-interface BulkUploadPreviewProps {
-	headers: string[];
-	rows: string[][];
-	fileName?: string;
-}
+import type { BulkUploadPreviewProps } from "../types";
 
 export function BulkUploadPreview({ headers, rows }: BulkUploadPreviewProps) {
 	if (headers.length === 0 || rows.length === 0) {

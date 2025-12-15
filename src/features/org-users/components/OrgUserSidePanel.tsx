@@ -4,16 +4,10 @@ import { Loader2 } from "lucide-react";
 import { SideModal } from "@/components/ui/side-modal";
 import { toast } from "@/components/ui/use-toast";
 import { queryKeys } from "@/lib/queryKeys";
+import { formatDate } from "@/lib/format";
 import { getOrgUser } from "../api/orgUsers.api";
 import { OrgUserProfileDialog } from "./OrgUserProfileDialog";
-import type { OrgUserListItem } from "../types";
-
-interface OrgUserSidePanelProps {
-	membershipId: string | null;
-	open: boolean;
-	onOpenChange: (open: boolean) => void;
-	onUpdated?: () => void;
-}
+import type { OrgUserListItem, OrgUserSidePanelProps } from "../types";
 
 export function OrgUserSidePanel({
 	membershipId,
@@ -70,12 +64,27 @@ export function OrgUserSidePanel({
 					{ label: "Address line 1", value: user.user.address_line1 },
 					{ label: "Address line 2", value: user.user.address_line2 },
 					{ label: "Postal code", value: user.user.postal_code },
-					{ label: "Employment status", value: user.membership.employment_status },
+					{
+						label: "Employment status",
+						value: user.membership.employment_status,
+					},
 					{ label: "Platform status", value: user.membership.platform_status },
-					{ label: "Invitation status", value: user.membership.invitation_status },
-					{ label: "Invited at", value: formatDate(user.membership.invited_at) },
-					{ label: "Accepted at", value: formatDate(user.membership.accepted_at) },
-					{ label: "Created at", value: formatDate(user.membership.created_at) },
+					{
+						label: "Invitation status",
+						value: user.membership.invitation_status,
+					},
+					{
+						label: "Invited at",
+						value: formatDate(user.membership.invited_at),
+					},
+					{
+						label: "Accepted at",
+						value: formatDate(user.membership.accepted_at),
+					},
+					{
+						label: "Created at",
+						value: formatDate(user.membership.created_at),
+					},
 			  ]
 			: [];
 
@@ -120,7 +129,11 @@ export function OrgUserSidePanel({
 	);
 }
 
-function InfoGrid({ items }: { items: { label: string; value?: string | null }[] }) {
+function InfoGrid({
+	items,
+}: {
+	items: { label: string; value?: string | null }[];
+}) {
 	return (
 		<div className="grid gap-3 sm:grid-cols-2">
 			{items.map((item) => (
@@ -139,11 +152,4 @@ function InfoRow({ label, value }: { label: string; value?: string | null }) {
 			<p className="break-words text-sm text-foreground">{value || "—"}</p>
 		</div>
 	);
-}
-
-function formatDate(value?: string | null) {
-	if (!value) return "—";
-	const date = new Date(value);
-	if (Number.isNaN(date.getTime())) return value;
-	return date.toLocaleDateString();
 }

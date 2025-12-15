@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { AppDialog } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
@@ -25,39 +24,22 @@ import { useCountries } from "@/features/meta/hooks/useCountries";
 import { useSubdivisions } from "@/features/meta/hooks/useSubdivisions";
 import { toast } from "@/components/ui/use-toast";
 import { updateOrgUserProfile, updateOrgUserStatus } from "../api/orgUsers.api";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+	DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import type {
 	EmploymentStatus,
-	OrgUserListItem,
+	OrgUserProfileDialogProps,
+	ProfileFormValues,
 	UpdateOrgUserProfilePayload,
 } from "../types";
-
-const profileSchema = z.object({
-	email: z.string().email("Enter a valid email"),
-	first_name: z.string().min(1, "First name is required"),
-	middle_name: z.string().optional(),
-	last_name: z.string().min(1, "Last name is required"),
-	preferred_name: z.string().optional(),
-	timezone: z.string().optional(),
-	phone_number: z.string().optional(),
-	marital_status: z.string().min(1, "Select marital status"),
-	country: z.string().min(1, "Select a country"),
-	state: z.string().min(1, "Select a state"),
-	address_line1: z.string().min(1, "Address line 1 is required"),
-	address_line2: z.string().optional(),
-	postal_code: z.string().min(1, "Postal code is required"),
-	employee_id: z.string().optional(),
-	employment_status: z.enum(["ACTIVE", "INACTIVE", "LEAVE", "TERMINATED"]),
-});
-
-type ProfileFormValues = z.infer<typeof profileSchema>;
-
-interface OrgUserProfileDialogProps {
-	open: boolean;
-	onOpenChange: (open: boolean) => void;
-	user: OrgUserListItem | null;
-	membershipId: string | null;
-	onUpdated: () => void;
-}
+import { profileSchema } from "@/lib/utils";
 
 export function OrgUserProfileDialog({
 	open,
@@ -68,6 +50,11 @@ export function OrgUserProfileDialog({
 }: OrgUserProfileDialogProps) {
 	const queryClient = useQueryClient();
 	const [selectedCountry, setSelectedCountry] = useState<string>("");
+	const currentEmploymentStatus = user?.membership.employment_status;
+	const [pendingSubmit, setPendingSubmit] = useState<ProfileFormValues | null>(
+		null
+	);
+	const [showConfirm, setShowConfirm] = useState(false);
 
 	const form = useForm<ProfileFormValues>({
 		resolver: zodResolver(profileSchema),
@@ -103,10 +90,9 @@ export function OrgUserProfileDialog({
 
 	useEffect(() => {
 		if (!user) return;
-		const normalizedEmployment =
-			(user.membership.employment_status || "ACTIVE")
-				.toString()
-				.toUpperCase() as ProfileFormValues["employment_status"];
+		const normalizedEmployment = (user.membership.employment_status || "ACTIVE")
+			.toString()
+			.toUpperCase() as ProfileFormValues["employment_status"];
 		form.reset({
 			email: user.user.email || "",
 			first_name: user.user.first_name || "",
@@ -171,325 +157,367 @@ export function OrgUserProfileDialog({
 	const subdivisionsOptions = useMemo(() => subdivisions ?? [], [subdivisions]);
 
 	return (
-		<AppDialog
-			open={open}
-			onOpenChange={onOpenChange}
-			title="Edit profile"
-			description="Update user contact, address, and employment status."
-			actions={[
-				{
-					label: profileMutation.isPending ? "Saving..." : "Save profile",
-					type: "submit",
-					form: "profile-edit-form",
-					loading: profileMutation.isPending,
-				},
-			]}
-		>
-			<Form {...form}>
-				<form
-					id="profile-edit-form"
-					onSubmit={form.handleSubmit((values) =>
-						profileMutation.mutate(values)
-					)}
-					className="space-y-5"
-				>
-					<div className="grid gap-3 sm:grid-cols-2">
-						<FormField
-							control={form.control}
-							name="first_name"
-							render={({ field }) => (
-								<FormItem>
-									<FormLabel>First name</FormLabel>
-									<FormControl>
-										<Input {...field} />
-									</FormControl>
-									<FormMessage />
-								</FormItem>
-							)}
-						/>
-						<FormField
-							control={form.control}
-							name="last_name"
-							render={({ field }) => (
-								<FormItem>
-									<FormLabel>Last name</FormLabel>
-									<FormControl>
-										<Input {...field} />
-									</FormControl>
-									<FormMessage />
-								</FormItem>
-							)}
-						/>
-					</div>
-					<div className="grid gap-3 sm:grid-cols-2">
-						<FormField
-							control={form.control}
-							name="middle_name"
-							render={({ field }) => (
-								<FormItem>
-									<FormLabel>Middle name</FormLabel>
-									<FormControl>
-										<Input {...field} />
-									</FormControl>
-									<FormMessage />
-								</FormItem>
-							)}
-						/>
-						<FormField
-							control={form.control}
-							name="preferred_name"
-							render={({ field }) => (
-								<FormItem>
-									<FormLabel>Preferred name</FormLabel>
-									<FormControl>
-										<Input {...field} />
-									</FormControl>
-									<FormMessage />
-								</FormItem>
-							)}
-						/>
-					</div>
-					<div className="grid gap-3 sm:grid-cols-2">
-						<FormField
-							control={form.control}
-							name="phone_number"
-							render={({ field }) => (
-								<FormItem>
-									<FormLabel>Phone number</FormLabel>
-									<FormControl>
-										<Input {...field} />
-									</FormControl>
-									<FormMessage />
-								</FormItem>
-							)}
-						/>
+		<>
+			<AppDialog
+				open={open}
+				onOpenChange={onOpenChange}
+				title="Edit profile"
+				description="Update user contact, address, and employment status."
+				actions={[
+					{
+						label: profileMutation.isPending ? "Saving..." : "Save profile",
+						type: "submit",
+						form: "profile-edit-form",
+						loading: profileMutation.isPending,
+					},
+				]}
+			>
+				<Form {...form}>
+					<form
+						id="profile-edit-form"
+						onSubmit={form.handleSubmit((values) => {
+							const nextEmployment = values.employment_status?.toUpperCase();
+							const currentEmployment = currentEmploymentStatus?.toUpperCase();
+							if (
+								currentEmployment === "ACTIVE" &&
+								nextEmployment &&
+								nextEmployment !== "ACTIVE"
+							) {
+								setPendingSubmit(values);
+								setShowConfirm(true);
+								return;
+							}
+							profileMutation.mutate(values);
+						})}
+						className="space-y-5"
+					>
+						<div className="grid gap-3 sm:grid-cols-2">
+							<FormField
+								control={form.control}
+								name="first_name"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>First name</FormLabel>
+										<FormControl>
+											<Input {...field} />
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+							<FormField
+								control={form.control}
+								name="last_name"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Last name</FormLabel>
+										<FormControl>
+											<Input {...field} />
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+						</div>
+						<div className="grid gap-3 sm:grid-cols-2">
+							<FormField
+								control={form.control}
+								name="middle_name"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Middle name</FormLabel>
+										<FormControl>
+											<Input {...field} />
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+							<FormField
+								control={form.control}
+								name="preferred_name"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Preferred name</FormLabel>
+										<FormControl>
+											<Input {...field} />
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+						</div>
+						<div className="grid gap-3 sm:grid-cols-2">
+							<FormField
+								control={form.control}
+								name="phone_number"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Phone number</FormLabel>
+										<FormControl>
+											<Input {...field} />
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
 
-						<FormField
-							control={form.control}
-							name="email"
-							render={({ field }) => (
-								<FormItem>
-									<FormLabel>Email</FormLabel>
-									<FormControl>
-										<Input type="email" {...field} />
-									</FormControl>
-									<FormMessage />
-								</FormItem>
-							)}
-						/>
-					</div>
-					<div className="grid gap-3 sm:grid-cols-2">
-						<FormField
-							control={form.control}
-							name="marital_status"
-							render={({ field }) => (
-								<FormItem>
-									<FormLabel>Marital status</FormLabel>
-									<Select
-										value={field.value}
-										onValueChange={(val) => field.onChange(val)}
-									>
-										<SelectTrigger>
-											<SelectValue placeholder="Select status" />
-										</SelectTrigger>
-										<SelectContent>
-											<SelectItem value="SINGLE">Single</SelectItem>
-											<SelectItem value="MARRIED">Married</SelectItem>
-											<SelectItem value="DIVORCED">Divorced</SelectItem>
-											<SelectItem value="WIDOWED">Widowed</SelectItem>
-										</SelectContent>
-									</Select>
-									<FormMessage />
-								</FormItem>
-							)}
-						/>
-						<FormField
-							control={form.control}
-							name="employment_status"
-							render={({ field }) => (
-								<FormItem>
-									<FormLabel>Employment status</FormLabel>
-									<Select
-										value={field.value}
-										onValueChange={(val) =>
-											field.onChange(val as EmploymentStatus)
-										}
-									>
-										<SelectTrigger>
-											<SelectValue placeholder="Select status" />
-										</SelectTrigger>
-										<SelectContent>
-											<SelectItem value="ACTIVE">Active</SelectItem>
-											<SelectItem value="INACTIVE">Inactive</SelectItem>
-											<SelectItem value="LEAVE">Leave</SelectItem>
-											<SelectItem value="TERMINATED">Terminated</SelectItem>
-										</SelectContent>
-									</Select>
-									<FormMessage />
-								</FormItem>
-							)}
-						/>
-					</div>
-					<div className="grid gap-3 sm:grid-cols-2">
-						<FormField
-							control={form.control}
-							name="employee_id"
-							render={({ field }) => (
-								<FormItem>
-									<FormLabel>Employee ID</FormLabel>
-									<FormControl>
-										<Input {...field} />
-									</FormControl>
-									<FormMessage />
-								</FormItem>
-							)}
-						/>
+							<FormField
+								control={form.control}
+								name="email"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Email</FormLabel>
+										<FormControl>
+											<Input type="email" {...field} />
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+						</div>
+						<div className="grid gap-3 sm:grid-cols-2">
+							<FormField
+								control={form.control}
+								name="marital_status"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Marital status</FormLabel>
+										<Select
+											value={field.value}
+											onValueChange={(val) => field.onChange(val)}
+										>
+											<SelectTrigger>
+												<SelectValue placeholder="Select status" />
+											</SelectTrigger>
+											<SelectContent>
+												<SelectItem value="SINGLE">Single</SelectItem>
+												<SelectItem value="MARRIED">Married</SelectItem>
+												<SelectItem value="DIVORCED">Divorced</SelectItem>
+												<SelectItem value="WIDOWED">Widowed</SelectItem>
+											</SelectContent>
+										</Select>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+							<FormField
+								control={form.control}
+								name="employment_status"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Employment status</FormLabel>
+										<Select
+											value={field.value}
+											onValueChange={(val) =>
+												field.onChange(val as EmploymentStatus)
+											}
+										>
+											<SelectTrigger>
+												<SelectValue placeholder="Select status" />
+											</SelectTrigger>
+											<SelectContent>
+												<SelectItem value="ACTIVE">Active</SelectItem>
+												<SelectItem value="INACTIVE">Inactive</SelectItem>
+												<SelectItem value="LEAVE">Leave</SelectItem>
+												<SelectItem value="TERMINATED">Terminated</SelectItem>
+											</SelectContent>
+										</Select>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+						</div>
+						<div className="grid gap-3 sm:grid-cols-2">
+							<FormField
+								control={form.control}
+								name="employee_id"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Employee ID</FormLabel>
+										<FormControl>
+											<Input {...field} />
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
 
-						<FormField
-							control={form.control}
-							name="timezone"
-							render={({ field }) => (
-								<FormItem>
-									<FormLabel>Timezone</FormLabel>
-									<TimezoneSelect
-										value={field.value}
-										onChange={field.onChange}
-									/>
-									<FormMessage />
-								</FormItem>
-							)}
-						/>
-					</div>
-					<div className="grid gap-3 sm:grid-cols-2">
-						<FormField
-							control={form.control}
-							name="country"
-							render={({ field }) => (
-								<FormItem>
-									<FormLabel>Country</FormLabel>
-									<Select
-										value={field.value}
-										onValueChange={(code) => handleCountryChange(code)}
-									>
-										<SelectTrigger>
-											<SelectValue
-												placeholder={
-													isCountriesLoading
-														? "Loading countries..."
-														: "Select country"
-												}
-											/>
-										</SelectTrigger>
-										<SelectContent>
-											{countries.map((country) => (
-												<SelectItem key={country.code} value={country.code}>
-													{country.name}
-												</SelectItem>
-											))}
-										</SelectContent>
-									</Select>
-									{!isCountriesLoading && countries.length === 0 ? (
-										<button
-											type="button"
-											className="text-xs font-semibold text-primary underline"
-											onClick={() => refetchCountries()}
+							<FormField
+								control={form.control}
+								name="timezone"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Timezone</FormLabel>
+										<TimezoneSelect
+											value={field.value}
+											onChange={field.onChange}
+										/>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+						</div>
+						<div className="grid gap-3 sm:grid-cols-2">
+							<FormField
+								control={form.control}
+								name="country"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Country</FormLabel>
+										<Select
+											value={field.value}
+											onValueChange={(code) => handleCountryChange(code)}
 										>
-											Retry loading countries
-										</button>
-									) : null}
-									<FormMessage />
-								</FormItem>
-							)}
-						/>
-						<FormField
-							control={form.control}
-							name="state"
-							render={({ field }) => (
-								<FormItem>
-									<FormLabel>State / Subdivision</FormLabel>
-									<Select
-										disabled={!selectedCountry || isSubdivisionsLoading}
-										value={field.value}
-										onValueChange={field.onChange}
-									>
-										<SelectTrigger>
-											<SelectValue
-												placeholder={
-													isSubdivisionsLoading
-														? "Loading subdivisions..."
-														: "Select state"
-												}
-											/>
-										</SelectTrigger>
-										<SelectContent>
-											{subdivisionsOptions.map((sub) => (
-												<SelectItem key={sub.code} value={sub.code}>
-													{sub.name}
-												</SelectItem>
-											))}
-										</SelectContent>
-									</Select>
-									{!isSubdivisionsLoading &&
-									subdivisionsOptions.length === 0 &&
-									selectedCountry ? (
-										<button
-											type="button"
-											className="text-xs font-semibold text-primary underline"
-											onClick={() => refetchSubdivisions()}
+											<SelectTrigger>
+												<SelectValue
+													placeholder={
+														isCountriesLoading
+															? "Loading countries..."
+															: "Select country"
+													}
+												/>
+											</SelectTrigger>
+											<SelectContent>
+												{countries.map((country) => (
+													<SelectItem key={country.code} value={country.code}>
+														{country.name}
+													</SelectItem>
+												))}
+											</SelectContent>
+										</Select>
+										{!isCountriesLoading && countries.length === 0 ? (
+											<button
+												type="button"
+												className="text-xs font-semibold text-primary underline"
+												onClick={() => refetchCountries()}
+											>
+												Retry loading countries
+											</button>
+										) : null}
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+							<FormField
+								control={form.control}
+								name="state"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>State / Subdivision</FormLabel>
+										<Select
+											disabled={!selectedCountry || isSubdivisionsLoading}
+											value={field.value}
+											onValueChange={field.onChange}
 										>
-											Retry loading states
-										</button>
-									) : null}
-									<FormMessage />
-								</FormItem>
-							)}
-						/>
-					</div>
-					<div className="grid gap-3 sm:grid-cols-2">
-						<FormField
-							control={form.control}
-							name="address_line1"
-							render={({ field }) => (
-								<FormItem>
-									<FormLabel>Address line 1</FormLabel>
-									<FormControl>
-										<Input {...field} />
-									</FormControl>
-									<FormMessage />
-								</FormItem>
-							)}
-						/>
-						<FormField
-							control={form.control}
-							name="address_line2"
-							render={({ field }) => (
-								<FormItem>
-									<FormLabel>Address line 2</FormLabel>
-									<FormControl>
-										<Input {...field} />
-									</FormControl>
-									<FormMessage />
-								</FormItem>
-							)}
-						/>
-					</div>
-					<div className="grid gap-3 sm:grid-cols-2">
-						<FormField
-							control={form.control}
-							name="postal_code"
-							render={({ field }) => (
-								<FormItem>
-									<FormLabel>Postal code</FormLabel>
-									<FormControl>
-										<Input {...field} />
-									</FormControl>
-									<FormMessage />
-								</FormItem>
-							)}
-						/>
-					</div>
-				</form>
-			</Form>
-		</AppDialog>
+											<SelectTrigger>
+												<SelectValue
+													placeholder={
+														isSubdivisionsLoading
+															? "Loading subdivisions..."
+															: "Select state"
+													}
+												/>
+											</SelectTrigger>
+											<SelectContent>
+												{subdivisionsOptions.map((sub) => (
+													<SelectItem key={sub.code} value={sub.code}>
+														{sub.name}
+													</SelectItem>
+												))}
+											</SelectContent>
+										</Select>
+										{!isSubdivisionsLoading &&
+										subdivisionsOptions.length === 0 &&
+										selectedCountry ? (
+											<button
+												type="button"
+												className="text-xs font-semibold text-primary underline"
+												onClick={() => refetchSubdivisions()}
+											>
+												Retry loading states
+											</button>
+										) : null}
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+						</div>
+						<div className="grid gap-3 sm:grid-cols-2">
+							<FormField
+								control={form.control}
+								name="address_line1"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Address line 1</FormLabel>
+										<FormControl>
+											<Input {...field} />
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+							<FormField
+								control={form.control}
+								name="address_line2"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Address line 2</FormLabel>
+										<FormControl>
+											<Input {...field} />
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+						</div>
+						<div className="grid gap-3 sm:grid-cols-2">
+							<FormField
+								control={form.control}
+								name="postal_code"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Postal code</FormLabel>
+										<FormControl>
+											<Input {...field} />
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+						</div>
+					</form>
+				</Form>
+			</AppDialog>
+			<Dialog open={showConfirm} onOpenChange={setShowConfirm}>
+				<DialogContent size="sm">
+					<DialogHeader>
+						<DialogTitle>Confirm status change</DialogTitle>
+						<DialogDescription>
+							Downgrading employment status from Active will remove all roles
+							for this user in the current organization. Do you want to
+							continue?
+						</DialogDescription>
+					</DialogHeader>
+					<DialogFooter>
+						<Button variant="outline" onClick={() => setShowConfirm(false)}>
+							Cancel
+						</Button>
+						<Button
+							onClick={() => {
+								if (pendingSubmit) {
+									profileMutation.mutate(pendingSubmit);
+								}
+								setShowConfirm(false);
+								setPendingSubmit(null);
+							}}
+							disabled={profileMutation.isPending}
+						>
+							Yes, continue
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
+		</>
 	);
 }

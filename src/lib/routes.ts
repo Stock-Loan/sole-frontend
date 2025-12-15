@@ -6,6 +6,7 @@ export const routes = {
 	appRoot: "/app",
 	overview: "/app/overview",
 	users: "/app/users",
+	userDetail: "/app/users/:membershipId",
 	roles: "/app/roles",
 	departments: "/app/departments",
 	announcements: "/app/announcements",
