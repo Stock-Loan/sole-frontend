@@ -356,17 +356,18 @@ export function OrgUserProfileDialog({
 							<FormField
 								control={form.control}
 								name="timezone"
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel>Timezone</FormLabel>
-										<TimezoneSelect
-											value={field.value}
-											onChange={field.onChange}
-										/>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>Timezone</FormLabel>
+									<TimezoneSelect
+										value={field.value}
+										onChange={field.onChange}
+										contentClassName="max-h-64 overflow-auto"
+									/>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
 						</div>
 						<div className="grid gap-3 sm:grid-cols-2">
 							<FormField
@@ -388,12 +389,12 @@ export function OrgUserProfileDialog({
 													}
 												/>
 											</SelectTrigger>
-											<SelectContent>
-												{countries.map((country) => (
-													<SelectItem key={country.code} value={country.code}>
-														{country.name}
-													</SelectItem>
-												))}
+									<SelectContent position="popper" className="max-h-64 overflow-auto">
+										{countries.map((country) => (
+											<SelectItem key={country.code} value={country.code}>
+												{country.name}
+											</SelectItem>
+										))}
 											</SelectContent>
 										</Select>
 										{!isCountriesLoading && countries.length === 0 ? (
@@ -415,26 +416,29 @@ export function OrgUserProfileDialog({
 								render={({ field }) => (
 									<FormItem>
 										<FormLabel>State / Subdivision</FormLabel>
-										<Select
-											disabled={!selectedCountry || isSubdivisionsLoading}
-											value={field.value}
-											onValueChange={field.onChange}
+									<Select
+										disabled={!selectedCountry || isSubdivisionsLoading}
+										value={field.value}
+										onValueChange={field.onChange}
+									>
+										<SelectTrigger>
+											<SelectValue
+												placeholder={
+													isSubdivisionsLoading
+														? "Loading subdivisions..."
+														: "Select state"
+												}
+											/>
+										</SelectTrigger>
+										<SelectContent
+											position="popper"
+											className="max-h-64 overflow-auto"
 										>
-											<SelectTrigger>
-												<SelectValue
-													placeholder={
-														isSubdivisionsLoading
-															? "Loading subdivisions..."
-															: "Select state"
-													}
-												/>
-											</SelectTrigger>
-											<SelectContent>
-												{subdivisionsOptions.map((sub) => (
-													<SelectItem key={sub.code} value={sub.code}>
-														{sub.name}
-													</SelectItem>
-												))}
+											{subdivisionsOptions.map((sub) => (
+												<SelectItem key={sub.code} value={sub.code}>
+													{sub.name}
+												</SelectItem>
+											))}
 											</SelectContent>
 										</Select>
 										{!isSubdivisionsLoading &&

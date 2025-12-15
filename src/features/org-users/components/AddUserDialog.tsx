@@ -230,7 +230,8 @@ export function AddUserDialog({
 									<TimezoneSelect
 										value={field.value}
 										onChange={field.onChange}
-										placeholder="Search timezones"
+										placeholder="Select timezone"
+										contentClassName="max-h-64 overflow-auto"
 									/>
 									<FormMessage />
 								</FormItem>
@@ -281,12 +282,12 @@ export function AddUserDialog({
 												}
 											/>
 										</SelectTrigger>
-										<SelectContent>
-											{countries.map((country) => (
-												<SelectItem key={country.code} value={country.code}>
-													{country.name}
-												</SelectItem>
-											))}
+									<SelectContent position="popper" className="max-h-64 overflow-auto">
+										{countries.map((country) => (
+											<SelectItem key={country.code} value={country.code}>
+												{country.name}
+											</SelectItem>
+										))}
 										</SelectContent>
 									</Select>
 									{!isCountriesLoading && countries.length === 0 ? (
@@ -324,7 +325,10 @@ export function AddUserDialog({
 												}
 											/>
 										</SelectTrigger>
-										<SelectContent>
+										<SelectContent
+											position="popper"
+											className="max-h-64 overflow-auto"
+										>
 											{subdivisions.map((sub) => (
 												<SelectItem key={sub.code} value={sub.code}>
 													{sub.name}

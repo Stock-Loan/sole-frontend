@@ -1,17 +1,22 @@
-import { useId, useMemo } from "react";
-import { Loader2 } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { useMemo } from "react";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useTimezones } from "../hooks/useTimezones";
 
 interface TimezoneSelectProps {
 	value?: string;
 	onChange: (value: string) => void;
-	id?: string;
-	name?: string;
 	placeholder?: string;
 	disabled?: boolean;
 	className?: string;
+	contentClassName?: string;
 }
 
 function formatTimezoneLabel(tz: string) {
@@ -25,14 +30,11 @@ function formatTimezoneLabel(tz: string) {
 export function TimezoneSelect({
 	value,
 	onChange,
-	id,
-	name,
 	placeholder = "Select a timezone",
 	disabled,
 	className,
+	contentClassName,
 }: TimezoneSelectProps) {
-	const generatedId = useId().replace(/:/g, "-");
-	const listId = `${id ?? generatedId}-list`;
 	const { data, isLoading, isError, refetch } = useTimezones();
 
 	const options = useMemo(
@@ -44,46 +46,48 @@ export function TimezoneSelect({
 		[data],
 	);
 
-	const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-		onChange(event.target.value);
-	};
-
-	const helperText = isError
-		? "Unable to load timezones. Retry?"
-		: isLoading
-			? "Loading timezones…"
-			: undefined;
+	const effectivePlaceholder = isLoading ? "Loading timezones…" : placeholder;
 
 	return (
-		<div className="space-y-1">
+		<div className={cn("space-y-1", className)}>
 			<div className="flex items-center gap-2">
-				<Input
-					id={id}
-					name={name}
-					list={listId}
+				<Select
 					value={value ?? ""}
-					onChange={handleChange}
-					placeholder={isLoading ? "Loading timezones…" : placeholder}
-					disabled={disabled || isLoading}
-					className={cn("w-full", className)}
-				/>
-				{isLoading ? <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" /> : null}
-				{isError ? (
-					<button
-						type="button"
-						className="text-xs font-semibold text-primary hover:underline"
-						onClick={() => refetch()}
+					onValueChange={onChange}
+					disabled={disabled || isLoading || options.length === 0}
+				>
+					<SelectTrigger className="w-full">
+						<SelectValue placeholder={effectivePlaceholder} />
+					</SelectTrigger>
+					<SelectContent
+						position="popper"
+						className={cn("max-h-64 overflow-auto", contentClassName)}
 					>
+						{options.length === 0 ? (
+							<SelectItem value="none" disabled>
+								No timezones
+							</SelectItem>
+						) : (
+							options.map((tz) => (
+								<SelectItem key={tz.id} value={tz.id}>
+									{tz.label}
+								</SelectItem>
+							))
+						)}
+					</SelectContent>
+				</Select>
+				{isError ? (
+					<Button variant="ghost" size="sm" onClick={() => refetch()}>
 						Retry
-					</button>
+					</Button>
 				) : null}
 			</div>
-			{helperText ? <p className="text-xs text-muted-foreground">{helperText}</p> : null}
-			<datalist id={listId}>
-				{options.map((tz) => (
-					<option key={tz.id} value={tz.id} label={tz.label} />
-				))}
-			</datalist>
+			{isLoading ? (
+				<p className="text-xs text-muted-foreground">Loading timezones…</p>
+			) : null}
+			{isError ? (
+				<p className="text-xs text-destructive">Unable to load timezones.</p>
+			) : null}
 		</div>
 	);
 }

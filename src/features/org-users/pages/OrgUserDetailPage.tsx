@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/common/PageHeader";
 import { EmptyState } from "@/components/common/EmptyState";
@@ -23,6 +22,7 @@ import { useCountries } from "@/features/meta/hooks/useCountries";
 import { useSubdivisions } from "@/features/meta/hooks/useSubdivisions";
 import { formatDate } from "@/lib/format";
 import type { OrgUserListItem } from "../types";
+import { Badge } from "@/components/ui/badge";
 
 export function OrgUserDetailPage() {
 	const { membershipId } = useParams<{ membershipId: string }>();
@@ -105,6 +105,14 @@ export function OrgUserDetailPage() {
 			.trim() ||
 		data.user.email;
 
+	const statusChips = [
+		{ label: "Employment", value: data.membership.employment_status },
+		{ label: "Platform", value: data.membership.platform_status },
+		data.membership.invitation_status
+			? { label: "Invitation", value: data.membership.invitation_status }
+			: null,
+	].filter(Boolean) as { label: string; value?: string | null }[];
+
 	return (
 		<PageContainer className="space-y-6">
 			<PageHeader
@@ -141,10 +149,34 @@ export function OrgUserDetailPage() {
 				}
 			/>
 
-			<div className="grid gap-3 md:grid-cols-2">
-				{infoItems.map((item) => (
-					<InfoRow key={item.label} label={item.label} value={item.value} />
+			<div className="flex flex-wrap items-center gap-2">
+				{statusChips.map((chip) => (
+					<Badge key={chip.label} variant="secondary">
+						{chip.label}: {chip.value || "—"}
+					</Badge>
 				))}
+			</div>
+
+			<div className="space-y-6">
+				<section className="space-y-2">
+					<p className="text-sm font-semibold text-foreground">Contact</p>
+					<div className="grid gap-3 md:grid-cols-2">
+						{infoItems.slice(0, 9).map((item) => (
+							<InfoRow key={item.label} label={item.label} value={item.value} />
+						))}
+					</div>
+				</section>
+
+				<section className="space-y-2">
+					<p className="text-sm font-semibold text-foreground">
+						Employment & Access
+					</p>
+					<div className="grid gap-3 md:grid-cols-2">
+						{infoItems.slice(9).map((item) => (
+							<InfoRow key={item.label} label={item.label} value={item.value} />
+						))}
+					</div>
+				</section>
 			</div>
 
 			<Dialog open={rolesDialogOpen} onOpenChange={setRolesDialogOpen}>
@@ -184,8 +216,8 @@ export function OrgUserDetailPage() {
 
 function InfoRow({ label, value }: { label: string; value?: string | null }) {
 	return (
-		<div className="rounded-lg border border-border/60 bg-card/60 px-4 py-3 shadow-sm">
-			<p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+		<div className="rounded-lg px-4 py-3">
+			<p className="text-[13px] font-semibold uppercase tracking-wide text-muted-foreground">
 				{label}
 			</p>
 			<p className="mt-1 break-words text-sm text-foreground">{value || "—"}</p>

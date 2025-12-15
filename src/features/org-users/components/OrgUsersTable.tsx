@@ -108,9 +108,6 @@ export function OrgUsersTable({
 								item.user.email;
 							const employmentStatus = item.membership.employment_status || "";
 							const platformStatus = item.membership.platform_status || "";
-							const location = [item.user.state, item.user.country]
-								.filter(Boolean)
-								.join(", ");
 							return (
 								<TableRow key={item.user.id}>
 									<TableCell className="w-10">
@@ -133,10 +130,6 @@ export function OrgUsersTable({
 											>
 												{name}
 											</Link>
-										</div>
-										<div className="text-xs font-normal text-muted-foreground">
-											{item.user.email}
-											{location ? ` • ${location}` : ""}
 										</div>
 									</TableCell>
 									<TableCell className="text-muted-foreground">

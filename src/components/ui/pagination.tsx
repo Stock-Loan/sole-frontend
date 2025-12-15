@@ -29,7 +29,7 @@ export function Pagination({
 			: undefined;
 
 	return (
-		<div className="flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
+		<div className="flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground mt-8">
 			<div className="flex items-center gap-2">
 				<span>
 					Page {page}
