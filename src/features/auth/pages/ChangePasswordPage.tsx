@@ -1,6 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { ShieldCheck } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { PublicHeader } from "@/components/layout/PublicHeader";
@@ -11,9 +12,11 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { useApiErrorToast } from "@/hooks/useApiErrorToast";
 import { routes } from "@/lib/routes";
+import { apiClient } from "@/lib/apiClient";
 import { nonEmptyString } from "@/lib/validation";
 import { useAuth } from "../hooks/useAuth";
-import { changePassword, getMe } from "../api/auth.api";
+import { changePassword, getMe, loginLegacy } from "../api/auth.api";
+import type { AuthUser, LoginResponse, TokenPair } from "../types";
 import { z } from "zod";
 
 const changePasswordSchema = z
@@ -30,10 +33,19 @@ const changePasswordSchema = z
 type ChangePasswordFormValues = z.infer<typeof changePasswordSchema>;
 
 export function ChangePasswordPage() {
-	const { setSession } = useAuth();
+	const { setSession, tokens } = useAuth();
 	const { toast } = useToast();
 	const apiErrorToast = useApiErrorToast();
 	const navigate = useNavigate();
+	const [loginEmail, setLoginEmail] = useState<string>("");
+
+	useEffect(() => {
+		if (typeof localStorage === "undefined") return;
+		const pendingEmail = localStorage.getItem("sole.pending-login-email");
+		if (pendingEmail) {
+			setLoginEmail(pendingEmail);
+		}
+	}, []);
 
 	const form = useForm<ChangePasswordFormValues>({
 		resolver: zodResolver(changePasswordSchema),
@@ -46,15 +58,52 @@ export function ChangePasswordPage() {
 
 	const mutation = useMutation({
 		mutationFn: async (values: ChangePasswordFormValues) => {
-			const tokens = await changePassword({
-				current_password: values.current_password,
-				new_password: values.new_password,
+			let workingTokens: TokenPair | null = tokens;
+
+			// If no session yet (first-login redirect), perform a quick login to get a bearer token.
+			if (!workingTokens) {
+				if (!loginEmail) {
+					throw new Error("Please start from the login flow to change your password.");
+				}
+				const legacyResponse = await loginLegacy({
+					email: loginEmail,
+					password: values.current_password,
+				});
+				workingTokens =
+					(legacyResponse as LoginResponse | undefined)?.tokens ??
+					((legacyResponse as TokenPair | undefined) ?? null);
+			}
+
+			if (!workingTokens?.access_token) {
+				throw new Error("Unable to obtain a session token. Please sign in again.");
+			}
+
+			const { data: updatedTokens } = await apiClient.post<TokenPair>(
+				"/auth/change-password",
+				{
+					current_password: values.current_password,
+					new_password: values.new_password,
+				},
+				{
+					headers: {
+						Authorization: `Bearer ${workingTokens.access_token}`,
+					},
+				}
+			);
+
+			const { data: user } = await apiClient.get<AuthUser>("/auth/me", {
+				headers: {
+					Authorization: `Bearer ${updatedTokens.access_token}`,
+				},
 			});
-			const user = await getMe();
-			return { tokens, user };
+
+			return { tokens: updatedTokens, user };
 		},
 		onSuccess: ({ tokens, user }) => {
 			setSession(tokens, user);
+			if (typeof localStorage !== "undefined") {
+				localStorage.removeItem("sole.pending-login-email");
+			}
 			toast({
 				title: "Password updated",
 				description: "Your session has been refreshed.",

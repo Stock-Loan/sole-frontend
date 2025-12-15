@@ -26,6 +26,7 @@ export function UserRoleAssignments({
 	onUpdated,
 	disableAssignments = false,
 	disableReason,
+	platformStatus,
 }: UserRoleAssignmentsProps) {
 	const { toast } = useToast();
 	const apiErrorToast = useApiErrorToast();
@@ -82,6 +83,8 @@ export function UserRoleAssignments({
 	});
 
 	const roleList = useMemo(() => data?.items ?? [], [data?.items]);
+	const isPlatformInvited =
+		(platformStatus || "").toString().toUpperCase() === "INVITED";
 	const assignedRoles = useMemo(() => {
 		const ids = assignedRoleIds ?? [];
 		return ids
@@ -89,10 +92,17 @@ export function UserRoleAssignments({
 			.filter(Boolean) as Role[];
 	}, [assignedRoleIds, roleList]);
 
-	const availableRoles = useMemo(
-		() => roleList.filter((role) => !(assignedRoleIds ?? []).includes(role.id)),
-		[roleList, assignedRoleIds]
-	);
+	const availableRoles = useMemo(() => {
+		const baseAvailable = roleList.filter(
+			(role) => !(assignedRoleIds ?? []).includes(role.id)
+		);
+		if (!isPlatformInvited) return baseAvailable;
+
+		return baseAvailable.filter((role) => {
+			const name = (role.name || "").toUpperCase();
+			return name === "EMPLOYEE" || (role.is_system_role && name.includes("EMPLOYEE"));
+		});
+	}, [assignedRoleIds, isPlatformInvited, roleList]);
 
 	const handleAssign = () => {
 		if (!selectedRoleId) return;
@@ -193,6 +203,12 @@ export function UserRoleAssignments({
 					</div>
 					{disableAssignments && disableReason ? (
 						<p className="text-xs text-muted-foreground">{disableReason}</p>
+					) : null}
+					{!disableAssignments && isPlatformInvited ? (
+						<p className="text-xs text-muted-foreground">
+							Only the EMPLOYEE system role can be assigned while platform status
+							is INVITED. Additional roles can be added after activation.
+						</p>
 					) : null}
 				</div>
 			)}

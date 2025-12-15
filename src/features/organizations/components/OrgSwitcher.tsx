@@ -9,11 +9,13 @@ export function OrgSwitcher() {
 
 	const currentOrg = useMemo(
 		() => orgs.find((org) => org.id === currentOrgId) ?? orgs[0],
-		[orgs, currentOrgId],
+		[orgs, currentOrgId]
 	);
 
 	const isMultiTenant = orgs.length > 1;
-	const label = currentOrg?.name ?? "Organization";
+	const label = currentOrg?.name
+		? currentOrg.name.replace(/^\w/, (c) => c.toUpperCase())
+		: "Organization";
 
 	if (!isMultiTenant) {
 		return (

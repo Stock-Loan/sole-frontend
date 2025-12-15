@@ -34,6 +34,7 @@ export type InvitationStatus =
 export interface OrgUserDto {
 	id: string;
 	org_id: string;
+	org_name?: string;
 	email: string;
 	full_name?: string | null;
 	first_name?: string | null;

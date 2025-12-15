@@ -20,7 +20,6 @@ export const dashboardRoutes: DashboardRoute[] = [
 		label: "Overview",
 		path: routes.overview,
 		icon: LayoutDashboard,
-		requiredPermission: "org.dashboard.view",
 	},
 	{
 		label: "Users",

@@ -1,4 +1,5 @@
 import axios, { AxiosHeaders } from "axios";
+import { routes } from "./routes";
 
 type TokenResolver = () => string | null;
 type VoidHandler = () => void;
@@ -48,7 +49,30 @@ apiClient.interceptors.request.use((config) => {
 apiClient.interceptors.response.use(
 	(response) => response,
 	(error) => {
-		if (error?.response?.status === 401) {
+		const status = error?.response?.status;
+		const detailRaw = error?.response?.data?.detail;
+		const detail =
+			typeof detailRaw === "string"
+				? detailRaw
+				: Array.isArray(detailRaw) && typeof detailRaw[0]?.msg === "string"
+					? detailRaw[0].msg
+					: null;
+
+		if (
+			status === 403 &&
+			typeof detail === "string" &&
+			detail.toLowerCase().includes("password change required")
+		) {
+			if (
+				typeof window !== "undefined" &&
+				window.location.pathname !== routes.changePassword
+			) {
+				window.location.assign(routes.changePassword);
+			}
+			return Promise.reject(error);
+		}
+
+		if (status === 401) {
 			const hasToken = Boolean(accessTokenResolver());
 			if (hasToken) {
 				unauthorizedHandler?.();

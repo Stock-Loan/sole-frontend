@@ -156,6 +156,7 @@ export interface RoleFormProps {
 export interface UserRoleAssignmentsProps {
 	membershipId: string;
 	assignedRoleIds?: string[] | null;
+	platformStatus?: string | null;
 	onUpdated?: () => void;
 	disableAssignments?: boolean;
 	disableReason?: string;

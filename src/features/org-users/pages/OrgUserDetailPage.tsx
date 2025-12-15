@@ -18,11 +18,13 @@ import { routes } from "@/lib/routes";
 import { getOrgUser } from "../api/orgUsers.api";
 import { UserRoleAssignments } from "@/features/roles/components/UserRoleAssignments";
 import { OrgUserProfileDialog } from "../components/OrgUserProfileDialog";
+import { listRoles } from "@/features/roles/api/roles.api";
 import { useCountries } from "@/features/meta/hooks/useCountries";
 import { useSubdivisions } from "@/features/meta/hooks/useSubdivisions";
 import { formatDate } from "@/lib/format";
 import type { OrgUserListItem } from "../types";
 import { Badge } from "@/components/ui/badge";
+import { normalizeDisplay } from "@/lib/utils";
 
 export function OrgUserDetailPage() {
 	const { membershipId } = useParams<{ membershipId: string }>();
@@ -31,6 +33,11 @@ export function OrgUserDetailPage() {
 		enabled: Boolean(membershipId),
 		queryKey: queryKeys.orgUsers.detail(membershipId || ""),
 		queryFn: () => getOrgUser(membershipId || ""),
+	});
+	const { data: rolesData } = useQuery({
+		queryKey: queryKeys.roles.list(),
+		queryFn: listRoles,
+		staleTime: 5 * 60 * 1000,
 	});
 	const [rolesDialogOpen, setRolesDialogOpen] = useState(false);
 	const [profileDialogOpen, setProfileDialogOpen] = useState(false);
@@ -46,9 +53,17 @@ export function OrgUserDetailPage() {
 		const subdivisionName =
 			subdivisions?.find((s) => s.code === data.user.state)?.name ||
 			data.user.state;
+		const orgName =
+			(data.user.org_name || data.user.org_id || "").trim();
+
+		const displayOrgName =
+			orgName.length > 0
+				? orgName.replace(/^\w/, (c) => c.toUpperCase())
+				: "";
+
 		return [
 			{ label: "User ID", value: data.user.id },
-			{ label: "Org ID", value: data.user.org_id },
+			{ label: "Organization", value: displayOrgName || "—" },
 			{ label: "Email", value: data.user.email },
 			{ label: "First name", value: data.user.first_name },
 			{ label: "Middle name", value: data.user.middle_name },
@@ -113,6 +128,23 @@ export function OrgUserDetailPage() {
 			: null,
 	].filter(Boolean) as { label: string; value?: string | null }[];
 
+	const employmentStatus =
+		(data.membership.employment_status || "").toUpperCase();
+	const platformStatus =
+		(data.membership.platform_status || "").toUpperCase();
+	const roleAssignmentDisabled = employmentStatus !== "ACTIVE";
+	const roleDisableReason =
+		"Role assignment is only available when employment status is Active.";
+	const assignedRoleIds =
+		data.membership.roles ?? data.membership.role_ids ?? [];
+	const assignedRoleNames = useMemo(() => {
+		const items = rolesData?.items ?? [];
+		return items
+			.filter((role) => assignedRoleIds.includes(role.id))
+			.map((role) => role.name)
+			.filter(Boolean);
+	}, [assignedRoleIds, rolesData?.items]);
+
 	return (
 		<PageContainer className="space-y-6">
 			<PageHeader
@@ -155,6 +187,17 @@ export function OrgUserDetailPage() {
 						{chip.label}: {chip.value || "—"}
 					</Badge>
 				))}
+				{assignedRoleNames.length ? (
+					<div className="flex flex-wrap items-center gap-2">
+						{assignedRoleNames.map((role) => (
+							<Badge key={role} variant="outline">
+								{role}
+							</Badge>
+						))}
+					</div>
+				) : (
+					<Badge variant="outline">No roles assigned</Badge>
+				)}
 			</div>
 
 			<div className="space-y-6">
@@ -190,13 +233,9 @@ export function OrgUserDetailPage() {
 							assignedRoleIds={
 								data.membership.roles ?? data.membership.role_ids
 							}
-							disableAssignments={
-								(data.membership.employment_status || "").toUpperCase() !==
-									"ACTIVE" ||
-								(data.membership.platform_status || "").toUpperCase() !==
-									"ACTIVE"
-							}
-							disableReason="Assigning roles is disabled when employment or platform status is not Active."
+							platformStatus={platformStatus}
+							disableAssignments={roleAssignmentDisabled}
+							disableReason={roleDisableReason}
 							onUpdated={() => refetch()}
 						/>
 					</DialogBody>
@@ -215,12 +254,16 @@ export function OrgUserDetailPage() {
 }
 
 function InfoRow({ label, value }: { label: string; value?: string | null }) {
+	const displayValue = normalizeDisplay(value);
+
 	return (
 		<div className="rounded-lg px-4 py-3">
 			<p className="text-[13px] font-semibold uppercase tracking-wide text-muted-foreground">
 				{label}
 			</p>
-			<p className="mt-1 break-words text-sm text-foreground">{value || "—"}</p>
+			<p className="mt-1 break-words text-sm text-foreground">
+				{displayValue}
+			</p>
 		</div>
 	);
 }

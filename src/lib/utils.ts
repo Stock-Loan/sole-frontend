@@ -76,3 +76,12 @@ export const profileSchema = z.object({
 	employee_id: z.string().optional(),
 	employment_status: z.enum(["ACTIVE", "INACTIVE", "LEAVE", "TERMINATED"]),
 });
+
+export function normalizeDisplay(value?: string | null) {
+	if (!value) return "—";
+	const trimmed = value.trim();
+	if (!trimmed) return "—";
+	if (trimmed.includes("@")) return trimmed;
+	const spaced = trimmed.replace(/_/g, " ");
+	return spaced.replace(/\b\w/g, (c) => c.toUpperCase());
+}

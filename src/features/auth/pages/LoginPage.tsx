@@ -1,5 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
+import { isAxiosError } from "axios";
 import { ArrowLeft, CheckCircle2, Loader2, Shield } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -38,6 +39,8 @@ const passwordSchema = z.object({
 type EmailFormValues = z.infer<typeof emailSchema>;
 type PasswordFormValues = z.infer<typeof passwordSchema>;
 
+const PENDING_EMAIL_KEY = "sole.pending-login-email";
+
 export function LoginPage() {
 	const navigate = useNavigate();
 	const { toast } = useToast();
@@ -63,6 +66,9 @@ export function LoginPage() {
 		onSuccess: (data, variables) => {
 			setChallengeToken(data.challenge_token);
 			setEmail(variables.email);
+			if (typeof localStorage !== "undefined") {
+				localStorage.setItem(PENDING_EMAIL_KEY, variables.email);
+			}
 			setStep("password");
 			toast({
 				title: "Email verified",
@@ -86,6 +92,9 @@ export function LoginPage() {
 		},
 		onSuccess: ({ tokens, user }) => {
 			setSession(tokens, user);
+			if (typeof localStorage !== "undefined") {
+				localStorage.removeItem(PENDING_EMAIL_KEY);
+			}
 			toast({
 				title: "Welcome back",
 				description: "You are now signed in.",
@@ -93,6 +102,19 @@ export function LoginPage() {
 			navigate(routes.overview);
 		},
 		onError: (error) => {
+			if (
+				isAxiosError(error) &&
+				error.response?.status === 403 &&
+				typeof error.response?.data?.detail === "string" &&
+				error.response.data.detail.toLowerCase().includes("password change required")
+			) {
+				toast({
+					title: "Password change required",
+					description: "Please update your password to finish signing in.",
+				});
+				navigate(routes.changePassword, { replace: true });
+				return;
+			}
 			apiErrorToast(error, "Invalid password or expired challenge. Please try again.");
 		},
 	});
@@ -117,6 +139,9 @@ export function LoginPage() {
 	const resetFlow = () => {
 		setStep("email");
 		setChallengeToken(null);
+		if (typeof localStorage !== "undefined") {
+			localStorage.removeItem(PENDING_EMAIL_KEY);
+		}
 		passwordForm.reset();
 	};
 

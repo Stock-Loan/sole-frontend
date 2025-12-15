@@ -6,9 +6,11 @@ import { toast } from "@/components/ui/use-toast";
 import { queryKeys } from "@/lib/queryKeys";
 import { formatDate } from "@/lib/format";
 import { getOrgUser } from "../api/orgUsers.api";
+import { listRoles } from "@/features/roles/api/roles.api";
 import { OrgUserProfileDialog } from "./OrgUserProfileDialog";
 import type { OrgUserListItem, OrgUserSidePanelProps } from "../types";
 import { usePermissions } from "@/features/auth/hooks/usePermissions";
+import { normalizeDisplay } from "@/lib/utils";
 
 export function OrgUserSidePanel({
 	membershipId,
@@ -34,6 +36,11 @@ export function OrgUserSidePanel({
 		queryKey: detailKey,
 		queryFn: () => getOrgUser(membershipId || ""),
 	});
+	const { data: rolesData } = useQuery({
+		queryKey: queryKeys.roles.list(),
+		queryFn: listRoles,
+		staleTime: 5 * 60 * 1000,
+	});
 
 	useEffect(() => {
 		if (!isError) return;
@@ -48,7 +55,11 @@ export function OrgUserSidePanel({
 		user?.user && user?.membership
 			? [
 					{ label: "User ID", value: user.user.id },
-					{ label: "Org ID", value: user.user.org_id },
+					{
+						label: "Organization",
+						value:
+							user.user.org_name?.replace(/^\w/, (c) => c.toUpperCase()) || "—",
+					},
 					{ label: "Email", value: user.user.email },
 					{ label: "First name", value: user.user.first_name },
 					{ label: "Middle name", value: user.user.middle_name },
@@ -87,6 +98,18 @@ export function OrgUserSidePanel({
 					{
 						label: "Created at",
 						value: formatDate(user.membership.created_at),
+					},
+					{
+						label: "Roles",
+						value:
+							rolesData?.items
+								.filter((role) =>
+									(user.membership.roles ?? user.membership.role_ids ?? []).includes(
+										role.id
+									)
+								)
+								.map((role) => role.name)
+								.join(", ") || "—",
 					},
 			  ]
 			: [];
@@ -151,12 +174,16 @@ function InfoGrid({
 }
 
 function InfoRow({ label, value }: { label: string; value?: string | null }) {
+	const displayValue = normalizeDisplay(value);
+
 	return (
 		<div className="space-y-1 px-3 py-2">
 			<p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
 				{label}
 			</p>
-			<p className="break-words text-sm text-foreground">{value || "—"}</p>
+			<p className="break-words text-sm text-foreground">
+				{displayValue}
+			</p>
 		</div>
 	);
 }

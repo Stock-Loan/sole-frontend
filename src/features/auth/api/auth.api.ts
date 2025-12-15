@@ -19,8 +19,13 @@ export async function completeLogin(payload: LoginCompletePayload) {
 	return data;
 }
 
-export async function loginLegacy(payload: { email: string; password: string }) {
-	const { data } = await apiClient.post<LoginResponse>("/auth/login", payload);
+export async function loginLegacy(
+	payload: { email: string; password: string },
+): Promise<LoginResponse | TokenPair> {
+	const { data } = await apiClient.post<LoginResponse | TokenPair>(
+		"/auth/login",
+		payload,
+	);
 	return data;
 }
 

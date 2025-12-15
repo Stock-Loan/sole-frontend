@@ -36,11 +36,7 @@ export const router = createBrowserRouter([
 	},
 	{
 		path: routes.changePassword,
-		element: (
-			<ProtectedRoute>
-				<ChangePasswordPage />
-			</ProtectedRoute>
-		),
+		element: <ChangePasswordPage />,
 		errorElement: <AppErrorBoundary />,
 	},
 	{
@@ -63,11 +59,7 @@ export const router = createBrowserRouter([
 			},
 			{
 				path: "overview",
-				element: (
-					<PermissionGate permission="org.dashboard.view" fallback={<NotAuthorizedPage />}>
-						<OverviewPage />
-					</PermissionGate>
-				),
+				element: <OverviewPage />,
 			},
 			{
 				path: "users",
