@@ -27,7 +27,7 @@ import { updateOrgUserProfile, updateOrgUserStatus } from "../api/orgUsers.api";
 import {
 	Dialog,
 	DialogContent,
-	DialogDescription,
+	DialogBody,
 	DialogHeader,
 	DialogTitle,
 	DialogFooter,
@@ -55,6 +55,16 @@ export function OrgUserProfileDialog({
 		null
 	);
 	const [showConfirm, setShowConfirm] = useState(false);
+	const displayName = useMemo(() => {
+		if (!user) return "this user";
+		const full =
+			user.user.full_name ||
+			[user.user.first_name, user.user.last_name]
+				.filter(Boolean)
+				.join(" ")
+				.trim();
+		return full || user.user.email || "this user";
+	}, [user]);
 
 	const form = useForm<ProfileFormValues>({
 		resolver: zodResolver(profileSchema),
@@ -492,13 +502,16 @@ export function OrgUserProfileDialog({
 			<Dialog open={showConfirm} onOpenChange={setShowConfirm}>
 				<DialogContent size="sm">
 					<DialogHeader>
-						<DialogTitle>Confirm status change</DialogTitle>
-						<DialogDescription>
-							Downgrading employment status from Active will remove all roles
-							for this user in the current organization. Do you want to
-							continue?
-						</DialogDescription>
+						<DialogTitle>
+							Update {displayName}'s employment status?
+						</DialogTitle>
 					</DialogHeader>
+					<DialogBody>
+						<p className="text-sm text-muted-foreground mt-2">
+							Downgrading {displayName} from Active will remove all roles for
+							this user in the current organization. Do you want to continue?
+						</p>
+					</DialogBody>
 					<DialogFooter>
 						<Button variant="outline" onClick={() => setShowConfirm(false)}>
 							Cancel
@@ -512,6 +525,7 @@ export function OrgUserProfileDialog({
 								setPendingSubmit(null);
 							}}
 							disabled={profileMutation.isPending}
+							variant="destructive"
 						>
 							Yes, continue
 						</Button>

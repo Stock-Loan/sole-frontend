@@ -6,6 +6,14 @@ import { isAxiosError } from "axios";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/common/PageHeader";
 import { Button } from "@/components/ui/button";
+import {
+	Dialog,
+	DialogBody,
+	DialogContent,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
 import { toast } from "@/components/ui/use-toast";
 import { queryKeys } from "@/lib/queryKeys";
 import { Pagination } from "@/components/ui/pagination";
@@ -43,6 +51,7 @@ export function OrgUsersListPage() {
 	>(null);
 	const [isSidePanelOpen, setIsSidePanelOpen] = useState(false);
 	const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+	const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 	const apiErrorToast = useApiErrorToast();
 
 	useEffect(() => {
@@ -73,6 +82,11 @@ export function OrgUsersListPage() {
 			queryFn: () => listOrgUsers(listParams),
 			placeholderData: (previousData) => previousData,
 		});
+
+	const selectedUsers = useMemo(() => {
+		if (!data?.items?.length) return [];
+		return data.items.filter((item) => selectedIds.has(item.membership.id));
+	}, [data, selectedIds]);
 
 	useEffect(() => {
 		if (isError) {
@@ -205,7 +219,7 @@ export function OrgUsersListPage() {
 							variant="destructive"
 							size="sm"
 							disabled={selectedIds.size === 0}
-							onClick={handleBulkDelete}
+							onClick={() => setConfirmDeleteOpen(true)}
 						>
 							Delete selected ({selectedIds.size})
 						</Button>
@@ -256,6 +270,64 @@ export function OrgUsersListPage() {
 				onOpenChange={setIsSidePanelOpen}
 				onUpdated={() => refetch()}
 			/>
+
+			<Dialog open={confirmDeleteOpen} onOpenChange={setConfirmDeleteOpen}>
+				<DialogContent size="sm">
+					<DialogHeader>
+						<DialogTitle>
+							{selectedUsers.length === 1
+								? `Delete ${
+										[
+											selectedUsers[0]?.user.first_name,
+											selectedUsers[0]?.user.last_name,
+										]
+											.filter(Boolean)
+											.join(" ")
+											.trim() || "this user"
+								  }?`
+								: `Delete ${selectedUsers.length} users?`}
+						</DialogTitle>
+					</DialogHeader>
+					<DialogBody>
+						<p className="text-sm text-muted-foreground">
+							You are about to delete{" "}
+							{selectedUsers.length === 1
+								? [
+										selectedUsers[0]?.user.first_name,
+										selectedUsers[0]?.user.last_name,
+								  ]
+										.filter(Boolean)
+										.join(" ")
+										.trim() || "this user"
+								: `${selectedUsers.length} users`}{" "}
+							from the organization. This action cannot be undone or reversed.
+							Please confirm your action.
+						</p>
+						<p className="text-sm text-muted-foreground mt-2">
+							Deleted users will lose access to the organization's resources and
+							data.
+						</p>
+					</DialogBody>
+					<DialogFooter>
+						<Button
+							variant="outline"
+							onClick={() => setConfirmDeleteOpen(false)}
+						>
+							Cancel
+						</Button>
+						<Button
+							variant="destructive"
+							onClick={() => {
+								setConfirmDeleteOpen(false);
+								void handleBulkDelete();
+							}}
+							disabled={selectedIds.size === 0}
+						>
+							Confirm delete
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 		</PageContainer>
 	);
 }
