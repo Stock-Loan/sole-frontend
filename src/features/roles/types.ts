@@ -112,10 +112,28 @@ export interface RolesTableProps {
 	isFetching?: boolean;
 	onRetry: () => void;
 	onViewPermissions: (role: Role) => void;
+	onEdit?: (role: Role) => void;
 }
 
 export interface RolePermissionsDialogProps {
 	role: Role | null;
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
+}
+
+export type RoleFormMode = "create" | "edit";
+
+export interface RoleFormValues {
+	name: string;
+	description?: string | null;
+	permissions: PermissionCode[];
+}
+
+export interface RoleFormDialogProps {
+	mode: RoleFormMode;
+	open: boolean;
+	onOpenChange: (open: boolean) => void;
+	initialRole?: Role | null;
+	onSubmit: (values: RoleFormValues, roleId?: string) => Promise<void>;
+	isSubmitting?: boolean;
 }

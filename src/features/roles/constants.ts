@@ -80,6 +80,16 @@ export const ROLE_TYPE_STYLES = {
 	custom: "bg-emerald-100 text-emerald-800 border-emerald-200",
 } as const;
 
+export const ROLE_FORM_TITLE: Record<"create" | "edit", string> = {
+	create: "Create role",
+	edit: "Edit role",
+};
+
+export const ROLE_FORM_DESCRIPTION: Record<"create" | "edit", string> = {
+	create: "Define a custom role and select permissions.",
+	edit: "Update role details and permissions.",
+};
+
 // Optional grouping scaffold for future pickers; adjust as UI needs evolve.
 export const PERMISSION_CATALOG: PermissionCatalog[] = [
 	{
@@ -125,14 +135,40 @@ export const PERMISSION_CATALOG: PermissionCatalog[] = [
 		],
 	},
 	{
-		category: "Loans",
+		category: "Loans — Borrower",
 		codes: [
 			"loan.apply",
 			"loan.view_own",
 			"loan.cancel_own",
+			"loan.document.self_view",
+			"loan.document.self_upload_83b",
+			"loan.schedule.self.view",
+			"loan.what_if.self.simulate",
+			"loan.export.self",
+		],
+	},
+	{
+		category: "Loans — Admin",
+		codes: [
 			"loan.view_all",
 			"loan.manage",
 			"loan.dashboard.view",
+			"loan.document.view",
+			"loan.document.manage_hr",
+			"loan.document.manage_finance",
+			"loan.document.manage_legal",
+			"loan.schedule.view",
+			"loan.payment.view",
+			"loan.payment.record",
+			"loan.payment.refund",
+			"loan.what_if.simulate",
+			"loan.export.schedule",
+			"loan.export.what_if",
+		],
+	},
+	{
+		category: "Loans — Queues & Workflow",
+		codes: [
 			"loan.queue.hr.view",
 			"loan.workflow.hr.manage",
 			"loan.queue.finance.view",
@@ -141,22 +177,6 @@ export const PERMISSION_CATALOG: PermissionCatalog[] = [
 			"loan.workflow.legal.manage",
 			"loan.workflow.post_issuance.manage",
 			"loan.workflow.83b.manage",
-			"loan.document.view",
-			"loan.document.manage_hr",
-			"loan.document.manage_finance",
-			"loan.document.manage_legal",
-			"loan.document.self_view",
-			"loan.document.self_upload_83b",
-			"loan.schedule.view",
-			"loan.schedule.self.view",
-			"loan.payment.view",
-			"loan.payment.record",
-			"loan.payment.refund",
-			"loan.what_if.simulate",
-			"loan.what_if.self.simulate",
-			"loan.export.schedule",
-			"loan.export.what_if",
-			"loan.export.self",
 		],
 	},
 	{

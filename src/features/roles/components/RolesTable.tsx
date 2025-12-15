@@ -19,6 +19,7 @@ export function RolesTable({
 	isFetching,
 	onRetry,
 	onViewPermissions,
+	onEdit,
 }: RolesTableProps) {
 	if (isLoading) {
 		return <LoadingState label="Loading roles..." />;
@@ -69,7 +70,7 @@ export function RolesTable({
 								<TableCell className="text-muted-foreground">
 									{role.description || "—"}
 								</TableCell>
-								<TableCell>
+								<TableCell className="whitespace-nowrap">
 									<span
 										className={`inline-flex items-center rounded-full border px-2 py-1 text-xs font-semibold ${ROLE_TYPE_STYLES[typeKey]}`}
 									>
@@ -90,13 +91,23 @@ export function RolesTable({
 									) : null}
 								</TableCell>
 								<TableCell className="text-right">
-									<Button
-										variant="outline"
-										size="sm"
-										onClick={() => onViewPermissions(role)}
-									>
-										View permissions
-									</Button>
+									<div className="flex items-center justify-end gap-2 whitespace-nowrap">
+										<Button
+											variant="outline"
+											size="sm"
+											onClick={() => onViewPermissions(role)}
+										>
+											View permissions
+										</Button>
+										<Button
+											variant="secondary"
+											size="sm"
+											disabled={!onEdit || Boolean(role.is_system_role)}
+											onClick={() => onEdit?.(role)}
+										>
+											Edit
+										</Button>
+									</div>
 								</TableCell>
 							</TableRow>
 						);
