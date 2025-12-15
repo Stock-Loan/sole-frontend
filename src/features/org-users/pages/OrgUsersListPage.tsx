@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { RefreshCw, Upload, UserPlus } from "lucide-react";
 import { isAxiosError } from "axios";
+import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/common/PageHeader";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
@@ -183,7 +184,7 @@ export function OrgUsersListPage() {
 			: (data?.items?.length ?? 0) === pageSize;
 
 	return (
-		<div className="space-y-6">
+		<PageContainer>
 			<PageHeader
 				title="Org users"
 				subtitle="View organization users and core statuses. Data is scoped to your current organization."
@@ -255,6 +256,6 @@ export function OrgUsersListPage() {
 				onOpenChange={setIsSidePanelOpen}
 				onUpdated={() => refetch()}
 			/>
-		</div>
+		</PageContainer>
 	);
 }

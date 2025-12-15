@@ -10,6 +10,7 @@ import { NotAuthorizedPage } from "@/pages/NotAuthorizedPage";
 import { NotFoundPage } from "@/pages/NotFoundPage";
 import { OrgUsersListPage } from "@/features/org-users/pages/OrgUsersListPage";
 import { OrgUserOnboardingPage } from "@/features/org-users/pages/OrgUserOnboardingPage";
+import { RolesListPage } from "@/features/roles/pages/RolesListPage";
 import { OverviewPage } from "@/pages/OverviewPage";
 import { PlaceholderPage } from "@/pages/PlaceholderPage";
 import { UserSettingsPage } from "@/features/user-settings/pages/UserSettingsPage";
@@ -72,12 +73,7 @@ export const router = createBrowserRouter([
 			},
 			{
 				path: "roles",
-				element: (
-					<PlaceholderPage
-						title="Roles & permissions"
-						description="Role buckets, ACL visibility, and assignment flows live here."
-					/>
-				),
+				element: <RolesListPage />,
 			},
 			{
 				path: "departments",
