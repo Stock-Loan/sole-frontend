@@ -57,3 +57,8 @@ export interface PageHeaderProps {
 	actions?: ReactNode;
 	className?: string;
 }
+
+export interface FilterBarProps {
+	children: ReactNode;
+	className?: string;
+}

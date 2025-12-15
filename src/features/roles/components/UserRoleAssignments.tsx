@@ -13,16 +13,12 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { useApiErrorToast } from "@/hooks/useApiErrorToast";
 import { queryKeys } from "@/lib/queryKeys";
-import { assignRoleToUser, listRoles, removeRoleFromUser } from "../api/roles.api";
-import type { Role } from "../types";
-
-interface UserRoleAssignmentsProps {
-	membershipId: string;
-	assignedRoleIds?: string[] | null;
-	onUpdated?: () => void;
-	disableAssignments?: boolean;
-	disableReason?: string;
-}
+import {
+	assignRoleToUser,
+	listRoles,
+	removeRoleFromUser,
+} from "../api/roles.api";
+import type { Role, UserRoleAssignmentsProps } from "../types";
 
 export function UserRoleAssignments({
 	membershipId,
@@ -51,14 +47,16 @@ export function UserRoleAssignments({
 			});
 			setSelectedRoleId("");
 			queryClient.invalidateQueries({ queryKey: queryKeys.roles.list() });
-			queryClient.invalidateQueries({ queryKey: queryKeys.orgUsers.detail(membershipId) });
+			queryClient.invalidateQueries({
+				queryKey: queryKeys.orgUsers.detail(membershipId),
+			});
 			queryClient.invalidateQueries({ queryKey: queryKeys.orgUsers.list() });
 			onUpdated?.();
 		},
 		onError: (err) =>
 			apiErrorToast(
 				err,
-				"Unable to assign the role. Check permissions or try again.",
+				"Unable to assign the role. Check permissions or try again."
 			),
 	});
 
@@ -70,14 +68,16 @@ export function UserRoleAssignments({
 				description: "The user has been updated.",
 			});
 			queryClient.invalidateQueries({ queryKey: queryKeys.roles.list() });
-			queryClient.invalidateQueries({ queryKey: queryKeys.orgUsers.detail(membershipId) });
+			queryClient.invalidateQueries({
+				queryKey: queryKeys.orgUsers.detail(membershipId),
+			});
 			queryClient.invalidateQueries({ queryKey: queryKeys.orgUsers.list() });
 			onUpdated?.();
 		},
 		onError: (err) =>
 			apiErrorToast(
 				err,
-				"Unable to remove the role. Check permissions or try again.",
+				"Unable to remove the role. Check permissions or try again."
 			),
 	});
 
@@ -90,9 +90,8 @@ export function UserRoleAssignments({
 	}, [assignedRoleIds, roleList]);
 
 	const availableRoles = useMemo(
-		() =>
-			roleList.filter((role) => !(assignedRoleIds ?? []).includes(role.id)),
-		[roleList, assignedRoleIds],
+		() => roleList.filter((role) => !(assignedRoleIds ?? []).includes(role.id)),
+		[roleList, assignedRoleIds]
 	);
 
 	const handleAssign = () => {
@@ -147,7 +146,9 @@ export function UserRoleAssignments({
 								</Badge>
 							))
 						) : (
-							<p className="text-sm text-muted-foreground">No roles assigned.</p>
+							<p className="text-sm text-muted-foreground">
+								No roles assigned.
+							</p>
 						)}
 					</div>
 
@@ -182,7 +183,9 @@ export function UserRoleAssignments({
 							size="sm"
 							onClick={handleAssign}
 							disabled={
-								!selectedRoleId || assignMutation.isPending || disableAssignments
+								!selectedRoleId ||
+								assignMutation.isPending ||
+								disableAssignments
 							}
 						>
 							{assignMutation.isPending ? "Assigning..." : "Assign role"}

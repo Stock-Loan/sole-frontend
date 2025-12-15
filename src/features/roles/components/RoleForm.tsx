@@ -14,21 +14,13 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { nonEmptyString } from "@/lib/validation";
 import { PERMISSION_CATALOG } from "../constants";
-import type { RoleFormValues } from "../types";
+import type { RoleFormProps, RoleFormValues } from "../types";
 
 const schema = z.object({
 	name: nonEmptyString.min(1, "Role name is required"),
 	description: z.string().optional().nullable(),
 	permissions: z.array(z.string()).min(1, "Select at least one permission"),
 });
-
-interface RoleFormProps {
-	initialValues?: RoleFormValues;
-	onSubmit: (values: RoleFormValues) => Promise<void>;
-	isSubmitting?: boolean;
-	disabled?: boolean;
-	formId?: string;
-}
 
 const defaultValues: RoleFormValues = {
 	name: "",

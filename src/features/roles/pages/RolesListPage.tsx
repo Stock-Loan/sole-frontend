@@ -11,7 +11,13 @@ import { createRole, listRoles, updateRole } from "../api/roles.api";
 import { RolePermissionsDialog } from "../components/RolePermissionsDialog";
 import { RolesTable } from "../components/RolesTable";
 import { RoleFormDialog } from "../components/RoleFormDialog";
-import type { Role, RoleFormMode, RoleFormValues } from "../types";
+import { RolesFilters } from "../components/RolesFilters";
+import type {
+	Role,
+	RoleFilterType,
+	RoleFormMode,
+	RoleFormValues,
+} from "../types";
 
 export function RolesListPage() {
 	const apiErrorToast = useApiErrorToast();
@@ -22,6 +28,8 @@ export function RolesListPage() {
 	const [formDialogOpen, setFormDialogOpen] = useState(false);
 	const [formMode, setFormMode] = useState<RoleFormMode>("create");
 	const [editingRole, setEditingRole] = useState<Role | null>(null);
+	const [search, setSearch] = useState("");
+	const [roleType, setRoleType] = useState<RoleFilterType>("ALL");
 
 	const { data, isLoading, isError, isFetching, error, refetch } = useQuery({
 		queryKey: queryKeys.roles.list(),
@@ -36,6 +44,22 @@ export function RolesListPage() {
 	}, [isError, error, apiErrorToast]);
 
 	const roles = useMemo(() => data?.items ?? [], [data?.items]);
+	const filteredRoles = useMemo(() => {
+		const term = search.trim().toLowerCase();
+		return roles.filter((role) => {
+			const matchesSearch =
+				!term ||
+				role.name.toLowerCase().includes(term) ||
+				(role.description ?? "").toLowerCase().includes(term);
+			const matchesType =
+				roleType === "ALL"
+					? true
+					: roleType === "SYSTEM"
+						? role.is_system_role
+						: !role.is_system_role;
+			return matchesSearch && matchesType;
+		});
+	}, [roles, search, roleType]);
 
 	const createMutation = useMutation({
 		mutationFn: (values: RoleFormValues) => createRole(values),
@@ -127,8 +151,15 @@ export function RolesListPage() {
 				}
 			/>
 
+			<RolesFilters
+				search={search}
+				onSearchChange={setSearch}
+				type={roleType}
+				onTypeChange={setRoleType}
+			/>
+
 			<RolesTable
-				roles={roles}
+				roles={filteredRoles}
 				isLoading={isLoading}
 				isError={isError}
 				isFetching={isFetching}

@@ -121,6 +121,15 @@ export interface RolePermissionsDialogProps {
 	onOpenChange: (open: boolean) => void;
 }
 
+export type RoleFilterType = "ALL" | "SYSTEM" | "CUSTOM";
+
+export interface RolesFiltersProps {
+	search: string;
+	onSearchChange: (value: string) => void;
+	type: RoleFilterType;
+	onTypeChange: (type: RoleFilterType) => void;
+}
+
 export type RoleFormMode = "create" | "edit";
 
 export interface RoleFormValues {
@@ -136,4 +145,18 @@ export interface RoleFormDialogProps {
 	initialRole?: Role | null;
 	onSubmit: (values: RoleFormValues, roleId?: string) => Promise<void>;
 	isSubmitting?: boolean;
+}
+export interface RoleFormProps {
+	initialValues?: RoleFormValues;
+	onSubmit: (values: RoleFormValues) => Promise<void>;
+	isSubmitting?: boolean;
+	disabled?: boolean;
+	formId?: string;
+}
+export interface UserRoleAssignmentsProps {
+	membershipId: string;
+	assignedRoleIds?: string[] | null;
+	onUpdated?: () => void;
+	disableAssignments?: boolean;
+	disableReason?: string;
 }
