@@ -1,15 +1,21 @@
 import { NavLink } from "react-router-dom";
 import { dashboardRoutes } from "@/app/dashboard-routes";
 import { cn } from "@/lib/utils";
+import { usePermissions } from "@/features/auth/hooks/usePermissions";
 
 interface SidebarNavProps {
 	onNavigate?: () => void;
 }
 
 export function SidebarNav({ onNavigate }: SidebarNavProps) {
+	const { can } = usePermissions();
+	const visibleRoutes = dashboardRoutes.filter(
+		(route) => !route.requiredPermission || can(route.requiredPermission),
+	);
+
 	return (
 		<nav className="space-y-2">
-			{dashboardRoutes.map((item) => {
+			{visibleRoutes.map((item) => {
 				const Icon = item.icon;
 				return (
 					<NavLink

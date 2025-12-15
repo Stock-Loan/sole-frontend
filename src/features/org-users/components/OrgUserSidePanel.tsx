@@ -8,6 +8,7 @@ import { formatDate } from "@/lib/format";
 import { getOrgUser } from "../api/orgUsers.api";
 import { OrgUserProfileDialog } from "./OrgUserProfileDialog";
 import type { OrgUserListItem, OrgUserSidePanelProps } from "../types";
+import { usePermissions } from "@/features/auth/hooks/usePermissions";
 
 export function OrgUserSidePanel({
 	membershipId,
@@ -21,6 +22,8 @@ export function OrgUserSidePanel({
 		() => queryKeys.orgUsers.detail(membershipId || "pending"),
 		[membershipId]
 	);
+	const { can } = usePermissions();
+	const canManageUsers = can("user.manage");
 
 	const {
 		data: user,
@@ -95,13 +98,17 @@ export function OrgUserSidePanel({
 				onOpenChange={onOpenChange}
 				title="Employee Details"
 				description="View and manage employee information and status."
-				actions={[
-					{
-						label: "Edit profile",
-						onClick: () => setIsProfileDialogOpen(true),
-						variant: "outline",
-					},
-				]}
+				actions={
+					canManageUsers
+						? [
+								{
+									label: "Edit profile",
+									onClick: () => setIsProfileDialogOpen(true),
+									variant: "outline",
+								},
+						  ]
+						: []
+				}
 			>
 				{isLoading || !user ? (
 					<div className="flex items-center gap-2 text-sm text-muted-foreground">

@@ -16,6 +16,7 @@ import { OverviewPage } from "@/pages/OverviewPage";
 import { PlaceholderPage } from "@/pages/PlaceholderPage";
 import { UserSettingsPage } from "@/features/user-settings/pages/UserSettingsPage";
 import { AppErrorBoundary } from "./error-boundary";
+import { PermissionGate } from "@/components/layout/PermissionGate";
 
 export const router = createBrowserRouter([
 	{
@@ -62,49 +63,75 @@ export const router = createBrowserRouter([
 			},
 			{
 				path: "overview",
-				element: <OverviewPage />,
+				element: (
+					<PermissionGate permission="org.dashboard.view" fallback={<NotAuthorizedPage />}>
+						<OverviewPage />
+					</PermissionGate>
+				),
 			},
 			{
 				path: "users",
-				element: <OrgUsersListPage />,
+				element: (
+					<PermissionGate permission="user.view" fallback={<NotAuthorizedPage />}>
+						<OrgUsersListPage />
+					</PermissionGate>
+				),
 			},
 			{
 				path: "users/:membershipId",
-				element: <OrgUserDetailPage />,
+				element: (
+					<PermissionGate permission="user.view" fallback={<NotAuthorizedPage />}>
+						<OrgUserDetailPage />
+					</PermissionGate>
+				),
 			},
 			{
 				path: "users/onboard",
-				element: <OrgUserOnboardingPage />,
+				element: (
+					<PermissionGate permission="user.onboard" fallback={<NotAuthorizedPage />}>
+						<OrgUserOnboardingPage />
+					</PermissionGate>
+				),
 			},
 			{
 				path: "roles",
-				element: <RolesListPage />,
+				element: (
+					<PermissionGate permission="role.view" fallback={<NotAuthorizedPage />}>
+						<RolesListPage />
+					</PermissionGate>
+				),
 			},
 			{
 				path: "departments",
 				element: (
-					<PlaceholderPage
-						title="Departments"
-						description="Org department structure and primary department assignment."
-					/>
+					<PermissionGate permission="department.view" fallback={<NotAuthorizedPage />}>
+						<PlaceholderPage
+							title="Departments"
+							description="Org department structure and primary department assignment."
+						/>
+					</PermissionGate>
 				),
 			},
 			{
 				path: "announcements",
 				element: (
-					<PlaceholderPage
-						title="Announcements"
-						description="Org announcements list, publish/unpublish, and read tracking."
-					/>
+					<PermissionGate permission="announcement.view" fallback={<NotAuthorizedPage />}>
+						<PlaceholderPage
+							title="Announcements"
+							description="Org announcements list, publish/unpublish, and read tracking."
+						/>
+					</PermissionGate>
 				),
 			},
 			{
 				path: "settings",
 				element: (
-					<PlaceholderPage
-						title="Org settings"
-						description="Org-level privacy, security, and retention configuration."
-					/>
+					<PermissionGate permission="org.settings.view" fallback={<NotAuthorizedPage />}>
+						<PlaceholderPage
+							title="Org settings"
+							description="Org-level privacy, security, and retention configuration."
+						/>
+					</PermissionGate>
 				),
 			},
 			{

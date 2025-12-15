@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { useApiErrorToast } from "@/hooks/useApiErrorToast";
 import { queryKeys } from "@/lib/queryKeys";
+import { usePermissions } from "@/features/auth/hooks/usePermissions";
 import { createRole, listRoles, updateRole } from "../api/roles.api";
 import { RolePermissionsDialog } from "../components/RolePermissionsDialog";
 import { RolesTable } from "../components/RolesTable";
@@ -23,6 +24,7 @@ export function RolesListPage() {
 	const apiErrorToast = useApiErrorToast();
 	const { toast } = useToast();
 	const queryClient = useQueryClient();
+	const { can } = usePermissions();
 	const [selectedRole, setSelectedRole] = useState<Role | null>(null);
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
 	const [formDialogOpen, setFormDialogOpen] = useState(false);
@@ -135,9 +137,11 @@ export function RolesListPage() {
 				subtitle="View system and custom roles with their permission sets."
 				actions={
 					<div className="flex items-center gap-2">
-						<Button onClick={handleCreateClick} size="sm">
-							New role
-						</Button>
+						{can("role.manage") ? (
+							<Button onClick={handleCreateClick} size="sm">
+								New role
+							</Button>
+						) : null}
 						<Button
 							variant="outline"
 							size="sm"
@@ -165,7 +169,7 @@ export function RolesListPage() {
 				isFetching={isFetching}
 				onRetry={refetch}
 				onViewPermissions={handleViewPermissions}
-				onEdit={handleEditClick}
+				onEdit={can("role.manage") ? handleEditClick : undefined}
 			/>
 
 			<RolePermissionsDialog

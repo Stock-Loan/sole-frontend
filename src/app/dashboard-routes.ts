@@ -12,15 +12,46 @@ export interface DashboardRoute {
 	label: string;
 	path: string;
 	icon: LucideIcon;
+	requiredPermission?: string;
 }
 
 export const dashboardRoutes: DashboardRoute[] = [
-	{ label: "Overview", path: routes.overview, icon: LayoutDashboard },
-	{ label: "Users", path: routes.users, icon: Users },
-	{ label: "Roles", path: routes.roles, icon: Shield },
-	{ label: "Departments", path: routes.departments, icon: Settings },
-	{ label: "Announcements", path: routes.announcements, icon: Megaphone },
-	{ label: "Org settings", path: routes.orgSettings, icon: Settings },
+	{
+		label: "Overview",
+		path: routes.overview,
+		icon: LayoutDashboard,
+		requiredPermission: "org.dashboard.view",
+	},
+	{
+		label: "Users",
+		path: routes.users,
+		icon: Users,
+		requiredPermission: "user.view",
+	},
+	{
+		label: "Roles",
+		path: routes.roles,
+		icon: Shield,
+		requiredPermission: "role.view",
+	},
+	{
+		label: "Departments",
+		path: routes.departments,
+		icon: Settings,
+		requiredPermission: "department.view",
+	},
+	{
+		label: "Announcements",
+		path: routes.announcements,
+		icon: Megaphone,
+		requiredPermission: "announcement.view",
+	},
+	{
+		label: "Org settings",
+		path: routes.orgSettings,
+		icon: Settings,
+		requiredPermission: "org.settings.view",
+	},
 ];
 
 export function getRouteLabel(pathname: string) {

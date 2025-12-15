@@ -193,6 +193,12 @@ export interface OrgUserProfileDialogProps {
 	membershipId: string | null;
 	onUpdated: () => void;
 }
+export interface BulkOnboardingGuideProps {
+	className?: string;
+}
+export interface BulkOnboardingResultsTableProps {
+	rows: BulkOnboardingRowResult[];
+}
 export interface OrgUsersFiltersProps {
 	search: string;
 	onSearchChange: (value: string) => void;
@@ -212,6 +218,7 @@ export interface OrgUsersTableProps {
 	isLoading: boolean;
 	isError: boolean;
 	isFetching: boolean;
+	canManage?: boolean;
 	onRefresh: () => void;
 	onSelect: (membershipId: string) => void;
 	selectedIds: Set<string>;

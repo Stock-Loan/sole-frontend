@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { AxiosHeaders } from "axios";
 
 type TokenResolver = () => string | null;
 type VoidHandler = () => void;
@@ -7,7 +7,7 @@ let accessTokenResolver: TokenResolver = () => null;
 let tenantResolver: TokenResolver = () => null;
 let unauthorizedHandler: VoidHandler | null = null;
 
-const baseURL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api/v1";
+const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 export const apiClient = axios.create({
 	baseURL,
@@ -30,19 +30,17 @@ apiClient.interceptors.request.use((config) => {
 	const token = accessTokenResolver();
 	const tenantId = tenantResolver();
 
-	if (token) {
-		config.headers = {
-			...config.headers,
-			Authorization: `Bearer ${token}`,
-		};
+	if (
+		!config.headers ||
+		typeof (config.headers as AxiosHeaders).set !== "function"
+	) {
+		config.headers = new AxiosHeaders(config.headers);
 	}
 
-	if (tenantId) {
-		config.headers = {
-			...config.headers,
-			"X-Tenant-ID": tenantId,
-		};
-	}
+	const headers = config.headers as AxiosHeaders;
+
+	if (token) headers.set("Authorization", `Bearer ${token}`);
+	if (tenantId) headers.set("X-Tenant-ID", tenantId);
 
 	return config;
 });
@@ -58,5 +56,5 @@ apiClient.interceptors.response.use(
 		}
 
 		return Promise.reject(error);
-	},
+	}
 );

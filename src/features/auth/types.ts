@@ -16,6 +16,7 @@ export interface AuthUser {
 	full_name?: string | null;
 	roles?: RoleCode[];
 	orgIds?: string[];
+	permissions?: string[];
 }
 
 export interface LoginStartPayload {

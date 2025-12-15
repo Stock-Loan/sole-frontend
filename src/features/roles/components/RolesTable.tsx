@@ -99,14 +99,16 @@ export function RolesTable({
 										>
 											View permissions
 										</Button>
-										<Button
-											variant="secondary"
-											size="sm"
-											disabled={!onEdit || Boolean(role.is_system_role)}
-											onClick={() => onEdit?.(role)}
-										>
-											Edit
-										</Button>
+										{onEdit ? (
+											<Button
+												variant="secondary"
+												size="sm"
+												disabled={Boolean(role.is_system_role)}
+												onClick={() => onEdit(role)}
+											>
+												Edit
+											</Button>
+										) : null}
 									</div>
 								</TableCell>
 							</TableRow>

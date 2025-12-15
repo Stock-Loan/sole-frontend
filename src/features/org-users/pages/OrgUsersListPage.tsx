@@ -18,6 +18,7 @@ import { toast } from "@/components/ui/use-toast";
 import { queryKeys } from "@/lib/queryKeys";
 import { Pagination } from "@/components/ui/pagination";
 import { useApiErrorToast } from "@/hooks/useApiErrorToast";
+import { usePermissions } from "@/features/auth/hooks/usePermissions";
 import { AddUserDialog } from "../components/AddUserDialog";
 import { OrgUsersFilters } from "../components/OrgUsersFilters";
 import { OrgUsersTable } from "../components/OrgUsersTable";
@@ -53,6 +54,9 @@ export function OrgUsersListPage() {
 	const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 	const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 	const apiErrorToast = useApiErrorToast();
+	const { can } = usePermissions();
+	const canManageUsers = can("user.manage");
+	const canOnboardUsers = can("user.onboard");
 
 	useEffect(() => {
 		const timer = setTimeout(() => setDebouncedSearch(searchTerm), 300);
@@ -146,6 +150,7 @@ export function OrgUsersListPage() {
 	};
 
 	const handleToggleSelect = (membershipId: string, checked: boolean) => {
+		if (!canManageUsers) return;
 		setSelectedIds((prev) => {
 			const next = new Set(prev);
 			if (checked) {
@@ -158,6 +163,7 @@ export function OrgUsersListPage() {
 	};
 
 	const handleToggleSelectAll = (checked: boolean, ids: string[]) => {
+		if (!canManageUsers) return;
 		setSelectedIds((prev) => {
 			const next = new Set(prev);
 			if (checked) {
@@ -172,7 +178,7 @@ export function OrgUsersListPage() {
 	const handleClearSelection = () => setSelectedIds(new Set());
 
 	const handleBulkDelete = async () => {
-		if (selectedIds.size === 0) return;
+		if (!canManageUsers || selectedIds.size === 0) return;
 		try {
 			const response = await bulkDeleteOrgUsers(Array.from(selectedIds));
 			const deletedUsers = response.deleted ?? 0;
@@ -204,31 +210,37 @@ export function OrgUsersListPage() {
 				subtitle="View organization users and core statuses. Data is scoped to your current organization."
 				actions={
 					<div className="flex gap-2">
-						<AddUserDialog
-							open={isAddModalOpen}
-							onOpenChange={setIsAddModalOpen}
-							onSubmit={handleAddUser}
-							trigger={
-								<Button variant="outline" size="sm">
-									<UserPlus className="mr-2 h-4 w-4" />
-									Add user
-								</Button>
-							}
-						/>
-						<Button
-							variant="destructive"
-							size="sm"
-							disabled={selectedIds.size === 0}
-							onClick={() => setConfirmDeleteOpen(true)}
-						>
-							Delete selected ({selectedIds.size})
-						</Button>
-						<Button variant="outline" size="sm" asChild>
-							<Link to="/app/users/onboard">
-								<Upload className="mr-2 h-4 w-4" />
-								Bulk onboarding
-							</Link>
-						</Button>
+						{canOnboardUsers ? (
+							<AddUserDialog
+								open={isAddModalOpen}
+								onOpenChange={setIsAddModalOpen}
+								onSubmit={handleAddUser}
+								trigger={
+									<Button variant="outline" size="sm">
+										<UserPlus className="mr-2 h-4 w-4" />
+										Add user
+									</Button>
+								}
+							/>
+						) : null}
+						{canManageUsers ? (
+							<Button
+								variant="destructive"
+								size="sm"
+								disabled={selectedIds.size === 0}
+								onClick={() => setConfirmDeleteOpen(true)}
+							>
+								Delete selected ({selectedIds.size})
+							</Button>
+						) : null}
+						{canOnboardUsers ? (
+							<Button variant="outline" size="sm" asChild>
+								<Link to="/app/users/onboard">
+									<Upload className="mr-2 h-4 w-4" />
+									Bulk onboarding
+								</Link>
+							</Button>
+						) : null}
 						<Button variant="outline" size="sm" onClick={() => refetch()}>
 							<RefreshCw className="mr-2 h-4 w-4" />
 							Refresh
@@ -251,6 +263,7 @@ export function OrgUsersListPage() {
 				isError={isError}
 				isFetching={isFetching}
 				onRefresh={() => refetch()}
+				canManage={canManageUsers}
 				onSelect={handleSelectUser}
 				selectedIds={selectedIds}
 				onToggleSelect={handleToggleSelect}

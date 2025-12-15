@@ -1,6 +1,7 @@
 import { Loader2, RefreshCw } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
 	Table,
 	TableBody,
@@ -11,6 +12,7 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { routes } from "@/lib/routes";
+import { statusTone } from "../constants";
 import type { OrgUsersTableProps } from "../types";
 
 function StatusBadge({ label, variant }: { label: string; variant: string }) {
@@ -38,33 +40,44 @@ export function OrgUsersTable({
 	isLoading,
 	isError,
 	isFetching,
+	canManage = true,
 	onRefresh,
 	onSelect,
 	selectedIds,
 	onToggleSelect,
 	onToggleSelectAll,
 }: OrgUsersTableProps) {
-	const visibleIds = items.map((item) => item.membership.id);
+	const selectionEnabled = Boolean(canManage);
+	const visibleIds = selectionEnabled
+		? items.map((item) => item.membership.id)
+		: [];
 	const allSelected =
-		visibleIds.length > 0 && visibleIds.every((id) => selectedIds.has(id));
+		selectionEnabled &&
+		visibleIds.length > 0 &&
+		visibleIds.every((id) => selectedIds.has(id));
 	const someSelected =
-		visibleIds.some((id) => selectedIds.has(id)) && !allSelected;
+		selectionEnabled &&
+		visibleIds.some((id) => selectedIds.has(id)) &&
+		!allSelected;
+	const columnCount = 6 + (selectionEnabled ? 1 : 0);
 
 	return (
 		<div className="overflow-x-auto rounded-xl border border-border/70">
 			<Table>
 				<TableHeader>
 					<TableRow className="bg-muted/40">
-						<TableHead className="w-10">
-							<Checkbox
-								checked={allSelected}
-								indeterminate={someSelected}
-								onCheckedChange={(checked) =>
-									onToggleSelectAll(Boolean(checked), visibleIds)
-								}
-								aria-label="Select all users on this page"
-							/>
-						</TableHead>
+						{selectionEnabled ? (
+							<TableHead className="w-10">
+								<Checkbox
+									checked={allSelected}
+									indeterminate={someSelected}
+									onCheckedChange={(checked) =>
+										onToggleSelectAll(Boolean(checked), visibleIds)
+									}
+									aria-label="Select all users on this page"
+								/>
+							</TableHead>
+						) : null}
 						<TableHead className="min-w-[180px]">Full name</TableHead>
 						<TableHead>Employee ID</TableHead>
 						<TableHead>Email</TableHead>
@@ -76,7 +89,7 @@ export function OrgUsersTable({
 				<TableBody>
 					{isLoading ? (
 						<TableRow>
-							<TableCell colSpan={8}>
+							<TableCell colSpan={columnCount}>
 								<div className="flex items-center gap-2 text-sm text-muted-foreground">
 									<Loader2 className="h-4 w-4 animate-spin" />
 									Loading users…
@@ -85,7 +98,7 @@ export function OrgUsersTable({
 						</TableRow>
 					) : isError ? (
 						<TableRow>
-							<TableCell colSpan={8}>
+							<TableCell colSpan={columnCount}>
 								<div className="flex items-center justify-between rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
 									<p>
 										We couldn&rsquo;t load users right now. Please try again.
@@ -110,15 +123,17 @@ export function OrgUsersTable({
 							const platformStatus = item.membership.platform_status || "";
 							return (
 								<TableRow key={item.user.id}>
-									<TableCell className="w-10">
-										<Checkbox
-											checked={selectedIds.has(item.membership.id)}
-											onCheckedChange={(checked) =>
-												onToggleSelect(item.membership.id, Boolean(checked))
-											}
-											aria-label={`Select ${name}`}
-										/>
-									</TableCell>
+									{selectionEnabled ? (
+										<TableCell className="w-10">
+											<Checkbox
+												checked={selectedIds.has(item.membership.id)}
+												onCheckedChange={(checked) =>
+													onToggleSelect(item.membership.id, Boolean(checked))
+												}
+												aria-label={`Select ${name}`}
+											/>
+										</TableCell>
+									) : null}
 									<TableCell className="space-y-1 font-semibold text-foreground">
 										<div>
 											<Link
@@ -164,7 +179,7 @@ export function OrgUsersTable({
 						})
 					) : (
 						<TableRow>
-							<TableCell colSpan={8}>
+							<TableCell colSpan={columnCount}>
 								<div className="flex items-center justify-between rounded-md border border-dashed border-border/70 bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
 									<span>No users found for this organization.</span>
 									{isFetching ? (
@@ -182,5 +197,3 @@ export function OrgUsersTable({
 		</div>
 	);
 }
-import { Checkbox } from "@/components/ui/checkbox";
-import { statusTone } from "../constants";
