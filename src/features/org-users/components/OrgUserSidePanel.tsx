@@ -11,6 +11,9 @@ import { OrgUserProfileDialog } from "./OrgUserProfileDialog";
 import type { OrgUserListItem, OrgUserSidePanelProps } from "../types";
 import { usePermissions } from "@/features/auth/hooks/usePermissions";
 import { normalizeDisplay } from "@/lib/utils";
+import { getMembershipRoleNames, getSelfContextRoleNames } from "../utils";
+import { useSelfContext } from "@/features/auth/hooks/useSelfContext";
+import { useAuth } from "@/features/auth/hooks/useAuth";
 
 export function OrgUserSidePanel({
 	membershipId,
@@ -41,6 +44,8 @@ export function OrgUserSidePanel({
 		queryFn: listRoles,
 		staleTime: 5 * 60 * 1000,
 	});
+	const { data: selfContext } = useSelfContext();
+	const { user: authUser } = useAuth();
 
 	useEffect(() => {
 		if (!isError) return;
@@ -102,14 +107,22 @@ export function OrgUserSidePanel({
 					{
 						label: "Roles",
 						value:
-							rolesData?.items
-								.filter((role) =>
-									(user.membership.roles ?? user.membership.role_ids ?? []).includes(
-										role.id
-									)
-								)
-								.map((role) => role.name)
-								.join(", ") || "—",
+							(() => {
+								const baseNames = getMembershipRoleNames(
+									user.membership,
+									rolesData?.items ?? [],
+								);
+								const isSelf = authUser?.id === user.user.id;
+								const combined = isSelf
+									? Array.from(
+											new Set([
+												...baseNames,
+												...getSelfContextRoleNames(selfContext),
+											])
+										)
+									: baseNames;
+								return combined.join(", ") || "—";
+							})(),
 					},
 			  ]
 			: [];

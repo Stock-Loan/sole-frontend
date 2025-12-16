@@ -6,6 +6,7 @@ import type {
 	LoginResponse,
 	LoginStartPayload,
 	LoginStartResponse,
+	SelfContextResponse,
 	TokenPair,
 } from "../types";
 
@@ -45,5 +46,10 @@ export async function getMe() {
 
 export async function changePassword(payload: ChangePasswordPayload) {
 	const { data } = await apiClient.post<TokenPair>("/auth/change-password", payload);
+	return data;
+}
+
+export async function getSelfContext() {
+	const { data } = await apiClient.get<SelfContextResponse>("/self/context");
 	return data;
 }

@@ -25,6 +25,14 @@ import { formatDate } from "@/lib/format";
 import type { OrgUserListItem } from "../types";
 import { Badge } from "@/components/ui/badge";
 import { normalizeDisplay } from "@/lib/utils";
+import {
+	getMembershipRoleIds,
+	getMembershipRoleNames,
+	getSelfContextRoleIds,
+	getSelfContextRoleNames,
+} from "../utils";
+import { useSelfContext } from "@/features/auth/hooks/useSelfContext";
+import { useAuth } from "@/features/auth/hooks/useAuth";
 
 export function OrgUserDetailPage() {
 	const { membershipId } = useParams<{ membershipId: string }>();
@@ -44,6 +52,8 @@ export function OrgUserDetailPage() {
 	const { data: countries } = useCountries();
 	const countryCode = data?.user.country || "";
 	const { data: subdivisions } = useSubdivisions(countryCode || null);
+	const { data: selfContext } = useSelfContext();
+	const { user: authUser } = useAuth();
 
 	const infoItems = useMemo(() => {
 		if (!data) return [];
@@ -135,15 +145,22 @@ export function OrgUserDetailPage() {
 	const roleAssignmentDisabled = employmentStatus !== "ACTIVE";
 	const roleDisableReason =
 		"Role assignment is only available when employment status is Active.";
-	const assignedRoleIds =
-		data.membership.roles ?? data.membership.role_ids ?? [];
-	const assignedRoleNames = useMemo(() => {
-		const items = rolesData?.items ?? [];
-		return items
-			.filter((role) => assignedRoleIds.includes(role.id))
-			.map((role) => role.name)
-			.filter(Boolean);
-	}, [assignedRoleIds, rolesData?.items]);
+	const assignedRoleIds = getMembershipRoleIds(data.membership);
+	const assignedRoleNames = useMemo(
+		() => {
+			const baseNames = getMembershipRoleNames(
+				data.membership,
+				rolesData?.items ?? []
+			);
+			const isSelf = authUser?.id === data.user.id;
+			if (!isSelf) return baseNames;
+			const selfNames = getSelfContextRoleNames(selfContext);
+			return Array.from(new Set([...baseNames, ...selfNames]));
+		},
+		[data.membership, rolesData?.items, selfContext, authUser?.id, data.user.id]
+	);
+	const selfRoleIds = authUser?.id === data.user.id ? getSelfContextRoleIds(selfContext) : [];
+	const combinedRoleIds = Array.from(new Set([...assignedRoleIds, ...selfRoleIds]));
 
 	return (
 		<PageContainer className="space-y-6">
@@ -230,9 +247,7 @@ export function OrgUserDetailPage() {
 					<DialogBody>
 						<UserRoleAssignments
 							membershipId={data.membership.id}
-							assignedRoleIds={
-								data.membership.roles ?? data.membership.role_ids
-							}
+							assignedRoleIds={combinedRoleIds}
 							platformStatus={platformStatus}
 							disableAssignments={roleAssignmentDisabled}
 							disableReason={roleDisableReason}

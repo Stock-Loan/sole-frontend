@@ -37,6 +37,22 @@ export interface LoginResponse {
 	user: AuthUser;
 }
 
+export interface SelfContextResponse {
+	org: {
+		id: string;
+		name: string;
+		slug?: string;
+		status?: string;
+	};
+	roles: Array<{
+		id: string;
+		name?: string;
+		is_system_role?: boolean;
+		permissions?: string[];
+	}>;
+	permissions: string[];
+}
+
 export interface ChangePasswordPayload {
 	current_password: string;
 	new_password: string;

@@ -3,6 +3,8 @@ import type { OrgUsersListParams } from "@/features/org-users/types";
 export const queryKeys = {
 	auth: {
 		me: () => ["auth", "me"] as const,
+		selfContext: (orgId?: string | null) =>
+			["auth", "self-context", orgId ?? "current"] as const,
 	},
 	roles: {
 		list: () => ["roles", "list"] as const,
