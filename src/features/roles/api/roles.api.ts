@@ -28,7 +28,7 @@ export async function assignRolesToUser(
 	roleIds: string[]
 ): Promise<Role[]> {
 	const { data } = await apiClient.post<Role[]>(
-		`/org/users/${membershipId}/roles`,
+		`/roles/org/users/${membershipId}/roles`,
 		{ role_ids: roleIds }
 	);
 	return data;
@@ -38,7 +38,7 @@ export async function removeRolesFromUser(
 	membershipId: string,
 	roleIds: string[]
 ): Promise<void> {
-	await apiClient.delete(`/org/users/${membershipId}/roles`, {
+	await apiClient.delete(`/roles/org/users/${membershipId}/roles`, {
 		data: { role_ids: roleIds },
 	});
 }

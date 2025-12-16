@@ -244,7 +244,10 @@ export function OrgUserDetailPage() {
 							platformStatus={platformStatus}
 							disableAssignments={roleAssignmentDisabled}
 							disableReason={roleDisableReason}
-							onUpdated={() => refetch()}
+							onUpdated={() => {
+								refetch();
+								setRolesDialogOpen(false);
+							}}
 						/>
 					</DialogBody>
 				</DialogContent>

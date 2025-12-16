@@ -83,39 +83,61 @@ export function LoginPage() {
 	const completeLoginMutation = useMutation({
 		mutationFn: async (payload: LoginCompletePayload) => {
 			const tokens = await completeLogin(payload);
-			const { data: user } = await apiClient.get("/auth/me", {
-				headers: {
-					Authorization: `Bearer ${tokens.access_token}`,
-				},
-			});
-			return { tokens, user };
+			try {
+				const { data: user } = await apiClient.get<AuthUser>("/auth/me", {
+					headers: {
+						Authorization: `Bearer ${tokens.access_token}`,
+					},
+				});
+				return { tokens, user, passwordChangeRequired: false };
+			} catch (error) {
+				if (
+					isAxiosError(error) &&
+					error.response?.status === 403 &&
+					typeof error.response?.data?.detail === "string" &&
+					error.response.data.detail
+						.toLowerCase()
+						.includes("password change required")
+				) {
+					// Return placeholder user to persist session for password change
+					return {
+						tokens,
+						user: {
+							id: "pending",
+							email: email,
+							is_active: true,
+						} as AuthUser,
+						passwordChangeRequired: true,
+					};
+				}
+				throw error;
+			}
 		},
-		onSuccess: ({ tokens, user }) => {
+		onSuccess: ({ tokens, user, passwordChangeRequired }) => {
 			setSession(tokens, user);
 			if (typeof localStorage !== "undefined") {
 				localStorage.removeItem(PENDING_EMAIL_KEY);
 			}
-			toast({
-				title: "Welcome back",
-				description: "You are now signed in.",
-			});
-			navigate(routes.overview);
-		},
-		onError: (error) => {
-			if (
-				isAxiosError(error) &&
-				error.response?.status === 403 &&
-				typeof error.response?.data?.detail === "string" &&
-				error.response.data.detail.toLowerCase().includes("password change required")
-			) {
+
+			if (passwordChangeRequired) {
 				toast({
 					title: "Password change required",
 					description: "Please update your password to finish signing in.",
 				});
 				navigate(routes.changePassword, { replace: true });
-				return;
+			} else {
+				toast({
+					title: "Welcome back",
+					description: "You are now signed in.",
+				});
+				navigate(routes.overview);
 			}
-			apiErrorToast(error, "Invalid password or expired challenge. Please try again.");
+		},
+		onError: (error) => {
+			apiErrorToast(
+				error,
+				"Invalid password or expired challenge. Please try again."
+			);
 		},
 	});
 

@@ -59,7 +59,7 @@ export interface OrgMembershipDto {
 	id: string;
 	org_id: string;
 	user_id: string;
-	roles?: Array<string | RoleSummary>;
+	roles?: Array<string | RoleSummary> | null;
 	employee_id?: string | null;
 	employment_start_date?: string | null;
 	employment_status: EmploymentStatus;
@@ -70,7 +70,7 @@ export interface OrgMembershipDto {
 	created_at?: string | null;
 	department?: string | null;
 	last_active_at?: string | null;
-	role_ids?: string[];
+	role_ids?: string[] | null;
 }
 export interface RoleSummary {
 	id: string;
@@ -81,7 +81,7 @@ export interface RoleSummary {
 export interface OrgUserListItem {
 	user: OrgUserDto;
 	membership: OrgMembershipDto;
-	roles?: Role[];
+	roles?: Role[] | null;
 }
 
 export interface OrgUsersListParams {
