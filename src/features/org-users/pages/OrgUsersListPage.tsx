@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { RefreshCw, Upload, UserPlus } from "lucide-react";
-import { isAxiosError } from "axios";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/common/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -14,8 +12,6 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import { toast } from "@/components/ui/use-toast";
-import { queryKeys } from "@/lib/queryKeys";
 import { Pagination } from "@/components/ui/pagination";
 import { useApiErrorToast } from "@/hooks/useApiErrorToast";
 import { usePermissions } from "@/features/auth/hooks/usePermissions";
@@ -24,14 +20,13 @@ import { OrgUsersFilters } from "../components/OrgUsersFilters";
 import { OrgUsersTable } from "../components/OrgUsersTable";
 import { OrgUserSidePanel } from "../components/OrgUserSidePanel";
 import {
-	bulkDeleteOrgUsers,
-	listOrgUsers,
-	onboardOrgUser,
-} from "../api/orgUsers.api";
+	useOrgUsersList,
+	useOnboardUser,
+	useBulkDeleteOrgUsers,
+} from "../hooks/useOrgUsers";
 import type {
 	EmploymentStatus,
 	OrgUsersListParams,
-	OrgUsersListResponse,
 	OnboardUserPayload,
 	PlatformStatus,
 } from "../types";
@@ -58,6 +53,9 @@ export function OrgUsersListPage() {
 	const canManageUsers = can("user.manage");
 	const canOnboardUsers = can("user.onboard");
 
+	const onboardUserMutation = useOnboardUser();
+	const bulkDeleteMutation = useBulkDeleteOrgUsers();
+
 	useEffect(() => {
 		const timer = setTimeout(() => setDebouncedSearch(searchTerm), 300);
 		return () => clearTimeout(timer);
@@ -80,12 +78,14 @@ export function OrgUsersListPage() {
 		[debouncedSearch, employmentStatus, platformStatus, page]
 	);
 
-	const { data, isLoading, isFetching, isError, error, refetch } =
-		useQuery<OrgUsersListResponse>({
-			queryKey: queryKeys.orgUsers.list(listParams),
-			queryFn: () => listOrgUsers(listParams),
-			placeholderData: (previousData) => previousData,
-		});
+	const {
+		data,
+		isLoading,
+		isFetching,
+		isError,
+		error: queryError,
+		refetch,
+	} = useOrgUsersList(listParams);
 
 	const selectedUsers = useMemo(() => {
 		if (!data?.items?.length) return [];
@@ -94,39 +94,15 @@ export function OrgUsersListPage() {
 
 	useEffect(() => {
 		if (isError) {
-			let message = "Unable to load users right now. Please try again.";
-			if (isAxiosError(error)) {
-				const detail = error.response?.data;
-				if (detail && typeof detail === "object" && "detail" in detail) {
-					const detailValue = (detail as { detail?: unknown }).detail;
-					if (
-						typeof detailValue === "string" &&
-						detailValue.trim().length > 0
-					) {
-						message = detailValue;
-					}
-				} else if (
-					typeof error.message === "string" &&
-					error.message.length > 0
-				) {
-					message = error.message;
-				}
-			}
-			toast({
-				variant: "destructive",
-				title: "Failed to load users",
-				description: message,
-			});
+			apiErrorToast(
+				queryError,
+				"Unable to load users right now. Please try again."
+			);
 		}
-	}, [error, isError]);
+	}, [queryError, isError, apiErrorToast]);
 
 	const handleAddUser = async (values: OnboardUserPayload) => {
-		await onboardOrgUser(values);
-		toast({
-			title: "User onboarded",
-			description: "The user has been added to this organization.",
-		});
-		refetch();
+		await onboardUserMutation.mutateAsync(values);
 	};
 
 	const handleSearchChange = (value: string) => {
@@ -180,19 +156,10 @@ export function OrgUsersListPage() {
 	const handleBulkDelete = async () => {
 		if (!canManageUsers || selectedIds.size === 0) return;
 		try {
-			const response = await bulkDeleteOrgUsers(Array.from(selectedIds));
-			const deletedUsers = response.deleted ?? 0;
-			const notFound = response.not_found ?? [];
-			toast({
-				title: "Users removed",
-				description: `${deletedUsers} users deleted${
-					notFound.length ? ` • Not found: ${notFound.join(", ")}` : ""
-				}.`,
-			});
+			await bulkDeleteMutation.mutateAsync(Array.from(selectedIds));
 			handleClearSelection();
-			refetch();
-		} catch (err) {
-			apiErrorToast(err, "Could not delete selected users. Please try again.");
+		} catch {
+			void 0;
 		}
 	};
 
