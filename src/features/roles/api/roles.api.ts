@@ -1,10 +1,5 @@
 import { apiClient } from "@/lib/apiClient";
-import type {
-	Role,
-	RoleAssignmentPayload,
-	RoleInput,
-	RoleListResponse,
-} from "../types";
+import type { Role, RoleInput, RoleListResponse } from "../types";
 
 export async function listRoles(): Promise<RoleListResponse> {
 	const { data } = await apiClient.get<RoleListResponse>("/roles");
@@ -16,7 +11,10 @@ export async function createRole(payload: RoleInput): Promise<Role> {
 	return data;
 }
 
-export async function updateRole(roleId: string, payload: RoleInput): Promise<Role> {
+export async function updateRole(
+	roleId: string,
+	payload: RoleInput
+): Promise<Role> {
 	const { data } = await apiClient.patch<Role>(`/roles/${roleId}`, payload);
 	return data;
 }
@@ -25,21 +23,22 @@ export async function deleteRole(roleId: string): Promise<void> {
 	await apiClient.delete(`/roles/${roleId}`);
 }
 
-export async function assignRoleToUser(
+export async function assignRolesToUser(
 	membershipId: string,
-	roleId: string,
-): Promise<Role> {
-	const payload: RoleAssignmentPayload = { role_id: roleId };
-	const { data } = await apiClient.post<Role>(
-		`/roles/org/users/${membershipId}/roles`,
-		payload,
+	roleIds: string[]
+): Promise<Role[]> {
+	const { data } = await apiClient.post<Role[]>(
+		`/org/users/${membershipId}/roles`,
+		{ role_ids: roleIds }
 	);
 	return data;
 }
 
-export async function removeRoleFromUser(
+export async function removeRolesFromUser(
 	membershipId: string,
-	roleId: string,
+	roleIds: string[]
 ): Promise<void> {
-	await apiClient.delete(`/roles/org/users/${membershipId}/roles/${roleId}`);
+	await apiClient.delete(`/org/users/${membershipId}/roles`, {
+		data: { role_ids: roleIds },
+	});
 }

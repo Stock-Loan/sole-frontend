@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import { SideModal } from "@/components/ui/side-modal";
@@ -6,12 +6,11 @@ import { toast } from "@/components/ui/use-toast";
 import { queryKeys } from "@/lib/queryKeys";
 import { formatDate } from "@/lib/format";
 import { getOrgUser } from "../api/orgUsers.api";
-import { listRoles } from "@/features/roles/api/roles.api";
 import { OrgUserProfileDialog } from "./OrgUserProfileDialog";
 import type { OrgUserListItem, OrgUserSidePanelProps } from "../types";
 import { usePermissions } from "@/features/auth/hooks/usePermissions";
 import { normalizeDisplay } from "@/lib/utils";
-import { getMembershipRoleNames, getSelfContextRoleNames } from "../utils";
+import { getSelfContextRoleNames } from "../utils";
 import { useSelfContext } from "@/features/auth/hooks/useSelfContext";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 
@@ -39,11 +38,11 @@ export function OrgUserSidePanel({
 		queryKey: detailKey,
 		queryFn: () => getOrgUser(membershipId || ""),
 	});
-	const { data: rolesData } = useQuery({
-		queryKey: queryKeys.roles.list(),
-		queryFn: listRoles,
-		staleTime: 5 * 60 * 1000,
-	});
+	// const { data: rolesData } = useQuery({ // Removed, roles are in user.roles
+	// 	queryKey: queryKeys.roles.list(),
+	// 	queryFn: listRoles,
+	// 	staleTime: 5 * 60 * 1000,
+	// });
 	const { data: selfContext } = useSelfContext();
 	const { user: authUser } = useAuth();
 
@@ -55,6 +54,18 @@ export function OrgUserSidePanel({
 			description: "Unable to fetch this user right now. Please try again.",
 		});
 	}, [isError]);
+
+	const userRolesForDisplay = useMemo(() => {
+		if (!user) return "—";
+		const baseNames = user.roles?.map((r) => r.name) ?? [];
+		const isSelf = authUser?.id === user.user.id;
+		const combined = isSelf
+			? Array.from(
+					new Set([...baseNames, ...getSelfContextRoleNames(selfContext)])
+			  )
+			: baseNames;
+		return combined.sort().join(", ") || "—";
+	}, [user, authUser?.id, selfContext]);
 
 	const infoItems =
 		user?.user && user?.membership
@@ -106,23 +117,7 @@ export function OrgUserSidePanel({
 					},
 					{
 						label: "Roles",
-						value:
-							(() => {
-								const baseNames = getMembershipRoleNames(
-									user.membership,
-									rolesData?.items ?? [],
-								);
-								const isSelf = authUser?.id === user.user.id;
-								const combined = isSelf
-									? Array.from(
-											new Set([
-												...baseNames,
-												...getSelfContextRoleNames(selfContext),
-											])
-										)
-									: baseNames;
-								return combined.join(", ") || "—";
-							})(),
+						value: userRolesForDisplay,
 					},
 			  ]
 			: [];
@@ -194,9 +189,7 @@ function InfoRow({ label, value }: { label: string; value?: string | null }) {
 			<p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
 				{label}
 			</p>
-			<p className="break-words text-sm text-foreground">
-				{displayValue}
-			</p>
+			<p className="break-words text-sm text-foreground">{displayValue}</p>
 		</div>
 	);
 }

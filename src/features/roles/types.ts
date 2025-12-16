@@ -76,7 +76,6 @@ export interface Role {
 	description?: string | null;
 	is_system_role?: boolean;
 	permissions: PermissionCode[];
-	user_count?: number;
 	created_at?: string;
 	updated_at?: string;
 }

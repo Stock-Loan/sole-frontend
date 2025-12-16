@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { PropsWithChildren } from "react";
 import {
 	setAccessTokenResolver,
+	setRefreshTokenResolver,
+	setTokenUpdater,
 	setUnauthorizedHandler,
 } from "@/lib/apiClient";
 import { logout as logoutApi } from "../api/auth.api";
@@ -92,13 +94,39 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
 	useEffect(() => {
 		setAccessTokenResolver(() => tokens?.access_token ?? null);
+		setRefreshTokenResolver(() => tokens?.refresh_token ?? null);
+		
+		setTokenUpdater((newTokens) => {
+			setTokens((prev) => {
+				const next = { ...prev, ...newTokens } as TokenPair;
+				// We need current user to persist session, but 'user' state might be stale in this closure
+				// So we use functional update for setTokens, but for persistSession we might need a ref or rely on the fact 
+				// that if we are refreshing, the user hasn't changed.
+				// However, 'user' variable in dependency array would cause loop if we put this inside useEffect with [user].
+				// Best approach: just update state here.
+				return next;
+			});
+		});
+
 		setUnauthorizedHandler(() => {
 			clearSession();
 			window.location.assign(routes.login);
 		});
 
-		return () => setUnauthorizedHandler(null);
-	}, [tokens?.access_token, clearSession]);
+		return () => {
+			setAccessTokenResolver(() => null);
+			setRefreshTokenResolver(() => null);
+			setTokenUpdater(() => {}); // no-op
+			setUnauthorizedHandler(null);
+		};
+	}, [tokens?.access_token, tokens?.refresh_token, clearSession]);
+
+	// Separate effect to persist session when tokens change (via refresh or setSession)
+	useEffect(() => {
+		if (user && tokens) {
+			persistSession({ user, tokens });
+		}
+	}, [user, tokens]);
 
 	const hasAnyRole = useCallback(
 		(roles?: RoleCode[]) => {

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { Role } from "@/features/roles/types";
 
 export const EmploymentStatusSchema = z.enum([
 	"ACTIVE",
@@ -64,11 +65,23 @@ export const RoleSummarySchema = z.object({
 	is_system_role: z.boolean().optional(),
 });
 
+// Define RoleSchema based on the Role interface
+export const RoleSchema: z.ZodType<Role> = z.object({
+	id: z.string(),
+	org_id: z.string().optional(),
+	name: z.string(),
+	description: z.string().nullable().optional(),
+	is_system_role: z.boolean().optional(),
+	permissions: z.array(z.string()).nullish().transform(val => val ?? []), // Make permissions optional and default to empty array
+	created_at: z.string().optional(),
+	updated_at: z.string().optional(),
+});
+
 export const OrgMembershipDtoSchema = z.object({
 	id: z.string(),
 	org_id: z.string(),
 	user_id: z.string(),
-	roles: z.array(z.union([z.string(), RoleSummarySchema])).optional(),
+	roles: z.array(z.union([z.string(), RoleSummarySchema])).nullish(),
 	employee_id: z.string().nullable().optional(),
 	employment_start_date: z.string().nullable().optional(),
 	employment_status: EmploymentStatusSchema,
@@ -79,16 +92,17 @@ export const OrgMembershipDtoSchema = z.object({
 	created_at: z.string().nullable().optional(),
 	department: z.string().nullable().optional(),
 	last_active_at: z.string().nullable().optional(),
-	role_ids: z.array(z.string()).optional(),
+	role_ids: z.array(z.string()).nullish(),
 });
 
 export const OrgUserListItemSchema = z.object({
 	user: OrgUserDtoSchema,
 	membership: OrgMembershipDtoSchema,
+	roles: z.array(RoleSchema).nullish(),
 });
 
 export const OrgUsersListResponseSchema = z.object({
-	items: z.array(OrgUserListItemSchema),
+	items: z.array(OrgUserListItemSchema).nullish().transform(val => val ?? []),
 	total: z.number().optional(),
 	page: z.number().optional(),
 	page_size: z.number().optional(),
@@ -139,3 +153,4 @@ export const BulkDeleteMembershipsResponseSchema = z.object({
 	deleted: z.number(),
 	not_found: z.array(z.string()).optional(),
 });
+

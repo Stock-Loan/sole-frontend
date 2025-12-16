@@ -40,6 +40,7 @@ export function OrgUsersListPage() {
 	const [platformStatus, setPlatformStatus] = useState<PlatformStatus | "ALL">(
 		"ALL"
 	);
+	const [roleId, setRoleId] = useState<string>("");
 	const [page, setPage] = useState(1);
 	const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 	const [selectedMembershipId, setSelectedMembershipId] = useState<
@@ -72,10 +73,11 @@ export function OrgUsersListPage() {
 				platformStatus === "ALL"
 					? undefined
 					: (platformStatus?.toString().toUpperCase() as PlatformStatus),
+			role_id: roleId || undefined,
 			page,
 			page_size: 7,
 		}),
-		[debouncedSearch, employmentStatus, platformStatus, page]
+		[debouncedSearch, employmentStatus, platformStatus, roleId, page]
 	);
 
 	const {
@@ -117,6 +119,11 @@ export function OrgUsersListPage() {
 
 	const handlePlatformChange = (value: PlatformStatus | "ALL") => {
 		setPlatformStatus(value);
+		setPage(1);
+	};
+
+	const handleRoleChange = (value: string) => {
+		setRoleId(value);
 		setPage(1);
 	};
 
@@ -176,7 +183,7 @@ export function OrgUsersListPage() {
 				title="Org users"
 				subtitle="View organization users and core statuses. Data is scoped to your current organization."
 				actions={
-					<div className="flex gap-2">
+					<div className="flex flex-wrap gap-2">
 						{canOnboardUsers ? (
 							<AddUserDialog
 								open={isAddModalOpen}
@@ -223,6 +230,8 @@ export function OrgUsersListPage() {
 				onEmploymentChange={handleEmploymentChange}
 				platformStatus={platformStatus}
 				onPlatformChange={handlePlatformChange}
+				roleId={roleId}
+				onRoleChange={handleRoleChange}
 			/>
 			<OrgUsersTable
 				items={data?.items ?? []}

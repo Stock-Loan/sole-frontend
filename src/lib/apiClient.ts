@@ -2,10 +2,16 @@ import axios, { AxiosHeaders } from "axios";
 import { routes } from "./routes";
 
 type TokenResolver = () => string | null;
+type TokenUpdater = (tokens: {
+	access_token: string;
+	refresh_token: string;
+}) => void;
 type VoidHandler = () => void;
 
 let accessTokenResolver: TokenResolver = () => null;
+let refreshTokenResolver: TokenResolver = () => null;
 let tenantResolver: TokenResolver = () => null;
+let tokenUpdater: TokenUpdater | null = null;
 let unauthorizedHandler: VoidHandler | null = null;
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
@@ -17,6 +23,14 @@ export const apiClient = axios.create({
 
 export function setAccessTokenResolver(resolver: TokenResolver) {
 	accessTokenResolver = resolver;
+}
+
+export function setRefreshTokenResolver(resolver: TokenResolver) {
+	refreshTokenResolver = resolver;
+}
+
+export function setTokenUpdater(updater: TokenUpdater) {
+	tokenUpdater = updater;
 }
 
 export function setTenantResolver(resolver: TokenResolver) {
@@ -48,15 +62,16 @@ apiClient.interceptors.request.use((config) => {
 
 apiClient.interceptors.response.use(
 	(response) => response,
-	(error) => {
+	async (error) => {
+		const originalRequest = error.config;
 		const status = error?.response?.status;
 		const detailRaw = error?.response?.data?.detail;
 		const detail =
 			typeof detailRaw === "string"
 				? detailRaw
 				: Array.isArray(detailRaw) && typeof detailRaw[0]?.msg === "string"
-					? detailRaw[0].msg
-					: null;
+				? detailRaw[0].msg
+				: null;
 
 		if (
 			status === 403 &&
@@ -72,7 +87,28 @@ apiClient.interceptors.response.use(
 			return Promise.reject(error);
 		}
 
-		if (status === 401) {
+		if (status === 401 && !originalRequest._retry) {
+			const refreshToken = refreshTokenResolver();
+			if (refreshToken) {
+				originalRequest._retry = true;
+				try {
+					// Direct axios call to avoid interceptor loop
+					const { data } = await axios.post(
+						`${baseURL}/auth/refresh`,
+						{ refresh_token: refreshToken },
+						{ headers: { "X-Tenant-ID": tenantResolver() } }
+					);
+
+					if (data?.access_token && data?.refresh_token) {
+						tokenUpdater?.(data);
+						originalRequest.headers.Authorization = `Bearer ${data.access_token}`;
+						return apiClient(originalRequest);
+					}
+				} catch {
+					// Refresh failed, proceed to logout
+				}
+			}
+
 			const hasToken = Boolean(accessTokenResolver());
 			if (hasToken) {
 				unauthorizedHandler?.();

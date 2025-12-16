@@ -1,7 +1,7 @@
+import { useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { ShieldCheck } from "lucide-react";
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { PublicHeader } from "@/components/layout/PublicHeader";
@@ -22,8 +22,7 @@ import { routes } from "@/lib/routes";
 import { apiClient } from "@/lib/apiClient";
 import { nonEmptyString } from "@/lib/validation";
 import { useAuth } from "../hooks/useAuth";
-import { loginLegacy } from "../api/auth.api";
-import type { AuthUser, LoginResponse, TokenPair } from "../types";
+import type { AuthUser, TokenPair } from "../types";
 import { z } from "zod";
 
 const changePasswordSchema = z
@@ -43,11 +42,16 @@ const changePasswordSchema = z
 type ChangePasswordFormValues = z.infer<typeof changePasswordSchema>;
 
 export function ChangePasswordPage() {
-	const { setSession, tokens } = useAuth();
+	const { setSession, tokens, logout } = useAuth();
 	const { toast } = useToast();
 	const apiErrorToast = useApiErrorToast();
 	const navigate = useNavigate();
-	const [loginEmail] = useState<string>("");
+
+	useEffect(() => {
+		if (!tokens?.access_token) {
+			navigate(routes.login);
+		}
+	}, [tokens, navigate]);
 
 	const form = useForm<ChangePasswordFormValues>({
 		resolver: zodResolver(changePasswordSchema),
@@ -60,26 +64,7 @@ export function ChangePasswordPage() {
 
 	const mutation = useMutation({
 		mutationFn: async (values: ChangePasswordFormValues) => {
-			let workingTokens: TokenPair | null = tokens;
-
-			// If no session yet (first-login redirect), perform a quick login to get a bearer token.
-			if (!workingTokens) {
-				if (!loginEmail) {
-					throw new Error(
-						"Please start from the login flow to change your password."
-					);
-				}
-				const legacyResponse = await loginLegacy({
-					email: loginEmail,
-					password: values.current_password,
-				});
-				workingTokens =
-					(legacyResponse as LoginResponse | undefined)?.tokens ??
-					(legacyResponse as TokenPair | undefined) ??
-					null;
-			}
-
-			if (!workingTokens?.access_token) {
+			if (!tokens?.access_token) {
 				throw new Error(
 					"Unable to obtain a session token. Please sign in again."
 				);
@@ -93,7 +78,7 @@ export function ChangePasswordPage() {
 				},
 				{
 					headers: {
-						Authorization: `Bearer ${workingTokens.access_token}`,
+						Authorization: `Bearer ${tokens.access_token}`,
 					},
 				}
 			);
@@ -108,9 +93,6 @@ export function ChangePasswordPage() {
 		},
 		onSuccess: ({ tokens, user }) => {
 			setSession(tokens, user);
-			if (typeof localStorage !== "undefined") {
-				localStorage.removeItem("sole.pending-login-email");
-			}
 			toast({
 				title: "Password updated",
 				description: "Your session has been refreshed.",
@@ -203,13 +185,24 @@ export function ChangePasswordPage() {
 									</FormItem>
 								)}
 							/>
-							<Button
-								className="w-full"
-								type="submit"
-								disabled={mutation.isPending}
-							>
-								{mutation.isPending ? "Updating..." : "Change password"}
-							</Button>
+							<div className="flex gap-2">
+								<Button
+									className="w-full"
+									type="submit"
+									disabled={mutation.isPending}
+								>
+									{mutation.isPending ? "Updating..." : "Change password"}
+								</Button>
+								<Button
+									variant="outline"
+									className="w-full"
+									type="button"
+									onClick={() => logout()}
+									disabled={mutation.isPending}
+								>
+									Log out
+								</Button>
+							</div>
 						</form>
 					</Form>
 				</div>

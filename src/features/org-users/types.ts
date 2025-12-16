@@ -1,5 +1,6 @@
 import type { formSchema, profileSchema } from "@/lib/utils";
 import { z } from "zod";
+import type { Role } from "@/features/roles/types";
 
 export type EmploymentStatus =
 	| "ACTIVE"
@@ -80,6 +81,7 @@ export interface RoleSummary {
 export interface OrgUserListItem {
 	user: OrgUserDto;
 	membership: OrgMembershipDto;
+	roles?: Role[];
 }
 
 export interface OrgUsersListParams {
@@ -87,6 +89,7 @@ export interface OrgUsersListParams {
 	employment_status?: EmploymentStatus;
 	platform_status?: PlatformStatus;
 	invitation_status?: InvitationStatus;
+	role_id?: string;
 	page?: number;
 	page_size?: number;
 }
@@ -212,6 +215,8 @@ export interface OrgUsersFiltersProps {
 	onEmploymentChange: (value: EmploymentStatus | "ALL") => void;
 	platformStatus: PlatformStatus | "ALL";
 	onPlatformChange: (value: PlatformStatus | "ALL") => void;
+	roleId?: string;
+	onRoleChange: (roleId: string) => void;
 }
 export interface OrgUserSidePanelProps {
 	membershipId: string | null;

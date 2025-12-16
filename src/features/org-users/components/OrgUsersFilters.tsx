@@ -1,4 +1,5 @@
 import { Search } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import {
 	Select,
@@ -8,6 +9,8 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { FilterBar } from "@/components/common/FilterBar";
+import { queryKeys } from "@/lib/queryKeys";
+import { listRoles } from "@/features/roles/api/roles.api";
 import type {
 	EmploymentStatus,
 	OrgUsersFiltersProps,
@@ -21,10 +24,20 @@ export function OrgUsersFilters({
 	onEmploymentChange,
 	platformStatus,
 	onPlatformChange,
+	roleId,
+	onRoleChange,
 }: OrgUsersFiltersProps) {
+	const { data: rolesData } = useQuery({
+		queryKey: queryKeys.roles.list(),
+		queryFn: listRoles,
+		staleTime: 5 * 60 * 1000,
+	});
+
+	const roles = rolesData?.items ?? [];
+
 	return (
-		<FilterBar className="gap-3 md:flex-nowrap">
-			<div className="relative min-w-[220px] flex-1">
+		<FilterBar className="gap-3 xl:flex-nowrap">
+			<div className="relative w-full md:w-auto md:min-w-[220px] flex-1">
 				<Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 				<Input
 					placeholder="Search by name or email"
@@ -33,15 +46,15 @@ export function OrgUsersFilters({
 					onChange={(event) => onSearchChange(event.target.value)}
 				/>
 			</div>
-			<div className="flex min-w-[400px] flex-1 flex-wrap gap-3 md:flex-nowrap">
+			<div className="grid grid-cols-2 gap-2 md:flex md:flex-wrap xl:flex-nowrap w-full md:w-auto">
 				<Select
 					value={employmentStatus}
 					onValueChange={(value) =>
 						onEmploymentChange(value as EmploymentStatus | "ALL")
 					}
 				>
-					<SelectTrigger className="min-w-[200px]">
-						<SelectValue placeholder="Employment status" />
+					<SelectTrigger className="w-full md:w-[150px]">
+						<SelectValue placeholder="Employment" />
 					</SelectTrigger>
 					<SelectContent>
 						<SelectItem value="ALL">All employment</SelectItem>
@@ -57,8 +70,8 @@ export function OrgUsersFilters({
 						onPlatformChange(value as PlatformStatus | "ALL")
 					}
 				>
-					<SelectTrigger className="min-w-[200px]">
-						<SelectValue placeholder="Platform status" />
+					<SelectTrigger className="w-full md:w-[150px]">
+						<SelectValue placeholder="Platform" />
 					</SelectTrigger>
 					<SelectContent>
 						<SelectItem value="ALL">All platform</SelectItem>
@@ -67,6 +80,22 @@ export function OrgUsersFilters({
 						<SelectItem value="DISABLED">Disabled</SelectItem>
 						<SelectItem value="LOCKED">Locked</SelectItem>
 						<SelectItem value="ACTIVE">Active</SelectItem>
+					</SelectContent>
+				</Select>
+				<Select
+					value={roleId || "ALL"}
+					onValueChange={(value) => onRoleChange(value === "ALL" ? "" : value)}
+				>
+					<SelectTrigger className="col-span-2 w-full md:w-[150px] md:col-span-1">
+						<SelectValue placeholder="Role" />
+					</SelectTrigger>
+					<SelectContent>
+						<SelectItem value="ALL">All roles</SelectItem>
+						{roles.map((role) => (
+							<SelectItem key={role.id} value={role.id}>
+								{role.name}
+							</SelectItem>
+						))}
 					</SelectContent>
 				</Select>
 			</div>

@@ -16,7 +16,6 @@ export function RolesTable({
 	roles,
 	isLoading,
 	isError,
-	isFetching,
 	onRetry,
 	onViewPermissions,
 	onEdit,
@@ -54,7 +53,6 @@ export function RolesTable({
 						<TableHead>Description</TableHead>
 						<TableHead>Type</TableHead>
 						<TableHead className="text-center">Permissions</TableHead>
-						<TableHead className="text-center">Users</TableHead>
 						<TableHead className="text-right">Actions</TableHead>
 					</TableRow>
 				</TableHeader>
@@ -62,8 +60,6 @@ export function RolesTable({
 					{roles.map((role) => {
 						const typeKey = role.is_system_role ? "system" : "custom";
 						const permissionCount = role.permissions?.length ?? 0;
-						const userCount =
-							typeof role.user_count === "number" ? role.user_count : null;
 						return (
 							<TableRow key={role.id}>
 								<TableCell className="font-semibold">{role.name}</TableCell>
@@ -81,14 +77,6 @@ export function RolesTable({
 									<span className="inline-flex min-w-[2.5rem] items-center justify-center rounded-full bg-muted px-2 py-1 text-xs font-semibold">
 										{permissionCount}
 									</span>
-								</TableCell>
-								<TableCell className="text-center text-muted-foreground">
-									{userCount ?? "—"}
-									{isFetching ? (
-										<span className="ml-2 text-[11px] text-muted-foreground">
-											Updating...
-										</span>
-									) : null}
 								</TableCell>
 								<TableCell className="text-right">
 									<div className="flex items-center justify-end gap-2 whitespace-nowrap">

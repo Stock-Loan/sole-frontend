@@ -18,19 +18,13 @@ import { routes } from "@/lib/routes";
 import { getOrgUser } from "../api/orgUsers.api";
 import { UserRoleAssignments } from "@/features/roles/components/UserRoleAssignments";
 import { OrgUserProfileDialog } from "../components/OrgUserProfileDialog";
-import { listRoles } from "@/features/roles/api/roles.api";
 import { useCountries } from "@/features/meta/hooks/useCountries";
 import { useSubdivisions } from "@/features/meta/hooks/useSubdivisions";
 import { formatDate } from "@/lib/format";
 import type { OrgUserListItem } from "../types";
 import { Badge } from "@/components/ui/badge";
 import { normalizeDisplay } from "@/lib/utils";
-import {
-	getMembershipRoleIds,
-	getMembershipRoleNames,
-	getSelfContextRoleIds,
-	getSelfContextRoleNames,
-} from "../utils";
+import { getSelfContextRoleIds } from "../utils";
 import { useSelfContext } from "@/features/auth/hooks/useSelfContext";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 
@@ -42,11 +36,7 @@ export function OrgUserDetailPage() {
 		queryKey: queryKeys.orgUsers.detail(membershipId || ""),
 		queryFn: () => getOrgUser(membershipId || ""),
 	});
-	const { data: rolesData } = useQuery({
-		queryKey: queryKeys.roles.list(),
-		queryFn: listRoles,
-		staleTime: 5 * 60 * 1000,
-	});
+
 	const [rolesDialogOpen, setRolesDialogOpen] = useState(false);
 	const [profileDialogOpen, setProfileDialogOpen] = useState(false);
 	const { data: countries } = useCountries();
@@ -55,23 +45,27 @@ export function OrgUserDetailPage() {
 	const { data: selfContext } = useSelfContext();
 	const { user: authUser } = useAuth();
 
-	const assignedRoleNames = useMemo(
-		() => {
-			if (!data) return [];
-			const baseNames = getMembershipRoleNames(
-				data.membership,
-				rolesData?.items ?? []
-			);
-			const isSelf = authUser?.id === data.user.id;
-			if (!isSelf) return baseNames;
-			const selfNames = getSelfContextRoleNames(selfContext);
-			return Array.from(new Set([...baseNames, ...selfNames]));
-		},
-		[data, rolesData?.items, selfContext, authUser?.id]
-	);
-	const selfRoleIds = authUser?.id === data?.user.id ? getSelfContextRoleIds(selfContext) : [];
-	const combinedRoleIds = Array.from(new Set([...(data ? getMembershipRoleIds(data.membership) : []), ...selfRoleIds]));
+	const assignedRoles = data?.roles ?? [];
 
+	// Derive role names for display, merging self-context roles if viewing own profile
+	const assignedRoleNames = useMemo(() => {
+		const names = assignedRoles.map((r) => r.name);
+		if (authUser?.id === data?.user.id && selfContext?.roles) {
+			const selfNames = selfContext.roles.map((r) => r.name);
+			return Array.from(new Set([...names, ...selfNames])).sort();
+		}
+		return names.sort();
+	}, [assignedRoles, authUser?.id, data?.user.id, selfContext?.roles]);
+
+	const assignedRoleIds = useMemo(
+		() => assignedRoles.map((r) => r.id),
+		[assignedRoles]
+	);
+	const selfRoleIds =
+		authUser?.id === data?.user.id ? getSelfContextRoleIds(selfContext) : [];
+	const combinedRoleIds = Array.from(
+		new Set([...assignedRoleIds, ...selfRoleIds])
+	);
 
 	const infoItems = useMemo(() => {
 		if (!data) return [];
@@ -81,13 +75,10 @@ export function OrgUserDetailPage() {
 		const subdivisionName =
 			subdivisions?.find((s) => s.code === data.user.state)?.name ||
 			data.user.state;
-		const orgName =
-			(data.user.org_name || data.user.org_id || "").trim();
+		const orgName = (data.user.org_name || data.user.org_id || "").trim();
 
 		const displayOrgName =
-			orgName.length > 0
-				? orgName.replace(/^\w/, (c) => c.toUpperCase())
-				: "";
+			orgName.length > 0 ? orgName.replace(/^\w/, (c) => c.toUpperCase()) : "";
 
 		return [
 			{ label: "User ID", value: data.user.id },
@@ -156,10 +147,10 @@ export function OrgUserDetailPage() {
 			: null,
 	].filter(Boolean) as { label: string; value?: string | null }[];
 
-	const platformStatus =
-		(data.membership.platform_status || "").toUpperCase();
-	const employmentStatus =
-		(data.membership.employment_status || "").toUpperCase();
+	const platformStatus = (data.membership.platform_status || "").toUpperCase();
+	const employmentStatus = (
+		data.membership.employment_status || ""
+	).toUpperCase();
 	const roleAssignmentDisabled = employmentStatus !== "ACTIVE";
 	const roleDisableReason =
 		"Role assignment is only available when employment status is Active.";
@@ -170,7 +161,7 @@ export function OrgUserDetailPage() {
 				title={displayName}
 				subtitle="User profile and access"
 				actions={
-					<div className="flex items-center gap-3">
+					<div className="flex flex-wrap items-center gap-3">
 						<Button
 							variant="secondary"
 							size="sm"
@@ -278,9 +269,7 @@ function InfoRow({ label, value }: { label: string; value?: string | null }) {
 			<p className="text-[13px] font-semibold uppercase tracking-wide text-muted-foreground">
 				{label}
 			</p>
-			<p className="mt-1 break-words text-sm text-foreground">
-				{displayValue}
-			</p>
+			<p className="mt-1 break-words text-sm text-foreground">{displayValue}</p>
 		</div>
 	);
 }
