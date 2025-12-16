@@ -1,5 +1,3 @@
-import type { z } from "zod";
-
 export interface Department {
 	id: string;
 	org_id: string;

@@ -13,6 +13,7 @@ import { OrgUserOnboardingPage } from "@/features/org-users/pages/OrgUserOnboard
 import { OrgUserDetailPage } from "@/features/org-users/pages/OrgUserDetailPage";
 import { RolesListPage } from "@/features/roles/pages/RolesListPage";
 import { DepartmentsPage } from "@/features/departments/pages/DepartmentsPage";
+import { AnnouncementsAdminPage } from "@/features/announcements/pages/AnnouncementsAdminPage";
 import { OverviewPage } from "@/pages/OverviewPage";
 import { PlaceholderPage } from "@/pages/PlaceholderPage";
 import { UserSettingsPage } from "@/features/user-settings/pages/UserSettingsPage";
@@ -65,7 +66,10 @@ export const router = createBrowserRouter([
 			{
 				path: "users",
 				element: (
-					<PermissionGate permission="user.view" fallback={<NotAuthorizedPage />}>
+					<PermissionGate
+						permission="user.view"
+						fallback={<NotAuthorizedPage />}
+					>
 						<OrgUsersListPage />
 					</PermissionGate>
 				),
@@ -73,7 +77,10 @@ export const router = createBrowserRouter([
 			{
 				path: "users/:membershipId",
 				element: (
-					<PermissionGate permission="user.view" fallback={<NotAuthorizedPage />}>
+					<PermissionGate
+						permission="user.view"
+						fallback={<NotAuthorizedPage />}
+					>
 						<OrgUserDetailPage />
 					</PermissionGate>
 				),
@@ -81,7 +88,10 @@ export const router = createBrowserRouter([
 			{
 				path: "users/onboard",
 				element: (
-					<PermissionGate permission="user.onboard" fallback={<NotAuthorizedPage />}>
+					<PermissionGate
+						permission="user.onboard"
+						fallback={<NotAuthorizedPage />}
+					>
 						<OrgUserOnboardingPage />
 					</PermissionGate>
 				),
@@ -89,7 +99,10 @@ export const router = createBrowserRouter([
 			{
 				path: "roles",
 				element: (
-					<PermissionGate permission="role.view" fallback={<NotAuthorizedPage />}>
+					<PermissionGate
+						permission="role.view"
+						fallback={<NotAuthorizedPage />}
+					>
 						<RolesListPage />
 					</PermissionGate>
 				),
@@ -97,7 +110,10 @@ export const router = createBrowserRouter([
 			{
 				path: "departments",
 				element: (
-					<PermissionGate permission="department.view" fallback={<NotAuthorizedPage />}>
+					<PermissionGate
+						permission="department.view"
+						fallback={<NotAuthorizedPage />}
+					>
 						<DepartmentsPage />
 					</PermissionGate>
 				),
@@ -105,18 +121,21 @@ export const router = createBrowserRouter([
 			{
 				path: "announcements",
 				element: (
-					<PermissionGate permission="announcement.view" fallback={<NotAuthorizedPage />}>
-						<PlaceholderPage
-							title="Announcements"
-							description="Org announcements list, publish/unpublish, and read tracking."
-						/>
+					<PermissionGate
+						permission="announcement.view"
+						fallback={<NotAuthorizedPage />}
+					>
+						<AnnouncementsAdminPage />
 					</PermissionGate>
 				),
 			},
 			{
 				path: "settings",
 				element: (
-					<PermissionGate permission="org.settings.view" fallback={<NotAuthorizedPage />}>
+					<PermissionGate
+						permission="org.settings.view"
+						fallback={<NotAuthorizedPage />}
+					>
 						<PlaceholderPage
 							title="Org settings"
 							description="Org-level privacy, security, and retention configuration."

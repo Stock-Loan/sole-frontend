@@ -1,11 +1,75 @@
-export type AnnouncementStatus = "draft" | "published" | "archived";
+export type AnnouncementStatus =
+	| "DRAFT"
+	| "PUBLISHED"
+	| "UNPUBLISHED"
+	| "ARCHIVED";
+
+export type AnnouncementType =
+	| "GENERAL"
+	| "MAINTENANCE"
+	| "OUTAGE"
+	| "POLICY"
+	| "FEATURE";
 
 export interface Announcement {
 	id: string;
-	orgId: string;
+	org_id?: string;
 	title: string;
 	body: string;
 	status: AnnouncementStatus;
-	publishedAt?: string | null;
-	authorId?: string;
+	type?: AnnouncementType;
+	scheduled_at?: string | null;
+	published_at?: string | null;
+	read_count?: number;
+	target_count?: number;
+	created_at?: string;
+	updated_at?: string;
+}
+
+export interface AnnouncementCreatePayload {
+	title: string;
+	body: string;
+	status?: AnnouncementStatus;
+	type?: AnnouncementType;
+	scheduled_at?: string | null;
+}
+
+export type AnnouncementUpdatePayload = Partial<AnnouncementCreatePayload>;
+
+export interface AnnouncementReadSummary {
+	read_count?: number;
+	target_count?: number;
+}
+
+export interface AnnouncementListParams {
+	status?: AnnouncementStatus;
+	page?: number;
+	page_size?: number;
+}
+
+export interface AnnouncementListResponse {
+	items: Announcement[];
+	total?: number;
+	page?: number;
+	page_size?: number;
+}
+
+export interface MarkAnnouncementReadResponse {
+	status: string;
+}
+
+export interface AnnouncementFormValues {
+	title: string;
+	body: string;
+	status: AnnouncementStatus;
+	type: AnnouncementType;
+	scheduled_at?: string | null;
+}
+
+export interface AnnouncementFormDialogProps {
+	open: boolean;
+	onOpenChange: (open: boolean) => void;
+	initialData?: Announcement | null;
+	onSubmit: (values: AnnouncementFormValues) => Promise<void>;
+	isSubmitting?: boolean;
 }

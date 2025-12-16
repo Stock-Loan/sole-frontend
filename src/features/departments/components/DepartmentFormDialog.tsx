@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import type { Department, DepartmentFormDialogProps } from "../types";
+import type { DepartmentFormDialogProps } from "../types";
 
 const departmentSchema = z.object({
 	name: z.string().min(1, "Name is required"),

@@ -1,4 +1,5 @@
 import type { OrgUsersListParams } from "@/features/org-users/types";
+import type { AnnouncementListParams } from "@/features/announcements/types";
 
 export const queryKeys = {
 	auth: {
@@ -13,8 +14,10 @@ export const queryKeys = {
 			["roles", "for-user", membershipId] as const,
 	},
 	orgUsers: {
-		list: (params?: OrgUsersListParams) => ["org-users", "list", params ?? {}] as const,
-		detail: (membershipId: string) => ["org-users", "detail", membershipId] as const,
+		list: (params?: OrgUsersListParams) =>
+			["org-users", "list", params ?? {}] as const,
+		detail: (membershipId: string) =>
+			["org-users", "detail", membershipId] as const,
 		currentUser: (email: string) => ["org-users", "current", email] as const,
 	},
 	orgUsersBulk: {
@@ -31,5 +34,10 @@ export const queryKeys = {
 		countries: () => ["meta", "countries"] as const,
 		subdivisions: (countryCode: string) =>
 			["meta", "subdivisions", countryCode] as const,
+	},
+	announcements: {
+		list: (params?: AnnouncementListParams) =>
+			["announcements", "list", params ?? {}] as const,
+		detail: (id: string) => ["announcements", "detail", id] as const,
 	},
 };

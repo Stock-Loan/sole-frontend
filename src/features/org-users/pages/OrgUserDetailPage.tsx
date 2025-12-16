@@ -66,7 +66,7 @@ export function OrgUserDetailPage() {
 		staleTime: 5 * 60 * 1000,
 	});
 
-	const assignedRoles = data?.roles ?? [];
+	const assignedRoles = useMemo(() => data?.roles ?? [], [data?.roles]);
 
 	// Derive role names for display, merging self-context roles if viewing own profile
 	const assignedRoleNames = useMemo(() => {
