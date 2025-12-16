@@ -12,6 +12,7 @@ import { OrgUsersListPage } from "@/features/org-users/pages/OrgUsersListPage";
 import { OrgUserOnboardingPage } from "@/features/org-users/pages/OrgUserOnboardingPage";
 import { OrgUserDetailPage } from "@/features/org-users/pages/OrgUserDetailPage";
 import { RolesListPage } from "@/features/roles/pages/RolesListPage";
+import { DepartmentsPage } from "@/features/departments/pages/DepartmentsPage";
 import { OverviewPage } from "@/pages/OverviewPage";
 import { PlaceholderPage } from "@/pages/PlaceholderPage";
 import { UserSettingsPage } from "@/features/user-settings/pages/UserSettingsPage";
@@ -97,10 +98,7 @@ export const router = createBrowserRouter([
 				path: "departments",
 				element: (
 					<PermissionGate permission="department.view" fallback={<NotAuthorizedPage />}>
-						<PlaceholderPage
-							title="Departments"
-							description="Org department structure and primary department assignment."
-						/>
+						<DepartmentsPage />
 					</PermissionGate>
 				),
 			},

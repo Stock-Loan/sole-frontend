@@ -88,10 +88,10 @@ export function ChangePasswordPage() {
 
 			return { tokens: updatedTokens, user };
 		},
-		onSuccess: ({ tokens, user }) => {
-			const hasExisting = Boolean(tokens?.access_token);
-			if (hasExisting) {
-				setSession(tokens, user);
+		onSuccess: ({ tokens: nextTokens, user }) => {
+			const hadExisting = Boolean(tokens?.access_token);
+			if (hadExisting) {
+				setSession(nextTokens, user);
 				toast({
 					title: "Password updated",
 					description: "Your session has been refreshed.",

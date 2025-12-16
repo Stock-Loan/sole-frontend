@@ -85,6 +85,11 @@ export function OrgUserSidePanel({
 					{ label: "Phone number", value: user.user.phone_number },
 					{ label: "Employee ID", value: user.membership.employee_id },
 					{
+						label: "Department",
+						value:
+							user.membership.department_name ?? user.membership.department,
+					},
+					{
 						label: "Employment start date",
 						value: formatDate(user.membership.employment_start_date),
 					},

@@ -60,6 +60,8 @@ export interface OrgMembershipDto {
 	org_id: string;
 	user_id: string;
 	roles?: Array<string | RoleSummary> | null;
+	department_id?: string | null;
+	department_name?: string | null;
 	employee_id?: string | null;
 	employment_start_date?: string | null;
 	employment_status: EmploymentStatus;

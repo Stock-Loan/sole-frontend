@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { RefreshCw, Upload, UserPlus } from "lucide-react";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/common/PageHeader";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
 import {
 	Dialog,
 	DialogBody,
@@ -15,6 +17,19 @@ import {
 import { Pagination } from "@/components/ui/pagination";
 import { useApiErrorToast } from "@/hooks/useApiErrorToast";
 import { usePermissions } from "@/features/auth/hooks/usePermissions";
+import {
+	assignDepartmentToUsers,
+	listDepartments,
+	unassignDepartments,
+} from "@/features/departments/api/departments.api";
+import { queryKeys } from "@/lib/queryKeys";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { AddUserDialog } from "../components/AddUserDialog";
 import { OrgUsersFilters } from "../components/OrgUsersFilters";
 import { OrgUsersTable } from "../components/OrgUsersTable";
@@ -49,10 +64,13 @@ export function OrgUsersListPage() {
 	const [isSidePanelOpen, setIsSidePanelOpen] = useState(false);
 	const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 	const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+	const [selectedDepartmentId, setSelectedDepartmentId] = useState<string>("");
+	const { toast } = useToast();
 	const apiErrorToast = useApiErrorToast();
 	const { can } = usePermissions();
 	const canManageUsers = can("user.manage");
 	const canOnboardUsers = can("user.onboard");
+	const canManageDepartments = can("department.manage") && canManageUsers;
 
 	const onboardUserMutation = useOnboardUser();
 	const bulkDeleteMutation = useBulkDeleteOrgUsers();
@@ -89,10 +107,55 @@ export function OrgUsersListPage() {
 		refetch,
 	} = useOrgUsersList(listParams);
 
+	const { data: departmentsData } = useQuery({
+		queryKey: queryKeys.departments.list({ page: 1, page_size: 100 }),
+		queryFn: () => listDepartments({ page: 1, page_size: 100 }),
+		staleTime: 5 * 60 * 1000,
+	});
+
+	const departmentOptions = useMemo(
+		() => (departmentsData?.items ?? []).filter((dept) => !dept.is_archived),
+		[departmentsData?.items]
+	);
+
+	const departmentMutation = useMutation({
+		mutationFn: async (deptId: string | null) => {
+			const ids = selectedUsers.map((item) => item.membership.id);
+			if (!ids.length) {
+				throw new Error("Select at least one user.");
+			}
+			if (deptId) {
+				return assignDepartmentToUsers(deptId, ids);
+			}
+			await unassignDepartments(ids);
+			return {
+				department: null,
+				assigned: [],
+				skipped_inactive: [],
+				not_found: [],
+			};
+		},
+		onSuccess: (result) => {
+			const assigned = result.assigned?.length ?? 0;
+			const skipped = result.skipped_inactive?.length ?? 0;
+			const notFound = result.not_found?.length ?? 0;
+			toast({
+				title: "Departments updated",
+				description: `Assigned: ${assigned}${
+					skipped ? ` • Skipped inactive: ${skipped}` : ""
+				}${notFound ? ` • Not found: ${notFound}` : ""}`,
+			});
+			handleClearSelection();
+			refetch();
+		},
+		onError: (err) =>
+			apiErrorToast(err, "Unable to update departments for selected users."),
+	});
+
 	const selectedUsers = useMemo(() => {
 		if (!data?.items?.length) return [];
 		return data.items.filter((item) => selectedIds.has(item.membership.id));
-	}, [data, selectedIds]);
+	}, [data?.items, selectedIds]);
 
 	useEffect(() => {
 		if (isError) {
@@ -170,6 +233,11 @@ export function OrgUsersListPage() {
 		}
 	};
 
+	const handleBulkDepartmentAssign = async (deptId: string | null) => {
+		if (!canManageDepartments || selectedIds.size === 0) return;
+		await departmentMutation.mutateAsync(deptId);
+	};
+
 	const total = data?.total;
 	const pageSize = data?.page_size ?? listParams.page_size ?? 10;
 	const hasNext =
@@ -222,6 +290,57 @@ export function OrgUsersListPage() {
 					</div>
 				}
 			/>
+
+			{canManageDepartments ? (
+				<div className="mb-3 flex flex-wrap items-center gap-3 rounded-lg border border-border/60 bg-muted/20 px-3 py-3 text-sm">
+					<div className="flex flex-wrap items-center gap-2">
+						<span className="font-semibold text-foreground">
+							Assign department
+						</span>
+						<Select
+							value={selectedDepartmentId}
+							onValueChange={(val) => setSelectedDepartmentId(val)}
+							disabled={departmentMutation.isPending}
+						>
+							<SelectTrigger className="h-9 w-56">
+								<SelectValue placeholder="Choose department" />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="none">No department</SelectItem>
+								{departmentOptions.map((dept) => (
+									<SelectItem key={dept.id} value={dept.id}>
+										{dept.name}
+									</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
+						<Button
+							size="sm"
+							disabled={
+								(!selectedDepartmentId && selectedDepartmentId !== "none") ||
+								selectedIds.size === 0 ||
+								departmentMutation.isPending
+							}
+							onClick={() =>
+								void handleBulkDepartmentAssign(
+									selectedDepartmentId === "none"
+										? null
+										: selectedDepartmentId || null
+								)
+							}
+						>
+							{departmentMutation.isPending
+								? "Assigning..."
+								: "Apply to selected"}
+						</Button>
+					</div>
+					{selectedIds.size === 0 ? (
+						<span className="text-xs text-muted-foreground">
+							Select users to assign a department.
+						</span>
+					) : null}
+				</div>
+			) : null}
 
 			<OrgUsersFilters
 				search={searchTerm}

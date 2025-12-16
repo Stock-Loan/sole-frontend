@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/common/PageHeader";
 import { EmptyState } from "@/components/common/EmptyState";
@@ -27,9 +27,25 @@ import { normalizeDisplay } from "@/lib/utils";
 import { getSelfContextRoleIds } from "../utils";
 import { useSelfContext } from "@/features/auth/hooks/useSelfContext";
 import { useAuth } from "@/features/auth/hooks/useAuth";
+import { useToast } from "@/components/ui/use-toast";
+import { useApiErrorToast } from "@/hooks/useApiErrorToast";
+import { usePermissions } from "@/features/auth/hooks/usePermissions";
+import { listDepartments, assignDepartmentToUsers, unassignDepartments } from "@/features/departments/api/departments.api";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 
 export function OrgUserDetailPage() {
 	const { membershipId } = useParams<{ membershipId: string }>();
+
+	const queryClient = useQueryClient();
+	const { toast } = useToast();
+	const apiErrorToast = useApiErrorToast();
+	const { can } = usePermissions();
 
 	const { data, isLoading, refetch } = useQuery<OrgUserListItem>({
 		enabled: Boolean(membershipId),
@@ -44,6 +60,11 @@ export function OrgUserDetailPage() {
 	const { data: subdivisions } = useSubdivisions(countryCode || null);
 	const { data: selfContext } = useSelfContext();
 	const { user: authUser } = useAuth();
+	const { data: departmentsData, isLoading: isDepartmentsLoading } = useQuery({
+		queryKey: queryKeys.departments.list({ page: 1, page_size: 100 }),
+		queryFn: () => listDepartments({ page: 1, page_size: 100 }),
+		staleTime: 5 * 60 * 1000,
+	});
 
 	const assignedRoles = data?.roles ?? [];
 
@@ -66,6 +87,35 @@ export function OrgUserDetailPage() {
 	const combinedRoleIds = Array.from(
 		new Set([...assignedRoleIds, ...selfRoleIds])
 	);
+	const departmentOptions = useMemo(
+		() => (departmentsData?.items ?? []).filter((dept) => !dept.is_archived),
+		[departmentsData?.items]
+	);
+
+	const departmentMutation = useMutation({
+		mutationFn: async (departmentId: string | null) => {
+			if (!data) return;
+			if (departmentId) {
+				return assignDepartmentToUsers(departmentId, [data.membership.id]);
+			}
+			return unassignDepartments([data.membership.id]);
+		},
+		onSuccess: () => {
+			toast({
+				title: "Department updated",
+				description: "User department assignment saved.",
+			});
+			queryClient.invalidateQueries({
+				predicate: (query) =>
+					Array.isArray(query.queryKey) &&
+					(query.queryKey[0] === "org-users" ||
+						query.queryKey[0] === "departments"),
+			});
+			refetch();
+		},
+		onError: (err) =>
+			apiErrorToast(err, "Unable to update department. Please try again."),
+	});
 
 	const infoItems = useMemo(() => {
 		if (!data) return [];
@@ -91,6 +141,10 @@ export function OrgUserDetailPage() {
 			{ label: "Timezone", value: data.user.timezone },
 			{ label: "Phone number", value: data.user.phone_number },
 			{ label: "Employee ID", value: data.membership.employee_id },
+			{
+				label: "Department",
+				value: data.membership.department_name ?? data.membership.department,
+			},
 			{
 				label: "Employment start date",
 				value: formatDate(data.membership.employment_start_date),
@@ -154,6 +208,15 @@ export function OrgUserDetailPage() {
 	const roleAssignmentDisabled = employmentStatus !== "ACTIVE";
 	const roleDisableReason =
 		"Role assignment is only available when employment status is Active.";
+	const canManageRoles =
+		can(["role.manage", "user.manage"]) || Boolean(authUser?.is_superuser);
+	const canManageDepartments =
+		can(["department.manage", "user.manage"]) || Boolean(authUser?.is_superuser);
+	const departmentAssignmentDisabled =
+		!canManageDepartments ||
+		employmentStatus !== "ACTIVE" ||
+		platformStatus !== "ACTIVE";
+	const currentDepartmentId = data.membership.department_id || "";
 
 	return (
 		<PageContainer className="space-y-6">
@@ -173,6 +236,7 @@ export function OrgUserDetailPage() {
 						<Button
 							size="sm"
 							variant="default"
+							disabled={!canManageRoles}
 							onClick={() => setRolesDialogOpen(true)}
 						>
 							Manage roles
@@ -180,6 +244,7 @@ export function OrgUserDetailPage() {
 						<Button
 							size="sm"
 							variant="outline"
+							disabled={!can("user.manage")}
 							onClick={() => setProfileDialogOpen(true)}
 						>
 							Edit profile
@@ -211,6 +276,49 @@ export function OrgUserDetailPage() {
 			</div>
 
 			<div className="space-y-6">
+				<section className="space-y-3 rounded-lg border border-border/60 bg-card/50 p-4">
+					<div className="flex items-center justify-between">
+						<h3 className="text-sm font-semibold">Department assignment</h3>
+						{isDepartmentsLoading ? (
+							<span className="text-xs text-muted-foreground">Loading…</span>
+						) : null}
+					</div>
+					<div className="flex flex-wrap items-center gap-3">
+						<Select
+							value={currentDepartmentId}
+							disabled={
+								departmentAssignmentDisabled ||
+								isDepartmentsLoading ||
+								departmentMutation.isPending
+							}
+							onValueChange={(val) =>
+								departmentMutation.mutate(val === "none" ? null : val)
+							}
+						>
+							<SelectTrigger className="min-w-[220px]">
+								<SelectValue placeholder="Select department" />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="none">No department</SelectItem>
+								{departmentOptions.map((dept) => (
+									<SelectItem key={dept.id} value={dept.id}>
+										{dept.name}
+									</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
+						{departmentAssignmentDisabled ? (
+							<span className="text-xs text-muted-foreground">
+								Department can be assigned when employment and platform are Active
+								and you have department.manage.
+							</span>
+						) : null}
+						{departmentMutation.isPending ? (
+							<span className="text-xs text-muted-foreground">Updating…</span>
+						) : null}
+					</div>
+				</section>
+
 				<section className="space-y-2">
 					<p className="text-sm font-semibold text-foreground">Contact</p>
 					<div className="grid gap-3 md:grid-cols-2">

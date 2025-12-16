@@ -1,4 +1,4 @@
-import { Loader2, RefreshCw } from "lucide-react";
+import { Eye, Loader2, RefreshCw } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -59,7 +59,7 @@ export function OrgUsersTable({
 		selectionEnabled &&
 		visibleIds.some((id) => selectedIds.has(id)) &&
 		!allSelected;
-	const columnCount = 6 + (selectionEnabled ? 1 : 0);
+	const columnCount = 7 + (selectionEnabled ? 1 : 0);
 
 	return (
 		<div className="overflow-x-auto rounded-xl border border-border/70">
@@ -81,6 +81,7 @@ export function OrgUsersTable({
 						<TableHead className="min-w-[180px]">Full name</TableHead>
 						<TableHead>Employee ID</TableHead>
 						<TableHead>Email</TableHead>
+						<TableHead>Department</TableHead>
 						<TableHead>Employment status</TableHead>
 						<TableHead>Platform status</TableHead>
 						<TableHead className="text-right">Actions</TableHead>
@@ -121,6 +122,11 @@ export function OrgUsersTable({
 								item.user.email;
 							const employmentStatus = item.membership.employment_status || "";
 							const platformStatus = item.membership.platform_status || "";
+							const departmentName =
+								item.membership.department_name ||
+								item.membership.department ||
+								item.membership.department_id ||
+								"—";
 							return (
 								<TableRow key={item.user.id}>
 									{selectionEnabled ? (
@@ -153,6 +159,9 @@ export function OrgUsersTable({
 									<TableCell className="text-muted-foreground">
 										{item.user.email}
 									</TableCell>
+									<TableCell className="text-muted-foreground">
+										{departmentName}
+									</TableCell>
 									<TableCell>
 										<StatusBadge
 											label={employmentStatus}
@@ -171,7 +180,8 @@ export function OrgUsersTable({
 											size="sm"
 											onClick={() => onSelect(item.membership.id)}
 										>
-											Quick view
+											<Eye className="h-4 w-4" aria-hidden="true" />
+											<span className="sr-only">Quick view</span>
 										</Button>
 									</TableCell>
 								</TableRow>

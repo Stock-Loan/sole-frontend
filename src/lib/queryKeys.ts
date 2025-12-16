@@ -20,6 +20,12 @@ export const queryKeys = {
 	orgUsersBulk: {
 		result: () => ["org-users", "bulk", "result"] as const,
 	},
+	departments: {
+		list: (params?: Record<string, unknown>) =>
+			["departments", "list", params ?? {}] as const,
+		detail: (departmentId: string) =>
+			["departments", "detail", departmentId] as const,
+	},
 	meta: {
 		timezones: () => ["meta", "timezones"] as const,
 		countries: () => ["meta", "countries"] as const,

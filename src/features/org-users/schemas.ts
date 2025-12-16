@@ -91,6 +91,8 @@ export const OrgMembershipDtoSchema = z.object({
 	accepted_at: z.string().nullable().optional(),
 	created_at: z.string().nullable().optional(),
 	department: z.string().nullable().optional(),
+	department_id: z.string().nullable().optional(),
+	department_name: z.string().nullable().optional(),
 	last_active_at: z.string().nullable().optional(),
 	role_ids: z.array(z.string()).nullish(),
 });
@@ -153,4 +155,3 @@ export const BulkDeleteMembershipsResponseSchema = z.object({
 	deleted: z.number(),
 	not_found: z.array(z.string()).optional(),
 });
-
