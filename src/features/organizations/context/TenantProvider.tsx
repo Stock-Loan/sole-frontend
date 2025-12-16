@@ -6,17 +6,17 @@ import type { OrgSummary, TenantContextValue } from "../types";
 import { TenantContext } from "../hooks/useTenant";
 
 export function TenantProvider({ children }: PropsWithChildren) {
-	const [orgs, setOrgs] = useState<OrgSummary[]>([]);
-	const [currentOrgId, setCurrentOrgId] = useState<string | null>(null);
 	const { user } = useAuth();
-
-	useEffect(() => {
-		if (!user?.org_id) return;
-		setCurrentOrgId((prev) => prev ?? user.org_id ?? null);
-		if (!orgs.length) {
-			setOrgs([{ id: user.org_id, name: user.org_id }]);
-		}
-	}, [user?.org_id, orgs.length]);
+	
+	// Initialize state from user prop to avoid effect synchronization
+	const [orgs, setOrgs] = useState<OrgSummary[]>(() => 
+		user?.org_id ? [{ id: user.org_id, name: user.org_id }] : []
+	);
+	
+	// Initialize state from user prop
+	const [currentOrgId, setCurrentOrgId] = useState<string | null>(() => 
+		user?.org_id ?? null
+	);
 
 	useEffect(() => {
 		setTenantResolver(() => currentOrgId);

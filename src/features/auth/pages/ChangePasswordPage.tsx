@@ -1,13 +1,20 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { ShieldCheck } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { PublicHeader } from "@/components/layout/PublicHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+	Form,
+	FormControl,
+	FormField,
+	FormItem,
+	FormLabel,
+	FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { useApiErrorToast } from "@/hooks/useApiErrorToast";
@@ -15,14 +22,17 @@ import { routes } from "@/lib/routes";
 import { apiClient } from "@/lib/apiClient";
 import { nonEmptyString } from "@/lib/validation";
 import { useAuth } from "../hooks/useAuth";
-import { changePassword, getMe, loginLegacy } from "../api/auth.api";
+import { loginLegacy } from "../api/auth.api";
 import type { AuthUser, LoginResponse, TokenPair } from "../types";
 import { z } from "zod";
 
 const changePasswordSchema = z
 	.object({
 		current_password: nonEmptyString.min(8, "Current password required"),
-		new_password: nonEmptyString.min(8, "New password must be at least 8 characters"),
+		new_password: nonEmptyString.min(
+			8,
+			"New password must be at least 8 characters"
+		),
 		confirm_password: nonEmptyString.min(8, "Confirm your new password"),
 	})
 	.refine((vals) => vals.new_password === vals.confirm_password, {
@@ -37,15 +47,7 @@ export function ChangePasswordPage() {
 	const { toast } = useToast();
 	const apiErrorToast = useApiErrorToast();
 	const navigate = useNavigate();
-	const [loginEmail, setLoginEmail] = useState<string>("");
-
-	useEffect(() => {
-		if (typeof localStorage === "undefined") return;
-		const pendingEmail = localStorage.getItem("sole.pending-login-email");
-		if (pendingEmail) {
-			setLoginEmail(pendingEmail);
-		}
-	}, []);
+	const [loginEmail] = useState<string>("");
 
 	const form = useForm<ChangePasswordFormValues>({
 		resolver: zodResolver(changePasswordSchema),
@@ -63,7 +65,9 @@ export function ChangePasswordPage() {
 			// If no session yet (first-login redirect), perform a quick login to get a bearer token.
 			if (!workingTokens) {
 				if (!loginEmail) {
-					throw new Error("Please start from the login flow to change your password.");
+					throw new Error(
+						"Please start from the login flow to change your password."
+					);
 				}
 				const legacyResponse = await loginLegacy({
 					email: loginEmail,
@@ -71,11 +75,14 @@ export function ChangePasswordPage() {
 				});
 				workingTokens =
 					(legacyResponse as LoginResponse | undefined)?.tokens ??
-					((legacyResponse as TokenPair | undefined) ?? null);
+					(legacyResponse as TokenPair | undefined) ??
+					null;
 			}
 
 			if (!workingTokens?.access_token) {
-				throw new Error("Unable to obtain a session token. Please sign in again.");
+				throw new Error(
+					"Unable to obtain a session token. Please sign in again."
+				);
 			}
 
 			const { data: updatedTokens } = await apiClient.post<TokenPair>(
@@ -111,11 +118,15 @@ export function ChangePasswordPage() {
 			navigate(routes.overview);
 		},
 		onError: (error) => {
-			apiErrorToast(error, "Unable to change password. Please check your current password.");
+			apiErrorToast(
+				error,
+				"Unable to change password. Please check your current password."
+			);
 		},
 	});
 
-	const onSubmit = (values: ChangePasswordFormValues) => mutation.mutate(values);
+	const onSubmit = (values: ChangePasswordFormValues) =>
+		mutation.mutate(values);
 
 	return (
 		<>
@@ -128,7 +139,9 @@ export function ChangePasswordPage() {
 						</span>
 						<div>
 							<h1 className="text-xl font-semibold">Change password</h1>
-							<p className="text-sm text-muted-foreground">Update your credentials to stay secure.</p>
+							<p className="text-sm text-muted-foreground">
+								Update your credentials to stay secure.
+							</p>
 						</div>
 					</div>
 					<Form {...form}>
@@ -190,7 +203,11 @@ export function ChangePasswordPage() {
 									</FormItem>
 								)}
 							/>
-							<Button className="w-full" type="submit" disabled={mutation.isPending}>
+							<Button
+								className="w-full"
+								type="submit"
+								disabled={mutation.isPending}
+							>
 								{mutation.isPending ? "Updating..." : "Change password"}
 							</Button>
 						</form>

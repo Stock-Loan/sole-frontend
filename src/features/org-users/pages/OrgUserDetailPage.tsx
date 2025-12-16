@@ -37,7 +37,7 @@ import { useAuth } from "@/features/auth/hooks/useAuth";
 export function OrgUserDetailPage() {
 	const { membershipId } = useParams<{ membershipId: string }>();
 
-	const { data, isLoading, isError, refetch } = useQuery<OrgUserListItem>({
+	const { data, isLoading, refetch } = useQuery<OrgUserListItem>({
 		enabled: Boolean(membershipId),
 		queryKey: queryKeys.orgUsers.detail(membershipId || ""),
 		queryFn: () => getOrgUser(membershipId || ""),
@@ -54,6 +54,24 @@ export function OrgUserDetailPage() {
 	const { data: subdivisions } = useSubdivisions(countryCode || null);
 	const { data: selfContext } = useSelfContext();
 	const { user: authUser } = useAuth();
+
+	const assignedRoleNames = useMemo(
+		() => {
+			if (!data) return [];
+			const baseNames = getMembershipRoleNames(
+				data.membership,
+				rolesData?.items ?? []
+			);
+			const isSelf = authUser?.id === data.user.id;
+			if (!isSelf) return baseNames;
+			const selfNames = getSelfContextRoleNames(selfContext);
+			return Array.from(new Set([...baseNames, ...selfNames]));
+		},
+		[data, rolesData?.items, selfContext, authUser?.id]
+	);
+	const selfRoleIds = authUser?.id === data?.user.id ? getSelfContextRoleIds(selfContext) : [];
+	const combinedRoleIds = Array.from(new Set([...(data ? getMembershipRoleIds(data.membership) : []), ...selfRoleIds]));
+
 
 	const infoItems = useMemo(() => {
 		if (!data) return [];
@@ -109,7 +127,7 @@ export function OrgUserDetailPage() {
 		);
 	}
 
-	if (isError || !data) {
+	if (!data) {
 		return (
 			<PageContainer>
 				<EmptyState
@@ -138,29 +156,13 @@ export function OrgUserDetailPage() {
 			: null,
 	].filter(Boolean) as { label: string; value?: string | null }[];
 
-	const employmentStatus =
-		(data.membership.employment_status || "").toUpperCase();
 	const platformStatus =
 		(data.membership.platform_status || "").toUpperCase();
+	const employmentStatus =
+		(data.membership.employment_status || "").toUpperCase();
 	const roleAssignmentDisabled = employmentStatus !== "ACTIVE";
 	const roleDisableReason =
 		"Role assignment is only available when employment status is Active.";
-	const assignedRoleIds = getMembershipRoleIds(data.membership);
-	const assignedRoleNames = useMemo(
-		() => {
-			const baseNames = getMembershipRoleNames(
-				data.membership,
-				rolesData?.items ?? []
-			);
-			const isSelf = authUser?.id === data.user.id;
-			if (!isSelf) return baseNames;
-			const selfNames = getSelfContextRoleNames(selfContext);
-			return Array.from(new Set([...baseNames, ...selfNames]));
-		},
-		[data.membership, rolesData?.items, selfContext, authUser?.id, data.user.id]
-	);
-	const selfRoleIds = authUser?.id === data.user.id ? getSelfContextRoleIds(selfContext) : [];
-	const combinedRoleIds = Array.from(new Set([...assignedRoleIds, ...selfRoleIds]));
 
 	return (
 		<PageContainer className="space-y-6">

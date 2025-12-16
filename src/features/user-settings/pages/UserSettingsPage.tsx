@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { ShieldCheck, ShieldOff, UserCircle2 } from "lucide-react";
@@ -48,12 +48,6 @@ export function UserSettingsPage() {
 	});
 
 	const user = data ?? cachedUser;
-
-	const displayName = useMemo(() => {
-		if (!user) return "—";
-		if (user.full_name) return user.full_name;
-		return user.email ?? "—";
-	}, [user]);
 
 	const personalItems = [
 		{ label: "First name", value: orgUser?.user.first_name || "—" },
@@ -129,13 +123,25 @@ export function UserSettingsPage() {
 			/>
 
 			<div className="flex items-center gap-2 rounded-lg border bg-card px-2 py-2 shadow-sm">
-				<TabButton label="Profile" value="profile" active={tab === "profile"} onSelect={setTab} />
-				<TabButton label="Security" value="security" active={tab === "security"} onSelect={setTab} />
+				<TabButton
+					label="Profile"
+					value="profile"
+					active={tab === "profile"}
+					onSelect={setTab}
+				/>
+				<TabButton
+					label="Security"
+					value="security"
+					active={tab === "security"}
+					onSelect={setTab}
+				/>
 			</div>
 
 			<div className="rounded-lg border bg-card shadow-sm">
 				{isLoading ? (
-					<div className="p-6 text-sm text-muted-foreground">Loading your settings…</div>
+					<div className="p-6 text-sm text-muted-foreground">
+						Loading your settings…
+					</div>
 				) : isError ? (
 					<div className="p-6 text-sm text-destructive">
 						Unable to load your profile right now. Please retry in a moment.
@@ -203,7 +209,9 @@ export function UserSettingsPage() {
 
 							<Card className="border-border/70">
 								<CardHeader className="pb-2">
-									<CardTitle className="text-sm font-semibold">Password</CardTitle>
+									<CardTitle className="text-sm font-semibold">
+										Password
+									</CardTitle>
 								</CardHeader>
 								<CardContent className="space-y-3 text-sm text-muted-foreground">
 									<p>Update your password to keep your account secure.</p>
@@ -239,7 +247,7 @@ function TabButton({
 				"flex items-center rounded-md px-3 py-2 text-sm font-semibold transition",
 				active
 					? "bg-primary text-primary-foreground shadow-sm"
-					: "text-muted-foreground hover:bg-muted hover:text-foreground",
+					: "text-muted-foreground hover:bg-muted hover:text-foreground"
 			)}
 		>
 			{label}
