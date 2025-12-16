@@ -10,6 +10,13 @@ import type {
 	UpdateOrgUserProfilePayload,
 	BulkDeleteMembershipsResponse,
 } from "../types";
+import {
+	OrgUsersListResponseSchema,
+	OrgUserListItemSchema,
+	OnboardUserResponseSchema,
+	BulkOnboardingResultSchema,
+	BulkDeleteMembershipsResponseSchema,
+} from "../schemas";
 
 export async function listOrgUsers(
 	params: OrgUsersListParams = {},
@@ -17,12 +24,12 @@ export async function listOrgUsers(
 	const response = await apiClient.get<OrgUsersListResponse>("/org/users", {
 		params,
 	});
-	return response.data;
+	return OrgUsersListResponseSchema.parse(response.data);
 }
 
 export async function getOrgUser(membershipId: string): Promise<OrgUserListItem> {
 	const response = await apiClient.get<OrgUserListItem>(`/org/users/${membershipId}`);
-	return response.data;
+	return OrgUserListItemSchema.parse(response.data);
 }
 
 export async function updateOrgUserStatus(
@@ -33,7 +40,7 @@ export async function updateOrgUserStatus(
 		`/org/users/${membershipId}`,
 		payload,
 	);
-	return response.data;
+	return OrgUserListItemSchema.parse(response.data);
 }
 
 export async function updateOrgUserProfile(
@@ -44,14 +51,14 @@ export async function updateOrgUserProfile(
 		`/org/users/${membershipId}/profile`,
 		payload,
 	);
-	return response.data;
+	return OrgUserListItemSchema.parse(response.data);
 }
 
 export async function onboardOrgUser(
 	payload: OnboardUserPayload,
 ): Promise<OnboardUserResponse> {
 	const response = await apiClient.post<OnboardUserResponse>("/org/users", payload);
-	return response.data;
+	return OnboardUserResponseSchema.parse(response.data);
 }
 
 export async function downloadOnboardingTemplate(): Promise<Blob> {
@@ -69,7 +76,7 @@ export async function uploadOnboardingCsv(file: File): Promise<BulkOnboardingRes
 			"Content-Type": "multipart/form-data",
 		},
 	});
-	return response.data;
+	return BulkOnboardingResultSchema.parse(response.data);
 }
 
 export async function deleteOrgUser(membershipId: string): Promise<void> {
@@ -83,5 +90,5 @@ export async function bulkDeleteOrgUsers(
 		"/org/users/bulk/delete",
 		{ membership_ids: membershipIds },
 	);
-	return data;
+	return BulkDeleteMembershipsResponseSchema.parse(data);
 }
