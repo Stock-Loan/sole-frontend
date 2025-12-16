@@ -6,6 +6,8 @@ import type {
 	AnnouncementListResponse,
 	AnnouncementStatus,
 	AnnouncementUpdatePayload,
+	AnnouncementUnreadCountResponse,
+	AnnouncementUnreadResponse,
 	MarkAnnouncementReadResponse,
 } from "../types";
 
@@ -50,6 +52,20 @@ export async function markAnnouncementRead(
 ): Promise<MarkAnnouncementReadResponse> {
 	const { data } = await apiClient.post<MarkAnnouncementReadResponse>(
 		`/announcements/${id}/read`
+	);
+	return data;
+}
+
+export async function listUnreadAnnouncements(): Promise<AnnouncementUnreadResponse> {
+	const { data } = await apiClient.get<AnnouncementUnreadResponse>(
+		"/announcements/unread"
+	);
+	return data;
+}
+
+export async function getUnreadAnnouncementCount(): Promise<AnnouncementUnreadCountResponse> {
+	const { data } = await apiClient.get<AnnouncementUnreadCountResponse>(
+		"/announcements/unread/count"
 	);
 	return data;
 }

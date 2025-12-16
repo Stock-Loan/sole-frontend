@@ -39,5 +39,7 @@ export const queryKeys = {
 		list: (params?: AnnouncementListParams) =>
 			["announcements", "list", params ?? {}] as const,
 		detail: (id: string) => ["announcements", "detail", id] as const,
+		unread: () => ["announcements", "unread"] as const,
+		unreadCount: () => ["announcements", "unread", "count"] as const,
 	},
 };

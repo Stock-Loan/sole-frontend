@@ -72,7 +72,9 @@ export function AnnouncementsTable({
 								<div className="flex flex-col gap-1">
 									<Badge
 										variant="outline"
-										className={ANNOUNCEMENT_STATUS_TONE[announcement.status]}
+										className={`inline-flex w-fit items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold T${
+											ANNOUNCEMENT_STATUS_TONE[announcement.status]
+										}`}
 									>
 										{ANNOUNCEMENT_STATUS_LABELS[announcement.status]}
 									</Badge>
@@ -142,7 +144,9 @@ export function AnnouncementsTable({
 												disabled={isUpdatingStatus}
 											>
 												<Archive />
-												<span className="2xl:block md:hidden ml-1">Archive</span>
+												<span className="2xl:block md:hidden ml-1">
+													Archive
+												</span>
 											</Button>
 										) : null}
 									</div>

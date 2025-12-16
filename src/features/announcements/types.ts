@@ -58,6 +58,15 @@ export interface MarkAnnouncementReadResponse {
 	status: string;
 }
 
+export interface AnnouncementUnreadResponse {
+	items: Announcement[];
+	total?: number;
+}
+
+export interface AnnouncementUnreadCountResponse {
+	count: number;
+}
+
 export interface AnnouncementFormValues {
 	title: string;
 	body: string;

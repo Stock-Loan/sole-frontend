@@ -12,7 +12,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { usePermissions } from "@/features/auth/hooks/usePermissions";
 import {
+	getUnreadAnnouncementCount,
 	listAnnouncements,
+	listUnreadAnnouncements,
 	markAnnouncementRead,
 } from "@/features/announcements/api/announcements.api";
 import { queryKeys } from "@/lib/queryKeys";
@@ -26,37 +28,56 @@ export function NotificationBell() {
 	const canView = can("announcement.view");
 	const { toast } = useToast();
 	const [open, setOpen] = useState(false);
-	const [readIds, setReadIds] = useState<Set<string>>(new Set());
 	const queryClient = useQueryClient();
 
-	const { data, isLoading } = useQuery({
+	const unreadListQuery = useQuery({
+		queryKey: queryKeys.announcements.unread(),
+		queryFn: () => listUnreadAnnouncements(),
+		enabled: open && canView,
+		staleTime: 30 * 1000,
+	});
+
+	const unreadCountQuery = useQuery({
+		queryKey: queryKeys.announcements.unreadCount(),
+		queryFn: () => getUnreadAnnouncementCount(),
+		enabled: canView,
+		staleTime: 30 * 1000,
+	});
+
+	const recentReadQuery = useQuery({
 		queryKey: queryKeys.announcements.list({
 			status: "PUBLISHED",
 			page: 1,
-			page_size: 5,
+			page_size: 10,
 		}),
-		queryFn: () =>
-			listAnnouncements({ status: "PUBLISHED", page: 1, page_size: 5 }),
-		enabled: canView,
-		staleTime: 60 * 1000,
+		queryFn: () => listAnnouncements({ status: "PUBLISHED", page: 1, page_size: 10 }),
+		enabled: open && canView,
+		staleTime: 30 * 1000,
 	});
 
-	const announcements = useMemo(() => data?.items ?? [], [data?.items]);
-	const unreadCount = useMemo(
-		() => announcements.filter((item) => !readIds.has(item.id)).length,
-		[announcements, readIds]
+	const announcements = useMemo(
+		() => unreadListQuery.data?.items ?? [],
+		[unreadListQuery.data?.items]
 	);
+	const unreadIds = useMemo(() => new Set(announcements.map((item) => item.id)), [announcements]);
+	const recentRead = useMemo(
+		() =>
+			(recentReadQuery.data?.items ?? []).filter(
+				(item) => !unreadIds.has(item.id)
+			),
+		[recentReadQuery.data?.items, unreadIds]
+	);
+	const unreadCount = unreadCountQuery.data?.count ?? announcements.length;
 
 	const handleMarkRead = async (id: string) => {
 		try {
 			await markAnnouncementRead(id);
-			setReadIds((prev) => {
-				const next = new Set(prev);
-				next.add(id);
-				return next;
+			queryClient.invalidateQueries({
+				queryKey: queryKeys.announcements.unread(),
 			});
-			// Optimistically update cached list to reflect read count change if provided
-			queryClient.invalidateQueries({ queryKey: ["announcements"] });
+			queryClient.invalidateQueries({
+				queryKey: queryKeys.announcements.unreadCount(),
+			});
 			toast({ title: "Marked as read" });
 		} catch {
 			toast({ title: "Unable to mark read", variant: "destructive" });
@@ -87,31 +108,61 @@ export function NotificationBell() {
 					<DropdownMenuItem className="text-muted-foreground" disabled>
 						You don&apos;t have permission to view announcements.
 					</DropdownMenuItem>
-				) : isLoading ? (
+				) : unreadListQuery.isLoading ? (
 					<DropdownMenuItem className="text-muted-foreground" disabled>
 						<Loader2 className="mr-2 h-4 w-4 animate-spin" />
 						Loading…
 					</DropdownMenuItem>
-				) : announcements.length === 0 ? (
+				) : announcements.length === 0 && recentRead.length === 0 ? (
 					<DropdownMenuItem className="text-muted-foreground" disabled>
 						No announcements yet.
 					</DropdownMenuItem>
 				) : (
-					announcements.map((item) => {
-						const isRead = readIds.has(item.id);
-						return (
+					announcements.map((item) => (
+						<DropdownMenuItem
+							key={item.id}
+							className="flex flex-col items-start gap-1"
+							onSelect={() => handleMarkRead(item.id)}
+						>
+							<div className="flex w-full items-center gap-2">
+								<div className={cn("text-sm font-semibold")}>
+									{item.title}
+								</div>
+								{item.type ? (
+									<span
+										className={`inline-flex w-fit items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold ${
+											ANNOUNCEMENT_TYPE_COLORS[item.type] ??
+											"border-border bg-muted/40 text-muted-foreground"
+										}`}
+									>
+										{item.type.charAt(0) + item.type.slice(1).toLowerCase()}
+									</span>
+								) : null}
+							</div>
+							<p className="text-xs text-muted-foreground line-clamp-2">
+								{item.body}
+							</p>
+
+							<p className="text-[11px] text-muted-foreground">
+								Published {formatDate(item.published_at)}
+							</p>
+						</DropdownMenuItem>
+					))
+				)}
+				{announcements.length > 0 && recentRead.length > 0 ? (
+					<DropdownMenuSeparator />
+				) : null}
+				{recentRead.length > 0 ? (
+					<>
+						<DropdownMenuLabel>Recent</DropdownMenuLabel>
+						{recentRead.map((item) => (
 							<DropdownMenuItem
-								key={item.id}
-								className={cn(
-									"flex flex-col items-start gap-1",
-									isRead && "opacity-75"
-								)}
+								key={`read-${item.id}`}
+								className="flex flex-col items-start gap-1 opacity-75"
 								onSelect={() => handleMarkRead(item.id)}
 							>
 								<div className="flex w-full items-center gap-2">
-									<div className={cn("text-sm font-semibold")}>
-										{item.title}
-									</div>
+									<div className="text-sm font-semibold">{item.title}</div>
 									{item.type ? (
 										<span
 											className={`inline-flex w-fit items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold ${
@@ -126,14 +177,13 @@ export function NotificationBell() {
 								<p className="text-xs text-muted-foreground line-clamp-2">
 									{item.body}
 								</p>
-
 								<p className="text-[11px] text-muted-foreground">
 									Published {formatDate(item.published_at)}
 								</p>
 							</DropdownMenuItem>
-						);
-					})
-				)}
+						))}
+					</>
+				) : null}
 			</DropdownMenuContent>
 		</DropdownMenu>
 	);
