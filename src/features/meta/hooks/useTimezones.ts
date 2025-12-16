@@ -6,6 +6,6 @@ export function useTimezones() {
 	return useQuery({
 		queryKey: queryKeys.meta.timezones(),
 		queryFn: getTimezones,
-		staleTime: 24 * 60 * 60 * 1000, // cache for a day
+		staleTime: 24 * 60 * 60 * 1000,
 	});
 }

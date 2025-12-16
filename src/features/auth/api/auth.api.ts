@@ -3,7 +3,6 @@ import type {
 	AuthUser,
 	ChangePasswordPayload,
 	LoginCompletePayload,
-	LoginResponse,
 	LoginStartPayload,
 	LoginStartResponse,
 	SelfContextResponse,
@@ -17,16 +16,6 @@ export async function startLogin(payload: LoginStartPayload) {
 
 export async function completeLogin(payload: LoginCompletePayload) {
 	const { data } = await apiClient.post<TokenPair>("/auth/login/complete", payload);
-	return data;
-}
-
-export async function loginLegacy(
-	payload: { email: string; password: string },
-): Promise<LoginResponse | TokenPair> {
-	const { data } = await apiClient.post<LoginResponse | TokenPair>(
-		"/auth/login",
-		payload,
-	);
 	return data;
 }
 

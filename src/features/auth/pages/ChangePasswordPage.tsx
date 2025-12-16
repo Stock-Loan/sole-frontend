@@ -47,11 +47,13 @@ export function ChangePasswordPage() {
 	const apiErrorToast = useApiErrorToast();
 	const navigate = useNavigate();
 
+	// Allow reaching this page on first-login 403 redirect even without a cached token.
 	useEffect(() => {
 		if (!tokens?.access_token) {
-			navigate(routes.login);
+			// stay on page; user will come from 403 redirect
+			return;
 		}
-	}, [tokens, navigate]);
+	}, [tokens]);
 
 	const form = useForm<ChangePasswordFormValues>({
 		resolver: zodResolver(changePasswordSchema),
@@ -64,12 +66,7 @@ export function ChangePasswordPage() {
 
 	const mutation = useMutation({
 		mutationFn: async (values: ChangePasswordFormValues) => {
-			if (!tokens?.access_token) {
-				throw new Error(
-					"Unable to obtain a session token. Please sign in again."
-				);
-			}
-
+			const bearer = tokens?.access_token;
 			const { data: updatedTokens } = await apiClient.post<TokenPair>(
 				"/auth/change-password",
 				{
@@ -78,7 +75,7 @@ export function ChangePasswordPage() {
 				},
 				{
 					headers: {
-						Authorization: `Bearer ${tokens.access_token}`,
+						...(bearer ? { Authorization: `Bearer ${bearer}` } : {}),
 					},
 				}
 			);
@@ -92,12 +89,21 @@ export function ChangePasswordPage() {
 			return { tokens: updatedTokens, user };
 		},
 		onSuccess: ({ tokens, user }) => {
-			setSession(tokens, user);
-			toast({
-				title: "Password updated",
-				description: "Your session has been refreshed.",
-			});
-			navigate(routes.overview);
+			const hasExisting = Boolean(tokens?.access_token);
+			if (hasExisting) {
+				setSession(tokens, user);
+				toast({
+					title: "Password updated",
+					description: "Your session has been refreshed.",
+				});
+				navigate(routes.overview);
+			} else {
+				toast({
+					title: "Password updated",
+					description: "Please sign in with your new password to continue.",
+				});
+				navigate(routes.login, { replace: true });
+			}
 		},
 		onError: (error) => {
 			apiErrorToast(
