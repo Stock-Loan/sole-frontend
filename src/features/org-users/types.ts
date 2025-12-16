@@ -210,6 +210,19 @@ export interface BulkOnboardingGuideProps {
 export interface BulkOnboardingResultsTableProps {
 	rows: BulkOnboardingRowResult[];
 }
+export interface AssignDepartmentCardProps {
+	departments: DepartmentOption[];
+	selectedDepartmentId: string;
+	onDepartmentChange: (value: string) => void;
+	onApply: () => void;
+	isPending?: boolean;
+	disabled?: boolean;
+}
+export interface DepartmentOption {
+	id: string;
+	name: string;
+	is_archived?: boolean;
+}
 export interface OrgUsersFiltersProps {
 	search: string;
 	onSearchChange: (value: string) => void;

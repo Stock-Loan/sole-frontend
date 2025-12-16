@@ -295,7 +295,7 @@ export function OrgUserDetailPage() {
 								departmentMutation.mutate(val === "none" ? null : val)
 							}
 						>
-							<SelectTrigger className="min-w-[220px]">
+							<SelectTrigger className="w-[240px] max-w-xs">
 								<SelectValue placeholder="Select department" />
 							</SelectTrigger>
 							<SelectContent>

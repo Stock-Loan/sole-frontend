@@ -23,13 +23,6 @@ import {
 	unassignDepartments,
 } from "@/features/departments/api/departments.api";
 import { queryKeys } from "@/lib/queryKeys";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
 import { AddUserDialog } from "../components/AddUserDialog";
 import { OrgUsersFilters } from "../components/OrgUsersFilters";
 import { OrgUsersTable } from "../components/OrgUsersTable";
@@ -45,6 +38,7 @@ import type {
 	OnboardUserPayload,
 	PlatformStatus,
 } from "../types";
+import { AssignDepartmentCard } from "../components/AssignDepartmentCard";
 
 export function OrgUsersListPage() {
 	const [searchTerm, setSearchTerm] = useState("");
@@ -291,67 +285,37 @@ export function OrgUsersListPage() {
 				}
 			/>
 
-			{canManageDepartments ? (
-				<div className="mb-3 flex flex-wrap items-center gap-3 rounded-lg border border-border/60 bg-muted/20 px-3 py-3 text-sm">
-					<div className="flex flex-wrap items-center gap-2">
-						<span className="font-semibold text-foreground">
-							Assign department
-						</span>
-						<Select
-							value={selectedDepartmentId}
-							onValueChange={(val) => setSelectedDepartmentId(val)}
-							disabled={departmentMutation.isPending}
-						>
-							<SelectTrigger className="h-9 w-56">
-								<SelectValue placeholder="Choose department" />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="none">No department</SelectItem>
-								{departmentOptions.map((dept) => (
-									<SelectItem key={dept.id} value={dept.id}>
-										{dept.name}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
-						<Button
-							size="sm"
-							disabled={
-								(!selectedDepartmentId && selectedDepartmentId !== "none") ||
-								selectedIds.size === 0 ||
-								departmentMutation.isPending
-							}
-							onClick={() =>
-								void handleBulkDepartmentAssign(
-									selectedDepartmentId === "none"
-										? null
-										: selectedDepartmentId || null
-								)
-							}
-						>
-							{departmentMutation.isPending
-								? "Assigning..."
-								: "Apply to selected"}
-						</Button>
-					</div>
-					{selectedIds.size === 0 ? (
-						<span className="text-xs text-muted-foreground">
-							Select users to assign a department.
-						</span>
-					) : null}
-				</div>
-			) : null}
+			<div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-start">
+				{canManageDepartments ? (
+					<AssignDepartmentCard
+						departments={departmentOptions}
+						selectedDepartmentId={selectedDepartmentId}
+						onDepartmentChange={(val) => setSelectedDepartmentId(val)}
+						onApply={() =>
+							void handleBulkDepartmentAssign(
+								selectedDepartmentId === "none"
+									? null
+									: selectedDepartmentId || null
+							)
+						}
+						isPending={departmentMutation.isPending}
+						disabled={selectedIds.size === 0}
+					/>
+				) : null}
 
-			<OrgUsersFilters
-				search={searchTerm}
-				onSearchChange={handleSearchChange}
-				employmentStatus={employmentStatus}
-				onEmploymentChange={handleEmploymentChange}
-				platformStatus={platformStatus}
-				onPlatformChange={handlePlatformChange}
-				roleId={roleId}
-				onRoleChange={handleRoleChange}
-			/>
+				<div className="flex-1">
+					<OrgUsersFilters
+						search={searchTerm}
+						onSearchChange={handleSearchChange}
+						employmentStatus={employmentStatus}
+						onEmploymentChange={handleEmploymentChange}
+						platformStatus={platformStatus}
+						onPlatformChange={handlePlatformChange}
+						roleId={roleId}
+						onRoleChange={handleRoleChange}
+					/>
+				</div>
+			</div>
 			<OrgUsersTable
 				items={data?.items ?? []}
 				isLoading={isLoading}
