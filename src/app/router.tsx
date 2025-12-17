@@ -15,8 +15,8 @@ import { RolesListPage } from "@/features/roles/pages/RolesListPage";
 import { DepartmentsPage } from "@/features/departments/pages/DepartmentsPage";
 import { AnnouncementsAdminPage } from "@/features/announcements/pages/AnnouncementsAdminPage";
 import { OverviewPage } from "@/pages/OverviewPage";
-import { PlaceholderPage } from "@/pages/PlaceholderPage";
 import { UserSettingsPage } from "@/features/user-settings/pages/UserSettingsPage";
+import { OrgSettingsPage } from "@/features/org-settings/components/OrgSettingsPage";
 import { AppErrorBoundary } from "./error-boundary";
 import { PermissionGate } from "@/components/layout/PermissionGate";
 
@@ -136,10 +136,7 @@ export const router = createBrowserRouter([
 						permission="org.settings.view"
 						fallback={<NotAuthorizedPage />}
 					>
-						<PlaceholderPage
-							title="Org settings"
-							description="Org-level privacy, security, and retention configuration."
-						/>
+						<OrgSettingsPage />
 					</PermissionGate>
 				),
 			},

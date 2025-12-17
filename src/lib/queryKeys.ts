@@ -1,5 +1,6 @@
 import type { OrgUsersListParams } from "@/features/org-users/types";
 import type { AnnouncementListParams } from "@/features/announcements/types";
+import type { OrgSettingsUpdatePayload } from "@/features/org-settings/types";
 
 export const queryKeys = {
 	auth: {
@@ -43,5 +44,10 @@ export const queryKeys = {
 		unreadCount: () => ["announcements", "unread", "count"] as const,
 		adminList: (params?: AnnouncementListParams) =>
 			["announcements", "admin", params ?? {}] as const,
+	},
+	orgSettings: {
+		get: () => ["org-settings", "get"] as const,
+		update: (payload?: OrgSettingsUpdatePayload) =>
+			["org-settings", "update", payload ?? {}] as const,
 	},
 };
