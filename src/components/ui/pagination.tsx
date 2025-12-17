@@ -19,9 +19,7 @@ export function Pagination({
 }: PaginationProps) {
 	const hasPrev = page > 1;
 	const computedHasNext =
-		typeof total === "number"
-			? page * pageSize < total
-			: Boolean(hasNext);
+		typeof total === "number" ? page * pageSize < total : Boolean(hasNext);
 
 	const totalPages =
 		typeof total === "number"

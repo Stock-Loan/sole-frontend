@@ -20,28 +20,20 @@ import { useApiErrorToast } from "@/hooks/useApiErrorToast";
 import {
 	changeAnnouncementStatus,
 	createAnnouncement,
-	listAnnouncements,
+	listAdminAnnouncements,
 	updateAnnouncement,
 } from "../api/announcements.api";
 import { AnnouncementFormDialog } from "../components/AnnouncementFormDialog";
-import {
-	ANNOUNCEMENT_STATUS_LABELS,
-	ANNOUNCEMENT_STATUSES,
-} from "../constants";
+import { ANNOUNCEMENT_STATUS_LABELS } from "../constants";
 import type {
 	Announcement,
 	AnnouncementFormValues,
 	AnnouncementStatus,
 } from "../types";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
 import { EmptyState } from "@/components/common/EmptyState";
 import { LoadingState } from "@/components/common/LoadingState";
+import { AnnouncementsFilters } from "../components/AnnouncementsFilters";
+import { Pagination } from "@/components/ui/pagination";
 
 export function AnnouncementsAdminPage() {
 	const { can } = usePermissions();
@@ -56,9 +48,12 @@ export function AnnouncementsAdminPage() {
 		target: Announcement | null;
 		nextStatus: AnnouncementStatus | null;
 	}>(() => ({ target: null, nextStatus: null }));
+	const [search, setSearch] = useState("");
 	const queryClient = useQueryClient();
 	const { toast } = useToast();
 	const apiErrorToast = useApiErrorToast();
+	const [page, setPage] = useState(1);
+	const pageSize = 10;
 
 	const listParams = useMemo(
 		() => ({
@@ -68,14 +63,14 @@ export function AnnouncementsAdminPage() {
 				? undefined
 				: statusFilter,
 			page: 1,
-			page_size: 50,
+			page_size: pageSize,
 		}),
-		[canManage, statusFilter]
+		[canManage, statusFilter, pageSize]
 	);
 
 	const { data, isLoading, isError, refetch, isFetching } = useQuery({
-		queryKey: queryKeys.announcements.list(listParams),
-		queryFn: () => listAnnouncements(listParams),
+		queryKey: queryKeys.announcements.adminList({ ...listParams, page }),
+		queryFn: () => listAdminAnnouncements({ ...listParams, page }),
 	});
 
 	const createMutation = useMutation({
@@ -169,7 +164,16 @@ export function AnnouncementsAdminPage() {
 		});
 	};
 
-	const announcements = data?.items ?? [];
+	const announcements = useMemo(() => data?.items ?? [], [data?.items]);
+	const filteredAnnouncements = useMemo(() => {
+		const term = search.trim().toLowerCase();
+		if (!term) return announcements;
+		return announcements.filter(
+			(item) =>
+				item.title.toLowerCase().includes(term) ||
+				item.body.toLowerCase().includes(term)
+		);
+	}, [announcements, search]);
 
 	return (
 		<PageContainer>
@@ -193,27 +197,18 @@ export function AnnouncementsAdminPage() {
 			/>
 
 			<div className="mb-4 flex flex-wrap items-center gap-3">
-				<Select
-					value={statusFilter}
-					disabled={!canManage}
-					onValueChange={(value) =>
-						setStatusFilter(
-							value === "ALL" ? "ALL" : (value as AnnouncementStatus)
-						)
-					}
-				>
-					<SelectTrigger className="w-[200px]">
-						<SelectValue placeholder="Status" />
-					</SelectTrigger>
-					<SelectContent>
-						<SelectItem value="ALL">All statuses</SelectItem>
-						{ANNOUNCEMENT_STATUSES.map((status) => (
-							<SelectItem key={status} value={status}>
-								{ANNOUNCEMENT_STATUS_LABELS[status]}
-							</SelectItem>
-						))}
-					</SelectContent>
-				</Select>
+				<AnnouncementsFilters
+					search={search}
+					onSearchChange={(value) => {
+						setSearch(value);
+						setPage(1);
+					}}
+					status={statusFilter}
+					onStatusChange={(value) => {
+						setStatusFilter(value);
+						setPage(1);
+					}}
+				/>
 			</div>
 
 			{isLoading ? (
@@ -234,7 +229,7 @@ export function AnnouncementsAdminPage() {
 				/>
 			) : (
 				<AnnouncementsTable
-					items={announcements}
+					items={filteredAnnouncements}
 					canManage={canManage}
 					onEdit={openEdit}
 					onPublish={(announcement) =>
@@ -250,6 +245,21 @@ export function AnnouncementsAdminPage() {
 					isFetching={isFetching}
 				/>
 			)}
+
+			<Pagination
+				page={page}
+				pageSize={data?.page_size ?? pageSize}
+				total={search ? filteredAnnouncements.length : data?.total}
+				hasNext={
+					search
+						? false
+						: typeof data?.total === "number"
+						? page * (data?.page_size ?? pageSize) < (data?.total ?? 0)
+						: (data?.items?.length ?? 0) === (data?.page_size ?? pageSize)
+				}
+				isLoading={isFetching}
+				onPageChange={setPage}
+			/>
 
 			<AnnouncementFormDialog
 				open={isFormOpen}

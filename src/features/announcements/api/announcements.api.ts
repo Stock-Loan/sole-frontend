@@ -20,6 +20,16 @@ export async function listAnnouncements(
 	return data;
 }
 
+export async function listAdminAnnouncements(
+	params: AnnouncementListParams = {}
+): Promise<AnnouncementListResponse> {
+	const { data } = await apiClient.get<AnnouncementListResponse>(
+		"/announcements/admin",
+		{ params }
+	);
+	return data;
+}
+
 export async function getAnnouncement(id: string): Promise<Announcement> {
 	const { data } = await apiClient.get<Announcement>(`/announcements/${id}`);
 	return data;

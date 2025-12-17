@@ -72,7 +72,7 @@ export function AnnouncementsTable({
 								<div className="flex flex-col gap-1">
 									<Badge
 										variant="outline"
-										className={`inline-flex w-fit items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold T${
+										className={`inline-flex w-fit items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold ${
 											ANNOUNCEMENT_STATUS_TONE[announcement.status]
 										}`}
 									>

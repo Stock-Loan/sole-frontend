@@ -43,6 +43,8 @@ export interface AnnouncementReadSummary {
 
 export interface AnnouncementListParams {
 	status?: AnnouncementStatus;
+	type?: AnnouncementType;
+	search?: string;
 	page?: number;
 	page_size?: number;
 }
@@ -73,6 +75,13 @@ export interface AnnouncementFormValues {
 	status: AnnouncementStatus;
 	type: AnnouncementType;
 	scheduled_at?: string | null;
+}
+
+export interface AnnouncementsFiltersProps {
+	search: string;
+	onSearchChange: (value: string) => void;
+	status: AnnouncementStatus | "ALL";
+	onStatusChange: (value: AnnouncementStatus | "ALL") => void;
 }
 
 export interface AnnouncementFormDialogProps {
