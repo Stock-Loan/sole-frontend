@@ -1,10 +1,13 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, RefreshCw } from "lucide-react";
+import type { PaginationState, VisibilityState } from "@tanstack/react-table";
+import { Plus } from "lucide-react";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/common/PageHeader";
+import { DataTable } from "@/components/data-table/DataTable";
+import type { ColumnDefinition } from "@/components/data-table/types";
 import { Button } from "@/components/ui/button";
-import { AnnouncementsTable } from "../components/AnnouncementsTable";
+import { ToolbarButton } from "@/components/ui/toolbar";
 import {
 	Dialog,
 	DialogBody,
@@ -15,8 +18,11 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
 import { usePermissions } from "@/features/auth/hooks/usePermissions";
+import { useAuth } from "@/features/auth/hooks/useAuth";
 import { queryKeys } from "@/lib/queryKeys";
 import { useApiErrorToast } from "@/hooks/useApiErrorToast";
+import { formatDate } from "@/lib/format";
+import { loadDataTablePreferences } from "@/components/data-table/constants";
 import {
 	changeAnnouncementStatus,
 	createAnnouncement,
@@ -24,54 +30,73 @@ import {
 	updateAnnouncement,
 } from "../api/announcements.api";
 import { AnnouncementFormDialog } from "../components/AnnouncementFormDialog";
-import { ANNOUNCEMENT_STATUS_LABELS } from "../constants";
+import {
+	ANNOUNCEMENT_STATUS_LABELS,
+	ANNOUNCEMENT_STATUS_TONE,
+	ANNOUNCEMENT_TYPE_COLORS,
+} from "../constants";
 import type {
 	Announcement,
 	AnnouncementFormValues,
+	AnnouncementListResponse,
 	AnnouncementStatus,
 } from "../types";
-import { EmptyState } from "@/components/common/EmptyState";
-import { LoadingState } from "@/components/common/LoadingState";
-import { AnnouncementsFilters } from "../components/AnnouncementsFilters";
-import { Pagination } from "@/components/ui/pagination";
 
 export function AnnouncementsAdminPage() {
 	const { can } = usePermissions();
 	const canManage = can("announcement.manage");
+	const { user } = useAuth();
 	const [isFormOpen, setIsFormOpen] = useState(false);
 	const [editingAnnouncement, setEditingAnnouncement] =
 		useState<Announcement | null>(null);
-	const [statusFilter, setStatusFilter] = useState<AnnouncementStatus | "ALL">(
-		canManage ? "ALL" : "PUBLISHED"
-	);
 	const [statusDialog, setStatusDialog] = useState<{
 		target: Announcement | null;
 		nextStatus: AnnouncementStatus | null;
 	}>(() => ({ target: null, nextStatus: null }));
-	const [search, setSearch] = useState("");
 	const queryClient = useQueryClient();
 	const { toast } = useToast();
 	const apiErrorToast = useApiErrorToast();
-	const [page, setPage] = useState(1);
-	const pageSize = 10;
+	const preferencesConfig = useMemo(
+		() => ({
+			id: "announcements-admin",
+			scope: "user" as const,
+			userKey: user?.id ?? null,
+			orgKey: user?.org_id ?? null,
+			version: 2,
+		}),
+		[user?.id, user?.org_id]
+	);
+	const persistedPreferences = useMemo(
+		() => loadDataTablePreferences(preferencesConfig),
+		[preferencesConfig]
+	);
+	const preferredPageSize =
+		typeof persistedPreferences?.pagination?.pageSize === "number"
+			? persistedPreferences.pagination.pageSize
+			: 10;
+	const [paginationState, setPaginationState] = useState<PaginationState>(() => ({
+		pageIndex: 0,
+		pageSize: preferredPageSize,
+	}));
+
+	const page = paginationState.pageIndex + 1;
+	const pageSize = paginationState.pageSize;
 
 	const listParams = useMemo(
 		() => ({
-			status: !canManage
-				? "PUBLISHED"
-				: statusFilter === "ALL"
-				? undefined
-				: statusFilter,
-			page: 1,
+			status: canManage ? undefined : ("PUBLISHED" as AnnouncementStatus),
+			page,
 			page_size: pageSize,
 		}),
-		[canManage, statusFilter, pageSize]
+		[canManage, page, pageSize]
 	);
 
-	const { data, isLoading, isError, refetch, isFetching } = useQuery({
-		queryKey: queryKeys.announcements.adminList({ ...listParams, page }),
-		queryFn: () => listAdminAnnouncements({ ...listParams, page }),
-	});
+	const { data, isLoading, isError, refetch } =
+		useQuery<AnnouncementListResponse>({
+			queryKey: queryKeys.announcements.adminList(listParams),
+			queryFn: () => listAdminAnnouncements(listParams),
+			placeholderData: (previous) => previous,
+		});
 
 	const createMutation = useMutation({
 		mutationFn: (payload: AnnouncementFormValues) =>
@@ -165,101 +190,266 @@ export function AnnouncementsAdminPage() {
 	};
 
 	const announcements = useMemo(() => data?.items ?? [], [data?.items]);
-	const filteredAnnouncements = useMemo(() => {
-		const term = search.trim().toLowerCase();
-		if (!term) return announcements;
-		return announcements.filter(
-			(item) =>
-				item.title.toLowerCase().includes(term) ||
-				item.body.toLowerCase().includes(term)
-		);
-	}, [announcements, search]);
+	const totalRows = data?.total ?? announcements.length;
+	const totalPages = Math.max(1, Math.ceil(totalRows / pageSize));
+
+	const columns = useMemo<ColumnDefinition<Announcement>[]>(
+		() => [
+			{
+				id: "id",
+				header: "ID",
+				accessor: (item) => item.id,
+				cell: (item) => item.id,
+				enableSorting: false,
+				enableFiltering: false,
+			},
+			{
+				id: "orgId",
+				header: "Org ID",
+				accessor: (item) => item.org_id ?? "",
+				cell: (item) => item.org_id ?? "—",
+				enableSorting: false,
+				enableFiltering: false,
+			},
+			{
+				id: "title",
+				header: "Title",
+				accessor: (item) => item.title,
+				filterAccessor: (item) => `${item.title} ${item.body}`.trim(),
+				cell: (item) => (
+					<div className="flex flex-col gap-1">
+						<span className="font-medium text-foreground">{item.title}</span>
+					</div>
+				),
+				headerClassName: "min-w-[240px]",
+			},
+			{
+				id: "status",
+				header: "Status",
+				accessor: (item) => item.status,
+				filterAccessor: (item) => `${item.status} ${item.type ?? ""}`.trim(),
+				cell: (item) => (
+					<div className="flex flex-col gap-1">
+						<span
+							className={`inline-flex w-fit items-center rounded-full border px-2 py-0.5 text-[11px] font-medium ${
+								ANNOUNCEMENT_STATUS_TONE[item.status]
+							}`}
+						>
+							{ANNOUNCEMENT_STATUS_LABELS[item.status]}
+						</span>
+					</div>
+				),
+			},
+			{
+				id: "type",
+				header: "Type",
+				accessor: (item) => item.type ?? "",
+				cell: (item) =>
+					item.type ? (
+						<span
+							className={`inline-flex w-fit items-center rounded-full border px-2 py-0.5 text-[11px] font-medium ${
+								ANNOUNCEMENT_TYPE_COLORS[item.type] ??
+								"border-border bg-muted/40 text-muted-foreground"
+							}`}
+						>
+							{item.type.charAt(0) + item.type.slice(1).toLowerCase()}
+						</span>
+					) : (
+						"—"
+					),
+			},
+			{
+				id: "body",
+				header: "Body",
+				accessor: (item) => item.body,
+				filterAccessor: (item) => item.body,
+				cell: (item) => item.body,
+				headerClassName: "min-w-[240px]",
+				cellClassName: "text-xs text-muted-foreground line-clamp-2",
+			},
+			{
+				id: "createdAt",
+				header: "Created",
+				accessor: (item) => item.created_at ?? "",
+				cell: (item) => formatDate(item.created_at),
+			},
+			{
+				id: "publishedAt",
+				header: "Published",
+				accessor: (item) => item.published_at ?? "",
+				cell: (item) =>
+					item.published_at ? formatDate(item.published_at) : "—",
+			},
+			{
+				id: "scheduledAt",
+				header: "Scheduled",
+				accessor: (item) => item.scheduled_at ?? "",
+				cell: (item) =>
+					item.scheduled_at ? formatDate(item.scheduled_at) : "—",
+			},
+			{
+				id: "updatedAt",
+				header: "Updated",
+				accessor: (item) => item.updated_at ?? "",
+				cell: (item) => formatDate(item.updated_at),
+			},
+			{
+				id: "reads",
+				header: "Reads",
+				accessor: (item) => item.read_count ?? 0,
+				cell: (item) =>
+					typeof item.read_count === "number" &&
+					typeof item.target_count === "number"
+						? `${item.read_count} / ${item.target_count}`
+						: "—",
+				enableSorting: false,
+				enableFiltering: false,
+			},
+		],
+		[]
+	);
+
+	const initialColumnVisibility = useMemo<VisibilityState>(
+		() => ({
+			id: false,
+			orgId: false,
+			body: false,
+			updatedAt: false,
+		}),
+		[]
+	);
 
 	return (
-		<PageContainer>
+		<PageContainer className="flex min-h-0 flex-1 flex-col gap-4">
 			<PageHeader
 				title="Announcements"
 				subtitle="Create and manage organization-wide announcements."
-				actions={
-					<div className="flex flex-wrap gap-2">
-						<Button variant="outline" size="sm" onClick={() => refetch()}>
-							<RefreshCw className="mr-2 h-4 w-4" />
-							Refresh
+			/>
+
+			{isError ? (
+				<div className="rounded-xl border border-border/70 bg-card">
+					<div className="p-6">
+						<p className="text-sm text-muted-foreground">
+							There was a problem fetching announcements. Please retry.
+						</p>
+						<Button
+							variant="outline"
+							size="sm"
+							className="mt-3"
+							onClick={() => refetch()}
+						>
+							Retry
 						</Button>
-						{canManage ? (
-							<Button size="sm" onClick={openCreate}>
+					</div>
+				</div>
+			) : (
+				<DataTable
+					data={announcements}
+					columns={columns}
+					getRowId={(item) => item.id}
+					isLoading={isLoading}
+					enableRowSelection={canManage}
+					enableExport={false}
+					className="flex-1 min-h-0"
+					pagination={{
+						enabled: true,
+						mode: "server",
+						state: paginationState,
+						onPaginationChange: setPaginationState,
+						pageCount: totalPages,
+						totalRows,
+					}}
+					emptyMessage={
+						canManage
+							? "Create your first announcement to share updates with your organization."
+							: "No announcements available."
+					}
+					initialColumnVisibility={initialColumnVisibility}
+					preferences={preferencesConfig}
+					renderToolbarActions={(selectedAnnouncements) => {
+						if (!canManage) return null;
+						const hasSingle = selectedAnnouncements.length === 1;
+						const selected = hasSingle ? selectedAnnouncements[0] : null;
+						const canPublish =
+							selected?.status === "DRAFT" ||
+							selected?.status === "UNPUBLISHED";
+						const canUnpublish = selected?.status === "PUBLISHED";
+						return (
+							<>
+								<ToolbarButton
+									variant="outline"
+									size="sm"
+									disabled={!hasSingle}
+									onClick={() => {
+										if (selected) {
+											openEdit(selected);
+										}
+									}}
+								>
+									Edit
+								</ToolbarButton>
+								<ToolbarButton
+									variant="default"
+									size="sm"
+									disabled={
+										!hasSingle || !canPublish || statusMutation.isPending
+									}
+									onClick={() => {
+										if (selected) {
+											requestStatusChange(selected, "PUBLISHED");
+										}
+									}}
+								>
+									Publish
+								</ToolbarButton>
+								<ToolbarButton
+									variant="outline"
+									size="sm"
+									disabled={
+										!hasSingle || !canUnpublish || statusMutation.isPending
+									}
+									onClick={() => {
+										if (selected) {
+											requestStatusChange(selected, "UNPUBLISHED");
+										}
+									}}
+								>
+									Unpublish
+								</ToolbarButton>
+								<ToolbarButton
+									variant="destructive"
+									size="sm"
+									disabled={
+										!hasSingle ||
+										selected?.status === "ARCHIVED" ||
+										statusMutation.isPending
+									}
+									onClick={() => {
+										if (selected) {
+											requestStatusChange(selected, "ARCHIVED");
+										}
+									}}
+								>
+									Archive
+								</ToolbarButton>
+							</>
+						);
+					}}
+					topBarActions={
+						canManage ? (
+							<Button
+								size="sm"
+								variant="default"
+								className="h-8 px-3 text-xs"
+								onClick={openCreate}
+							>
 								<Plus className="mr-2 h-4 w-4" />
 								New announcement
 							</Button>
-						) : null}
-					</div>
-				}
-			/>
-
-			<div className="mb-4 flex flex-wrap items-center gap-3">
-				<AnnouncementsFilters
-					search={search}
-					onSearchChange={(value) => {
-						setSearch(value);
-						setPage(1);
-					}}
-					status={statusFilter}
-					onStatusChange={(value) => {
-						setStatusFilter(value);
-						setPage(1);
-					}}
-				/>
-			</div>
-
-			{isLoading ? (
-				<LoadingState label="Loading announcements..." />
-			) : isError ? (
-				<EmptyState
-					title="Unable to load announcements"
-					message="There was a problem fetching announcements. Please retry."
-					actionLabel="Retry"
-					onRetry={refetch}
-				/>
-			) : announcements.length === 0 ? (
-				<EmptyState
-					title="No announcements"
-					message="Create your first announcement to share updates with your organization."
-					actionLabel={canManage ? "New announcement" : undefined}
-					onRetry={canManage ? openCreate : undefined}
-				/>
-			) : (
-				<AnnouncementsTable
-					items={filteredAnnouncements}
-					canManage={canManage}
-					onEdit={openEdit}
-					onPublish={(announcement) =>
-						requestStatusChange(announcement, "PUBLISHED")
+						) : null
 					}
-					onUnpublish={(announcement) =>
-						requestStatusChange(announcement, "UNPUBLISHED")
-					}
-					onArchive={(announcement) =>
-						requestStatusChange(announcement, "ARCHIVED")
-					}
-					isUpdatingStatus={statusMutation.isPending}
-					isFetching={isFetching}
 				/>
 			)}
-
-			<Pagination
-				page={page}
-				pageSize={data?.page_size ?? pageSize}
-				total={search ? filteredAnnouncements.length : data?.total}
-				hasNext={
-					search
-						? false
-						: typeof data?.total === "number"
-						? page * (data?.page_size ?? pageSize) < (data?.total ?? 0)
-						: (data?.items?.length ?? 0) === (data?.page_size ?? pageSize)
-				}
-				isLoading={isFetching}
-				onPageChange={setPage}
-			/>
 
 			<AnnouncementFormDialog
 				open={isFormOpen}

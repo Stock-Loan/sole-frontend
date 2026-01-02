@@ -1,18 +1,16 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { PlusCircle, RefreshCw, AlertTriangle, Users } from "lucide-react";
+import type { PaginationState, VisibilityState } from "@tanstack/react-table";
+import { PlusCircle, AlertTriangle, Users } from "lucide-react";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/common/PageHeader";
+import { DataTable } from "@/components/data-table/DataTable";
+import type { ColumnDefinition } from "@/components/data-table/types";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { Pagination } from "@/components/ui/pagination";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ToolbarButton } from "@/components/ui/toolbar";
+import { useAuth } from "@/features/auth/hooks/useAuth";
 import {
 	Dialog,
 	DialogBody,
@@ -24,28 +22,50 @@ import {
 import { usePermissions } from "@/features/auth/hooks/usePermissions";
 import { queryKeys } from "@/lib/queryKeys";
 import { useApiErrorToast } from "@/hooks/useApiErrorToast";
+import { formatDate } from "@/lib/format";
+import { loadDataTablePreferences } from "@/components/data-table/constants";
 import {
 	archiveDepartment,
 	createDepartment,
 	listDepartments,
 	updateDepartment,
+	listDepartmentMembers,
 } from "../api/departments.api";
 import { DepartmentFormDialog } from "../components/DepartmentFormDialog";
-import { DepartmentTable } from "../components/DepartmentTable";
-import type { Department, DepartmentFormMode } from "../types";
-import { listDepartmentMembers } from "../api/departments.api";
-import type { DepartmentMember } from "../types";
+import type {
+	Department,
+	DepartmentFormMode,
+	DepartmentMember,
+} from "../types";
 
 export function DepartmentsPage() {
-	const [page, setPage] = useState(1);
-	const pageSize = 10;
+	const { user } = useAuth();
+	const preferencesConfig = useMemo(
+		() => ({
+			id: "departments-list",
+			scope: "user" as const,
+			userKey: user?.id ?? null,
+			orgKey: user?.org_id ?? null,
+		}),
+		[user?.id, user?.org_id]
+	);
+	const persistedPreferences = useMemo(
+		() => loadDataTablePreferences(preferencesConfig),
+		[preferencesConfig]
+	);
+	const preferredPageSize =
+		typeof persistedPreferences?.pagination?.pageSize === "number"
+			? persistedPreferences.pagination.pageSize
+			: 10;
+	const [paginationState, setPaginationState] = useState<PaginationState>(() => ({
+		pageIndex: 0,
+		pageSize: preferredPageSize,
+	}));
 	const [includeArchived, setIncludeArchived] = useState(false);
 	const [formOpen, setFormOpen] = useState(false);
 	const [formMode, setFormMode] = useState<DepartmentFormMode>("create");
 	const [editing, setEditing] = useState<Department | null>(null);
 	const [confirming, setConfirming] = useState<Department | null>(null);
-	const [sortKey, setSortKey] = useState<"name" | "code" | "created_at">("name");
-	const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
 	const [membersOpen, setMembersOpen] = useState(false);
 	const [memberDept, setMemberDept] = useState<Department | null>(null);
 	const [members, setMembers] = useState<DepartmentMember[]>([]);
@@ -55,7 +75,10 @@ export function DepartmentsPage() {
 	const apiErrorToast = useApiErrorToast();
 	const queryClient = useQueryClient();
 
-	const { data, isLoading, isError, refetch, isFetching } = useQuery({
+	const page = paginationState.pageIndex + 1;
+	const pageSize = paginationState.pageSize;
+
+	const { data, isLoading, isError, refetch } = useQuery({
 		queryKey: queryKeys.departments.list({
 			page,
 			page_size: pageSize,
@@ -89,8 +112,13 @@ export function DepartmentsPage() {
 	});
 
 	const updateMutation = useMutation({
-		mutationFn: ({ id, values }: { id: string; values: { name: string; code: string } }) =>
-			updateDepartment(id, values),
+		mutationFn: ({
+			id,
+			values,
+		}: {
+			id: string;
+			values: { name: string; code: string };
+		}) => updateDepartment(id, values),
 		onSuccess: () => {
 			toast({ title: "Department updated" });
 			queryClient.invalidateQueries({
@@ -121,21 +149,16 @@ export function DepartmentsPage() {
 	});
 
 	const departments = useMemo(() => data?.items ?? [], [data?.items]);
-	const sortedDepartments = useMemo(() => {
-		const copy = [...departments];
-		copy.sort((a, b) => {
-			const aVal = (a[sortKey] || "") as string;
-			const bVal = (b[sortKey] || "") as string;
-			if (aVal === bVal) return 0;
-			if (sortDir === "asc") {
-				return aVal > bVal ? 1 : -1;
-			}
-			return aVal < bVal ? 1 : -1;
-		});
-		return copy;
-	}, [departments, sortDir, sortKey]);
 	const total = data?.total ?? 0;
-	const hasNext = page * pageSize < total;
+	const totalPages = Math.max(1, Math.ceil(total / pageSize));
+
+	useEffect(() => {
+		if (paginationState.pageIndex + 1 <= totalPages) return;
+		setPaginationState((prev) => ({
+			...prev,
+			pageIndex: Math.max(0, totalPages - 1),
+		}));
+	}, [paginationState.pageIndex, totalPages]);
 
 	const openCreate = () => {
 		setFormMode("create");
@@ -169,7 +192,7 @@ export function DepartmentsPage() {
 
 	const handleSubmit = async (
 		values: { name: string; code: string },
-		id?: string,
+		id?: string
 	) => {
 		if (formMode === "edit" && id) {
 			await updateMutation.mutateAsync({ id, values });
@@ -178,92 +201,207 @@ export function DepartmentsPage() {
 		}
 	};
 
+	const columns = useMemo<ColumnDefinition<Department>[]>(
+		() => [
+			{
+				id: "id",
+				header: "ID",
+				accessor: (dept) => dept.id,
+				cell: (dept) => dept.id,
+				enableSorting: false,
+				enableFiltering: false,
+			},
+			{
+				id: "orgId",
+				header: "Org ID",
+				accessor: (dept) => dept.org_id,
+				cell: (dept) => dept.org_id,
+				enableSorting: false,
+				enableFiltering: false,
+			},
+			{
+				id: "name",
+				header: "Name",
+				accessor: (dept) => dept.name,
+				filterAccessor: (dept) => dept.name,
+				cell: (dept) => dept.name,
+				headerClassName: "min-w-[180px]",
+				cellClassName: "font-medium",
+			},
+			{
+				id: "code",
+				header: "Code",
+				accessor: (dept) => dept.code,
+				filterAccessor: (dept) => dept.code,
+				cell: (dept) => dept.code || "—",
+				cellClassName: "text-muted-foreground",
+			},
+			{
+				id: "members",
+				header: "Members",
+				accessor: (dept) => dept.member_count ?? 0,
+				cell: (dept) =>
+					typeof dept.member_count === "number" ? dept.member_count : "—",
+				cellClassName: "text-muted-foreground",
+			},
+			{
+				id: "status",
+				header: "Status",
+				accessor: (dept) => (dept.is_archived ? "Archived" : "Active"),
+				filterAccessor: (dept) => (dept.is_archived ? "Archived" : "Active"),
+				cell: (dept) => (
+					<span className="inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium">
+						{dept.is_archived ? "Archived" : "Active"}
+					</span>
+				),
+			},
+			{
+				id: "createdAt",
+				header: "Created",
+				accessor: (dept) => dept.created_at ?? "",
+				cell: (dept) => formatDate(dept.created_at),
+			},
+			{
+				id: "updatedAt",
+				header: "Updated",
+				accessor: (dept) => dept.updated_at ?? "",
+				cell: (dept) => formatDate(dept.updated_at),
+			},
+		],
+		[]
+	);
+
+	const initialColumnVisibility = useMemo<VisibilityState>(
+		() => ({
+			id: false,
+			orgId: false,
+		}),
+		[]
+	);
+
 	return (
-		<PageContainer className="space-y-6">
+		<PageContainer className="flex min-h-0 flex-1 flex-col gap-4">
 			<PageHeader
 				title="Departments"
 				subtitle="Manage organization departments."
-				actions={
-					<div className="flex items-center gap-2">
+			/>
+
+			{isError ? (
+				<div className="rounded-xl border border-border/70 bg-card">
+					<div className="p-6">
+						<p className="text-sm text-muted-foreground">
+							Unable to load departments. Please try again.
+						</p>
 						<Button
 							variant="outline"
 							size="sm"
+							className="mt-3"
 							onClick={() => refetch()}
-							disabled={isFetching}
 						>
-							<RefreshCw className="mr-2 h-4 w-4" />
-							Refresh
+							Retry
 						</Button>
-						{canManage ? (
-							<Button size="sm" onClick={openCreate}>
-								<PlusCircle className="mr-2 h-4 w-4" />
-								New department
-							</Button>
-						) : null}
 					</div>
-				}
-			/>
-
-			<div className="flex items-center justify-between rounded-lg border border-border/60 bg-muted/20 px-3 py-2 text-sm text-muted-foreground">
-				<label className="inline-flex items-center gap-2">
-					<input
-						type="checkbox"
-						checked={includeArchived}
-						onChange={(e) => setIncludeArchived(e.target.checked)}
-						className="h-4 w-4"
-					/>
-					Show archived
-				</label>
-				<div className="flex items-center gap-3">
-					<div className="flex items-center gap-2">
-						<span className="text-xs text-muted-foreground">Sort by</span>
-						<Select
-							value={`${sortKey}:${sortDir}`}
-							onValueChange={(val) => {
-								const [key, dir] = val.split(":") as [
-									"name" | "code" | "created_at",
-									"asc" | "desc",
-								];
-								setSortKey(key);
-								setSortDir(dir);
-							}}
-						>
-							<SelectTrigger className="h-8 w-40 text-xs">
-								<SelectValue />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="name:asc">Name (A-Z)</SelectItem>
-								<SelectItem value="name:desc">Name (Z-A)</SelectItem>
-								<SelectItem value="code:asc">Code (A-Z)</SelectItem>
-								<SelectItem value="code:desc">Code (Z-A)</SelectItem>
-								<SelectItem value="created_at:desc">Created (newest)</SelectItem>
-								<SelectItem value="created_at:asc">Created (oldest)</SelectItem>
-							</SelectContent>
-						</Select>
-					</div>
-					{isFetching ? <span className="text-xs">Updating…</span> : null}
 				</div>
-			</div>
-
-			<DepartmentTable
-				departments={sortedDepartments}
-				isLoading={isLoading}
-				isError={isError}
-				onRetry={refetch}
-				onEdit={canManage ? openEdit : undefined}
-				onArchive={canManage ? (dept) => setConfirming(dept) : undefined}
-				canManage={canManage}
-				onViewMembers={openMembers}
-			/>
-
-			<Pagination
-				page={page}
-				pageSize={pageSize}
-				total={total}
-				hasNext={hasNext}
-				isLoading={isFetching}
-				onPageChange={setPage}
-			/>
+			) : (
+				<DataTable
+					data={departments}
+					columns={columns}
+					getRowId={(dept) => dept.id}
+					isLoading={isLoading}
+					enableRowSelection
+					enableExport={false}
+					pagination={{
+						enabled: true,
+						mode: "server",
+						state: paginationState,
+						onPaginationChange: setPaginationState,
+						pageCount: totalPages,
+						totalRows: total,
+					}}
+					preferences={preferencesConfig}
+					initialColumnVisibility={initialColumnVisibility}
+					className="flex-1 min-h-0"
+					emptyMessage="No departments yet. Create a department to organize your org."
+					renderToolbarActions={(selectedDepartments) => {
+						const hasSingle = selectedDepartments.length === 1;
+						const selectedDept = hasSingle ? selectedDepartments[0] : null;
+						return (
+							<>
+								<ToolbarButton
+									variant="outline"
+									size="sm"
+									disabled={!hasSingle}
+									onClick={() => {
+										if (selectedDept) {
+											void openMembers(selectedDept);
+										}
+									}}
+								>
+									View members
+								</ToolbarButton>
+								{canManage ? (
+									<>
+										<ToolbarButton
+											variant="secondary"
+											size="sm"
+											disabled={!hasSingle}
+											onClick={() => {
+												if (selectedDept) {
+													openEdit(selectedDept);
+												}
+											}}
+										>
+											Edit
+										</ToolbarButton>
+										<ToolbarButton
+											variant="destructive"
+											size="sm"
+											disabled={
+												!hasSingle || Boolean(selectedDept?.is_archived)
+											}
+											onClick={() => {
+												if (selectedDept) {
+													setConfirming(selectedDept);
+												}
+											}}
+										>
+											Archive
+										</ToolbarButton>
+									</>
+								) : null}
+							</>
+						);
+					}}
+					topBarActions={
+						<div className="flex flex-wrap items-center gap-3">
+							{canManage ? (
+								<Button
+									size="sm"
+									variant="default"
+									className="h-8 px-3 text-xs"
+									onClick={openCreate}
+								>
+									<PlusCircle className="mr-2 h-4 w-4" />
+									New department
+								</Button>
+							) : null}
+							<label className="flex items-center gap-2 text-xs text-muted-foreground">
+								<Checkbox
+									checked={includeArchived}
+									onCheckedChange={(checked) => {
+										setIncludeArchived(Boolean(checked));
+										setPaginationState((prev) => ({
+											...prev,
+											pageIndex: 0,
+										}));
+									}}
+								/>
+								Show archived
+							</label>
+						</div>
+					}
+				/>
+			)}
 
 			<DepartmentFormDialog
 				open={formOpen}
@@ -278,7 +416,9 @@ export function DepartmentsPage() {
 				open={Boolean(confirming)}
 				onOpenChange={() => setConfirming(null)}
 				title="Archive department?"
-				description={`Archiving ${confirming?.name ?? "this department"} will remove it from selection for new assignments.`}
+				description={`Archiving ${
+					confirming?.name ?? "this department"
+				} will remove it from selection for new assignments.`}
 				confirmLabel="Archive"
 				onConfirm={() =>
 					confirming ? archiveMutation.mutate(confirming.id) : undefined
@@ -320,9 +460,7 @@ export function DepartmentsPage() {
 											className="flex items-center justify-between rounded-md border border-border/70 bg-muted/20 px-3 py-2 text-sm"
 										>
 											<div className="space-y-0.5">
-												<p className="font-semibold text-foreground">
-													{name}
-												</p>
+												<p className="font-semibold text-foreground">{name}</p>
 												<p className="text-xs text-muted-foreground">
 													{member.user.email}
 												</p>
@@ -380,11 +518,7 @@ function ConfirmationDialog({
 					<Button variant="outline" onClick={() => onOpenChange(false)}>
 						Cancel
 					</Button>
-					<Button
-						variant="destructive"
-						onClick={onConfirm}
-						disabled={loading}
-					>
+					<Button variant="destructive" onClick={onConfirm} disabled={loading}>
 						{loading ? "Archiving..." : confirmLabel}
 					</Button>
 				</DialogFooter>
