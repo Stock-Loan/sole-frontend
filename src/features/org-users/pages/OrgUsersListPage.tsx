@@ -1,389 +1,221 @@
-import { useEffect, useMemo, useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
-import { RefreshCw, Upload, UserPlus } from "lucide-react";
+import { useEffect, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import type { PaginationState } from "@tanstack/react-table";
+import { Link, useSearchParams } from "react-router-dom";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/common/PageHeader";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
-import {
-	Dialog,
-	DialogBody,
-	DialogContent,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-} from "@/components/ui/dialog";
+import { EmptyState } from "@/components/common/EmptyState";
+import { DataTable } from "@/components/data-table/DataTable";
+import type { ColumnDefinition } from "@/components/data-table/types";
+import { Badge } from "@/components/ui/badge";
 import { useApiErrorToast } from "@/hooks/useApiErrorToast";
-import { usePermissions } from "@/features/auth/hooks/usePermissions";
-import {
-	assignDepartmentToUsers,
-	listDepartments,
-	unassignDepartments,
-} from "@/features/departments/api/departments.api";
 import { queryKeys } from "@/lib/queryKeys";
-import { AddUserDialog } from "../components/AddUserDialog";
-import { OrgUsersFilters } from "../components/OrgUsersFilters";
-import { OrgUsersTable } from "../components/OrgUsersTable";
-import { OrgUserSidePanel } from "../components/OrgUserSidePanel";
-import {
-	useOrgUsersList,
-	useOnboardUser,
-	useBulkDeleteOrgUsers,
-} from "../hooks/useOrgUsers";
-import type {
-	EmploymentStatus,
-	OrgUsersListParams,
-	OnboardUserPayload,
-	PlatformStatus,
-} from "../types";
-import { AssignDepartmentCard } from "../components/AssignDepartmentCard";
+import { routes } from "@/lib/routes";
+import { normalizeDisplay } from "@/lib/utils";
+import { listOrgUsers } from "../api/orgUsers.api";
+import type { OrgUserListItem, OrgUsersListParams } from "../types";
+
+const DEFAULT_PAGE = 1;
+const DEFAULT_PAGE_SIZE = 20;
+const PAGE_SIZE_OPTIONS = [10, 20, 30, 40, 50];
+
+function parsePositiveInt(value: string | null, fallback: number) {
+	if (!value) return fallback;
+	const parsed = Number.parseInt(value, 10);
+	if (Number.isNaN(parsed) || parsed <= 0) return fallback;
+	return parsed;
+}
+
+function getDisplayName(user: OrgUserListItem["user"]) {
+	return (
+		user.full_name ||
+		[user.first_name, user.last_name].filter(Boolean).join(" ").trim() ||
+		user.email
+	);
+}
+
+function getDepartmentLabel(membership: OrgUserListItem["membership"]) {
+	return (
+		membership.department_name ||
+		membership.department ||
+		membership.department_id ||
+		"—"
+	);
+}
+
+const columns: ColumnDefinition<OrgUserListItem>[] = [
+	{
+		id: "fullName",
+		header: "Full name",
+		accessor: (row) => getDisplayName(row.user),
+		filterAccessor: (row) =>
+			`${getDisplayName(row.user)} ${row.user.email}`.trim(),
+		cell: (row) => (
+			<Link
+				to={routes.userDetail.replace(":membershipId", row.membership.id)}
+				className="font-semibold text-primary underline-offset-4 hover:underline"
+			>
+				{getDisplayName(row.user)}
+			</Link>
+		),
+		headerClassName: "min-w-[200px]",
+	},
+	{
+		id: "employeeId",
+		header: "Employee ID",
+		accessor: (row) => row.membership.employee_id ?? "",
+		cell: (row) => row.membership.employee_id || "—",
+	},
+	{
+		id: "email",
+		header: "Email",
+		accessor: (row) => row.user.email,
+		cell: (row) => row.user.email,
+	},
+	{
+		id: "department",
+		header: "Department",
+		accessor: (row) => getDepartmentLabel(row.membership),
+		cell: (row) => getDepartmentLabel(row.membership),
+	},
+	{
+		id: "employmentStatus",
+		header: "Employment status",
+		accessor: (row) => row.membership.employment_status ?? "",
+		filterAccessor: (row) => row.membership.employment_status ?? "",
+		cell: (row) => (
+			<Badge variant="outline">
+				{normalizeDisplay(row.membership.employment_status)}
+			</Badge>
+		),
+	},
+	{
+		id: "platformStatus",
+		header: "Platform status",
+		accessor: (row) => row.membership.platform_status ?? "",
+		filterAccessor: (row) => row.membership.platform_status ?? "",
+		cell: (row) => (
+			<Badge variant="outline">
+				{normalizeDisplay(row.membership.platform_status)}
+			</Badge>
+		),
+	},
+];
 
 export function OrgUsersListPage() {
-	const [searchTerm, setSearchTerm] = useState("");
-	const [debouncedSearch, setDebouncedSearch] = useState("");
-	const [employmentStatus, setEmploymentStatus] = useState<
-		EmploymentStatus | "ALL"
-	>("ALL");
-	const [platformStatus, setPlatformStatus] = useState<PlatformStatus | "ALL">(
-		"ALL"
-	);
-	const [roleId, setRoleId] = useState<string>("");
-	const [page, setPage] = useState(1);
-	const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-	const [selectedMembershipId, setSelectedMembershipId] = useState<
-		string | null
-	>(null);
-	const [isSidePanelOpen, setIsSidePanelOpen] = useState(false);
-	const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-	const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
-	const [selectedDepartmentId, setSelectedDepartmentId] = useState<string>("");
-	const { toast } = useToast();
+	const [searchParams, setSearchParams] = useSearchParams();
 	const apiErrorToast = useApiErrorToast();
-	const { can } = usePermissions();
-	const canManageUsers = can("user.manage");
-	const canOnboardUsers = can("user.onboard");
-	const canManageDepartments = can("department.manage") && canManageUsers;
 
-	const onboardUserMutation = useOnboardUser();
-	const bulkDeleteMutation = useBulkDeleteOrgUsers();
+	const page = parsePositiveInt(searchParams.get("page"), DEFAULT_PAGE);
+	const pageSize = parsePositiveInt(
+		searchParams.get("page_size"),
+		DEFAULT_PAGE_SIZE
+	);
 
 	useEffect(() => {
-		const timer = setTimeout(() => setDebouncedSearch(searchTerm), 300);
-		return () => clearTimeout(timer);
-	}, [searchTerm]);
+		const nextParams = new URLSearchParams(searchParams);
+		let changed = false;
+
+		if (searchParams.get("page") !== String(page)) {
+			nextParams.set("page", String(page));
+			changed = true;
+		}
+
+		if (searchParams.get("page_size") !== String(pageSize)) {
+			nextParams.set("page_size", String(pageSize));
+			changed = true;
+		}
+
+		if (changed) {
+			setSearchParams(nextParams, { replace: true });
+		}
+	}, [page, pageSize, searchParams, setSearchParams]);
 
 	const listParams = useMemo<OrgUsersListParams>(
 		() => ({
-			search: debouncedSearch || undefined,
-			employment_status:
-				employmentStatus === "ALL"
-					? undefined
-					: (employmentStatus?.toString().toUpperCase() as EmploymentStatus),
-			platform_status:
-				platformStatus === "ALL"
-					? undefined
-					: (platformStatus?.toString().toUpperCase() as PlatformStatus),
-			role_id: roleId || undefined,
 			page,
-			page_size: 7,
+			page_size: pageSize,
 		}),
-		[debouncedSearch, employmentStatus, platformStatus, roleId, page]
+		[page, pageSize]
 	);
 
 	const {
 		data,
 		isLoading,
-		isFetching,
 		isError,
-		error: queryError,
+		error,
 		refetch,
-	} = useOrgUsersList(listParams);
-
-	const { data: departmentsData } = useQuery({
-		queryKey: queryKeys.departments.list({ page: 1, page_size: 100 }),
-		queryFn: () => listDepartments({ page: 1, page_size: 100 }),
-		staleTime: 5 * 60 * 1000,
+	} = useQuery({
+		queryKey: queryKeys.orgUsers.list(listParams),
+		queryFn: () => listOrgUsers(listParams),
+		placeholderData: (previous) => previous,
 	});
 
-	const departmentOptions = useMemo(
-		() => (departmentsData?.items ?? []).filter((dept) => !dept.is_archived),
-		[departmentsData?.items]
-	);
-
-	const departmentMutation = useMutation({
-		mutationFn: async (deptId: string | null) => {
-			const ids = selectedUsers.map((item) => item.membership.id);
-			if (!ids.length) {
-				throw new Error("Select at least one user.");
-			}
-			if (deptId) {
-				return assignDepartmentToUsers(deptId, ids);
-			}
-			await unassignDepartments(ids);
-			return {
-				department: null,
-				assigned: [],
-				skipped_inactive: [],
-				not_found: [],
-			};
-		},
-		onSuccess: (result) => {
-			const assigned = result.assigned?.length ?? 0;
-			const skipped = result.skipped_inactive?.length ?? 0;
-			const notFound = result.not_found?.length ?? 0;
-			toast({
-				title: "Departments updated",
-				description: `Assigned: ${assigned}${
-					skipped ? ` • Skipped inactive: ${skipped}` : ""
-				}${notFound ? ` • Not found: ${notFound}` : ""}`,
-			});
-			handleClearSelection();
-			refetch();
-		},
-		onError: (err) =>
-			apiErrorToast(err, "Unable to update departments for selected users."),
-	});
-
-	const selectedUsers = useMemo(() => {
-		if (!data?.items?.length) return [];
-		return data.items.filter((item) => selectedIds.has(item.membership.id));
-	}, [data?.items, selectedIds]);
+	const totalRows = data?.total ?? data?.items.length ?? 0;
+	const totalPages = Math.max(1, Math.ceil(totalRows / pageSize));
 
 	useEffect(() => {
-		if (isError) {
-			apiErrorToast(
-				queryError,
-				"Unable to load users right now. Please try again."
-			);
-		}
-	}, [queryError, isError, apiErrorToast]);
+		if (page <= totalPages) return;
+		const nextParams = new URLSearchParams(searchParams);
+		nextParams.set("page", String(totalPages));
+		setSearchParams(nextParams, { replace: true });
+	}, [page, searchParams, setSearchParams, totalPages]);
 
-	const handleAddUser = async (values: OnboardUserPayload) => {
-		await onboardUserMutation.mutateAsync(values);
-	};
+	useEffect(() => {
+		if (!isError) return;
+		apiErrorToast(error, "Unable to load organization users.");
+	}, [apiErrorToast, error, isError]);
 
-	const handleSearchChange = (value: string) => {
-		setSearchTerm(value);
-		setPage(1);
-	};
+	const paginationState = useMemo<PaginationState>(
+		() => ({ pageIndex: Math.max(0, page - 1), pageSize }),
+		[page, pageSize]
+	);
 
-	const handleEmploymentChange = (value: EmploymentStatus | "ALL") => {
-		setEmploymentStatus(value);
-		setPage(1);
-	};
-
-	const handlePlatformChange = (value: PlatformStatus | "ALL") => {
-		setPlatformStatus(value);
-		setPage(1);
-	};
-
-	const handleRoleChange = (value: string) => {
-		setRoleId(value);
-		setPage(1);
-	};
-
-	const handleSelectUser = (membershipId: string) => {
-		setSelectedMembershipId(membershipId);
-		setIsSidePanelOpen(true);
-	};
-
-	const handleToggleSelect = (membershipId: string, checked: boolean) => {
-		if (!canManageUsers) return;
-		setSelectedIds((prev) => {
-			const next = new Set(prev);
-			if (checked) {
-				next.add(membershipId);
-			} else {
-				next.delete(membershipId);
-			}
-			return next;
-		});
-	};
-
-	const handleToggleSelectAll = (checked: boolean, ids: string[]) => {
-		if (!canManageUsers) return;
-		setSelectedIds((prev) => {
-			const next = new Set(prev);
-			if (checked) {
-				ids.forEach((id) => next.add(id));
-			} else {
-				ids.forEach((id) => next.delete(id));
-			}
-			return next;
-		});
-	};
-
-	const handleClearSelection = () => setSelectedIds(new Set());
-
-	const handleBulkDelete = async () => {
-		if (!canManageUsers || selectedIds.size === 0) return;
-		try {
-			await bulkDeleteMutation.mutateAsync(Array.from(selectedIds));
-			handleClearSelection();
-		} catch {
-			void 0;
-		}
-	};
-
-	const handleBulkDepartmentAssign = async (deptId: string | null) => {
-		if (!canManageDepartments || selectedIds.size === 0) return;
-		await departmentMutation.mutateAsync(deptId);
+	const handlePaginationChange = (
+		updater:
+			| PaginationState
+			| ((previous: PaginationState) => PaginationState)
+	) => {
+		const nextState =
+			typeof updater === "function" ? updater(paginationState) : updater;
+		const nextParams = new URLSearchParams(searchParams);
+		nextParams.set("page", String(nextState.pageIndex + 1));
+		nextParams.set("page_size", String(nextState.pageSize));
+		setSearchParams(nextParams);
 	};
 
 	return (
 		<PageContainer>
 			<PageHeader
 				title="Org users"
-				subtitle="View organization users and core statuses. Data is scoped to your current organization."
-				actions={
-					<div className="flex flex-wrap gap-2">
-						{canOnboardUsers ? (
-							<AddUserDialog
-								open={isAddModalOpen}
-								onOpenChange={setIsAddModalOpen}
-								onSubmit={handleAddUser}
-								trigger={
-									<Button variant="outline" size="sm">
-										<UserPlus className="mr-2 h-4 w-4" />
-										Add user
-									</Button>
-								}
-							/>
-						) : null}
-						{canManageUsers ? (
-							<Button
-								variant="destructive"
-								size="sm"
-								disabled={selectedIds.size === 0}
-								onClick={() => setConfirmDeleteOpen(true)}
-							>
-								Delete selected ({selectedIds.size})
-							</Button>
-						) : null}
-						{canOnboardUsers ? (
-							<Button variant="outline" size="sm" asChild>
-								<Link to="/app/users/onboard">
-									<Upload className="mr-2 h-4 w-4" />
-									Bulk onboarding
-								</Link>
-							</Button>
-						) : null}
-						<Button variant="outline" size="sm" onClick={() => refetch()}>
-							<RefreshCw className="mr-2 h-4 w-4" />
-							Refresh
-						</Button>
-					</div>
-				}
+				subtitle="View organization users and core statuses."
 			/>
-
-			<div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-start">
-				{canManageDepartments ? (
-					<AssignDepartmentCard
-						departments={departmentOptions}
-						selectedDepartmentId={selectedDepartmentId}
-						onDepartmentChange={(val) => setSelectedDepartmentId(val)}
-						onApply={() =>
-							void handleBulkDepartmentAssign(
-								selectedDepartmentId === "none"
-									? null
-									: selectedDepartmentId || null
-							)
-						}
-						isPending={departmentMutation.isPending}
-						disabled={selectedIds.size === 0}
-					/>
-				) : null}
-
-				<div className="flex-1">
-					<OrgUsersFilters
-						search={searchTerm}
-						onSearchChange={handleSearchChange}
-						employmentStatus={employmentStatus}
-						onEmploymentChange={handleEmploymentChange}
-						platformStatus={platformStatus}
-						onPlatformChange={handlePlatformChange}
-						roleId={roleId}
-						onRoleChange={handleRoleChange}
-					/>
-				</div>
-			</div>
-			<OrgUsersTable
-				items={data?.items ?? []}
-				isLoading={isLoading}
-				isError={isError}
-				isFetching={isFetching}
-				onRefresh={() => refetch()}
-				canManage={canManageUsers}
-				onSelect={handleSelectUser}
-				selectedIds={selectedIds}
-				onToggleSelect={handleToggleSelect}
-				onToggleSelectAll={handleToggleSelectAll}
-			/>
-			<OrgUserSidePanel
-				membershipId={selectedMembershipId}
-				open={isSidePanelOpen}
-				onOpenChange={setIsSidePanelOpen}
-				onUpdated={() => refetch()}
-			/>
-
-			<Dialog open={confirmDeleteOpen} onOpenChange={setConfirmDeleteOpen}>
-				<DialogContent size="sm">
-					<DialogHeader>
-						<DialogTitle>
-							{selectedUsers.length === 1
-								? `Delete ${
-										[
-											selectedUsers[0]?.user.first_name,
-											selectedUsers[0]?.user.last_name,
-										]
-											.filter(Boolean)
-											.join(" ")
-											.trim() || "this user"
-								  }?`
-								: `Delete ${selectedUsers.length} users?`}
-						</DialogTitle>
-					</DialogHeader>
-					<DialogBody>
-						<p className="text-sm text-muted-foreground">
-							You are about to delete{" "}
-							{selectedUsers.length === 1
-								? [
-										selectedUsers[0]?.user.first_name,
-										selectedUsers[0]?.user.last_name,
-								  ]
-										.filter(Boolean)
-										.join(" ")
-										.trim() || "this user"
-								: `${selectedUsers.length} users`}{" "}
-							from the organization. This action cannot be undone or reversed.
-							Please confirm your action.
-						</p>
-						<p className="text-sm text-muted-foreground mt-2">
-							Deleted users will lose access to the organization's resources and
-							data.
-						</p>
-					</DialogBody>
-					<DialogFooter>
-						<Button
-							variant="outline"
-							onClick={() => setConfirmDeleteOpen(false)}
-						>
-							Cancel
-						</Button>
-						<Button
-							variant="destructive"
-							onClick={() => {
-								setConfirmDeleteOpen(false);
-								void handleBulkDelete();
-							}}
-							disabled={selectedIds.size === 0}
-						>
-							Confirm delete
-						</Button>
-					</DialogFooter>
-				</DialogContent>
-			</Dialog>
+			{isError ? (
+				<EmptyState
+					title="Unable to load users"
+					message="We couldn't load organization users right now. Please try again."
+					actionLabel="Retry"
+					onRetry={refetch}
+				/>
+			) : (
+				<DataTable
+					data={data?.items ?? []}
+					columns={columns}
+					getRowId={(row) => row.membership.id}
+					isLoading={isLoading}
+					emptyMessage="No users found for this organization."
+					exportFileName="org-users.csv"
+					pagination={{
+						enabled: true,
+						mode: "server",
+						state: paginationState,
+						onPaginationChange: handlePaginationChange,
+						pageCount: totalPages,
+						totalRows,
+						pageSizeOptions: PAGE_SIZE_OPTIONS,
+					}}
+				/>
+			)}
 		</PageContainer>
 	);
 }

@@ -8,14 +8,14 @@ const Checkbox = React.forwardRef<
 	React.ComponentPropsWithoutRef<typeof CheckboxPrimitive.Root> & {
 		indeterminate?: boolean;
 	}
->(({ className, indeterminate, ...props }, ref) => (
+>(({ className, indeterminate, checked, ...props }, ref) => (
 	<CheckboxPrimitive.Root
 		ref={ref}
 		className={cn(
 			"peer h-4 w-4 shrink-0 rounded border border-input bg-background ring-offset-background transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground",
 			className
 		)}
-		data-state={indeterminate ? "indeterminate" : undefined}
+		checked={indeterminate ? "indeterminate" : checked}
 		{...props}
 	>
 		<CheckboxPrimitive.Indicator

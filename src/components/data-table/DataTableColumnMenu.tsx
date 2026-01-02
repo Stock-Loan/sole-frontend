@@ -28,6 +28,7 @@ export function DataTableColumnMenu<T>({
 	column,
 	columns,
 	visibleDataColumnCount,
+	columnVisibility,
 	draft,
 	isFilterApplied,
 	onFilterOperatorChange,
@@ -71,14 +72,18 @@ export function DataTableColumnMenu<T>({
 			<DropdownMenuContent align="end" className="w-56">
 				<DropdownMenuItem
 					disabled={!canSort}
-					onClick={() => column.toggleSorting(false)}
+					onSelect={() =>
+						table.setSorting([{ id: column.id, desc: false }])
+					}
 				>
 					<ArrowUp className="mr-2 h-4 w-4" />
 					Sort ascending
 				</DropdownMenuItem>
 				<DropdownMenuItem
 					disabled={!canSort}
-					onClick={() => column.toggleSorting(true)}
+					onSelect={() =>
+						table.setSorting([{ id: column.id, desc: true }])
+					}
 				>
 					<ArrowDown className="mr-2 h-4 w-4" />
 					Sort descending
@@ -91,7 +96,7 @@ export function DataTableColumnMenu<T>({
 							{columns.map((col) => {
 								const columnInstance = table.getColumn(col.id);
 								if (!columnInstance) return null;
-								const isVisible = columnInstance.getIsVisible();
+								const isVisible = columnVisibility[col.id] !== false;
 								const allowHide = col.enableHiding !== false;
 								return (
 									<DropdownMenuCheckboxItem

@@ -10,6 +10,8 @@ export function DataTableHeader<T>({
 	columns,
 	columnConfigById,
 	visibleDataColumnCount,
+	columnVisibility,
+	rowSelection,
 	appliedFilters,
 	getDraftFilter,
 	onFilterOperatorChange,
@@ -19,8 +21,10 @@ export function DataTableHeader<T>({
 	openMenuColumnId,
 	onOpenMenuChange,
 }: DataTableHeaderProps<T>) {
+	const selectionKey = Object.keys(rowSelection).length;
+
 	return (
-		<TableHeader>
+		<TableHeader data-selection={selectionKey || undefined}>
 			{table.getHeaderGroups().map((headerGroup) => (
 				<TableRow key={headerGroup.id}>
 					{headerGroup.headers.map((header) => {
@@ -33,10 +37,10 @@ export function DataTableHeader<T>({
 						if (!config) {
 							return (
 								<TableHead key={header.id} className="w-10">
-									{flexRender(
-										header.column.columnDef.header,
-										header.getContext()
-									)}
+									{flexRender(header.column.columnDef.header, {
+										...header.getContext(),
+										table,
+									})}
 								</TableHead>
 							);
 						}
@@ -56,7 +60,7 @@ export function DataTableHeader<T>({
 
 						return (
 							<TableHead key={header.id} className={config.headerClassName}>
-								<div className="flex items-center justify-between gap-2">
+								<div className="flex items-center gap-1">
 									<span className="text-sm font-semibold">
 										{config.header}
 									</span>
@@ -65,6 +69,7 @@ export function DataTableHeader<T>({
 										column={header.column}
 										columns={columns}
 										visibleDataColumnCount={visibleDataColumnCount}
+										columnVisibility={columnVisibility}
 										draft={draft}
 										isFilterApplied={isFilterApplied}
 										onFilterOperatorChange={onFilterOperatorChange}
@@ -75,7 +80,7 @@ export function DataTableHeader<T>({
 										onOpenMenuChange={onOpenMenuChange}
 									/>
 									{SortIcon ? (
-										<SortIcon className="h-3.5 w-3.5 text-muted-foreground" />
+										<SortIcon className="h-3.5 w-3.5 text-muted-foreground ml-auto" />
 									) : null}
 								</div>
 							</TableHead>

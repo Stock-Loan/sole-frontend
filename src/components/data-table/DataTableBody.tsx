@@ -4,15 +4,28 @@ import type { DataTableBodyProps } from "./types";
 
 export function DataTableBody<T>({
 	table,
+	rows,
 	columnConfigById,
 	emptyMessage,
+	rowSelection,
+	columnVisibility,
 }: DataTableBodyProps<T>) {
-	if (!table.getRowModel().rows.length) {
+	const selectionKey = Object.keys(rowSelection).join("|");
+	const visibilityKey = Object.keys(columnVisibility)
+		.sort((a, b) => a.localeCompare(b))
+		.join("|");
+
+	const visibleColumns = table.getVisibleLeafColumns();
+
+	if (!rows.length) {
 		return (
-			<TableBody>
+			<TableBody
+				data-selection={selectionKey || undefined}
+				data-visibility={visibilityKey || undefined}
+			>
 				<TableRow>
 					<TableCell
-						colSpan={table.getVisibleLeafColumns().length}
+						colSpan={visibleColumns.length}
 						className="h-24 text-center text-sm text-muted-foreground"
 					>
 						{emptyMessage}
@@ -23,14 +36,46 @@ export function DataTableBody<T>({
 	}
 
 	return (
-		<TableBody>
-			{table.getRowModel().rows.map((row) => (
-				<TableRow key={row.id}>
-					{row.getVisibleCells().map((cell) => {
-						const config = columnConfigById.get(cell.column.id);
+		<TableBody
+			data-selection={selectionKey || undefined}
+			data-visibility={visibilityKey || undefined}
+		>
+			{rows.map((row) => (
+				<TableRow
+					key={row.id}
+					data-selected={rowSelection[row.id] ? "true" : undefined}
+				>
+					{visibleColumns.map((column) => {
+						let cell = row
+							.getAllCells()
+							.find((c) => c.column.id === column.id);
+
+						if (!cell) {
+							cell = {
+								id: `${row.id}_${column.id}`,
+								row,
+								column,
+								table,
+								getValue: () => row.getValue(column.id),
+								renderValue: () => row.getValue(column.id),
+								getContext: () => ({
+									table,
+									column,
+									row,
+									cell: cell!,
+									getValue: () => row.getValue(column.id),
+									renderValue: () => row.getValue(column.id),
+								}),
+							} as any;
+						}
+
+						const config = columnConfigById.get(column.id);
 						return (
 							<TableCell key={cell.id} className={config?.cellClassName}>
-								{flexRender(cell.column.columnDef.cell, cell.getContext())}
+								{flexRender(cell.column.columnDef.cell, {
+									...cell.getContext(),
+									table,
+								})}
 							</TableCell>
 						);
 					})}

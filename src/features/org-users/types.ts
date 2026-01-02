@@ -210,44 +210,14 @@ export interface BulkOnboardingGuideProps {
 export interface BulkOnboardingResultsTableProps {
 	rows: BulkOnboardingRowResult[];
 }
-export interface AssignDepartmentCardProps {
-	departments: DepartmentOption[];
-	selectedDepartmentId: string;
-	onDepartmentChange: (value: string) => void;
-	onApply: () => void;
-	isPending?: boolean;
-	disabled?: boolean;
-}
 export interface DepartmentOption {
 	id: string;
 	name: string;
 	is_archived?: boolean;
-}
-export interface OrgUsersFiltersProps {
-	search: string;
-	onSearchChange: (value: string) => void;
-	employmentStatus: EmploymentStatus | "ALL";
-	onEmploymentChange: (value: EmploymentStatus | "ALL") => void;
-	platformStatus: PlatformStatus | "ALL";
-	onPlatformChange: (value: PlatformStatus | "ALL") => void;
-	roleId?: string;
-	onRoleChange: (roleId: string) => void;
 }
 export interface OrgUserSidePanelProps {
 	membershipId: string | null;
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 	onUpdated?: () => void;
-}
-export interface OrgUsersTableProps {
-	items: OrgUserListItem[];
-	isLoading: boolean;
-	isError: boolean;
-	isFetching: boolean;
-	canManage?: boolean;
-	onRefresh: () => void;
-	onSelect: (membershipId: string) => void;
-	selectedIds: Set<string>;
-	onToggleSelect: (membershipId: string, checked: boolean) => void;
-	onToggleSelectAll: (checked: boolean, ids: string[]) => void;
 }

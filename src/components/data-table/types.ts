@@ -1,4 +1,11 @@
-import type { Column, PaginationState, Table } from "@tanstack/react-table";
+import type {
+	Column,
+	PaginationState,
+	Row,
+	RowSelectionState,
+	Table,
+	VisibilityState,
+} from "@tanstack/react-table";
 import type { ReactNode } from "react";
 
 export type SortDirection = "asc" | "desc";
@@ -56,6 +63,17 @@ export interface DataTablePaginationConfig {
 	pageSize?: number;
 	pageSizeOptions?: number[];
 	showPageSizeSelect?: boolean;
+	mode?: "client" | "server";
+	state?: PaginationState;
+	onPaginationChange?: (state: PaginationState) => void;
+	pageCount?: number;
+	totalRows?: number;
+}
+
+export interface DataTableSearchConfig {
+	value: string;
+	onChange: (value: string) => void;
+	placeholder?: string;
 }
 
 export interface DataTableProps<T> {
@@ -72,6 +90,7 @@ export interface DataTableProps<T> {
 	toolbarActions?: ReactNode;
 	renderToolbarActions?: (selectedRows: T[]) => ReactNode;
 	pagination?: DataTablePaginationConfig;
+	search?: DataTableSearchConfig;
 }
 
 export interface DataTableExportContext<T> {
@@ -86,6 +105,8 @@ export interface DataTableHeaderProps<T> {
 	columns: ColumnDefinition<T>[];
 	columnConfigById: ColumnConfigMap<T>;
 	visibleDataColumnCount: number;
+	columnVisibility: VisibilityState;
+	rowSelection: RowSelectionState;
 	appliedFilters: Record<string, ColumnFilterState>;
 	getDraftFilter: (columnId: string) => ColumnFilterState;
 	onFilterOperatorChange: (columnId: string, operator: FilterOperator) => void;
@@ -101,6 +122,7 @@ export interface DataTableColumnMenuProps<T> {
 	column: Column<T, unknown>;
 	columns: ColumnDefinition<T>[];
 	visibleDataColumnCount: number;
+	columnVisibility: VisibilityState;
 	draft: ColumnFilterState;
 	isFilterApplied: boolean;
 	onFilterOperatorChange: (columnId: string, operator: FilterOperator) => void;
@@ -113,8 +135,11 @@ export interface DataTableColumnMenuProps<T> {
 
 export interface DataTableBodyProps<T> {
 	table: Table<T>;
+	rows: Row<T>[];
 	columnConfigById: ColumnConfigMap<T>;
 	emptyMessage: string;
+	rowSelection: RowSelectionState;
+	columnVisibility: VisibilityState;
 }
 
 export interface DataTablePaginationProps<T> {
@@ -129,6 +154,7 @@ export interface DataTablePaginationProps<T> {
 export interface DataTableTopBarProps {
 	enableExport: boolean;
 	onExportAll: () => void;
+	search?: DataTableSearchConfig;
 }
 
 export interface DataTableSelectionToolbarProps {

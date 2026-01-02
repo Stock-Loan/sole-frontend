@@ -39,19 +39,27 @@ import {
 function buildSelectionColumn<T>(): ColumnDef<T, unknown> {
 	return {
 		id: selectionColumnId,
-		header: ({ table }) => (
+		header: ({ table }) => {
+			const { rowSelection } = table.getState();
+			const rows = table.getRowModel().rows;
+			const allSelected =
+				rows.length > 0 && rows.every((row) => rowSelection[row.id]);
+			const someSelected =
+				!allSelected && rows.some((row) => rowSelection[row.id]);
+
+			return (
+				<Checkbox
+					checked={allSelected || (someSelected && "indeterminate")}
+					onCheckedChange={(checked) =>
+						table.toggleAllPageRowsSelected(Boolean(checked))
+					}
+					aria-label="Select all rows"
+				/>
+			);
+		},
+		cell: ({ row, table }) => (
 			<Checkbox
-				checked={table.getIsAllPageRowsSelected()}
-				indeterminate={table.getIsSomePageRowsSelected()}
-				onCheckedChange={(checked) =>
-					table.toggleAllPageRowsSelected(Boolean(checked))
-				}
-				aria-label="Select all rows"
-			/>
-		),
-		cell: ({ row }) => (
-			<Checkbox
-				checked={row.getIsSelected()}
+				checked={row.getIsSelected() || !!table.getState().rowSelection[row.id]}
 				disabled={!row.getCanSelect()}
 				onCheckedChange={(checked) => row.toggleSelected(Boolean(checked))}
 				aria-label="Select row"
@@ -79,18 +87,39 @@ export function DataTable<T>({
 	toolbarActions,
 	renderToolbarActions,
 	pagination,
+	search,
 }: DataTableProps<T>) {
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
 	const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 	const paginationEnabled = pagination?.enabled ?? true;
+	const paginationMode = pagination?.mode ?? "client";
+	const isServerPagination = paginationMode === "server";
 	const initialPageSize = pagination?.pageSize ?? defaultPageSize;
-	const [paginationState, setPaginationState] = useState<PaginationState>(
-		() => ({
+	const [internalPaginationState, setInternalPaginationState] =
+		useState<PaginationState>(() => ({
 			pageIndex: 0,
 			pageSize: initialPageSize,
-		})
+		}));
+	const resolvedPaginationState = pagination?.state ?? internalPaginationState;
+
+	const handlePaginationChange = useCallback(
+		(
+			updater:
+				| PaginationState
+				| ((previous: PaginationState) => PaginationState)
+		) => {
+			const nextState =
+				typeof updater === "function"
+					? updater(resolvedPaginationState)
+					: updater;
+			if (!pagination?.state) {
+				setInternalPaginationState(nextState);
+			}
+			pagination?.onPaginationChange?.(nextState);
+		},
+		[pagination?.onPaginationChange, pagination?.state, resolvedPaginationState]
 	);
 
 	const columnConfigById = useMemo<ColumnConfigMap<T>>(
@@ -118,6 +147,12 @@ export function DataTable<T>({
 		[enableRowSelection, dataColumns, selectionColumn]
 	);
 
+	const serverTotalRows = pagination?.totalRows ?? data.length;
+	const serverPageCount = Math.max(
+		1,
+		Math.ceil(serverTotalRows / resolvedPaginationState.pageSize)
+	);
+
 	// eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table uses internal functions that React Compiler skips.
 	const table = useReactTable({
 		data,
@@ -127,19 +162,27 @@ export function DataTable<T>({
 			columnVisibility,
 			rowSelection,
 			columnFilters,
-			...(paginationEnabled ? { pagination: paginationState } : {}),
+			...(paginationEnabled ? { pagination: resolvedPaginationState } : {}),
 		},
 		onSortingChange: setSorting,
 		onColumnVisibilityChange: setColumnVisibility,
 		onRowSelectionChange: setRowSelection,
 		onColumnFiltersChange: setColumnFilters,
-		...(paginationEnabled ? { onPaginationChange: setPaginationState } : {}),
+		...(paginationEnabled
+			? {
+					onPaginationChange: handlePaginationChange,
+					manualPagination: isServerPagination,
+					pageCount: isServerPagination
+						? pagination?.pageCount ?? serverPageCount
+						: undefined,
+			  }
+			: {}),
 		enableRowSelection,
 		getRowId: (row, index) => (getRowId ? getRowId(row, index) : String(index)),
 		getCoreRowModel: getCoreRowModel(),
 		getFilteredRowModel: getFilteredRowModel(),
 		getSortedRowModel: getSortedRowModel(),
-		...(paginationEnabled
+		...(paginationEnabled && !isServerPagination
 			? { getPaginationRowModel: getPaginationRowModel() }
 			: {}),
 	});
@@ -160,7 +203,7 @@ export function DataTable<T>({
 			table
 				.getVisibleLeafColumns()
 				.filter((column) => column.id !== selectionColumnId),
-		[table]
+		[table, columnVisibility]
 	);
 
 	const visibleDataColumnCount = visibleDataColumns.length;
@@ -171,15 +214,24 @@ export function DataTable<T>({
 		[selectedRows]
 	);
 	const selectionCount = selectedRows.length;
-	const totalRows = table.getFilteredRowModel().rows.length;
-	const totalPages = paginationEnabled ? Math.max(1, table.getPageCount()) : 1;
+	const displayRows = isServerPagination
+		? table.getSortedRowModel().rows
+		: table.getRowModel().rows;
+	const totalRows = isServerPagination
+		? serverTotalRows
+		: table.getFilteredRowModel().rows.length;
+	const totalPages = paginationEnabled
+		? isServerPagination
+			? pagination?.pageCount ?? serverPageCount
+			: Math.max(1, table.getPageCount())
+		: 1;
 	const showSelectionToolbar = enableRowSelection && selectionCount > 0;
 	const pageSizeOptions = useMemo(() => {
 		const options = pagination?.pageSizeOptions ?? defaultPageSizeOptions;
-		return Array.from(new Set([...options, paginationState.pageSize])).sort(
-			(a, b) => a - b
-		);
-	}, [pagination?.pageSizeOptions, paginationState.pageSize]);
+		return Array.from(
+			new Set([...options, resolvedPaginationState.pageSize])
+		).sort((a, b) => a - b);
+	}, [pagination?.pageSizeOptions, resolvedPaginationState.pageSize]);
 	const showPageSizeSelect = pagination?.showPageSizeSelect !== false;
 
 	useEffect(() => {
@@ -189,15 +241,15 @@ export function DataTable<T>({
 	}, [enableRowSelection]);
 
 	useEffect(() => {
-		if (!paginationEnabled) return;
+		if (!paginationEnabled || pagination?.state) return;
 		const nextPageSize = pagination?.pageSize;
 		if (typeof nextPageSize !== "number") return;
-		setPaginationState((prev) =>
+		setInternalPaginationState((prev) =>
 			prev.pageSize === nextPageSize
 				? prev
 				: { ...prev, pageIndex: 0, pageSize: nextPageSize }
 		);
-	}, [pagination?.pageSize, paginationEnabled]);
+	}, [pagination?.pageSize, pagination?.state, paginationEnabled]);
 
 	useEffect(() => {
 		if (!enableRowSelection) return;
@@ -242,6 +294,7 @@ export function DataTable<T>({
 			<DataTableTopBar
 				enableExport={enableExport}
 				onExportAll={exportAllRows}
+				search={search}
 			/>
 			<Table>
 				<DataTableHeader
@@ -249,6 +302,8 @@ export function DataTable<T>({
 					columns={columns}
 					columnConfigById={columnConfigById}
 					visibleDataColumnCount={visibleDataColumnCount}
+					columnVisibility={columnVisibility}
+					rowSelection={rowSelection}
 					appliedFilters={appliedFilters}
 					getDraftFilter={getDraftFilter}
 					onFilterOperatorChange={handleFilterOperatorChange}
@@ -260,14 +315,17 @@ export function DataTable<T>({
 				/>
 				<DataTableBody
 					table={table}
+					rows={displayRows}
 					columnConfigById={columnConfigById}
 					emptyMessage={emptyMessage}
+					rowSelection={rowSelection}
+					columnVisibility={columnVisibility}
 				/>
 			</Table>
 			{paginationEnabled ? (
 				<DataTablePagination
 					table={table}
-					paginationState={paginationState}
+					paginationState={resolvedPaginationState}
 					totalRows={totalRows}
 					totalPages={totalPages}
 					pageSizeOptions={pageSizeOptions}
