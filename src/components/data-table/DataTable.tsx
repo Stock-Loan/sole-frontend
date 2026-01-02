@@ -54,6 +54,12 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
+import {
+	Toolbar,
+	ToolbarButton,
+	ToolbarGroup,
+	ToolbarSeparator,
+} from "@/components/ui/toolbar";
 import { LoadingState } from "@/components/common/LoadingState";
 import { cn } from "@/lib/utils";
 import type {
@@ -461,36 +467,13 @@ export function DataTable<T>({
 
 	return (
 		<div className={cn("rounded-md border border-border/70", className)}>
-			{enableExport || showSelectionToolbar ? (
+			{enableExport ? (
 				<div className="flex flex-wrap items-center gap-3 border-b border-border/60 bg-muted/20 px-4 py-3">
-					{showSelectionToolbar ? (
-						<div className="mr-auto flex items-center gap-2 text-sm font-medium text-foreground">
-							<span>{selectionCount} selected</span>
-							<Button
-								variant="ghost"
-								size="sm"
-								className="h-7 px-2"
-								onClick={() => table.resetRowSelection()}
-							>
-								<X className="mr-1 h-4 w-4" />
-								Clear
-							</Button>
-						</div>
-					) : null}
 					<div className="ml-auto flex flex-wrap items-center gap-2">
-						{enableExport ? (
-							<Button variant="outline" size="sm" onClick={exportAllRows}>
-								<Download className="mr-2 h-4 w-4" />
-								Export all
-							</Button>
-						) : null}
-						{enableExport && showSelectionToolbar ? (
-							<Button variant="outline" size="sm" onClick={exportSelectedRows}>
-								<Download className="mr-2 h-4 w-4" />
-								Export selected
-							</Button>
-						) : null}
-						{toolbarContent}
+						<Button variant="outline" size="sm" onClick={exportAllRows}>
+							<Download className="mr-2 h-4 w-4" />
+							Export all
+						</Button>
 					</div>
 				</div>
 			) : null}
@@ -806,6 +789,42 @@ export function DataTable<T>({
 							Next
 						</Button>
 					</div>
+				</div>
+			) : null}
+			{showSelectionToolbar ? (
+				<div className="pointer-events-none fixed bottom-4 left-1/2 z-40 w-fit max-w-[calc(100vw-2rem)] -translate-x-1/2">
+					<Toolbar className="pointer-events-auto w-fit max-w-full flex-wrap rounded-lg border border-border/70 bg-background/95 px-3 py-2 shadow-lg backdrop-blur animate-in fade-in slide-in-from-bottom-2">
+						<ToolbarGroup className="text-sm font-medium text-foreground">
+							<span>{selectionCount} selected</span>
+							<ToolbarButton
+								variant="ghost"
+								size="sm"
+								className="h-7 px-2"
+								onClick={() => table.resetRowSelection()}
+							>
+								<X className="mr-1 h-4 w-4" />
+								Clear
+							</ToolbarButton>
+						</ToolbarGroup>
+						{enableExport || toolbarContent ? (
+							<>
+								<ToolbarSeparator />
+								<ToolbarGroup className="ml-auto">
+									{enableExport ? (
+										<ToolbarButton
+											variant="outline"
+											size="sm"
+											onClick={exportSelectedRows}
+										>
+											<Download className="mr-2 h-4 w-4" />
+											Export selected
+										</ToolbarButton>
+									) : null}
+									{toolbarContent}
+								</ToolbarGroup>
+							</>
+						) : null}
+					</Toolbar>
 				</div>
 			) : null}
 		</div>
