@@ -1,3 +1,4 @@
+import type { Column, PaginationState, Table } from "@tanstack/react-table";
 import type { ReactNode } from "react";
 
 export type SortDirection = "asc" | "desc";
@@ -71,4 +72,69 @@ export interface DataTableProps<T> {
 	toolbarActions?: ReactNode;
 	renderToolbarActions?: (selectedRows: T[]) => ReactNode;
 	pagination?: DataTablePaginationConfig;
+}
+
+export interface DataTableExportContext<T> {
+	enableExport: boolean;
+	exportFileName: string;
+	visibleColumns: Column<T, unknown>[];
+	columnConfigById: ColumnConfigMap<T>;
+}
+
+export interface DataTableHeaderProps<T> {
+	table: Table<T>;
+	columns: ColumnDefinition<T>[];
+	columnConfigById: ColumnConfigMap<T>;
+	visibleDataColumnCount: number;
+	appliedFilters: Record<string, ColumnFilterState>;
+	getDraftFilter: (columnId: string) => ColumnFilterState;
+	onFilterOperatorChange: (columnId: string, operator: FilterOperator) => void;
+	onFilterValueChange: (columnId: string, value: string) => void;
+	onApplyFilter: (columnId: string) => void;
+	onClearFilter: (columnId: string) => void;
+	openMenuColumnId: string | null;
+	onOpenMenuChange: (columnId: string, open: boolean) => void;
+}
+
+export interface DataTableColumnMenuProps<T> {
+	table: Table<T>;
+	column: Column<T, unknown>;
+	columns: ColumnDefinition<T>[];
+	visibleDataColumnCount: number;
+	draft: ColumnFilterState;
+	isFilterApplied: boolean;
+	onFilterOperatorChange: (columnId: string, operator: FilterOperator) => void;
+	onFilterValueChange: (columnId: string, value: string) => void;
+	onApplyFilter: (columnId: string) => void;
+	onClearFilter: (columnId: string) => void;
+	openMenuColumnId: string | null;
+	onOpenMenuChange: (columnId: string, open: boolean) => void;
+}
+
+export interface DataTableBodyProps<T> {
+	table: Table<T>;
+	columnConfigById: ColumnConfigMap<T>;
+	emptyMessage: string;
+}
+
+export interface DataTablePaginationProps<T> {
+	table: Table<T>;
+	paginationState: PaginationState;
+	totalRows: number;
+	totalPages: number;
+	pageSizeOptions: number[];
+	showPageSizeSelect: boolean;
+}
+
+export interface DataTableTopBarProps {
+	enableExport: boolean;
+	onExportAll: () => void;
+}
+
+export interface DataTableSelectionToolbarProps {
+	selectionCount: number;
+	enableExport: boolean;
+	onClearSelection: () => void;
+	onExportSelected: () => void;
+	toolbarContent?: ReactNode;
 }

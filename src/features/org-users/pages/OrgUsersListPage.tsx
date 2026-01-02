@@ -14,7 +14,6 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import { Pagination } from "@/components/ui/pagination";
 import { useApiErrorToast } from "@/hooks/useApiErrorToast";
 import { usePermissions } from "@/features/auth/hooks/usePermissions";
 import {
@@ -232,13 +231,6 @@ export function OrgUsersListPage() {
 		await departmentMutation.mutateAsync(deptId);
 	};
 
-	const total = data?.total;
-	const pageSize = data?.page_size ?? listParams.page_size ?? 10;
-	const hasNext =
-		typeof total === "number"
-			? page * pageSize < total
-			: (data?.items?.length ?? 0) === pageSize;
-
 	return (
 		<PageContainer>
 			<PageHeader
@@ -327,14 +319,6 @@ export function OrgUsersListPage() {
 				selectedIds={selectedIds}
 				onToggleSelect={handleToggleSelect}
 				onToggleSelectAll={handleToggleSelectAll}
-			/>
-			<Pagination
-				page={page}
-				pageSize={pageSize}
-				total={total}
-				hasNext={hasNext}
-				isLoading={isFetching}
-				onPageChange={setPage}
 			/>
 			<OrgUserSidePanel
 				membershipId={selectedMembershipId}
