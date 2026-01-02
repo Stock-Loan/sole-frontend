@@ -7,17 +7,12 @@ import {
 	setUnauthorizedHandler,
 } from "@/lib/apiClient";
 import { logout as logoutApi } from "../api/auth.api";
-import type { AuthUser, RoleCode, TokenPair } from "../types";
+import type { AuthUser, PersistedSession, RoleCode, TokenPair } from "../types";
 import { AuthContext } from "./auth-context";
 import type { AuthContextValue } from "./auth-context";
 import { routes } from "@/lib/routes";
 
 const STORAGE_KEY = "sole.auth.session";
-
-type PersistedSession = {
-	user: AuthUser | null;
-	tokens: TokenPair | null;
-};
 
 function loadPersistedSession(): PersistedSession {
 	if (typeof localStorage === "undefined") {

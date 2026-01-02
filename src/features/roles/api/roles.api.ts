@@ -1,14 +1,15 @@
 import { apiClient } from "@/lib/apiClient";
+import { unwrapApiResponse } from "@/lib/api-response";
 import type { Role, RoleInput, RoleListResponse } from "../types";
 
 export async function listRoles(): Promise<RoleListResponse> {
 	const { data } = await apiClient.get<RoleListResponse>("/roles");
-	return data;
+	return unwrapApiResponse<RoleListResponse>(data);
 }
 
 export async function createRole(payload: RoleInput): Promise<Role> {
 	const { data } = await apiClient.post<Role>("/roles", payload);
-	return data;
+	return unwrapApiResponse<Role>(data);
 }
 
 export async function updateRole(
@@ -16,7 +17,7 @@ export async function updateRole(
 	payload: RoleInput
 ): Promise<Role> {
 	const { data } = await apiClient.patch<Role>(`/roles/${roleId}`, payload);
-	return data;
+	return unwrapApiResponse<Role>(data);
 }
 
 export async function deleteRole(roleId: string): Promise<void> {
@@ -31,7 +32,7 @@ export async function assignRolesToUser(
 		`/roles/org/users/${membershipId}/roles`,
 		{ role_ids: roleIds }
 	);
-	return data;
+	return unwrapApiResponse<Role[]>(data);
 }
 
 export async function removeRolesFromUser(

@@ -22,3 +22,12 @@ export interface SubdivisionsResponse {
 	country: string;
 	subdivisions: Subdivision[];
 }
+
+export interface TimezoneSelectProps {
+	value?: string;
+	onChange: (value: string) => void;
+	placeholder?: string;
+	disabled?: boolean;
+	className?: string;
+	contentClassName?: string;
+}

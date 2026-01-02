@@ -1,4 +1,5 @@
 import { apiClient } from "@/lib/apiClient";
+import { unwrapApiResponse } from "@/lib/api-response";
 import type {
 	Department,
 	DepartmentAssignPayload,
@@ -15,12 +16,12 @@ export async function listDepartments(
 	const { data } = await apiClient.get<DepartmentListResponse>("/departments", {
 		params,
 	});
-	return data;
+	return unwrapApiResponse<DepartmentListResponse>(data);
 }
 
 export async function createDepartment(payload: DepartmentInput): Promise<Department> {
 	const { data } = await apiClient.post<Department>("/departments", payload);
-	return data;
+	return unwrapApiResponse<Department>(data);
 }
 
 export async function updateDepartment(
@@ -31,14 +32,14 @@ export async function updateDepartment(
 		`/departments/${departmentId}`,
 		payload,
 	);
-	return data;
+	return unwrapApiResponse<Department>(data);
 }
 
 export async function archiveDepartment(departmentId: string): Promise<Department> {
 	const { data } = await apiClient.patch<Department>(`/departments/${departmentId}`, {
 		is_archived: true,
 	});
-	return data;
+	return unwrapApiResponse<Department>(data);
 }
 
 export async function assignDepartmentToUsers(
@@ -50,7 +51,7 @@ export async function assignDepartmentToUsers(
 		`/departments/${departmentId}/assign`,
 		payload,
 	);
-	return data;
+	return unwrapApiResponse<DepartmentAssignResponse>(data);
 }
 
 export async function unassignDepartments(membershipIds: string[]): Promise<void> {
@@ -66,5 +67,5 @@ export async function listDepartmentMembers(
 		`/departments/${departmentId}/members`,
 		{ params }
 	);
-	return data;
+	return unwrapApiResponse<DepartmentMembersResponse>(data);
 }

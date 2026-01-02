@@ -91,3 +91,14 @@ export interface AnnouncementFormDialogProps {
 	onSubmit: (values: AnnouncementFormValues) => Promise<void>;
 	isSubmitting?: boolean;
 }
+
+export interface AnnouncementsTableProps {
+	items: Announcement[];
+	canManage: boolean;
+	onEdit: (announcement: Announcement) => void;
+	onPublish: (announcement: Announcement) => void;
+	onUnpublish: (announcement: Announcement) => void;
+	onArchive: (announcement: Announcement) => void;
+	isUpdatingStatus?: boolean;
+	isFetching?: boolean;
+}

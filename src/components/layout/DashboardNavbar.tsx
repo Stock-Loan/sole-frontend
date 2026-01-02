@@ -4,11 +4,7 @@ import { GlobalSearch } from "@/components/common/GlobalSearch";
 import { OrgSwitcher } from "@/features/organizations/components/OrgSwitcher";
 import { NotificationBell } from "./NotificationBell";
 import { UserDropdown } from "./UserDropdown";
-
-interface DashboardNavbarProps {
-	onOpenMobileNav: () => void;
-	currentLabel?: string;
-}
+import type { DashboardNavbarProps } from "./types";
 
 export function DashboardNavbar({ onOpenMobileNav }: DashboardNavbarProps) {
 	return (

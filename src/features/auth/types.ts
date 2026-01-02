@@ -23,6 +23,10 @@ export interface LoginStartPayload {
 	email: string;
 }
 
+export interface LoginEmailFormValues {
+	email: string;
+}
+
 export interface LoginStartResponse {
 	challenge_token: string;
 }
@@ -32,9 +36,18 @@ export interface LoginCompletePayload {
 	password: string;
 }
 
+export interface LoginPasswordFormValues {
+	password: string;
+}
+
 export interface LoginResponse {
 	tokens: TokenPair;
 	user: AuthUser;
+}
+
+export interface PersistedSession {
+	user: AuthUser | null;
+	tokens: TokenPair | null;
 }
 
 export interface SelfContextResponse {
@@ -56,4 +69,10 @@ export interface SelfContextResponse {
 export interface ChangePasswordPayload {
 	current_password: string;
 	new_password: string;
+}
+
+export interface ChangePasswordFormValues {
+	current_password: string;
+	new_password: string;
+	confirm_password: string;
 }

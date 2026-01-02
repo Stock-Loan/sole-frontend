@@ -22,7 +22,7 @@ import { routes } from "@/lib/routes";
 import { apiClient } from "@/lib/apiClient";
 import { nonEmptyString } from "@/lib/validation";
 import { useAuth } from "../hooks/useAuth";
-import type { AuthUser, TokenPair } from "../types";
+import type { AuthUser, ChangePasswordFormValues, TokenPair } from "../types";
 import { z } from "zod";
 
 const changePasswordSchema = z
@@ -38,8 +38,6 @@ const changePasswordSchema = z
 		path: ["confirm_password"],
 		message: "Passwords do not match",
 	});
-
-type ChangePasswordFormValues = z.infer<typeof changePasswordSchema>;
 
 export function ChangePasswordPage() {
 	const { setSession, tokens, logout } = useAuth();
@@ -203,7 +201,7 @@ export function ChangePasswordPage() {
 									variant="outline"
 									className="w-full"
 									type="button"
-									onClick={() => logout()}
+									onClick={() => void logout()}
 									disabled={mutation.isPending}
 								>
 									Log out

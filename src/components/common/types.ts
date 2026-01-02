@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { InputHTMLAttributes, ReactNode } from "react";
 
 export type LogoSize = "sm" | "md" | "lg";
 
@@ -62,3 +62,17 @@ export interface FilterBarProps {
 	children: ReactNode;
 	className?: string;
 }
+
+export interface GlobalSearchProps {
+	compact?: boolean;
+	className?: string;
+}
+
+export interface SearchItem {
+	title: string;
+	description: string;
+	category: string;
+	path: string;
+}
+
+export type SearchInputProps = InputHTMLAttributes<HTMLInputElement>;

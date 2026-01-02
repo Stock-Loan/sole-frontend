@@ -16,3 +16,11 @@ export interface OrgSettingsUpdatePayload {
 	audit_log_retention_days?: number;
 	inactive_user_retention_days?: number;
 }
+
+export interface OrgSettingsFormValues {
+	allow_user_data_export: boolean;
+	allow_profile_edit: boolean;
+	require_two_factor: boolean;
+	audit_log_retention_days: number;
+	inactive_user_retention_days: number;
+}

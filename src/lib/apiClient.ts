@@ -1,5 +1,6 @@
 import axios, { AxiosHeaders } from "axios";
 import { routes } from "./routes";
+import { unwrapApiResponse } from "./api-response";
 
 type TokenResolver = () => string | null;
 type TokenUpdater = (tokens: {
@@ -61,7 +62,19 @@ apiClient.interceptors.request.use((config) => {
 });
 
 apiClient.interceptors.response.use(
-	(response) => response,
+	(response) => {
+		const responseType = response.config?.responseType;
+		const shouldSkip =
+			responseType === "blob" ||
+			responseType === "arraybuffer" ||
+			responseType === "stream";
+
+		if (!shouldSkip) {
+			response.data = unwrapApiResponse(response.data);
+		}
+
+		return response;
+	},
 	async (error) => {
 		const originalRequest = error.config;
 		const status = error?.response?.status;
@@ -99,9 +112,14 @@ apiClient.interceptors.response.use(
 						{ headers: { "X-Tenant-ID": tenantResolver() } }
 					);
 
-					if (data?.access_token && data?.refresh_token) {
-						tokenUpdater?.(data);
-						originalRequest.headers.Authorization = `Bearer ${data.access_token}`;
+					const tokens = unwrapApiResponse<{
+						access_token?: string;
+						refresh_token?: string;
+					}>(data);
+
+					if (tokens?.access_token && tokens?.refresh_token) {
+						tokenUpdater?.(tokens as { access_token: string; refresh_token: string });
+						originalRequest.headers.Authorization = `Bearer ${tokens.access_token}`;
 						return apiClient(originalRequest);
 					}
 				} catch {

@@ -15,18 +15,7 @@ import {
 	ANNOUNCEMENT_STATUS_TONE,
 	ANNOUNCEMENT_TYPE_COLORS,
 } from "../constants";
-import type { Announcement } from "../types";
-
-interface AnnouncementsTableProps {
-	items: Announcement[];
-	canManage: boolean;
-	onEdit: (announcement: Announcement) => void;
-	onPublish: (announcement: Announcement) => void;
-	onUnpublish: (announcement: Announcement) => void;
-	onArchive: (announcement: Announcement) => void;
-	isUpdatingStatus?: boolean;
-	isFetching?: boolean;
-}
+import type { AnnouncementsTableProps } from "../types";
 
 export function AnnouncementsTable({
 	items,

@@ -20,14 +20,12 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import type { DepartmentFormDialogProps } from "../types";
+import type { DepartmentFormDialogProps, DepartmentInput } from "../types";
 
 const departmentSchema = z.object({
 	name: z.string().min(1, "Name is required"),
 	code: z.string().min(1, "Code is required"),
 });
-
-export type DepartmentFormValues = z.infer<typeof departmentSchema>;
 
 export function DepartmentFormDialog({
 	open,
@@ -37,7 +35,7 @@ export function DepartmentFormDialog({
 	onSubmit,
 	isSubmitting,
 }: DepartmentFormDialogProps) {
-	const form = useForm<DepartmentFormValues>({
+	const form = useForm<DepartmentInput>({
 		resolver: zodResolver(departmentSchema),
 		defaultValues: {
 			name: "",
@@ -56,7 +54,7 @@ export function DepartmentFormDialog({
 		}
 	}, [form, initialDepartment, open]);
 
-	const handleSubmit = (values: DepartmentFormValues) => {
+	const handleSubmit = (values: DepartmentInput) => {
 		onSubmit(values, initialDepartment?.id);
 	};
 

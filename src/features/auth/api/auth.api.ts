@@ -1,4 +1,5 @@
 import { apiClient } from "@/lib/apiClient";
+import { unwrapApiResponse } from "@/lib/api-response";
 import type {
 	AuthUser,
 	ChangePasswordPayload,
@@ -11,34 +12,34 @@ import type {
 
 export async function startLogin(payload: LoginStartPayload) {
 	const { data } = await apiClient.post<LoginStartResponse>("/auth/login/start", payload);
-	return data;
+	return unwrapApiResponse<LoginStartResponse>(data);
 }
 
 export async function completeLogin(payload: LoginCompletePayload) {
 	const { data } = await apiClient.post<TokenPair>("/auth/login/complete", payload);
-	return data;
+	return unwrapApiResponse<TokenPair>(data);
 }
 
-export async function logout() {
-	await apiClient.post("/auth/logout");
+export async function logout(): Promise<void> {
+	await apiClient.post<null>("/auth/logout");
 }
 
 export async function refreshSession(refresh_token: string) {
 	const { data } = await apiClient.post<TokenPair>("/auth/refresh", { refresh_token });
-	return data;
+	return unwrapApiResponse<TokenPair>(data);
 }
 
 export async function getMe() {
 	const { data } = await apiClient.get<AuthUser>("/auth/me");
-	return data;
+	return unwrapApiResponse<AuthUser>(data);
 }
 
 export async function changePassword(payload: ChangePasswordPayload) {
 	const { data } = await apiClient.post<TokenPair>("/auth/change-password", payload);
-	return data;
+	return unwrapApiResponse<TokenPair>(data);
 }
 
 export async function getSelfContext() {
 	const { data } = await apiClient.get<SelfContextResponse>("/self/context");
-	return data;
+	return unwrapApiResponse<SelfContextResponse>(data);
 }

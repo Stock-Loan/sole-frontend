@@ -24,6 +24,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { EmptyState } from "@/components/common/EmptyState";
 import { LoadingState } from "@/components/common/LoadingState";
 import { getOrgSettings, updateOrgSettings } from "../api/orgSettings.api";
+import type { OrgSettingsFormValues } from "../types";
 
 const schema = z.object({
 	allow_user_data_export: z.boolean(),
@@ -38,8 +39,6 @@ const schema = z.object({
 		.min(30, "Minimum 30 days")
 		.max(3650, "Maximum 3650 days"),
 });
-
-type OrgSettingsFormValues = z.infer<typeof schema>;
 
 export function OrgSettingsPage() {
 	const { can } = usePermissions();

@@ -1,14 +1,7 @@
 import { Navigate } from "react-router-dom";
-import type { ReactNode } from "react";
 import { usePermissions } from "@/features/auth/hooks/usePermissions";
 import { routes } from "@/lib/routes";
-
-interface PermissionGateProps {
-	permission?: string | string[];
-	children: ReactNode;
-	fallback?: ReactNode;
-	redirect?: boolean;
-}
+import type { PermissionGateProps } from "./types";
 
 export function PermissionGate({
 	permission,

@@ -3,10 +3,7 @@ import { Link } from "react-router-dom";
 import { Logo } from "@/components/common/Logo";
 import { SidebarNav } from "./SidebarNav";
 import { routes } from "@/lib/routes";
-
-interface DashboardSidebarProps {
-	onNavigate?: () => void;
-}
+import type { DashboardSidebarProps } from "./types";
 
 export function DashboardSidebar({ onNavigate }: DashboardSidebarProps) {
 	return (

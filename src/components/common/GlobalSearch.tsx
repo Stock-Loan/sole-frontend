@@ -11,13 +11,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { dashboardRoutes } from "@/app/dashboard-routes";
 import { routes } from "@/lib/routes";
-
-type SearchItem = {
-	title: string;
-	description: string;
-	category: string;
-	path: string;
-};
+import type { GlobalSearchProps, SearchItem } from "./types";
 
 const searchIndex: SearchItem[] = [
 	...dashboardRoutes.map((route) => ({
@@ -59,11 +53,6 @@ const searchIndex: SearchItem[] = [
 ];
 
 const orderedCategories = ["Navigation", "Account", "Support", "Public"];
-
-interface GlobalSearchProps {
-	compact?: boolean;
-	className?: string;
-}
 
 export function GlobalSearch({
 	compact = false,

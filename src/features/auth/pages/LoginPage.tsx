@@ -25,7 +25,13 @@ import { apiClient } from "@/lib/apiClient";
 import { nonEmptyString } from "@/lib/validation";
 import { useAuth } from "../hooks/useAuth";
 import { completeLogin, startLogin } from "../api/auth.api";
-import type { LoginCompletePayload, LoginStartPayload } from "../types";
+import type {
+	AuthUser,
+	LoginCompletePayload,
+	LoginEmailFormValues,
+	LoginPasswordFormValues,
+	LoginStartPayload,
+} from "../types";
 import { z } from "zod";
 
 const emailSchema = z.object({
@@ -35,9 +41,6 @@ const emailSchema = z.object({
 const passwordSchema = z.object({
 	password: nonEmptyString.min(8, "Password must be at least 8 characters"),
 });
-
-type EmailFormValues = z.infer<typeof emailSchema>;
-type PasswordFormValues = z.infer<typeof passwordSchema>;
 
 const PENDING_EMAIL_KEY = "sole.pending-login-email";
 
@@ -51,12 +54,12 @@ export function LoginPage() {
 	const [challengeToken, setChallengeToken] = useState<string | null>(null);
 	const [email, setEmail] = useState<string>("");
 
-	const emailForm = useForm<EmailFormValues>({
+	const emailForm = useForm<LoginEmailFormValues>({
 		resolver: zodResolver(emailSchema),
 		defaultValues: { email: "" },
 	});
 
-	const passwordForm = useForm<PasswordFormValues>({
+	const passwordForm = useForm<LoginPasswordFormValues>({
 		resolver: zodResolver(passwordSchema),
 		defaultValues: { password: "" },
 	});
@@ -141,11 +144,11 @@ export function LoginPage() {
 		},
 	});
 
-	const handleEmailSubmit = (values: EmailFormValues) => {
+	const handleEmailSubmit = (values: LoginEmailFormValues) => {
 		startLoginMutation.mutate({ email: values.email });
 	};
 
-	const handlePasswordSubmit = (values: PasswordFormValues) => {
+	const handlePasswordSubmit = (values: LoginPasswordFormValues) => {
 		if (!challengeToken) {
 			toast({
 				variant: "destructive",

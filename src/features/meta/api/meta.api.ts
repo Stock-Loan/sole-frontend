@@ -1,4 +1,5 @@
 import { apiClient } from "@/lib/apiClient";
+import { unwrapApiResponse } from "@/lib/api-response";
 import type {
 	TimezoneId,
 	TimezoneListResponse,
@@ -10,16 +11,18 @@ import type {
 
 export async function getTimezones(): Promise<TimezoneId[]> {
 	const { data } = await apiClient.get<TimezoneListResponse>("/meta/timezones");
-	if (data && Array.isArray(data.timezones)) {
-		return data.timezones;
+	const payload = unwrapApiResponse<TimezoneListResponse>(data);
+	if (payload && Array.isArray(payload.timezones)) {
+		return payload.timezones;
 	}
 	return [];
 }
 
 export async function getCountries(): Promise<Country[]> {
 	const { data } = await apiClient.get<CountriesResponse>("/meta/countries");
-	if (data && Array.isArray(data.countries)) {
-		return data.countries;
+	const payload = unwrapApiResponse<CountriesResponse>(data);
+	if (payload && Array.isArray(payload.countries)) {
+		return payload.countries;
 	}
 	return [];
 }
@@ -29,8 +32,9 @@ export async function getSubdivisions(countryCode: string): Promise<Subdivision[
 	const { data } = await apiClient.get<SubdivisionsResponse>(
 		`/meta/countries/${countryCode}/subdivisions`,
 	);
-	if (data && Array.isArray(data.subdivisions)) {
-		return data.subdivisions;
+	const payload = unwrapApiResponse<SubdivisionsResponse>(data);
+	if (payload && Array.isArray(payload.subdivisions)) {
+		return payload.subdivisions;
 	}
 	return [];
 }

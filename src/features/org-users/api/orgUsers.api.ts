@@ -1,4 +1,5 @@
 import { apiClient } from "@/lib/apiClient";
+import { unwrapApiResponse } from "@/lib/api-response";
 import type {
 	OrgUserListItem,
 	OrgUsersListParams,
@@ -24,12 +25,14 @@ export async function listOrgUsers(
 	const response = await apiClient.get<OrgUsersListResponse>("/org/users", {
 		params,
 	});
-	return OrgUsersListResponseSchema.parse(response.data);
+	const payload = unwrapApiResponse<OrgUsersListResponse>(response.data);
+	return OrgUsersListResponseSchema.parse(payload);
 }
 
 export async function getOrgUser(membershipId: string): Promise<OrgUserListItem> {
 	const response = await apiClient.get<OrgUserListItem>(`/org/users/${membershipId}`);
-	return OrgUserListItemSchema.parse(response.data);
+	const payload = unwrapApiResponse<OrgUserListItem>(response.data);
+	return OrgUserListItemSchema.parse(payload);
 }
 
 export async function updateOrgUserStatus(
@@ -40,7 +43,8 @@ export async function updateOrgUserStatus(
 		`/org/users/${membershipId}`,
 		payload,
 	);
-	return OrgUserListItemSchema.parse(response.data);
+	const payloadResponse = unwrapApiResponse<OrgUserListItem>(response.data);
+	return OrgUserListItemSchema.parse(payloadResponse);
 }
 
 export async function updateOrgUserProfile(
@@ -51,14 +55,16 @@ export async function updateOrgUserProfile(
 		`/org/users/${membershipId}/profile`,
 		payload,
 	);
-	return OrgUserListItemSchema.parse(response.data);
+	const payloadResponse = unwrapApiResponse<OrgUserListItem>(response.data);
+	return OrgUserListItemSchema.parse(payloadResponse);
 }
 
 export async function onboardOrgUser(
 	payload: OnboardUserPayload,
 ): Promise<OnboardUserResponse> {
 	const response = await apiClient.post<OnboardUserResponse>("/org/users", payload);
-	return OnboardUserResponseSchema.parse(response.data);
+	const payloadResponse = unwrapApiResponse<OnboardUserResponse>(response.data);
+	return OnboardUserResponseSchema.parse(payloadResponse);
 }
 
 export async function downloadOnboardingTemplate(): Promise<Blob> {
@@ -76,7 +82,8 @@ export async function uploadOnboardingCsv(file: File): Promise<BulkOnboardingRes
 			"Content-Type": "multipart/form-data",
 		},
 	});
-	return BulkOnboardingResultSchema.parse(response.data);
+	const payloadResponse = unwrapApiResponse<BulkOnboardingResult>(response.data);
+	return BulkOnboardingResultSchema.parse(payloadResponse);
 }
 
 export async function deleteOrgUser(membershipId: string): Promise<void> {
@@ -90,5 +97,6 @@ export async function bulkDeleteOrgUsers(
 		"/org/users/bulk/delete",
 		{ membership_ids: membershipIds },
 	);
-	return BulkDeleteMembershipsResponseSchema.parse(data);
+	const payloadResponse = unwrapApiResponse<BulkDeleteMembershipsResponse>(data);
+	return BulkDeleteMembershipsResponseSchema.parse(payloadResponse);
 }

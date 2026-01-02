@@ -1,4 +1,5 @@
 import { apiClient } from "@/lib/apiClient";
+import { unwrapApiResponse } from "@/lib/api-response";
 import type {
 	Announcement,
 	AnnouncementCreatePayload,
@@ -17,7 +18,7 @@ export async function listAnnouncements(
 	const { data } = await apiClient.get<AnnouncementListResponse>("/announcements", {
 		params,
 	});
-	return data;
+	return unwrapApiResponse<AnnouncementListResponse>(data);
 }
 
 export async function listAdminAnnouncements(
@@ -27,19 +28,19 @@ export async function listAdminAnnouncements(
 		"/announcements/admin",
 		{ params }
 	);
-	return data;
+	return unwrapApiResponse<AnnouncementListResponse>(data);
 }
 
 export async function getAnnouncement(id: string): Promise<Announcement> {
 	const { data } = await apiClient.get<Announcement>(`/announcements/${id}`);
-	return data;
+	return unwrapApiResponse<Announcement>(data);
 }
 
 export async function createAnnouncement(
 	payload: AnnouncementCreatePayload
 ): Promise<Announcement> {
 	const { data } = await apiClient.post<Announcement>("/announcements", payload);
-	return data;
+	return unwrapApiResponse<Announcement>(data);
 }
 
 export async function updateAnnouncement(
@@ -47,7 +48,7 @@ export async function updateAnnouncement(
 	payload: AnnouncementUpdatePayload
 ): Promise<Announcement> {
 	const { data } = await apiClient.patch<Announcement>(`/announcements/${id}`, payload);
-	return data;
+	return unwrapApiResponse<Announcement>(data);
 }
 
 export async function changeAnnouncementStatus(
@@ -63,19 +64,19 @@ export async function markAnnouncementRead(
 	const { data } = await apiClient.post<MarkAnnouncementReadResponse>(
 		`/announcements/${id}/read`
 	);
-	return data;
+	return unwrapApiResponse<MarkAnnouncementReadResponse>(data);
 }
 
 export async function listUnreadAnnouncements(): Promise<AnnouncementUnreadResponse> {
 	const { data } = await apiClient.get<AnnouncementUnreadResponse>(
 		"/announcements/unread"
 	);
-	return data;
+	return unwrapApiResponse<AnnouncementUnreadResponse>(data);
 }
 
 export async function getUnreadAnnouncementCount(): Promise<AnnouncementUnreadCountResponse> {
 	const { data } = await apiClient.get<AnnouncementUnreadCountResponse>(
 		"/announcements/unread/count"
 	);
-	return data;
+	return unwrapApiResponse<AnnouncementUnreadCountResponse>(data);
 }

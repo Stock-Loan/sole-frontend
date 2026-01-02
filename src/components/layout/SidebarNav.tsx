@@ -2,10 +2,7 @@ import { NavLink } from "react-router-dom";
 import { dashboardRoutes } from "@/app/dashboard-routes";
 import { cn } from "@/lib/utils";
 import { usePermissions } from "@/features/auth/hooks/usePermissions";
-
-interface SidebarNavProps {
-	onNavigate?: () => void;
-}
+import type { SidebarNavProps } from "./types";
 
 export function SidebarNav({ onNavigate }: SidebarNavProps) {
 	const { can } = usePermissions();

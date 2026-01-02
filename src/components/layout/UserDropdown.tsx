@@ -17,10 +17,7 @@ import { getMe } from "@/features/auth/api/auth.api";
 import { queryKeys } from "@/lib/queryKeys";
 import { listOrgUsers } from "@/features/org-users/api/orgUsers.api";
 import type { OrgUserListItem } from "@/features/org-users/types";
-
-interface UserDropdownProps {
-	showChevron?: boolean;
-}
+import type { UserDropdownProps } from "./types";
 
 export function UserDropdown({ showChevron = false }: UserDropdownProps) {
 	const { user, tokens, setUser, logout } = useAuth();
@@ -124,7 +121,7 @@ export function UserDropdown({ showChevron = false }: UserDropdownProps) {
 					<Link to={routes.changePassword}>Change password</Link>
 				</DropdownMenuItem>
 				<DropdownMenuSeparator />
-				<DropdownMenuItem onClick={logout}>Log out</DropdownMenuItem>
+				<DropdownMenuItem onClick={() => void logout()}>Log out</DropdownMenuItem>
 			</DropdownMenuContent>
 		</DropdownMenu>
 	);

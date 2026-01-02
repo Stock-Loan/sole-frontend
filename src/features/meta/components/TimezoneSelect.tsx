@@ -9,15 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useTimezones } from "../hooks/useTimezones";
-
-interface TimezoneSelectProps {
-	value?: string;
-	onChange: (value: string) => void;
-	placeholder?: string;
-	disabled?: boolean;
-	className?: string;
-	contentClassName?: string;
-}
+import type { TimezoneSelectProps } from "../types";
 
 function formatTimezoneLabel(tz: string) {
 	const parts = tz.split("/");

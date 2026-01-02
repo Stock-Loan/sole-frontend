@@ -15,13 +15,17 @@ import { useAuth } from "@/features/auth/hooks/useAuth";
 import { getUserSettings } from "@/features/user-settings/api/userSettings.api";
 import { listOrgUsers } from "@/features/org-users/api/orgUsers.api";
 import type { OrgUserListItem } from "@/features/org-users/types";
-import type { UserSettingsProfile } from "../types";
-
-type TabKey = "profile" | "security";
+import type {
+	UserSettingsInfoCardProps,
+	UserSettingsProfile,
+	UserSettingsSectionGridProps,
+	UserSettingsTabButtonProps,
+	UserSettingsTabKey,
+} from "../types";
 
 export function UserSettingsPage() {
 	const { user: cachedUser } = useAuth();
-	const [tab, setTab] = useState<TabKey>("profile");
+	const [tab, setTab] = useState<UserSettingsTabKey>("profile");
 
 	const { data, isLoading, isError } = useQuery<UserSettingsProfile>({
 		queryKey: queryKeys.auth.me(),
@@ -233,12 +237,7 @@ function TabButton({
 	value,
 	active,
 	onSelect,
-}: {
-	label: string;
-	value: TabKey;
-	active: boolean;
-	onSelect: (val: TabKey) => void;
-}) {
+}: UserSettingsTabButtonProps) {
 	return (
 		<button
 			type="button"
@@ -255,7 +254,7 @@ function TabButton({
 	);
 }
 
-function InfoCard({ label, value }: { label: string; value: string }) {
+function InfoCard({ label, value }: UserSettingsInfoCardProps) {
 	return (
 		<Card className="border-border/70">
 			<CardHeader className="pb-1">
@@ -270,7 +269,7 @@ function InfoCard({ label, value }: { label: string; value: string }) {
 	);
 }
 
-function SectionGrid({ items }: { items: { label: string; value: string }[] }) {
+function SectionGrid({ items }: UserSettingsSectionGridProps) {
 	return (
 		<div className="grid gap-3 md:grid-cols-2">
 			{items.map((item) => (
