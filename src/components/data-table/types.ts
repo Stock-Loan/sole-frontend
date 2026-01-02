@@ -58,6 +58,11 @@ export interface ColumnDefinition<T> {
 
 export type ColumnConfigMap<T> = Map<string, ColumnDefinition<T>>;
 
+export interface SelectionHeaderState {
+	allSelected: boolean;
+	someSelected: boolean;
+}
+
 export interface DataTablePaginationConfig {
 	enabled?: boolean;
 	pageSize?: number;
@@ -107,6 +112,7 @@ export interface DataTableHeaderProps<T> {
 	visibleDataColumnCount: number;
 	columnVisibility: VisibilityState;
 	rowSelection: RowSelectionState;
+	selectionState: SelectionHeaderState;
 	appliedFilters: Record<string, ColumnFilterState>;
 	getDraftFilter: (columnId: string) => ColumnFilterState;
 	onFilterOperatorChange: (columnId: string, operator: FilterOperator) => void;

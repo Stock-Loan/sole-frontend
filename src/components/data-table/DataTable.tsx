@@ -217,6 +217,18 @@ export function DataTable<T>({
 	const displayRows = isServerPagination
 		? table.getSortedRowModel().rows
 		: table.getRowModel().rows;
+	const pageRowIds = useMemo(
+		() => displayRows.map((row) => row.id),
+		[displayRows]
+	);
+	const selectionState = useMemo(() => {
+		if (pageRowIds.length === 0) {
+			return { allSelected: false, someSelected: false };
+		}
+		const allSelected = pageRowIds.every((id) => rowSelection[id]);
+		const someSelected = pageRowIds.some((id) => rowSelection[id]);
+		return { allSelected, someSelected: someSelected && !allSelected };
+	}, [pageRowIds, rowSelection]);
 	const totalRows = isServerPagination
 		? serverTotalRows
 		: table.getFilteredRowModel().rows.length;
@@ -304,6 +316,7 @@ export function DataTable<T>({
 					visibleDataColumnCount={visibleDataColumnCount}
 					columnVisibility={columnVisibility}
 					rowSelection={rowSelection}
+					selectionState={selectionState}
 					appliedFilters={appliedFilters}
 					getDraftFilter={getDraftFilter}
 					onFilterOperatorChange={handleFilterOperatorChange}

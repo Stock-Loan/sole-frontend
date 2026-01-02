@@ -1,7 +1,8 @@
 import { ArrowDown, ArrowUp } from "lucide-react";
 import { flexRender } from "@tanstack/react-table";
 import { TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { isFilterActive } from "./constants";
+import { Checkbox } from "@/components/ui/checkbox";
+import { isFilterActive, selectionColumnId } from "./constants";
 import { DataTableColumnMenu } from "./DataTableColumnMenu";
 import type { DataTableHeaderProps } from "./types";
 
@@ -12,6 +13,7 @@ export function DataTableHeader<T>({
 	visibleDataColumnCount,
 	columnVisibility,
 	rowSelection,
+	selectionState,
 	appliedFilters,
 	getDraftFilter,
 	onFilterOperatorChange,
@@ -35,6 +37,20 @@ export function DataTableHeader<T>({
 						const config = columnConfigById.get(header.column.id);
 
 						if (!config) {
+							if (header.column.id === selectionColumnId) {
+								return (
+									<TableHead key={header.id} className="w-10">
+										<Checkbox
+											checked={selectionState.allSelected}
+											indeterminate={selectionState.someSelected}
+											onCheckedChange={(checked) =>
+												table.toggleAllPageRowsSelected(Boolean(checked))
+											}
+											aria-label="Select all rows"
+										/>
+									</TableHead>
+								);
+							}
 							return (
 								<TableHead key={header.id} className="w-10">
 									{flexRender(header.column.columnDef.header, {
