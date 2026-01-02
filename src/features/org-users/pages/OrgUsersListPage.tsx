@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { PaginationState } from "@tanstack/react-table";
 import { Link, useSearchParams } from "react-router-dom";
@@ -8,11 +8,22 @@ import { EmptyState } from "@/components/common/EmptyState";
 import { DataTable } from "@/components/data-table/DataTable";
 import type { ColumnDefinition } from "@/components/data-table/types";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+	Dialog,
+	DialogBody,
+	DialogContent,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
+import { ToolbarButton } from "@/components/ui/toolbar";
 import { useApiErrorToast } from "@/hooks/useApiErrorToast";
 import { queryKeys } from "@/lib/queryKeys";
 import { routes } from "@/lib/routes";
 import { normalizeDisplay } from "@/lib/utils";
 import { listOrgUsers } from "../api/orgUsers.api";
+import { useBulkDeleteOrgUsers, useDeleteOrgUser } from "../hooks/useOrgUsers";
 import type { OrgUserListItem, OrgUsersListParams } from "../types";
 
 const DEFAULT_PAGE = 1;
@@ -105,6 +116,10 @@ const columns: ColumnDefinition<OrgUserListItem>[] = [
 export function OrgUsersListPage() {
 	const [searchParams, setSearchParams] = useSearchParams();
 	const apiErrorToast = useApiErrorToast();
+	const deleteOrgUserMutation = useDeleteOrgUser();
+	const bulkDeleteOrgUsersMutation = useBulkDeleteOrgUsers();
+	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+	const [pendingDelete, setPendingDelete] = useState<OrgUserListItem[]>([]);
 
 	const page = parsePositiveInt(searchParams.get("page"), DEFAULT_PAGE);
 	const pageSize = parsePositiveInt(
@@ -139,13 +154,7 @@ export function OrgUsersListPage() {
 		[page, pageSize]
 	);
 
-	const {
-		data,
-		isLoading,
-		isError,
-		error,
-		refetch,
-	} = useQuery({
+	const { data, isLoading, isError, error, refetch } = useQuery({
 		queryKey: queryKeys.orgUsers.list(listParams),
 		queryFn: () => listOrgUsers(listParams),
 		placeholderData: (previous) => previous,
@@ -172,9 +181,7 @@ export function OrgUsersListPage() {
 	);
 
 	const handlePaginationChange = (
-		updater:
-			| PaginationState
-			| ((previous: PaginationState) => PaginationState)
+		updater: PaginationState | ((previous: PaginationState) => PaginationState)
 	) => {
 		const nextState =
 			typeof updater === "function" ? updater(paginationState) : updater;
@@ -183,6 +190,59 @@ export function OrgUsersListPage() {
 		nextParams.set("page_size", String(nextState.pageSize));
 		setSearchParams(nextParams);
 	};
+
+	const isDeleting =
+		deleteOrgUserMutation.isPending || bulkDeleteOrgUsersMutation.isPending;
+
+	const openDeleteDialog = (selectedRows: OrgUserListItem[]) => {
+		if (selectedRows.length === 0) return;
+		setPendingDelete(selectedRows);
+		setDeleteDialogOpen(true);
+	};
+
+	const handleDeleteDialogChange = (open: boolean) => {
+		setDeleteDialogOpen(open);
+		if (!open) {
+			setPendingDelete([]);
+		}
+	};
+
+	const handleConfirmDelete = () => {
+		if (!pendingDelete.length) return;
+		const membershipIds = Array.from(
+			new Set(pendingDelete.map((row) => row.membership.id))
+		);
+		const closeDialog = () => {
+			setDeleteDialogOpen(false);
+			setPendingDelete([]);
+		};
+		if (membershipIds.length === 1) {
+			deleteOrgUserMutation.mutate(membershipIds[0], {
+				onSuccess: closeDialog,
+			});
+			return;
+		}
+		bulkDeleteOrgUsersMutation.mutate(membershipIds, {
+			onSuccess: closeDialog,
+		});
+	};
+
+	const renderToolbarActions = (selectedRows: OrgUserListItem[]) => (
+		<ToolbarButton
+			variant="destructive"
+			size="sm"
+			disabled={isDeleting}
+			onClick={() => openDeleteDialog(selectedRows)}
+		>
+			{selectedRows.length === 1 ? "Delete user" : "Delete users"}
+		</ToolbarButton>
+	);
+
+	const pendingDeleteCount = pendingDelete.length;
+	const pendingDeleteLabel =
+		pendingDeleteCount === 1
+			? getDisplayName(pendingDelete[0].user)
+			: `${pendingDeleteCount} users`;
 
 	return (
 		<PageContainer>
@@ -205,6 +265,7 @@ export function OrgUsersListPage() {
 					isLoading={isLoading}
 					emptyMessage="No users found for this organization."
 					exportFileName="org-users.csv"
+					renderToolbarActions={renderToolbarActions}
 					pagination={{
 						enabled: true,
 						mode: "server",
@@ -216,6 +277,46 @@ export function OrgUsersListPage() {
 					}}
 				/>
 			)}
+			<Dialog open={deleteDialogOpen} onOpenChange={handleDeleteDialogChange}>
+				<DialogContent size="sm">
+					<DialogHeader>
+						<DialogTitle>
+							{pendingDeleteCount === 1
+								? `Delete ${pendingDeleteLabel}`
+								: `Delete ${pendingDeleteLabel}`}
+						</DialogTitle>
+					</DialogHeader>
+					<DialogBody>
+						<p className="text-sm text-muted-foreground">
+							{pendingDeleteCount === 1
+								? `You’re about to remove ${pendingDeleteLabel} from this organization.`
+								: `You’re about to remove ${pendingDeleteLabel} from this organization.`}{" "}
+							This action cannot be undone.
+						</p>
+						<p className="text-sm text-muted-foreground mt-1">
+							Deleted users will lose access immediately. If this is a mistake,
+							you’ll need to re-invite them.
+						</p>
+					</DialogBody>
+					<DialogFooter>
+						<Button
+							type="button"
+							variant="outline"
+							onClick={() => handleDeleteDialogChange(false)}
+						>
+							Cancel
+						</Button>
+						<Button
+							type="button"
+							variant="destructive"
+							disabled={isDeleting}
+							onClick={handleConfirmDelete}
+						>
+							{isDeleting ? "Deleting..." : "Confirm delete"}
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 		</PageContainer>
 	);
 }
