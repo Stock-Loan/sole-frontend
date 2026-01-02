@@ -16,6 +16,9 @@ export function DataTablePagination<T>({
 	pageSizeOptions,
 	showPageSizeSelect,
 }: DataTablePaginationProps<T>) {
+	const canPreviousPage = paginationState.pageIndex > 0;
+	const canNextPage = paginationState.pageIndex + 1 < totalPages;
+
 	return (
 		<div className="flex flex-wrap items-center justify-between gap-3 border-t border-border/60 px-4 py-3 text-sm text-muted-foreground">
 			<div className="flex flex-wrap items-center gap-3">
@@ -42,9 +45,9 @@ export function DataTablePagination<T>({
 								table.setPageSize(nextSize);
 							}}
 						>
-							<SelectTrigger className="h-8 w-[90px]">
-								<SelectValue />
-							</SelectTrigger>
+						<SelectTrigger className="h-10 w-[90px] text-xs">
+							<SelectValue />
+						</SelectTrigger>
 							<SelectContent>
 								{pageSizeOptions.map((size) => (
 									<SelectItem key={size} value={String(size)}>
@@ -60,7 +63,7 @@ export function DataTablePagination<T>({
 				<Button
 					variant="outline"
 					size="sm"
-					disabled={!table.getCanPreviousPage()}
+					disabled={!canPreviousPage}
 					onClick={() => table.previousPage()}
 				>
 					Previous
@@ -68,7 +71,7 @@ export function DataTablePagination<T>({
 				<Button
 					variant="outline"
 					size="sm"
-					disabled={!table.getCanNextPage()}
+					disabled={!canNextPage}
 					onClick={() => table.nextPage()}
 				>
 					Next
