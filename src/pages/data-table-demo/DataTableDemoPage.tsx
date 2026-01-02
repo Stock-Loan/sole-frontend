@@ -379,7 +379,7 @@ const demoColumns: ColumnDefinition<DemoTableRow>[] = [
 
 export function DataTableDemoPage() {
 	return (
-		<PageContainer>
+		<PageContainer className="flex min-h-0 flex-1 flex-col gap-4">
 			<PageHeader
 				title="Data table demo"
 				subtitle="Preview the new table behaviors: sorting, filtering, column visibility, selection, export, and pagination."
@@ -389,6 +389,7 @@ export function DataTableDemoPage() {
 				columns={demoColumns}
 				getRowId={(row) => row.id}
 				preferences={{ id: "data-table-demo", scope: "global" }}
+				className="flex-1 min-h-0"
 				pagination={{
 					enabled: true,
 					pageSize: 8,

@@ -521,14 +521,19 @@ export function DataTable<T>({
 	}
 
 	return (
-		<div className={cn("rounded-md border border-border/70", className)}>
+		<div
+			className={cn(
+				"flex min-h-0 flex-col rounded-md border border-border/70",
+				className
+			)}
+		>
 			<DataTableTopBar
 				enableExport={enableExport}
 				onExportAll={exportAllRows}
 				search={search}
 				leftActions={topBarActions}
 			/>
-			<Table>
+			<Table containerClassName="flex-1 min-h-0">
 				<DataTableHeader
 					table={table}
 					columns={columns}

@@ -91,7 +91,10 @@ export function DataTableHeader<T>({
 	};
 
 	return (
-		<TableHeader data-selection={selectionKey || undefined}>
+		<TableHeader
+			data-selection={selectionKey || undefined}
+			className="sticky top-0 z-10 bg-background"
+		>
 			{table.getHeaderGroups().map((headerGroup) => (
 				<TableRow key={headerGroup.id}>
 					{headerGroup.headers.map((header) => {

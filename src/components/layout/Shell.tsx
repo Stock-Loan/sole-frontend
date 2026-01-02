@@ -40,7 +40,7 @@ export function Shell() {
 					</SheetContent>
 				</Sheet>
 				<main className="min-w-0 flex-1 overflow-y-auto">
-					<div className="mx-auto w-full px-4 py-6 sm:px-6 lg:px-8">
+					<div className="mx-auto flex h-full w-full min-h-0 flex-col px-4 py-6 sm:px-6 lg:px-8">
 						<Outlet />
 					</div>
 				</main>

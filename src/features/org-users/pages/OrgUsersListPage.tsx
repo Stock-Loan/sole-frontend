@@ -293,7 +293,7 @@ export function OrgUsersListPage() {
 	};
 
 	return (
-		<PageContainer>
+		<PageContainer className="flex min-h-0 flex-1 flex-col gap-4">
 			<PageHeader
 				title="Org users"
 				subtitle="View organization users and core statuses."
@@ -319,6 +319,7 @@ export function OrgUsersListPage() {
 					emptyMessage="No users found for this organization."
 					exportFileName="org-users.csv"
 					preferences={preferencesConfig}
+					className="flex-1 min-h-0"
 					topBarActions={
 						<AddUserDialog
 							open={addUserOpen}
