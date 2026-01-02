@@ -1,7 +1,8 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { PaginationState, VisibilityState } from "@tanstack/react-table";
 import { Plus } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/common/PageHeader";
 import { DataTable } from "@/components/data-table/DataTable";
@@ -42,10 +43,21 @@ import type {
 	AnnouncementStatus,
 } from "../types";
 
+const DEFAULT_PAGE = 1;
+const DEFAULT_PAGE_SIZE = 10;
+
+function parsePositiveInt(value: string | null, fallback: number) {
+	if (!value) return fallback;
+	const parsed = Number.parseInt(value, 10);
+	if (Number.isNaN(parsed) || parsed <= 0) return fallback;
+	return parsed;
+}
+
 export function AnnouncementsAdminPage() {
 	const { can } = usePermissions();
 	const canManage = can("announcement.manage");
 	const { user } = useAuth();
+	const [searchParams, setSearchParams] = useSearchParams();
 	const [isFormOpen, setIsFormOpen] = useState(false);
 	const [editingAnnouncement, setEditingAnnouncement] =
 		useState<Announcement | null>(null);
@@ -73,14 +85,32 @@ export function AnnouncementsAdminPage() {
 	const preferredPageSize =
 		typeof persistedPreferences?.pagination?.pageSize === "number"
 			? persistedPreferences.pagination.pageSize
-			: 10;
-	const [paginationState, setPaginationState] = useState<PaginationState>(() => ({
-		pageIndex: 0,
-		pageSize: preferredPageSize,
-	}));
+			: DEFAULT_PAGE_SIZE;
 
-	const page = paginationState.pageIndex + 1;
-	const pageSize = paginationState.pageSize;
+	const page = parsePositiveInt(searchParams.get("page"), DEFAULT_PAGE);
+	const pageSize = parsePositiveInt(
+		searchParams.get("page_size"),
+		preferredPageSize
+	);
+
+	useEffect(() => {
+		const nextParams = new URLSearchParams(searchParams);
+		let changed = false;
+
+		if (searchParams.get("page") !== String(page)) {
+			nextParams.set("page", String(page));
+			changed = true;
+		}
+
+		if (searchParams.get("page_size") !== String(pageSize)) {
+			nextParams.set("page_size", String(pageSize));
+			changed = true;
+		}
+
+		if (changed) {
+			setSearchParams(nextParams, { replace: true });
+		}
+	}, [page, pageSize, searchParams, setSearchParams]);
 
 	const listParams = useMemo(
 		() => ({
@@ -192,6 +222,29 @@ export function AnnouncementsAdminPage() {
 	const announcements = useMemo(() => data?.items ?? [], [data?.items]);
 	const totalRows = data?.total ?? announcements.length;
 	const totalPages = Math.max(1, Math.ceil(totalRows / pageSize));
+
+	useEffect(() => {
+		if (page <= totalPages) return;
+		const nextParams = new URLSearchParams(searchParams);
+		nextParams.set("page", String(totalPages));
+		setSearchParams(nextParams, { replace: true });
+	}, [page, searchParams, setSearchParams, totalPages]);
+
+	const paginationState = useMemo<PaginationState>(
+		() => ({ pageIndex: Math.max(0, page - 1), pageSize }),
+		[page, pageSize]
+	);
+
+	const handlePaginationChange = (
+		updater: PaginationState | ((previous: PaginationState) => PaginationState)
+	) => {
+		const nextState =
+			typeof updater === "function" ? updater(paginationState) : updater;
+		const nextParams = new URLSearchParams(searchParams);
+		nextParams.set("page", String(nextState.pageIndex + 1));
+		nextParams.set("page_size", String(nextState.pageSize));
+		setSearchParams(nextParams);
+	};
 
 	const columns = useMemo<ColumnDefinition<Announcement>[]>(
 		() => [
@@ -355,7 +408,7 @@ export function AnnouncementsAdminPage() {
 						enabled: true,
 						mode: "server",
 						state: paginationState,
-						onPaginationChange: setPaginationState,
+						onPaginationChange: handlePaginationChange,
 						pageCount: totalPages,
 						totalRows,
 					}}

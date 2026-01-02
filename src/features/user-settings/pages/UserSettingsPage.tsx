@@ -5,7 +5,6 @@ import { ShieldCheck, ShieldOff, UserCircle2 } from "lucide-react";
 import { PageHeader } from "@/components/common/PageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { queryKeys } from "@/lib/queryKeys";
 import { routes } from "@/lib/routes";
@@ -120,13 +119,13 @@ export function UserSettingsPage() {
 	];
 
 	return (
-		<PageContainer className="space-y-6">
+		<PageContainer className="flex min-h-0 flex-1 flex-col gap-4">
 			<PageHeader
 				title="User settings"
 				subtitle="Manage your account details, security, and credentials."
 			/>
 
-			<div className="flex items-center gap-2 rounded-lg border bg-card px-2 py-2 shadow-sm">
+			<div className="inline-flex w-fit items-center gap-2 rounded-lg border bg-card px-2 py-2 shadow-sm">
 				<TabButton
 					label="Profile"
 					value="profile"
@@ -141,7 +140,7 @@ export function UserSettingsPage() {
 				/>
 			</div>
 
-			<div className="rounded-lg border bg-card shadow-sm">
+			<div className="flex min-h-0 flex-1 flex-col rounded-lg border bg-card shadow-sm">
 				{isLoading ? (
 					<div className="p-6 text-sm text-muted-foreground">
 						Loading your settings…
@@ -151,79 +150,73 @@ export function UserSettingsPage() {
 						Unable to load your profile right now. Please retry in a moment.
 					</div>
 				) : tab === "profile" ? (
-					<div className="space-y-4 p-6">
-						<div className="flex items-center gap-3">
-							<div className="flex h-12 w-12 items-center justify-center rounded-md bg-primary/10 text-primary">
-								<UserCircle2 className="h-6 w-6" />
-							</div>
-							<div>
-								<h2 className="text-lg font-semibold">Profile</h2>
-								<p className="text-sm text-muted-foreground">
-									Your basic account information and org context.
-								</p>
+					<div className="flex min-h-0 flex-1 flex-col">
+						<div className="border-b border-border/70 px-6 py-4">
+							<div className="flex items-center gap-3">
+								<div className="flex h-12 w-12 items-center justify-center rounded-md bg-primary/10 text-primary">
+									<UserCircle2 className="h-6 w-6" />
+								</div>
+								<div>
+									<h2 className="text-lg font-semibold">Profile</h2>
+									<p className="text-sm text-muted-foreground">
+										Your basic account information and org context.
+									</p>
+								</div>
 							</div>
 						</div>
-						<Separator />
-						<SectionGrid items={personalItems} />
-						<Separator />
-						<div>
-							<h3 className="mb-3 text-sm font-semibold text-foreground">
-								Employment
-							</h3>
-							<SectionGrid items={employmentItems} />
+						<div className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
+							<SectionGrid items={personalItems} />
+							<Separator className="my-4" />
+							<div>
+								<h3 className="mb-3 text-sm font-semibold text-foreground">
+									Employment
+								</h3>
+								<SectionGrid items={employmentItems} />
+							</div>
 						</div>
 					</div>
 				) : (
-					<div className="space-y-4 p-6">
-						<div className="flex items-center gap-3">
-							<div className="flex h-12 w-12 items-center justify-center rounded-md bg-primary/10 text-primary">
-								<ShieldCheck className="h-6 w-6" />
-							</div>
-							<div>
-								<h2 className="text-lg font-semibold">Security</h2>
-								<p className="text-sm text-muted-foreground">
-									Review sign-in protections and update your password.
-								</p>
+					<div className="flex min-h-0 flex-1 flex-col">
+						<div className="border-b border-border/70 px-6 py-4">
+							<div className="flex items-center gap-3">
+								<div className="flex h-12 w-12 items-center justify-center rounded-md bg-primary/10 text-primary">
+									<ShieldCheck className="h-6 w-6" />
+								</div>
+								<div>
+									<h2 className="text-lg font-semibold">Security</h2>
+									<p className="text-sm text-muted-foreground">
+										Review sign-in protections and update your password.
+									</p>
+								</div>
 							</div>
 						</div>
-						<Separator />
-						<div className="grid gap-4 md:grid-cols-2">
-							<Card className="border-border/70">
-								<CardHeader className="pb-2">
-									<CardTitle className="text-sm font-semibold">MFA</CardTitle>
-								</CardHeader>
-								<CardContent className="space-y-2 text-sm text-muted-foreground">
-									<div className="flex items-center gap-2">
-										{user?.mfa_enabled ? (
-											<ShieldCheck className="h-4 w-4 text-emerald-600" />
-										) : (
-											<ShieldOff className="h-4 w-4 text-amber-500" />
-										)}
-										<span className="font-medium text-foreground">
-											{user?.mfa_enabled ? "Enabled" : "Not enabled"}
-										</span>
-									</div>
-									<p>
-										{user?.mfa_enabled
-											? "Multi-factor authentication is active on your account."
-											: "Add MFA in the identity provider to increase account protection."}
-									</p>
-								</CardContent>
-							</Card>
-
-							<Card className="border-border/70">
-								<CardHeader className="pb-2">
-									<CardTitle className="text-sm font-semibold">
-										Password
-									</CardTitle>
-								</CardHeader>
-								<CardContent className="space-y-3 text-sm text-muted-foreground">
-									<p>Update your password to keep your account secure.</p>
-									<Button asChild variant="outline" size="sm">
-										<Link to={routes.changePassword}>Change password</Link>
-									</Button>
-								</CardContent>
-							</Card>
+						<div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 py-4">
+							<div className="space-y-2 text-sm text-muted-foreground">
+								<div className="flex items-center gap-2">
+									{user?.mfa_enabled ? (
+										<ShieldCheck className="h-4 w-4 text-emerald-600" />
+									) : (
+										<ShieldOff className="h-4 w-4 text-amber-500" />
+									)}
+									<span className="font-medium text-foreground">MFA</span>
+								</div>
+								<p>
+									{user?.mfa_enabled
+										? "Multi-factor authentication is active on your account."
+										: "Add MFA in the identity provider to increase account protection."}
+								</p>
+								<p className="text-xs text-muted-foreground">
+									Status: {user?.mfa_enabled ? "Enabled" : "Not enabled"}
+								</p>
+							</div>
+							<Separator />
+							<div className="space-y-2 text-sm text-muted-foreground">
+								<p className="font-medium text-foreground">Password</p>
+								<p>Update your password to keep your account secure.</p>
+								<Button asChild variant="outline" size="sm">
+									<Link to={routes.changePassword}>Change password</Link>
+								</Button>
+							</div>
 						</div>
 					</div>
 				)}
@@ -256,22 +249,18 @@ function TabButton({
 
 function InfoCard({ label, value }: UserSettingsInfoCardProps) {
 	return (
-		<Card className="border-border/70">
-			<CardHeader className="pb-1">
-				<CardTitle className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-					{label}
-				</CardTitle>
-			</CardHeader>
-			<CardContent>
-				<p className="text-sm text-foreground">{value || "—"}</p>
-			</CardContent>
-		</Card>
+		<div className="space-y-1">
+			<p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+				{label}
+			</p>
+			<p className="text-sm text-foreground">{value || "—"}</p>
+		</div>
 	);
 }
 
 function SectionGrid({ items }: UserSettingsSectionGridProps) {
 	return (
-		<div className="grid gap-3 md:grid-cols-2">
+		<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
 			{items.map((item) => (
 				<InfoCard key={item.label} label={item.label} value={item.value} />
 			))}

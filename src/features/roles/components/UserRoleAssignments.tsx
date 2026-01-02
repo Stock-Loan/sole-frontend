@@ -30,8 +30,8 @@ export function UserRoleAssignments({
 	);
 
 	const { data, isLoading, isError, refetch, isFetching } = useQuery({
-		queryKey: queryKeys.roles.list(),
-		queryFn: listRoles,
+		queryKey: queryKeys.roles.list({ page: 1, page_size: 200 }),
+		queryFn: () => listRoles({ page: 1, page_size: 200 }),
 		staleTime: 5 * 60 * 1000,
 	});
 
@@ -125,7 +125,7 @@ export function UserRoleAssignments({
 				description: "User roles have been successfully updated.",
 			});
 
-			queryClient.invalidateQueries({ queryKey: queryKeys.roles.list() });
+			queryClient.invalidateQueries({ queryKey: ["roles", "list"] });
 			queryClient.invalidateQueries({
 				queryKey: queryKeys.orgUsers.detail(membershipId),
 			});

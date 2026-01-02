@@ -1,6 +1,8 @@
 import type { OrgUsersListParams } from "@/features/org-users/types";
 import type { AnnouncementListParams } from "@/features/announcements/types";
 import type { OrgSettingsUpdatePayload } from "@/features/org-settings/types";
+import type { RoleListParams } from "@/features/roles/types";
+import type { DepartmentListParams } from "@/features/departments/types";
 
 export const queryKeys = {
 	auth: {
@@ -9,7 +11,8 @@ export const queryKeys = {
 			["auth", "self-context", orgId ?? "current"] as const,
 	},
 	roles: {
-		list: () => ["roles", "list"] as const,
+		list: (params?: RoleListParams) =>
+			["roles", "list", params ?? {}] as const,
 		detail: (roleId: string) => ["roles", "detail", roleId] as const,
 		forUser: (membershipId: string) =>
 			["roles", "for-user", membershipId] as const,
@@ -25,7 +28,7 @@ export const queryKeys = {
 		result: () => ["org-users", "bulk", "result"] as const,
 	},
 	departments: {
-		list: (params?: Record<string, unknown>) =>
+		list: (params?: DepartmentListParams) =>
 			["departments", "list", params ?? {}] as const,
 		detail: (departmentId: string) =>
 			["departments", "detail", departmentId] as const,

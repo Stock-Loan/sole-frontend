@@ -100,25 +100,13 @@ export function DataTable<T>({
 	enableColumnReorder = true,
 	initialColumnVisibility,
 }: DataTableProps<T>) {
+	const preferencesConfig = useMemo(() => preferences ?? null, [preferences]);
 	const preferencesKey = useMemo(
 		() =>
-			preferences ? resolveDataTablePreferencesKey(preferences) : null,
-		[
-			preferences?.id,
-			preferences?.storageKey,
-			preferences?.scope,
-			preferences?.userKey,
-			preferences?.orgKey,
-		]
-	);
-	const preferencesConfig = useMemo(
-		() => preferences ?? null,
-		[
-			preferencesKey,
-			preferences?.storage,
-			preferences?.version,
-			preferences?.persistPageIndex,
-		]
+			preferencesConfig
+				? resolveDataTablePreferencesKey(preferencesConfig)
+				: null,
+		[preferencesConfig]
 	);
 	const storedPreferences = useMemo(
 		() =>
@@ -132,7 +120,10 @@ export function DataTable<T>({
 	);
 	const persistedPageSize = storedPreferences?.pagination?.pageSize;
 	const persistedPageIndex = storedPreferences?.pagination?.pageIndex;
-	const baseVisibility = initialColumnVisibility ?? {};
+	const baseVisibility = useMemo(
+		() => initialColumnVisibility ?? {},
+		[initialColumnVisibility]
+	);
 	const storedVisibility = storedPreferences?.columnVisibility ?? {};
 
 	const [sorting, setSorting] = useState<SortingState>(
@@ -184,7 +175,7 @@ export function DataTable<T>({
 			}
 			pagination?.onPaginationChange?.(nextState);
 		},
-		[pagination?.onPaginationChange, pagination?.state, resolvedPaginationState]
+		[pagination, resolvedPaginationState]
 	);
 
 	useEffect(() => {
@@ -235,7 +226,7 @@ export function DataTable<T>({
 	}, [
 		dataColumnIds,
 		enableRowSelection,
-		initialColumnVisibility,
+		baseVisibility,
 		pagination?.pageSize,
 		pagination?.state,
 		preferencesConfig,
@@ -333,13 +324,9 @@ export function DataTable<T>({
 		handleOpenMenuChange,
 	} = useDataTableFilterState(table, columnFilters);
 
-	const visibleDataColumns = useMemo(
-		() =>
-			table
-				.getVisibleLeafColumns()
-				.filter((column) => column.id !== selectionColumnId),
-		[table, columnVisibility, columnOrder]
-	);
+	const visibleDataColumns = table
+		.getVisibleLeafColumns()
+		.filter((column) => column.id !== selectionColumnId);
 
 	const visibleDataColumnCount = visibleDataColumns.length;
 

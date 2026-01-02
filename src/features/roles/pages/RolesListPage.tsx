@@ -9,7 +9,7 @@ import { useApiErrorToast } from "@/hooks/useApiErrorToast";
 import { queryKeys } from "@/lib/queryKeys";
 import { DataTable } from "@/components/data-table/DataTable";
 import type { ColumnDefinition } from "@/components/data-table/types";
-import type { VisibilityState } from "@tanstack/react-table";
+import type { PaginationState, VisibilityState } from "@tanstack/react-table";
 import { usePermissions } from "@/features/auth/hooks/usePermissions";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { createRole, listRoles, updateRole } from "../api/roles.api";
@@ -17,7 +17,24 @@ import { RolePermissionsDialog } from "../components/RolePermissionsDialog";
 import { RoleFormDialog } from "../components/RoleFormDialog";
 import { ROLE_TYPE_LABELS, ROLE_TYPE_STYLES } from "../constants";
 import { formatDate } from "@/lib/format";
-import type { Role, RoleFormMode, RoleFormValues } from "../types";
+import { loadDataTablePreferences } from "@/components/data-table/constants";
+import { useSearchParams } from "react-router-dom";
+import type {
+	Role,
+	RoleFormMode,
+	RoleFormValues,
+	RoleListParams,
+} from "../types";
+
+const DEFAULT_PAGE = 1;
+const DEFAULT_PAGE_SIZE = 10;
+
+function parsePositiveInt(value: string | null, fallback: number) {
+	if (!value) return fallback;
+	const parsed = Number.parseInt(value, 10);
+	if (Number.isNaN(parsed) || parsed <= 0) return fallback;
+	return parsed;
+}
 
 export function RolesListPage() {
 	const apiErrorToast = useApiErrorToast();
@@ -25,15 +42,67 @@ export function RolesListPage() {
 	const queryClient = useQueryClient();
 	const { can } = usePermissions();
 	const { user } = useAuth();
+	const [searchParams, setSearchParams] = useSearchParams();
+	const preferencesConfig = useMemo(
+		() => ({
+			id: "roles-list",
+			scope: "user" as const,
+			userKey: user?.id ?? null,
+			orgKey: user?.org_id ?? null,
+		}),
+		[user?.id, user?.org_id]
+	);
+	const persistedPreferences = useMemo(
+		() => loadDataTablePreferences(preferencesConfig),
+		[preferencesConfig]
+	);
+	const preferredPageSize =
+		typeof persistedPreferences?.pagination?.pageSize === "number"
+			? persistedPreferences.pagination.pageSize
+			: DEFAULT_PAGE_SIZE;
 	const [selectedRole, setSelectedRole] = useState<Role | null>(null);
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
 	const [formDialogOpen, setFormDialogOpen] = useState(false);
 	const [formMode, setFormMode] = useState<RoleFormMode>("create");
 	const [editingRole, setEditingRole] = useState<Role | null>(null);
 
+	const page = parsePositiveInt(searchParams.get("page"), DEFAULT_PAGE);
+	const pageSize = parsePositiveInt(
+		searchParams.get("page_size"),
+		preferredPageSize
+	);
+
+	useEffect(() => {
+		const nextParams = new URLSearchParams(searchParams);
+		let changed = false;
+
+		if (searchParams.get("page") !== String(page)) {
+			nextParams.set("page", String(page));
+			changed = true;
+		}
+
+		if (searchParams.get("page_size") !== String(pageSize)) {
+			nextParams.set("page_size", String(pageSize));
+			changed = true;
+		}
+
+		if (changed) {
+			setSearchParams(nextParams, { replace: true });
+		}
+	}, [page, pageSize, searchParams, setSearchParams]);
+
+	const listParams = useMemo<RoleListParams>(
+		() => ({
+			page,
+			page_size: pageSize,
+		}),
+		[page, pageSize]
+	);
+
 	const { data, isLoading, isError, error, refetch } = useQuery({
-		queryKey: queryKeys.roles.list(),
-		queryFn: listRoles,
+		queryKey: queryKeys.roles.list(listParams),
+		queryFn: () => listRoles(listParams),
+		placeholderData: (previous) => previous,
 		staleTime: 5 * 60 * 1000,
 	});
 
@@ -44,6 +113,31 @@ export function RolesListPage() {
 	}, [isError, error, apiErrorToast]);
 
 	const roles = useMemo(() => data?.items ?? [], [data?.items]);
+	const totalRows = data?.total ?? data?.items.length ?? 0;
+	const totalPages = Math.max(1, Math.ceil(totalRows / pageSize));
+
+	useEffect(() => {
+		if (page <= totalPages) return;
+		const nextParams = new URLSearchParams(searchParams);
+		nextParams.set("page", String(totalPages));
+		setSearchParams(nextParams, { replace: true });
+	}, [page, searchParams, setSearchParams, totalPages]);
+
+	const paginationState = useMemo<PaginationState>(
+		() => ({ pageIndex: Math.max(0, page - 1), pageSize }),
+		[page, pageSize]
+	);
+
+	const handlePaginationChange = (
+		updater: PaginationState | ((previous: PaginationState) => PaginationState)
+	) => {
+		const nextState =
+			typeof updater === "function" ? updater(paginationState) : updater;
+		const nextParams = new URLSearchParams(searchParams);
+		nextParams.set("page", String(nextState.pageIndex + 1));
+		nextParams.set("page_size", String(nextState.pageSize));
+		setSearchParams(nextParams);
+	};
 
 	const createMutation = useMutation({
 		mutationFn: (values: RoleFormValues) => createRole(values),
@@ -52,7 +146,7 @@ export function RolesListPage() {
 				title: "Role created",
 				description: "The new role has been added.",
 			});
-			queryClient.invalidateQueries({ queryKey: queryKeys.roles.list() });
+			queryClient.invalidateQueries({ queryKey: ["roles", "list"] });
 			setFormDialogOpen(false);
 		},
 		onError: (err) => {
@@ -68,7 +162,7 @@ export function RolesListPage() {
 				title: "Role updated",
 				description: "Changes have been saved.",
 			});
-			queryClient.invalidateQueries({ queryKey: queryKeys.roles.list() });
+			queryClient.invalidateQueries({ queryKey: ["roles", "list"] });
 			setFormDialogOpen(false);
 			setEditingRole(null);
 		},
@@ -188,15 +282,6 @@ export function RolesListPage() {
 		}),
 		[]
 	);
-	const preferencesConfig = useMemo(
-		() => ({
-			id: "roles-list",
-			scope: "user" as const,
-			userKey: user?.id ?? null,
-			orgKey: user?.org_id ?? null,
-		}),
-		[user?.id, user?.org_id]
-	);
 
 	return (
 		<PageContainer className="flex min-h-0 flex-1 flex-col gap-4">
@@ -228,6 +313,14 @@ export function RolesListPage() {
 					isLoading={isLoading}
 					enableRowSelection
 					enableExport={false}
+					pagination={{
+						enabled: true,
+						mode: "server",
+						state: paginationState,
+						onPaginationChange: handlePaginationChange,
+						pageCount: totalPages,
+						totalRows,
+					}}
 					className="flex-1 min-h-0"
 					emptyMessage="No roles yet. Create or import roles to manage permissions."
 					initialColumnVisibility={initialColumnVisibility}

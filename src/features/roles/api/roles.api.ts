@@ -1,9 +1,16 @@
 import { apiClient } from "@/lib/apiClient";
 import { unwrapApiResponse } from "@/lib/api-response";
-import type { Role, RoleInput, RoleListResponse } from "../types";
+import type {
+	Role,
+	RoleInput,
+	RoleListParams,
+	RoleListResponse,
+} from "../types";
 
-export async function listRoles(): Promise<RoleListResponse> {
-	const { data } = await apiClient.get<RoleListResponse>("/roles");
+export async function listRoles(
+	params: RoleListParams = {}
+): Promise<RoleListResponse> {
+	const { data } = await apiClient.get<RoleListResponse>("/roles", { params });
 	return unwrapApiResponse<RoleListResponse>(data);
 }
 

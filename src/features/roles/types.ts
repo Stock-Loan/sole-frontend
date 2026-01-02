@@ -82,6 +82,14 @@ export interface Role {
 
 export interface RoleListResponse {
 	items: Role[];
+	total?: number;
+	page?: number;
+	page_size?: number;
+}
+
+export interface RoleListParams {
+	page?: number;
+	page_size?: number;
 }
 
 export interface RoleInput {
