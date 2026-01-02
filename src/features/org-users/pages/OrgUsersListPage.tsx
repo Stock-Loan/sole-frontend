@@ -6,7 +6,11 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/common/PageHeader";
 import { EmptyState } from "@/components/common/EmptyState";
 import { DataTable } from "@/components/data-table/DataTable";
-import type { ColumnDefinition } from "@/components/data-table/types";
+import type {
+	ColumnDefinition,
+	DataTablePreferencesConfig,
+} from "@/components/data-table/types";
+import { loadDataTablePreferences } from "@/components/data-table/constants";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,6 +27,7 @@ import { useApiErrorToast } from "@/hooks/useApiErrorToast";
 import { queryKeys } from "@/lib/queryKeys";
 import { routes } from "@/lib/routes";
 import { normalizeDisplay } from "@/lib/utils";
+import { useAuth } from "@/features/auth/hooks/useAuth";
 import { AddUserDialog } from "../components/AddUserDialog";
 import { listOrgUsers, onboardOrgUser } from "../api/orgUsers.api";
 import { useBulkDeleteOrgUsers, useDeleteOrgUser } from "../hooks/useOrgUsers";
@@ -120,6 +125,7 @@ const columns: ColumnDefinition<OrgUserListItem>[] = [
 ];
 
 export function OrgUsersListPage() {
+	const { user } = useAuth();
 	const [searchParams, setSearchParams] = useSearchParams();
 	const apiErrorToast = useApiErrorToast();
 	const { toast } = useToast();
@@ -141,10 +147,28 @@ export function OrgUsersListPage() {
 		},
 	});
 
+	const preferencesConfig = useMemo<DataTablePreferencesConfig>(
+		() => ({
+			id: "org-users-list",
+			scope: "user",
+			userKey: user?.id ?? null,
+			orgKey: user?.org_id ?? null,
+		}),
+		[user?.id, user?.org_id]
+	);
+	const persistedPreferences = useMemo(
+		() => loadDataTablePreferences(preferencesConfig),
+		[preferencesConfig]
+	);
+	const preferredPageSize =
+		typeof persistedPreferences?.pagination?.pageSize === "number"
+			? persistedPreferences.pagination.pageSize
+			: DEFAULT_PAGE_SIZE;
+
 	const page = parsePositiveInt(searchParams.get("page"), DEFAULT_PAGE);
 	const pageSize = parsePositiveInt(
 		searchParams.get("page_size"),
-		DEFAULT_PAGE_SIZE
+		preferredPageSize
 	);
 
 	useEffect(() => {
@@ -294,6 +318,7 @@ export function OrgUsersListPage() {
 					isLoading={isLoading}
 					emptyMessage="No users found for this organization."
 					exportFileName="org-users.csv"
+					preferences={preferencesConfig}
 					topBarActions={
 						<AddUserDialog
 							open={addUserOpen}

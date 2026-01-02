@@ -7,6 +7,7 @@ import {
 	useReactTable,
 	type ColumnDef,
 	type ColumnFiltersState,
+	type ColumnOrderState,
 	type PaginationState,
 	type Row,
 	type RowSelectionState,
@@ -17,6 +18,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Table } from "@/components/ui/table";
 import { LoadingState } from "@/components/common/LoadingState";
 import { cn } from "@/lib/utils";
+import { useDebounce } from "@/hooks/useDebounce";
 import { DataTableBody } from "./DataTableBody";
 import { DataTableHeader } from "./DataTableHeader";
 import { DataTablePagination } from "./DataTablePagination";
@@ -27,6 +29,11 @@ import type { ColumnConfigMap, DataTableProps } from "./types";
 import {
 	defaultPageSize,
 	defaultPageSizeOptions,
+	isFilterActive,
+	loadDataTablePreferences,
+	normalizeColumnOrder,
+	resolveDataTablePreferencesKey,
+	saveDataTablePreferences,
 	selectionColumnId,
 } from "./constants";
 import {
@@ -89,18 +96,72 @@ export function DataTable<T>({
 	topBarActions,
 	pagination,
 	search,
+	preferences,
+	enableColumnReorder = true,
 }: DataTableProps<T>) {
-	const [sorting, setSorting] = useState<SortingState>([]);
-	const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+	const preferencesKey = useMemo(
+		() =>
+			preferences ? resolveDataTablePreferencesKey(preferences) : null,
+		[
+			preferences?.id,
+			preferences?.storageKey,
+			preferences?.scope,
+			preferences?.userKey,
+			preferences?.orgKey,
+		]
+	);
+	const preferencesConfig = useMemo(
+		() => preferences ?? null,
+		[
+			preferencesKey,
+			preferences?.storage,
+			preferences?.version,
+			preferences?.persistPageIndex,
+		]
+	);
+	const storedPreferences = useMemo(
+		() =>
+			preferencesConfig ? loadDataTablePreferences(preferencesConfig) : null,
+		[preferencesKey, preferencesConfig]
+	);
+
+	const dataColumnIds = useMemo(
+		() => columns.map((column) => column.id),
+		[columns]
+	);
+	const persistedPageSize = storedPreferences?.pagination?.pageSize;
+	const persistedPageIndex = storedPreferences?.pagination?.pageIndex;
+
+	const [sorting, setSorting] = useState<SortingState>(
+		() => storedPreferences?.sorting ?? []
+	);
+	const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
+		() => storedPreferences?.columnVisibility ?? {}
+	);
 	const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
-	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(
+		() => storedPreferences?.columnFilters ?? []
+	);
+	const [columnOrder, setColumnOrder] = useState<ColumnOrderState>(() =>
+		normalizeColumnOrder(
+			storedPreferences?.columnOrder,
+			dataColumnIds,
+			enableRowSelection
+		)
+	);
 	const paginationEnabled = pagination?.enabled ?? true;
 	const paginationMode = pagination?.mode ?? "client";
 	const isServerPagination = paginationMode === "server";
-	const initialPageSize = pagination?.pageSize ?? defaultPageSize;
+	const initialPageSize =
+		persistedPageSize ?? pagination?.pageSize ?? defaultPageSize;
+	const initialPageIndex =
+		preferencesConfig?.persistPageIndex &&
+		typeof persistedPageIndex === "number"
+			? persistedPageIndex
+			: 0;
 	const [internalPaginationState, setInternalPaginationState] =
 		useState<PaginationState>(() => ({
-			pageIndex: 0,
+			pageIndex: initialPageIndex,
 			pageSize: initialPageSize,
 		}));
 	const resolvedPaginationState = pagination?.state ?? internalPaginationState;
@@ -122,6 +183,61 @@ export function DataTable<T>({
 		},
 		[pagination?.onPaginationChange, pagination?.state, resolvedPaginationState]
 	);
+
+	useEffect(() => {
+		if (!preferencesConfig || !preferencesKey) return;
+		const nextPreferences = loadDataTablePreferences(preferencesConfig);
+		const allowedIds = new Set(dataColumnIds);
+		if (enableRowSelection) {
+			allowedIds.add(selectionColumnId);
+		}
+		const sanitizedSorting =
+			nextPreferences?.sorting?.filter((item) => allowedIds.has(item.id)) ??
+			[];
+		const sanitizedFilters =
+			nextPreferences?.columnFilters?.filter((item) =>
+				allowedIds.has(item.id)
+			) ?? [];
+		const sanitizedVisibility = Object.fromEntries(
+			Object.entries(nextPreferences?.columnVisibility ?? {}).filter(([id]) =>
+				allowedIds.has(id)
+			)
+		);
+		setSorting(sanitizedSorting);
+		setColumnVisibility(sanitizedVisibility);
+		setColumnFilters(sanitizedFilters);
+		setColumnOrder(
+			normalizeColumnOrder(
+				nextPreferences?.columnOrder,
+				dataColumnIds,
+				enableRowSelection
+			)
+		);
+
+		if (!pagination?.state) {
+			const nextPageSize =
+				nextPreferences?.pagination?.pageSize ??
+				pagination?.pageSize ??
+				defaultPageSize;
+			const nextPageIndex =
+				preferencesConfig?.persistPageIndex &&
+				typeof nextPreferences?.pagination?.pageIndex === "number"
+					? nextPreferences.pagination.pageIndex
+					: 0;
+			setInternalPaginationState({
+				pageIndex: nextPageIndex,
+				pageSize: nextPageSize,
+			});
+		}
+	}, [
+		dataColumnIds,
+		enableRowSelection,
+		pagination?.pageSize,
+		pagination?.state,
+		preferencesConfig,
+		preferencesConfig?.persistPageIndex,
+		preferencesKey,
+	]);
 
 	const columnConfigById = useMemo<ColumnConfigMap<T>>(
 		() => new Map(columns.map((column) => [column.id, column])),
@@ -148,6 +264,18 @@ export function DataTable<T>({
 		[enableRowSelection, dataColumns, selectionColumn]
 	);
 
+	useEffect(() => {
+		if (columnOrder.length === 0) return;
+		const normalized = normalizeColumnOrder(
+			columnOrder,
+			dataColumnIds,
+			enableRowSelection
+		);
+		if (normalized.join("|") !== columnOrder.join("|")) {
+			setColumnOrder(normalized);
+		}
+	}, [columnOrder, dataColumnIds, enableRowSelection]);
+
 	const serverTotalRows = pagination?.totalRows ?? data.length;
 	const serverPageCount = Math.max(
 		1,
@@ -163,12 +291,14 @@ export function DataTable<T>({
 			columnVisibility,
 			rowSelection,
 			columnFilters,
+			columnOrder,
 			...(paginationEnabled ? { pagination: resolvedPaginationState } : {}),
 		},
 		onSortingChange: setSorting,
 		onColumnVisibilityChange: setColumnVisibility,
 		onRowSelectionChange: setRowSelection,
 		onColumnFiltersChange: setColumnFilters,
+		onColumnOrderChange: setColumnOrder,
 		...(paginationEnabled
 			? {
 					onPaginationChange: handlePaginationChange,
@@ -204,7 +334,7 @@ export function DataTable<T>({
 			table
 				.getVisibleLeafColumns()
 				.filter((column) => column.id !== selectionColumnId),
-		[table, columnVisibility]
+		[table, columnVisibility, columnOrder]
 	);
 
 	const visibleDataColumnCount = visibleDataColumns.length;
@@ -230,14 +360,38 @@ export function DataTable<T>({
 		const someSelected = pageRowIds.some((id) => rowSelection[id]);
 		return { allSelected, someSelected: someSelected && !allSelected };
 	}, [pageRowIds, rowSelection]);
+	const filteredRowCount = table.getFilteredRowModel().rows.length;
+	const hasActiveFilters = useMemo(
+		() => Object.values(appliedFilters).some((filter) => isFilterActive(filter)),
+		[appliedFilters]
+	);
 	const totalRows = isServerPagination
-		? serverTotalRows
-		: table.getFilteredRowModel().rows.length;
+		? hasActiveFilters
+			? filteredRowCount
+			: serverTotalRows
+		: filteredRowCount;
 	const totalPages = paginationEnabled
 		? isServerPagination
-			? pagination?.pageCount ?? serverPageCount
+			? hasActiveFilters
+				? Math.max(
+						1,
+						Math.ceil(filteredRowCount / resolvedPaginationState.pageSize)
+				  )
+				: pagination?.pageCount ?? serverPageCount
 			: Math.max(1, table.getPageCount())
 		: 1;
+	const paginationDisplayState = useMemo(() => {
+		if (!paginationEnabled) return resolvedPaginationState;
+		if (isServerPagination && hasActiveFilters) {
+			return { ...resolvedPaginationState, pageIndex: 0 };
+		}
+		return resolvedPaginationState;
+	}, [
+		hasActiveFilters,
+		isServerPagination,
+		paginationEnabled,
+		resolvedPaginationState,
+	]);
 	const showSelectionToolbar = enableRowSelection && selectionCount > 0;
 	const pageSizeOptions = useMemo(() => {
 		const options = pagination?.pageSizeOptions ?? defaultPageSizeOptions;
@@ -246,6 +400,69 @@ export function DataTable<T>({
 		).sort((a, b) => a - b);
 	}, [pagination?.pageSizeOptions, resolvedPaginationState.pageSize]);
 	const showPageSizeSelect = pagination?.showPageSizeSelect !== false;
+
+	const preferenceColumnIds = useMemo(() => {
+		const ids = new Set(dataColumnIds);
+		if (enableRowSelection) {
+			ids.add(selectionColumnId);
+		}
+		return ids;
+	}, [dataColumnIds, enableRowSelection]);
+
+	const preferencesSnapshot = useMemo(() => {
+		if (!preferencesConfig) return null;
+		const sanitizedVisibility = Object.fromEntries(
+			Object.entries(columnVisibility).filter(([id]) =>
+				preferenceColumnIds.has(id)
+			)
+		);
+		const sanitizedOrder =
+			columnOrder.length === 0
+				? columnOrder
+				: columnOrder.filter((id) => preferenceColumnIds.has(id));
+		const sanitizedSorting = sorting.filter((item) =>
+			preferenceColumnIds.has(item.id)
+		);
+		const sanitizedFilters = columnFilters.filter((item) =>
+			preferenceColumnIds.has(item.id)
+		);
+		const paginationState = paginationEnabled
+			? {
+					pageSize: resolvedPaginationState.pageSize,
+					...(preferencesConfig.persistPageIndex
+						? { pageIndex: resolvedPaginationState.pageIndex }
+						: {}),
+			  }
+			: undefined;
+
+		return {
+			sorting: sanitizedSorting,
+			columnVisibility: sanitizedVisibility,
+			columnFilters: sanitizedFilters,
+			columnOrder: sanitizedOrder,
+			pagination: paginationState,
+		};
+	}, [
+		paginationEnabled,
+		columnFilters,
+		columnOrder,
+		columnVisibility,
+		preferenceColumnIds,
+		preferencesConfig,
+		resolvedPaginationState.pageIndex,
+		resolvedPaginationState.pageSize,
+		sorting,
+	]);
+
+	const debouncedPreferences = useDebounce(
+		preferencesSnapshot,
+		preferencesConfig?.debounceMs ?? 300
+	);
+
+	useEffect(() => {
+		if (!preferencesConfig || !debouncedPreferences) return;
+		saveDataTablePreferences(preferencesConfig, debouncedPreferences);
+	}, [debouncedPreferences, preferencesConfig]);
 
 	useEffect(() => {
 		if (!enableRowSelection) {
@@ -257,12 +474,13 @@ export function DataTable<T>({
 		if (!paginationEnabled || pagination?.state) return;
 		const nextPageSize = pagination?.pageSize;
 		if (typeof nextPageSize !== "number") return;
+		if (typeof persistedPageSize === "number") return;
 		setInternalPaginationState((prev) =>
 			prev.pageSize === nextPageSize
 				? prev
 				: { ...prev, pageIndex: 0, pageSize: nextPageSize }
 		);
-	}, [pagination?.pageSize, pagination?.state, paginationEnabled]);
+	}, [pagination?.pageSize, pagination?.state, paginationEnabled, persistedPageSize]);
 
 	useEffect(() => {
 		if (!enableRowSelection) return;
@@ -327,6 +545,7 @@ export function DataTable<T>({
 					onClearFilter={clearFilter}
 					openMenuColumnId={openMenuColumnId}
 					onOpenMenuChange={handleOpenMenuChange}
+					enableColumnReorder={enableColumnReorder}
 				/>
 				<DataTableBody
 					table={table}
@@ -340,7 +559,7 @@ export function DataTable<T>({
 			{paginationEnabled ? (
 				<DataTablePagination
 					table={table}
-					paginationState={resolvedPaginationState}
+					paginationState={paginationDisplayState}
 					totalRows={totalRows}
 					totalPages={totalPages}
 					pageSizeOptions={pageSizeOptions}

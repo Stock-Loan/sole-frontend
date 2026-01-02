@@ -1,8 +1,11 @@
 import type {
 	Column,
+	ColumnFiltersState,
+	ColumnOrderState,
 	PaginationState,
 	Row,
 	RowSelectionState,
+	SortingState,
 	Table,
 	VisibilityState,
 } from "@tanstack/react-table";
@@ -81,6 +84,36 @@ export interface DataTableSearchConfig {
 	placeholder?: string;
 }
 
+export interface DataTablePreferencesPagination {
+	pageSize?: number;
+	pageIndex?: number;
+}
+
+export interface DataTablePreferencesState {
+	sorting?: SortingState;
+	columnVisibility?: VisibilityState;
+	columnFilters?: ColumnFiltersState;
+	columnOrder?: ColumnOrderState;
+	pagination?: DataTablePreferencesPagination;
+}
+
+export interface DataTablePreferencesPayload {
+	version: number;
+	state: DataTablePreferencesState;
+}
+
+export interface DataTablePreferencesConfig {
+	id: string;
+	storageKey?: string;
+	storage?: "local" | "session";
+	scope?: "global" | "org" | "user";
+	userKey?: string | null;
+	orgKey?: string | null;
+	persistPageIndex?: boolean;
+	version?: number;
+	debounceMs?: number;
+}
+
 export interface DataTableProps<T> {
 	data: T[];
 	columns: ColumnDefinition<T>[];
@@ -97,6 +130,8 @@ export interface DataTableProps<T> {
 	topBarActions?: ReactNode;
 	pagination?: DataTablePaginationConfig;
 	search?: DataTableSearchConfig;
+	preferences?: DataTablePreferencesConfig;
+	enableColumnReorder?: boolean;
 }
 
 export interface DataTableExportContext<T> {
@@ -122,6 +157,7 @@ export interface DataTableHeaderProps<T> {
 	onClearFilter: (columnId: string) => void;
 	openMenuColumnId: string | null;
 	onOpenMenuChange: (columnId: string, open: boolean) => void;
+	enableColumnReorder: boolean;
 }
 
 export interface DataTableColumnMenuProps<T> {
@@ -138,6 +174,7 @@ export interface DataTableColumnMenuProps<T> {
 	onClearFilter: (columnId: string) => void;
 	openMenuColumnId: string | null;
 	onOpenMenuChange: (columnId: string, open: boolean) => void;
+	enableColumnReorder: boolean;
 }
 
 export interface DataTableBodyProps<T> {

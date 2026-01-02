@@ -37,12 +37,14 @@ export function DataTableColumnMenu<T>({
 	onClearFilter,
 	openMenuColumnId,
 	onOpenMenuChange,
+	enableColumnReorder,
 }: DataTableColumnMenuProps<T>) {
 	const canSort = column.getCanSort();
 	const canHide = column.getCanHide();
 	const canFilter = column.getCanFilter();
+	const canReorder = enableColumnReorder && table.getAllLeafColumns().length > 1;
 
-	if (!canSort && !canHide && !canFilter) {
+	if (!canSort && !canHide && !canFilter && !canReorder) {
 		return null;
 	}
 
@@ -50,7 +52,6 @@ export function DataTableColumnMenu<T>({
 		(item) => item.value === draft.operator
 	);
 	const requiresValue = filterOption?.requiresValue ?? true;
-
 	return (
 		<DropdownMenu
 			open={openMenuColumnId === column.id}
@@ -88,7 +89,7 @@ export function DataTableColumnMenu<T>({
 					<ArrowDown className="mr-2 h-4 w-4" />
 					Sort descending
 				</DropdownMenuItem>
-				<DropdownMenuSeparator />
+				{canReorder ? <DropdownMenuSeparator /> : null}
 				<DropdownMenuSub>
 					<DropdownMenuSubTrigger>Columns</DropdownMenuSubTrigger>
 					<DropdownMenuPortal>

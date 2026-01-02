@@ -2,6 +2,9 @@ import type { Row } from "@tanstack/react-table";
 import type {
 	ColumnDefinition,
 	ColumnFilterState,
+	DataTablePreferencesConfig,
+	DataTablePreferencesPayload,
+	DataTablePreferencesState,
 	FilterOperator,
 	FilterOperatorOption,
 	SortValue,
@@ -10,6 +13,8 @@ import type {
 export const selectionColumnId = "__select";
 export const defaultPageSize = 10;
 export const defaultPageSizeOptions = [10, 20, 50];
+export const dataTablePreferencesVersion = 1;
+export const dataTablePreferencesPrefix = "sole.dataTable.preferences";
 
 export const filterOperatorOptions: FilterOperatorOption[] = [
 	{ value: "equals", label: "Is equal to", requiresValue: true },
@@ -152,4 +157,107 @@ export function getAccessorValueFromConfig<T>(
 	if (typeof accessor === "string")
 		return (row as Record<string, unknown>)[accessor];
 	return tableRow?.getValue(columnId ?? "");
+}
+
+export function normalizeColumnOrder(
+	order: string[] | undefined,
+	columnIds: string[],
+	enableRowSelection: boolean
+) {
+	if (!order || order.length === 0) return [];
+	const cleaned = order.filter(
+		(id) =>
+			columnIds.includes(id) ||
+			(enableRowSelection && id === selectionColumnId)
+	);
+	const missing = columnIds.filter((id) => !cleaned.includes(id));
+	const nextOrder = [...cleaned, ...missing];
+	if (!enableRowSelection) {
+		return nextOrder.filter((id) => id !== selectionColumnId);
+	}
+	const withoutSelection = nextOrder.filter((id) => id !== selectionColumnId);
+	return [selectionColumnId, ...withoutSelection];
+}
+
+function resolveDataTableStorage(config?: DataTablePreferencesConfig) {
+	if (typeof window === "undefined") return null;
+	const storageType = config?.storage ?? "local";
+	try {
+		return storageType === "session"
+			? window.sessionStorage
+			: window.localStorage;
+	} catch {
+		return null;
+	}
+}
+
+export function resolveDataTablePreferencesKey(
+	config: DataTablePreferencesConfig
+) {
+	if (config.storageKey) return config.storageKey;
+	const scope = config.scope ?? "user";
+	const parts = [dataTablePreferencesPrefix, config.id, scope];
+
+	if (scope === "org" || scope === "user") {
+		const orgSegment = config.orgKey ?? "unknown-org";
+		parts.push(`org-${orgSegment}`);
+	}
+
+	if (scope === "user") {
+		const userSegment = config.userKey ?? "anonymous";
+		parts.push(`user-${userSegment}`);
+	}
+
+	return parts.join(".");
+}
+
+export function loadDataTablePreferences(
+	config?: DataTablePreferencesConfig
+): DataTablePreferencesState | null {
+	if (!config) return null;
+	const storage = resolveDataTableStorage(config);
+	if (!storage) return null;
+	try {
+		const key = resolveDataTablePreferencesKey(config);
+		const raw = storage.getItem(key);
+		if (!raw) return null;
+		const parsed = JSON.parse(raw) as DataTablePreferencesPayload | null;
+		if (!parsed || typeof parsed !== "object") return null;
+		const version = config.version ?? dataTablePreferencesVersion;
+		if (parsed.version !== version) return null;
+		return parsed.state ?? null;
+	} catch (error) {
+		console.warn("Failed to load data table preferences", error);
+		return null;
+	}
+}
+
+export function saveDataTablePreferences(
+	config: DataTablePreferencesConfig,
+	state: DataTablePreferencesState
+) {
+	const storage = resolveDataTableStorage(config);
+	if (!storage) return;
+	const key = resolveDataTablePreferencesKey(config);
+	const payload: DataTablePreferencesPayload = {
+		version: config.version ?? dataTablePreferencesVersion,
+		state,
+	};
+	try {
+		storage.setItem(key, JSON.stringify(payload));
+	} catch (error) {
+		console.warn("Failed to save data table preferences", error);
+	}
+}
+
+export function clearDataTablePreferences(config?: DataTablePreferencesConfig) {
+	if (!config) return;
+	const storage = resolveDataTableStorage(config);
+	if (!storage) return;
+	try {
+		const key = resolveDataTablePreferencesKey(config);
+		storage.removeItem(key);
+	} catch (error) {
+		console.warn("Failed to clear data table preferences", error);
+	}
 }

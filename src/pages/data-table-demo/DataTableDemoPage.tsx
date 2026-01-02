@@ -388,6 +388,7 @@ export function DataTableDemoPage() {
 				data={demoRows}
 				columns={demoColumns}
 				getRowId={(row) => row.id}
+				preferences={{ id: "data-table-demo", scope: "global" }}
 				pagination={{
 					enabled: true,
 					pageSize: 8,

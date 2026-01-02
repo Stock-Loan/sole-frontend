@@ -71,7 +71,10 @@ export function DataTableBody<T>({
 
 						const config = columnConfigById.get(column.id);
 						return (
-							<TableCell key={cell.id} className={config?.cellClassName}>
+							<TableCell
+								key={cell.id}
+								className={config?.cellClassName}
+							>
 								{flexRender(cell.column.columnDef.cell, {
 									...cell.getContext(),
 									table,
