@@ -7,6 +7,7 @@ export const routes = {
 	overview: "/app/overview",
 	users: "/app/users",
 	userDetail: "/app/users/:membershipId",
+	usersOnboard: "/app/users/onboard",
 	roles: "/app/roles",
 	departments: "/app/departments",
 	announcements: "/app/announcements",

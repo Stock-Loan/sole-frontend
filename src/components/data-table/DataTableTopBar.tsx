@@ -7,11 +7,15 @@ export function DataTableTopBar({
 	enableExport,
 	onExportAll,
 	search,
+	leftActions,
 }: DataTableTopBarProps) {
-	if (!enableExport && !search) return null;
+	if (!enableExport && !search && !leftActions) return null;
 
 	return (
 		<div className="flex flex-wrap items-center gap-3 border-b border-border/60 bg-muted/20 px-4 py-3">
+			{leftActions ? (
+				<div className="flex flex-wrap items-center gap-2">{leftActions}</div>
+			) : null}
 			{search ? (
 				<div className="relative flex w-full max-w-md flex-1 items-center">
 					<Search
@@ -29,7 +33,12 @@ export function DataTableTopBar({
 			) : null}
 			{enableExport ? (
 				<div className="ml-auto flex flex-wrap items-center gap-2">
-					<Button variant="outline" size="sm" onClick={onExportAll}>
+					<Button
+						variant="outline"
+						size="sm"
+						className="h-8 px-3 text-xs"
+						onClick={onExportAll}
+					>
 						<Download className="mr-2 h-4 w-4" />
 						Export all
 					</Button>

@@ -2,9 +2,13 @@ import type { AddUserFormValues } from "./types";
 
 export const statusTone: Record<string, string> = {
 	active: "border-emerald-200 bg-emerald-50 text-emerald-700",
-	inactive: "border-slate-200 bg-slate-50 text-slate-700",
+	on_leave: "border-amber-200 bg-amber-50 text-amber-700",
+	furloughed: "border-sky-200 bg-sky-50 text-sky-700",
+	suspended: "border-rose-200 bg-rose-50 text-rose-700",
+	probationary: "border-violet-200 bg-violet-50 text-violet-700",
 	terminated: "border-rose-200 bg-rose-50 text-rose-700",
-	leave: "border-amber-200 bg-amber-50 text-amber-700",
+	retired: "border-slate-200 bg-slate-50 text-slate-700",
+	resigned: "border-orange-200 bg-orange-50 text-orange-700",
 };
 
 export const defaultValues: AddUserFormValues = {
@@ -33,6 +37,7 @@ export const BULK_ONBOARDING_FIELD_GUIDE: string[] = [
 	"Country & state: names or codes. Examples — Countries: United States / USA / US, United Kingdom / UK / GB, India / IN. States: CA or California, NY or New York, England, London (maps to City of London), Maharashtra (diacritics handled).",
 	"Timezone: IANA IDs (e.g., America/Los_Angeles, Europe/London, Asia/Tokyo).",
 	"Marital status: SINGLE_NEVER_MARRIED, MARRIED, DIVORCED, WIDOWED, SEPARATED (case-insensitive).",
+	"Employment status: ACTIVE, ON_LEAVE, FURLOUGHED, SUSPENDED, PROBATIONARY, TERMINATED, RETIRED, RESIGNED (case-insensitive).",
 	"Address: address_line1, address_line2 (optional), postal_code as text (preserve leading zeros).",
 	"Avoid merged cells/formatting: plain CSV, header row unchanged, no extra columns.",
 	"Validation feedback: upload to see per-row successes/errors (row numbers, messages). Fix only rows under errors and reupload.",

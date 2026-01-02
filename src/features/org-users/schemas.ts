@@ -3,13 +3,21 @@ import type { Role } from "@/features/roles/types";
 
 export const EmploymentStatusSchema = z.enum([
 	"ACTIVE",
-	"INACTIVE",
+	"ON_LEAVE",
+	"FURLOUGHED",
+	"SUSPENDED",
+	"PROBATIONARY",
 	"TERMINATED",
-	"LEAVE",
+	"RETIRED",
+	"RESIGNED",
 	"active",
-	"inactive",
+	"on_leave",
+	"furloughed",
+	"suspended",
+	"probationary",
 	"terminated",
-	"leave",
+	"retired",
+	"resigned",
 ]);
 
 export const PlatformStatusSchema = z.enum([

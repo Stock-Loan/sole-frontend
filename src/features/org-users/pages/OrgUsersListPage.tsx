@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { PaginationState } from "@tanstack/react-table";
 import { Link, useSearchParams } from "react-router-dom";
 import { PageContainer } from "@/components/layout/PageContainer";
@@ -18,13 +18,19 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import { ToolbarButton } from "@/components/ui/toolbar";
+import { useToast } from "@/components/ui/use-toast";
 import { useApiErrorToast } from "@/hooks/useApiErrorToast";
 import { queryKeys } from "@/lib/queryKeys";
 import { routes } from "@/lib/routes";
 import { normalizeDisplay } from "@/lib/utils";
-import { listOrgUsers } from "../api/orgUsers.api";
+import { AddUserDialog } from "../components/AddUserDialog";
+import { listOrgUsers, onboardOrgUser } from "../api/orgUsers.api";
 import { useBulkDeleteOrgUsers, useDeleteOrgUser } from "../hooks/useOrgUsers";
-import type { OrgUserListItem, OrgUsersListParams } from "../types";
+import type {
+	OnboardUserPayload,
+	OrgUserListItem,
+	OrgUsersListParams,
+} from "../types";
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_PAGE_SIZE = 20;
@@ -116,10 +122,24 @@ const columns: ColumnDefinition<OrgUserListItem>[] = [
 export function OrgUsersListPage() {
 	const [searchParams, setSearchParams] = useSearchParams();
 	const apiErrorToast = useApiErrorToast();
+	const { toast } = useToast();
+	const queryClient = useQueryClient();
 	const deleteOrgUserMutation = useDeleteOrgUser();
 	const bulkDeleteOrgUsersMutation = useBulkDeleteOrgUsers();
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 	const [pendingDelete, setPendingDelete] = useState<OrgUserListItem[]>([]);
+	const [addUserOpen, setAddUserOpen] = useState(false);
+
+	const onboardUserMutation = useMutation({
+		mutationFn: onboardOrgUser,
+		onSuccess: () => {
+			toast({
+				title: "User onboarded",
+				description: "The user has been added to this organization.",
+			});
+			queryClient.invalidateQueries({ queryKey: queryKeys.orgUsers.list() });
+		},
+	});
 
 	const page = parsePositiveInt(searchParams.get("page"), DEFAULT_PAGE);
 	const pageSize = parsePositiveInt(
@@ -244,11 +264,20 @@ export function OrgUsersListPage() {
 			? getDisplayName(pendingDelete[0].user)
 			: `${pendingDeleteCount} users`;
 
+	const handleAddUser = async (values: OnboardUserPayload) => {
+		await onboardUserMutation.mutateAsync(values);
+	};
+
 	return (
 		<PageContainer>
 			<PageHeader
 				title="Org users"
 				subtitle="View organization users and core statuses."
+				actions={
+					<Button asChild variant="outline" size="sm">
+						<Link to={routes.usersOnboard}>Bulk user onboarding</Link>
+					</Button>
+				}
 			/>
 			{isError ? (
 				<EmptyState
@@ -265,6 +294,22 @@ export function OrgUsersListPage() {
 					isLoading={isLoading}
 					emptyMessage="No users found for this organization."
 					exportFileName="org-users.csv"
+					topBarActions={
+						<AddUserDialog
+							open={addUserOpen}
+							onOpenChange={setAddUserOpen}
+							onSubmit={handleAddUser}
+							trigger={
+								<Button
+									size="sm"
+									variant="default"
+									className="h-8 px-3 text-xs"
+								>
+									Add user
+								</Button>
+							}
+						/>
+					}
 					renderToolbarActions={renderToolbarActions}
 					pagination={{
 						enabled: true,

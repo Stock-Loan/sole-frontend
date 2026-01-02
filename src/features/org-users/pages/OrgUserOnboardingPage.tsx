@@ -296,6 +296,7 @@ export function OrgUserOnboardingPage() {
 							<Button
 								variant="outline"
 								size="sm"
+								className="h-8 px-3 text-xs"
 								onClick={() => {
 									setSelectedFile(null);
 									setPreviewHeaders([]);
@@ -309,6 +310,7 @@ export function OrgUserOnboardingPage() {
 							<Button
 								variant="default"
 								size="sm"
+								className="h-8 px-3 text-xs"
 								disabled={uploadMutation.isPending}
 								onClick={handleUpload}
 							>

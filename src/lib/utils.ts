@@ -55,7 +55,16 @@ export const formSchema = z.object({
 	postal_code: z.string().min(1, "Postal code is required"),
 	employee_id: z.string().optional(),
 	employment_start_date: z.string().optional(),
-	employment_status: z.enum(["ACTIVE", "INACTIVE", "LEAVE", "TERMINATED"]),
+	employment_status: z.enum([
+		"ACTIVE",
+		"ON_LEAVE",
+		"FURLOUGHED",
+		"SUSPENDED",
+		"PROBATIONARY",
+		"TERMINATED",
+		"RETIRED",
+		"RESIGNED",
+	]),
 	temporary_password: z.string().optional(),
 });
 
@@ -74,7 +83,16 @@ export const profileSchema = z.object({
 	address_line2: z.string().optional(),
 	postal_code: z.string().min(1, "Postal code is required"),
 	employee_id: z.string().optional(),
-	employment_status: z.enum(["ACTIVE", "INACTIVE", "LEAVE", "TERMINATED"]),
+	employment_status: z.enum([
+		"ACTIVE",
+		"ON_LEAVE",
+		"FURLOUGHED",
+		"SUSPENDED",
+		"PROBATIONARY",
+		"TERMINATED",
+		"RETIRED",
+		"RESIGNED",
+	]),
 });
 
 export function normalizeDisplay(value?: string | null) {

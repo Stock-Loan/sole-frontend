@@ -86,6 +86,7 @@ export function DataTable<T>({
 	onSelectionChange,
 	toolbarActions,
 	renderToolbarActions,
+	topBarActions,
 	pagination,
 	search,
 }: DataTableProps<T>) {
@@ -307,6 +308,7 @@ export function DataTable<T>({
 				enableExport={enableExport}
 				onExportAll={exportAllRows}
 				search={search}
+				leftActions={topBarActions}
 			/>
 			<Table>
 				<DataTableHeader

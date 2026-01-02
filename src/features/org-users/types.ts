@@ -4,13 +4,21 @@ import type { Role } from "@/features/roles/types";
 
 export type EmploymentStatus =
 	| "ACTIVE"
-	| "INACTIVE"
+	| "ON_LEAVE"
+	| "FURLOUGHED"
+	| "SUSPENDED"
+	| "PROBATIONARY"
 	| "TERMINATED"
-	| "LEAVE"
+	| "RETIRED"
+	| "RESIGNED"
 	| "active"
-	| "inactive"
+	| "on_leave"
+	| "furloughed"
+	| "suspended"
+	| "probationary"
 	| "terminated"
-	| "leave";
+	| "retired"
+	| "resigned";
 export type PlatformStatus =
 	| "INVITED"
 	| "ENABLED"

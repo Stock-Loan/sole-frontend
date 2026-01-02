@@ -196,9 +196,13 @@ export function AddUserDialog({
 											</SelectTrigger>
 											<SelectContent>
 												<SelectItem value="ACTIVE">Active</SelectItem>
-												<SelectItem value="INACTIVE">Inactive</SelectItem>
-												<SelectItem value="LEAVE">Leave</SelectItem>
+												<SelectItem value="ON_LEAVE">On leave</SelectItem>
+												<SelectItem value="FURLOUGHED">Furloughed</SelectItem>
+												<SelectItem value="SUSPENDED">Suspended</SelectItem>
+												<SelectItem value="PROBATIONARY">Probationary</SelectItem>
 												<SelectItem value="TERMINATED">Terminated</SelectItem>
+												<SelectItem value="RETIRED">Retired</SelectItem>
+												<SelectItem value="RESIGNED">Resigned</SelectItem>
 											</SelectContent>
 										</Select>
 									</FormControl>

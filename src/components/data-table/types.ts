@@ -94,6 +94,7 @@ export interface DataTableProps<T> {
 	onSelectionChange?: (selectedRows: T[]) => void;
 	toolbarActions?: ReactNode;
 	renderToolbarActions?: (selectedRows: T[]) => ReactNode;
+	topBarActions?: ReactNode;
 	pagination?: DataTablePaginationConfig;
 	search?: DataTableSearchConfig;
 }
@@ -161,6 +162,7 @@ export interface DataTableTopBarProps {
 	enableExport: boolean;
 	onExportAll: () => void;
 	search?: DataTableSearchConfig;
+	leftActions?: ReactNode;
 }
 
 export interface DataTableSelectionToolbarProps {
