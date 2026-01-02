@@ -12,6 +12,7 @@ export const routes = {
 	announcements: "/app/announcements",
 	orgSettings: "/app/settings",
 	userSettings: "/app/user-settings",
+	dataTableDemo: "/app/data-table-demo",
 	notAuthorized: "/not-authorized",
 } as const;
 

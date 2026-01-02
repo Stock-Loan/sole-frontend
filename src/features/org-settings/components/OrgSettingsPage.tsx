@@ -30,11 +30,11 @@ const schema = z.object({
 	allow_user_data_export: z.boolean(),
 	allow_profile_edit: z.boolean(),
 	require_two_factor: z.boolean(),
-	audit_log_retention_days: z.coerce
+	audit_log_retention_days: z
 		.number()
 		.min(30, "Minimum 30 days")
 		.max(3650, "Maximum 3650 days"),
-	inactive_user_retention_days: z.coerce
+	inactive_user_retention_days: z
 		.number()
 		.min(30, "Minimum 30 days")
 		.max(3650, "Maximum 3650 days"),
@@ -225,6 +225,10 @@ export function OrgSettingsPage() {
 												min={30}
 												max={3650}
 												{...field}
+												value={Number.isNaN(field.value) ? "" : field.value}
+												onChange={(event) =>
+													field.onChange(event.target.valueAsNumber)
+												}
 												disabled={!canManage || updateMutation.isPending}
 											/>
 										</FormControl>
@@ -244,6 +248,10 @@ export function OrgSettingsPage() {
 												min={30}
 												max={3650}
 												{...field}
+												value={Number.isNaN(field.value) ? "" : field.value}
+												onChange={(event) =>
+													field.onChange(event.target.valueAsNumber)
+												}
 												disabled={!canManage || updateMutation.isPending}
 											/>
 										</FormControl>

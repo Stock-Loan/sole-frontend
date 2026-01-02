@@ -15,6 +15,7 @@ import { RolesListPage } from "@/features/roles/pages/RolesListPage";
 import { DepartmentsPage } from "@/features/departments/pages/DepartmentsPage";
 import { AnnouncementsAdminPage } from "@/features/announcements/pages/AnnouncementsAdminPage";
 import { OverviewPage } from "@/pages/OverviewPage";
+import { DataTableDemoPage } from "@/pages/data-table-demo/DataTableDemoPage";
 import { UserSettingsPage } from "@/features/user-settings/pages/UserSettingsPage";
 import { OrgSettingsPage } from "@/features/org-settings/components/OrgSettingsPage";
 import { AppErrorBoundary } from "./error-boundary";
@@ -62,6 +63,10 @@ export const router = createBrowserRouter([
 			{
 				path: "overview",
 				element: <OverviewPage />,
+			},
+			{
+				path: "data-table-demo",
+				element: <DataTableDemoPage />,
 			},
 			{
 				path: "users",
