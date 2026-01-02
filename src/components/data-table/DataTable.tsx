@@ -98,6 +98,7 @@ export function DataTable<T>({
 	search,
 	preferences,
 	enableColumnReorder = true,
+	initialColumnVisibility,
 }: DataTableProps<T>) {
 	const preferencesKey = useMemo(
 		() =>
@@ -131,12 +132,14 @@ export function DataTable<T>({
 	);
 	const persistedPageSize = storedPreferences?.pagination?.pageSize;
 	const persistedPageIndex = storedPreferences?.pagination?.pageIndex;
+	const baseVisibility = initialColumnVisibility ?? {};
+	const storedVisibility = storedPreferences?.columnVisibility ?? {};
 
 	const [sorting, setSorting] = useState<SortingState>(
 		() => storedPreferences?.sorting ?? []
 	);
 	const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
-		() => storedPreferences?.columnVisibility ?? {}
+		() => ({ ...baseVisibility, ...storedVisibility })
 	);
 	const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(
@@ -198,13 +201,13 @@ export function DataTable<T>({
 			nextPreferences?.columnFilters?.filter((item) =>
 				allowedIds.has(item.id)
 			) ?? [];
+		const visibilitySource = nextPreferences?.columnVisibility ?? {};
 		const sanitizedVisibility = Object.fromEntries(
-			Object.entries(nextPreferences?.columnVisibility ?? {}).filter(([id]) =>
-				allowedIds.has(id)
-			)
+			Object.entries(visibilitySource).filter(([id]) => allowedIds.has(id))
 		);
+		const mergedVisibility = { ...baseVisibility, ...sanitizedVisibility };
 		setSorting(sanitizedSorting);
-		setColumnVisibility(sanitizedVisibility);
+		setColumnVisibility(mergedVisibility);
 		setColumnFilters(sanitizedFilters);
 		setColumnOrder(
 			normalizeColumnOrder(
@@ -232,6 +235,7 @@ export function DataTable<T>({
 	}, [
 		dataColumnIds,
 		enableRowSelection,
+		initialColumnVisibility,
 		pagination?.pageSize,
 		pagination?.state,
 		preferencesConfig,
@@ -533,7 +537,10 @@ export function DataTable<T>({
 				search={search}
 				leftActions={topBarActions}
 			/>
-			<Table containerClassName="flex-1 min-h-0 overflow-auto scrollbar-hidden">
+			<Table
+				className="text-[13px]"
+				containerClassName="flex-1 min-h-0 overflow-auto scrollbar-hidden"
+			>
 				<DataTableHeader
 					table={table}
 					columns={columns}

@@ -93,7 +93,7 @@ export function DataTableColumnMenu<T>({
 				<DropdownMenuSub>
 					<DropdownMenuSubTrigger>Columns</DropdownMenuSubTrigger>
 					<DropdownMenuPortal>
-						<DropdownMenuSubContent className="w-64">
+						<DropdownMenuSubContent className="w-64 max-h-64 overflow-y-auto">
 							{columns.map((col) => {
 								const columnInstance = table.getColumn(col.id);
 								if (!columnInstance) return null;

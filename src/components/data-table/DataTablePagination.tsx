@@ -20,7 +20,7 @@ export function DataTablePagination<T>({
 	const canNextPage = paginationState.pageIndex + 1 < totalPages;
 
 	return (
-		<div className="flex flex-wrap items-center justify-between gap-3 border-t border-border/60 px-4 py-3 text-sm text-muted-foreground">
+		<div className="flex flex-wrap items-center justify-between gap-3 border-t border-border/60 px-4 py-3 text-xs text-muted-foreground">
 			<div className="flex flex-wrap items-center gap-3">
 				<span>
 					Showing{" "}
@@ -45,7 +45,7 @@ export function DataTablePagination<T>({
 								table.setPageSize(nextSize);
 							}}
 						>
-						<SelectTrigger className="h-10 w-[90px] text-xs">
+						<SelectTrigger className="h-9 w-[84px] text-xs">
 							<SelectValue />
 						</SelectTrigger>
 							<SelectContent>

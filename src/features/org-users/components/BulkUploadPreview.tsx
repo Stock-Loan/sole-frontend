@@ -29,7 +29,7 @@ export function BulkUploadPreview({ headers, rows }: BulkUploadPreviewProps) {
 				enableFiltering: false,
 				enableHiding: false,
 				headerClassName: "w-12 min-w-[3rem] text-xs",
-				cellClassName: "text-xs font-semibold",
+				cellClassName: "text-xs font-medium",
 			},
 			...headers.map((header, index) => ({
 				id: `col-${index}`,

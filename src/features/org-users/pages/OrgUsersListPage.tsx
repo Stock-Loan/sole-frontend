@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { PaginationState } from "@tanstack/react-table";
+import type { PaginationState, VisibilityState } from "@tanstack/react-table";
 import { Link, useSearchParams } from "react-router-dom";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/common/PageHeader";
@@ -27,6 +27,7 @@ import { useApiErrorToast } from "@/hooks/useApiErrorToast";
 import { queryKeys } from "@/lib/queryKeys";
 import { routes } from "@/lib/routes";
 import { normalizeDisplay } from "@/lib/utils";
+import { formatDate } from "@/lib/format";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { AddUserDialog } from "../components/AddUserDialog";
 import { listOrgUsers, onboardOrgUser } from "../api/orgUsers.api";
@@ -65,6 +66,21 @@ function getDepartmentLabel(membership: OrgUserListItem["membership"]) {
 	);
 }
 
+function getRoleLabels(roles: OrgUserListItem["roles"]) {
+	if (!roles || roles.length === 0) return "—";
+	return roles
+		.map((role) =>
+			normalizeDisplay(typeof role === "string" ? role : role.name ?? role.id)
+		)
+		.filter(Boolean)
+		.join(", ");
+}
+
+function formatYesNo(value?: boolean | null) {
+	if (value === null || value === undefined) return "—";
+	return value ? "Yes" : "No";
+}
+
 const columns: ColumnDefinition<OrgUserListItem>[] = [
 	{
 		id: "fullName",
@@ -75,7 +91,7 @@ const columns: ColumnDefinition<OrgUserListItem>[] = [
 		cell: (row) => (
 			<Link
 				to={routes.userDetail.replace(":membershipId", row.membership.id)}
-				className="font-semibold text-primary underline-offset-4 hover:underline"
+				className="font-medium text-primary underline-offset-4 hover:underline"
 			>
 				{getDisplayName(row.user)}
 			</Link>
@@ -89,16 +105,40 @@ const columns: ColumnDefinition<OrgUserListItem>[] = [
 		cell: (row) => row.membership.employee_id || "—",
 	},
 	{
+		id: "preferredName",
+		header: "Preferred name",
+		accessor: (row) => row.user.preferred_name ?? "",
+		cell: (row) => row.user.preferred_name || "—",
+	},
+	{
 		id: "email",
 		header: "Email",
 		accessor: (row) => row.user.email,
 		cell: (row) => row.user.email,
 	},
 	{
+		id: "phoneNumber",
+		header: "Phone",
+		accessor: (row) => row.user.phone_number ?? "",
+		cell: (row) => row.user.phone_number || "—",
+	},
+	{
+		id: "timezone",
+		header: "Timezone",
+		accessor: (row) => row.user.timezone ?? "",
+		cell: (row) => row.user.timezone || "—",
+	},
+	{
 		id: "department",
 		header: "Department",
 		accessor: (row) => getDepartmentLabel(row.membership),
 		cell: (row) => getDepartmentLabel(row.membership),
+	},
+	{
+		id: "departmentId",
+		header: "Department ID",
+		accessor: (row) => row.membership.department_id ?? "",
+		cell: (row) => row.membership.department_id || "—",
 	},
 	{
 		id: "employmentStatus",
@@ -112,6 +152,12 @@ const columns: ColumnDefinition<OrgUserListItem>[] = [
 		),
 	},
 	{
+		id: "employmentStartDate",
+		header: "Employment start",
+		accessor: (row) => row.membership.employment_start_date ?? "",
+		cell: (row) => formatDate(row.membership.employment_start_date),
+	},
+	{
 		id: "platformStatus",
 		header: "Platform status",
 		accessor: (row) => row.membership.platform_status ?? "",
@@ -121,6 +167,132 @@ const columns: ColumnDefinition<OrgUserListItem>[] = [
 				{normalizeDisplay(row.membership.platform_status)}
 			</Badge>
 		),
+	},
+	{
+		id: "invitationStatus",
+		header: "Invitation status",
+		accessor: (row) => row.membership.invitation_status ?? "",
+		filterAccessor: (row) => row.membership.invitation_status ?? "",
+		cell: (row) => (
+			<Badge variant="outline">
+				{normalizeDisplay(row.membership.invitation_status)}
+			</Badge>
+		),
+	},
+	{
+		id: "roles",
+		header: "Roles",
+		accessor: (row) => getRoleLabels(row.roles),
+		filterAccessor: (row) => getRoleLabels(row.roles),
+		cell: (row) => getRoleLabels(row.roles),
+	},
+	{
+		id: "invitedAt",
+		header: "Invited at",
+		accessor: (row) => row.membership.invited_at ?? "",
+		cell: (row) => formatDate(row.membership.invited_at),
+	},
+	{
+		id: "acceptedAt",
+		header: "Accepted at",
+		accessor: (row) => row.membership.accepted_at ?? "",
+		cell: (row) => formatDate(row.membership.accepted_at),
+	},
+	{
+		id: "membershipCreatedAt",
+		header: "Membership created",
+		accessor: (row) => row.membership.created_at ?? "",
+		cell: (row) => formatDate(row.membership.created_at),
+	},
+	{
+		id: "userCreatedAt",
+		header: "User created",
+		accessor: (row) => row.user.created_at ?? "",
+		cell: (row) => formatDate(row.user.created_at),
+	},
+	{
+		id: "maritalStatus",
+		header: "Marital status",
+		accessor: (row) => row.user.marital_status ?? "",
+		cell: (row) => normalizeDisplay(row.user.marital_status),
+	},
+	{
+		id: "country",
+		header: "Country",
+		accessor: (row) => row.user.country ?? "",
+		cell: (row) => row.user.country || "—",
+	},
+	{
+		id: "state",
+		header: "State",
+		accessor: (row) => row.user.state ?? "",
+		cell: (row) => row.user.state || "—",
+	},
+	{
+		id: "addressLine1",
+		header: "Address line 1",
+		accessor: (row) => row.user.address_line1 ?? "",
+		cell: (row) => row.user.address_line1 || "—",
+	},
+	{
+		id: "addressLine2",
+		header: "Address line 2",
+		accessor: (row) => row.user.address_line2 ?? "",
+		cell: (row) => row.user.address_line2 || "—",
+	},
+	{
+		id: "postalCode",
+		header: "Postal code",
+		accessor: (row) => row.user.postal_code ?? "",
+		cell: (row) => row.user.postal_code || "—",
+	},
+	{
+		id: "firstName",
+		header: "First name",
+		accessor: (row) => row.user.first_name ?? "",
+		cell: (row) => row.user.first_name || "—",
+	},
+	{
+		id: "middleName",
+		header: "Middle name",
+		accessor: (row) => row.user.middle_name ?? "",
+		cell: (row) => row.user.middle_name || "—",
+	},
+	{
+		id: "lastName",
+		header: "Last name",
+		accessor: (row) => row.user.last_name ?? "",
+		cell: (row) => row.user.last_name || "—",
+	},
+	{
+		id: "isActive",
+		header: "User active",
+		accessor: (row) => formatYesNo(row.user.is_active),
+		cell: (row) => formatYesNo(row.user.is_active),
+	},
+	{
+		id: "isSuperuser",
+		header: "Superuser",
+		accessor: (row) => formatYesNo(row.user.is_superuser),
+		cell: (row) => formatYesNo(row.user.is_superuser),
+	},
+	{
+		id: "userId",
+		header: "User ID",
+		accessor: (row) => row.user.id,
+		cell: (row) => row.user.id,
+	},
+	{
+		id: "membershipId",
+		header: "Membership ID",
+		accessor: (row) => row.membership.id,
+		cell: (row) => row.membership.id,
+	},
+	{
+		id: "orgId",
+		header: "Org ID",
+		accessor: (row) => row.membership.org_id ?? row.user.org_id ?? "",
+		cell: (row) => row.membership.org_id ?? row.user.org_id ?? "—",
 	},
 ];
 
@@ -164,6 +336,34 @@ export function OrgUsersListPage() {
 		typeof persistedPreferences?.pagination?.pageSize === "number"
 			? persistedPreferences.pagination.pageSize
 			: DEFAULT_PAGE_SIZE;
+
+	const initialColumnVisibility = useMemo<VisibilityState>(
+		() => ({
+			preferredName: false,
+			phoneNumber: false,
+			timezone: false,
+			departmentId: false,
+			invitedAt: false,
+			acceptedAt: false,
+			membershipCreatedAt: false,
+			userCreatedAt: false,
+			maritalStatus: false,
+			country: false,
+			state: false,
+			addressLine1: false,
+			addressLine2: false,
+			postalCode: false,
+			firstName: false,
+			middleName: false,
+			lastName: false,
+			isActive: false,
+			isSuperuser: false,
+			userId: false,
+			membershipId: false,
+			orgId: false,
+		}),
+		[]
+	);
 
 	const page = parsePositiveInt(searchParams.get("page"), DEFAULT_PAGE);
 	const pageSize = parsePositiveInt(
@@ -319,6 +519,7 @@ export function OrgUsersListPage() {
 					emptyMessage="No users found for this organization."
 					exportFileName="org-users.csv"
 					preferences={preferencesConfig}
+					initialColumnVisibility={initialColumnVisibility}
 					className="flex-1 min-h-0"
 					topBarActions={
 						<AddUserDialog

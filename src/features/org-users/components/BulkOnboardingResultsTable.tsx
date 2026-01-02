@@ -26,7 +26,7 @@ export function BulkOnboardingResultsTable({
 				enableFiltering: false,
 				enableHiding: false,
 				headerClassName: "w-16",
-				cellClassName: "font-semibold",
+				cellClassName: "font-medium",
 			},
 			{
 				id: "email",
@@ -126,7 +126,7 @@ export function BulkOnboardingResultsTable({
 				enableFiltering: false,
 				enableHiding: false,
 				headerClassName: "w-16",
-				cellClassName: "font-semibold",
+				cellClassName: "font-medium",
 			},
 			{
 				id: "email",
@@ -182,7 +182,7 @@ export function BulkOnboardingResultsTable({
 		<div className="space-y-4">
 			{successes.length ? (
 				<div className="space-y-2">
-					<p className="text-sm font-semibold text-foreground">
+					<p className="text-sm font-medium text-foreground">
 						Successful rows
 					</p>
 					<div className="flex max-h-80 min-h-0 flex-col">
@@ -204,7 +204,7 @@ export function BulkOnboardingResultsTable({
 			) : null}
 			{errors.length ? (
 				<div className="space-y-2">
-					<p className="text-sm font-semibold text-foreground">Failed rows</p>
+					<p className="text-sm font-medium text-foreground">Failed rows</p>
 					<div className="flex max-h-80 min-h-0 flex-col">
 						<DataTable
 							data={errors}

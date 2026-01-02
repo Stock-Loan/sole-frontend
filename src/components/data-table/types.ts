@@ -132,6 +132,7 @@ export interface DataTableProps<T> {
 	search?: DataTableSearchConfig;
 	preferences?: DataTablePreferencesConfig;
 	enableColumnReorder?: boolean;
+	initialColumnVisibility?: VisibilityState;
 }
 
 export interface DataTableExportContext<T> {

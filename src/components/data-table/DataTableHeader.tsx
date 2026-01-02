@@ -177,7 +177,7 @@ export function DataTableHeader<T>({
 											<GripVertical className="h-4 w-4" />
 										</button>
 									) : null}
-									<span className="text-sm font-semibold">
+									<span className="text-xs font-medium">
 										{config.header}
 									</span>
 									<DataTableColumnMenu
