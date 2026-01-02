@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, useCallback } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Upload, FileDown, Loader2, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -13,7 +13,11 @@ import {
 import { BulkUploadPreview } from "../components/BulkUploadPreview";
 import { BulkOnboardingGuide } from "../components/BulkOnboardingGuide";
 import { BulkOnboardingResultsTable } from "../components/BulkOnboardingResultsTable";
-import type { BulkOnboardingResult, BulkOnboardingRowResult } from "../types";
+import type {
+	BulkOnboardingErrorItem,
+	BulkOnboardingResult,
+	BulkOnboardingSuccessItem,
+} from "../types";
 
 export function OrgUserOnboardingPage() {
 	const navigate = useNavigate();
@@ -139,49 +143,58 @@ export function OrgUserOnboardingPage() {
 		uploadMutation.mutate(selectedFile);
 	};
 
-	const simplifyError = useCallback((raw: string | undefined | null) => {
-		if (!raw) return "Unable to process this row.";
-		const lines = raw
-			.split("\n")
-			.map((l) => l.trim())
-			.filter(Boolean);
-		return lines.slice(0, 3).join(" • ");
-	}, []);
-
-	const mapErrorRows = useMemo(
-		() => (result: BulkOnboardingResult | null) => {
-			if (!result) return [];
-			const errors = result.errors ?? [];
-			const successes = result.successes ?? [];
-			const normalizedErrors: BulkOnboardingRowResult[] = errors.map((err) => ({
-				row: err.row_number,
-				email: err.email,
-				employee_id: err.employee_id,
-				status: "failure",
-				message: simplifyError(err.error),
-			}));
-			const normalizedSuccesses: BulkOnboardingRowResult[] = successes.map(
-				(row) => ({
-					row: row.row_number,
+	const bulkSuccesses = useMemo<BulkOnboardingSuccessItem[]>(() => {
+		if (bulkResult?.successes?.length) {
+			return bulkResult.successes;
+		}
+		if (bulkResult?.results?.length) {
+			return bulkResult.results
+				.filter((row) => row.status === "success")
+				.map((row) => ({
+					row_number: row.row,
 					email: row.email,
 					employee_id: row.employee_id,
-					status: "success",
-					message: row.message || "Processed",
-				})
-			);
-			return [...normalizedSuccesses, ...normalizedErrors].sort(
-				(a, b) => a.row - b.row
-			);
-		},
-		[simplifyError]
-	);
-
-	const bulkRows = useMemo(() => {
-		if (bulkResult?.results && bulkResult.results.length > 0) {
-			return bulkResult.results;
+					message: row.message,
+				}));
 		}
-		return mapErrorRows(bulkResult);
-	}, [bulkResult, mapErrorRows]);
+		return [];
+	}, [bulkResult]);
+
+	const bulkErrors = useMemo<BulkOnboardingErrorItem[]>(() => {
+		if (bulkResult?.errors?.length) {
+			return bulkResult.errors;
+		}
+		if (bulkResult?.results?.length) {
+			return bulkResult.results
+				.filter((row) => row.status === "failure")
+				.map((row) => ({
+					row_number: row.row,
+					email: row.email,
+					employee_id: row.employee_id,
+					error: row.message ?? "Unable to process this row.",
+				}));
+		}
+		return [];
+	}, [bulkResult]);
+
+	const bulkSummary = useMemo(() => {
+		if (!bulkResult) return null;
+		const results = bulkResult.results;
+		const successCount =
+			bulkResult.success_count ??
+			(results
+				? results.filter((row) => row.status === "success").length
+				: bulkResult.successes?.length ?? 0);
+		const failureCount =
+			bulkResult.failure_count ??
+			(results
+				? results.filter((row) => row.status === "failure").length
+				: bulkResult.errors?.length ?? 0);
+		const totalRows =
+			bulkResult.total_rows ??
+			(results ? results.length : successCount + failureCount);
+		return { successCount, failureCount, totalRows };
+	}, [bulkResult]);
 
 	return (
 		<div className="space-y-6">
@@ -330,11 +343,15 @@ export function OrgUserOnboardingPage() {
 					/>
 				</div>
 			)}
-			<BulkOnboardingResultsTable rows={bulkRows} />
-			{bulkResult ? (
+			<BulkOnboardingResultsTable
+				successes={bulkSuccesses}
+				errors={bulkErrors}
+			/>
+			{bulkSummary ? (
 				<p className="text-xs text-muted-foreground">
-					Processed {bulkResult.total_rows} rows • {bulkResult.success_count}{" "}
-					succeeded, {bulkResult.failure_count} failed.
+					Processed {bulkSummary.totalRows} rows •{" "}
+					{bulkSummary.successCount} succeeded, {bulkSummary.failureCount}{" "}
+					failed.
 				</p>
 			) : null}
 		</div>

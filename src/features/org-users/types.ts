@@ -169,23 +169,34 @@ export interface BulkOnboardingRowResult {
 	message?: string;
 }
 
+export interface BulkOnboardingSuccessItem {
+	row_number: number;
+	user?: OrgUserDto;
+	membership?: OrgMembershipDto;
+	email?: string;
+	first_name?: string;
+	last_name?: string;
+	employee_id?: string;
+	temporary_password?: string;
+	message?: string;
+}
+
+export interface BulkOnboardingErrorItem {
+	row_number: number;
+	email?: string;
+	first_name?: string;
+	last_name?: string;
+	employee_id?: string;
+	error: string;
+}
+
 export interface BulkOnboardingResult {
 	results?: BulkOnboardingRowResult[];
-	errors?: Array<{
-		row_number: number;
-		email?: string;
-		employee_id?: string;
-		error: string;
-	}>;
-	successes?: Array<{
-		row_number: number;
-		email?: string;
-		employee_id?: string;
-		message?: string;
-	}>;
-	total_rows: number;
-	success_count: number;
-	failure_count: number;
+	errors?: BulkOnboardingErrorItem[];
+	successes?: BulkOnboardingSuccessItem[];
+	total_rows?: number;
+	success_count?: number;
+	failure_count?: number;
 }
 
 export interface BulkDeleteMembershipsResponse {
@@ -196,6 +207,11 @@ export interface BulkUploadPreviewProps {
 	headers: string[];
 	rows: string[][];
 	fileName?: string;
+}
+export interface BulkUploadPreviewRow {
+	id: string;
+	rowNumber: number;
+	values: string[];
 }
 export interface AddUserDialogProps {
 	open: boolean;
@@ -216,7 +232,8 @@ export interface BulkOnboardingGuideProps {
 	className?: string;
 }
 export interface BulkOnboardingResultsTableProps {
-	rows: BulkOnboardingRowResult[];
+	successes: BulkOnboardingSuccessItem[];
+	errors: BulkOnboardingErrorItem[];
 }
 export interface DepartmentOption {
 	id: string;

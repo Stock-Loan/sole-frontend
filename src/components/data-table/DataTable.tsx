@@ -533,7 +533,7 @@ export function DataTable<T>({
 				search={search}
 				leftActions={topBarActions}
 			/>
-			<Table containerClassName="flex-1 min-h-0">
+			<Table containerClassName="flex-1 min-h-0 overflow-auto scrollbar-hidden">
 				<DataTableHeader
 					table={table}
 					columns={columns}

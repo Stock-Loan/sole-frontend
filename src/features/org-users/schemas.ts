@@ -132,31 +132,34 @@ export const BulkOnboardingRowResultSchema = z.object({
 	message: z.string().optional(),
 });
 
+export const BulkOnboardingSuccessSchema = z.object({
+	row_number: z.number(),
+	user: OrgUserDtoSchema.optional(),
+	membership: OrgMembershipDtoSchema.optional(),
+	email: z.string().optional(),
+	first_name: z.string().optional(),
+	last_name: z.string().optional(),
+	employee_id: z.string().optional(),
+	temporary_password: z.string().optional(),
+	message: z.string().optional(),
+});
+
+export const BulkOnboardingErrorSchema = z.object({
+	row_number: z.number(),
+	email: z.string().optional(),
+	first_name: z.string().optional(),
+	last_name: z.string().optional(),
+	employee_id: z.string().optional(),
+	error: z.string(),
+});
+
 export const BulkOnboardingResultSchema = z.object({
 	results: z.array(BulkOnboardingRowResultSchema).optional(),
-	errors: z
-		.array(
-			z.object({
-				row_number: z.number(),
-				email: z.string().optional(),
-				employee_id: z.string().optional(),
-				error: z.string(),
-			}),
-		)
-		.optional(),
-	successes: z
-		.array(
-			z.object({
-				row_number: z.number(),
-				email: z.string().optional(),
-				employee_id: z.string().optional(),
-				message: z.string().optional(),
-			}),
-		)
-		.optional(),
-	total_rows: z.number(),
-	success_count: z.number(),
-	failure_count: z.number(),
+	errors: z.array(BulkOnboardingErrorSchema).optional(),
+	successes: z.array(BulkOnboardingSuccessSchema).optional(),
+	total_rows: z.number().optional(),
+	success_count: z.number().optional(),
+	failure_count: z.number().optional(),
 });
 
 export const BulkDeleteMembershipsResponseSchema = z.object({
