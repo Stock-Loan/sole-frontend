@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { PageContainer } from "@/components/layout/PageContainer";
@@ -13,11 +13,7 @@ import { OrgUserProfileDialog } from "../components/OrgUserProfileDialog";
 import { useCountries } from "@/features/meta/hooks/useCountries";
 import { useSubdivisions } from "@/features/meta/hooks/useSubdivisions";
 import { formatDate } from "@/lib/format";
-import type {
-	OrgUserDetailTabKey,
-	OrgUserInfoRowProps,
-	OrgUserListItem,
-} from "../types";
+import type { OrgUserInfoRowProps, OrgUserListItem } from "../types";
 import { Badge } from "@/components/ui/badge";
 import { normalizeDisplay } from "@/lib/utils";
 import { useSelfContext } from "@/features/auth/hooks/useSelfContext";
@@ -30,10 +26,6 @@ import {
 	assignDepartmentToUsers,
 	unassignDepartments,
 } from "@/features/departments/api/departments.api";
-import { StockGrantsSection } from "@/features/stock/components/StockGrantsSection";
-import { getStockSummary } from "@/features/stock/api/stock.api";
-import type { StockGrantsSectionHandle, StockSummary } from "@/features/stock/types";
-import { TabButton } from "@/components/common/TabButton";
 import {
 	Select,
 	SelectContent,
@@ -57,8 +49,6 @@ export function OrgUserDetailPage() {
 	});
 
 	const [profileDialogOpen, setProfileDialogOpen] = useState(false);
-	const [tab, setTab] = useState<OrgUserDetailTabKey>("info");
-	const grantsRef = useRef<StockGrantsSectionHandle>(null);
 	const { data: countries } = useCountries();
 	const countryCode = data?.user.country || "";
 	const { data: subdivisions } = useSubdivisions(countryCode || null);
@@ -68,16 +58,6 @@ export function OrgUserDetailPage() {
 		queryKey: queryKeys.departments.list({ page: 1, page_size: 100 }),
 		queryFn: () => listDepartments({ page: 1, page_size: 100 }),
 		staleTime: 5 * 60 * 1000,
-	});
-	const canViewStockSummary = can([
-		"stock.vesting.view",
-		"stock.eligibility.view",
-	]);
-	const stockSummaryQuery = useQuery<StockSummary>({
-		enabled: Boolean(membershipId) && canViewStockSummary,
-		queryKey: queryKeys.stock.summary(membershipId || ""),
-		queryFn: () => getStockSummary(membershipId || ""),
-		placeholderData: (previous) => previous,
 	});
 
 	const assignedRoles = useMemo(() => data?.roles ?? [], [data?.roles]);
@@ -212,15 +192,6 @@ export function OrgUserDetailPage() {
 	const canManageDepartments =
 		can(["department.manage", "user.manage"]) ||
 		Boolean(authUser?.is_superuser);
-	const canViewStockGrants =
-		can("stock.grant.view") || can("stock.grant.manage");
-	const canManageStockGrants = can("stock.grant.manage");
-	const grantEligibility =
-		stockSummaryQuery.data?.eligibility_result?.eligible_to_exercise;
-	const isGrantActionBlocked =
-		grantEligibility === false ||
-		(canViewStockSummary &&
-			(stockSummaryQuery.isLoading || stockSummaryQuery.isFetching));
 	const departmentAssignmentDisabled =
 		!canManageDepartments ||
 		employmentStatus !== "ACTIVE" ||
@@ -239,184 +210,121 @@ export function OrgUserDetailPage() {
 				}
 			/>
 
-			<div className="inline-flex w-fit items-center gap-2 rounded-lg border bg-card px-2 py-2 shadow-sm">
-				<TabButton
-					label="User Information"
-					value="info"
-					active={tab === "info"}
-					onSelect={setTab}
-				/>
-				<TabButton
-					label="Stock Grants"
-					value="grants"
-					active={tab === "grants"}
-					onSelect={setTab}
-				/>
-			</div>
-
 			<div className="flex min-h-0 flex-1 flex-col rounded-lg border bg-card shadow-sm">
-				{tab === "info" ? (
-					<div className="flex min-h-0 flex-1 flex-col">
-						<div className="border-b border-border/70 px-6 py-4">
-							<div className="flex flex-wrap items-start justify-between gap-3">
-								<div className="space-y-1">
-									<h2 className="text-lg font-semibold">User Information</h2>
-									<p className="text-sm text-muted-foreground">
-										Contact, employment, and access details.
-									</p>
-								</div>
-								<Button
-									size="sm"
-									variant="outline"
-									disabled={!can("user.manage")}
-									onClick={() => setProfileDialogOpen(true)}
-								>
-									Edit profile
-								</Button>
-							</div>
-							<div className="mt-3 flex flex-wrap items-center gap-2">
-								{statusChips.map((chip) => (
-									<Badge key={chip.label} variant="secondary">
-										{chip.label}: {chip.value || "—"}
-									</Badge>
-								))}
-							</div>
-							<div className="mt-3 flex flex-wrap items-center gap-2">
-								{assignedRoleNames.length ? (
-									assignedRoleNames.map((role) => (
-										<Badge key={role} variant="outline">
-											{role}
-										</Badge>
-									))
-								) : (
-									<Badge variant="outline">No roles assigned</Badge>
-								)}
-							</div>
-						</div>
-						<div className="min-h-0 flex-1 space-y-6 overflow-y-auto px-6 py-4">
-							<section className="space-y-3 rounded-lg border border-border/60 bg-card/50 p-4">
-								<div className="flex items-center justify-between">
-									<h3 className="text-sm font-semibold">
-										Department assignment
-									</h3>
-									{isDepartmentsLoading ? (
-										<span className="text-xs text-muted-foreground">
-											Loading…
-										</span>
-									) : null}
-								</div>
-								<div className="flex flex-wrap items-center gap-3">
-									<Select
-										value={currentDepartmentId}
-										disabled={
-											departmentAssignmentDisabled ||
-											isDepartmentsLoading ||
-											departmentMutation.isPending
-										}
-										onValueChange={(val) =>
-											departmentMutation.mutate(val === "none" ? null : val)
-										}
-									>
-										<SelectTrigger className="w-[240px] max-w-xs">
-											<SelectValue placeholder="Select department" />
-										</SelectTrigger>
-										<SelectContent>
-											<SelectItem value="none">No department</SelectItem>
-											{departmentOptions.map((dept) => (
-												<SelectItem key={dept.id} value={dept.id}>
-													{dept.name}
-												</SelectItem>
-											))}
-										</SelectContent>
-									</Select>
-									{departmentAssignmentDisabled ? (
-										<span className="text-xs text-muted-foreground">
-											Department can be assigned when employment and platform
-											are Active and you have department.manage.
-										</span>
-									) : null}
-									{departmentMutation.isPending ? (
-										<span className="text-xs text-muted-foreground">
-											Updating…
-										</span>
-									) : null}
-								</div>
-							</section>
-
-							<section className="space-y-2">
-								<p className="text-sm font-semibold text-foreground">Contact</p>
-								<div className="grid gap-3 md:grid-cols-3">
-									{infoItems.slice(0, 9).map((item) => (
-										<InfoRow
-											key={item.label}
-											label={item.label}
-											value={item.value}
-										/>
-									))}
-								</div>
-							</section>
-
-							<section className="space-y-2">
-								<p className="text-sm font-semibold text-foreground">
-									Employment & Access
-								</p>
-								<div className="grid gap-3 md:grid-cols-3">
-									{infoItems.slice(9).map((item) => (
-										<InfoRow
-											key={item.label}
-											label={item.label}
-											value={item.value}
-										/>
-									))}
-								</div>
-							</section>
-						</div>
-					</div>
-				) : (
-					<div className="flex min-h-0 flex-1 flex-col">
-						<div className="border-b border-border/70 px-6 py-4">
-							<div className="flex flex-wrap items-start justify-between gap-3">
-								<div>
-									<h2 className="text-lg font-semibold">Grants</h2>
-									<p className="text-sm text-muted-foreground">
-										Manage stock grants and vesting schedules for this employee.
-									</p>
-								</div>
-								{canManageStockGrants ? (
-									<Button
-										size="sm"
-										onClick={() => grantsRef.current?.openCreate()}
-										disabled={isGrantActionBlocked}
-										title={
-											isGrantActionBlocked
-												? stockSummaryQuery.isLoading ||
-												  stockSummaryQuery.isFetching
-													? "Checking eligibility…"
-													: "This employee is not eligible to exercise shares."
-												: undefined
-										}
-									>
-										New grant
-									</Button>
-								) : null}
-							</div>
-						</div>
-						<div className="flex min-h-0 flex-1 flex-col px-6 py-4">
-							{canViewStockGrants ? (
-								<StockGrantsSection
-									key={data.membership.id}
-									ref={grantsRef}
-									membershipId={data.membership.id}
-									canManage={canManageStockGrants}
-								/>
-							) : (
+				<div className="flex min-h-0 flex-1 flex-col">
+					<div className="border-b border-border/70 px-6 py-4">
+						<div className="flex flex-wrap items-start justify-between gap-3">
+							<div className="space-y-1">
+								<h2 className="text-lg font-semibold">User Information</h2>
 								<p className="text-sm text-muted-foreground">
-									You do not have access to view stock grants for this user.
+									Contact, employment, and access details.
 								</p>
+							</div>
+							<Button
+								size="sm"
+								variant="outline"
+								disabled={!can("user.manage")}
+								onClick={() => setProfileDialogOpen(true)}
+							>
+								Edit profile
+							</Button>
+						</div>
+						<div className="mt-3 flex flex-wrap items-center gap-2">
+							{statusChips.map((chip) => (
+								<Badge key={chip.label} variant="secondary">
+									{chip.label}: {chip.value || "—"}
+								</Badge>
+							))}
+						</div>
+						<div className="mt-3 flex flex-wrap items-center gap-2">
+							{assignedRoleNames.length ? (
+								assignedRoleNames.map((role) => (
+									<Badge key={role} variant="outline">
+										{role}
+									</Badge>
+								))
+							) : (
+								<Badge variant="outline">No roles assigned</Badge>
 							)}
 						</div>
 					</div>
-				)}
+					<div className="min-h-0 flex-1 space-y-6 overflow-y-auto px-6 py-4">
+						<section className="space-y-3 rounded-lg border border-border/60 bg-card/50 p-4">
+							<div className="flex items-center justify-between">
+								<h3 className="text-sm font-semibold">Department assignment</h3>
+								{isDepartmentsLoading ? (
+									<span className="text-xs text-muted-foreground">
+										Loading…
+									</span>
+								) : null}
+							</div>
+							<div className="flex flex-wrap items-center gap-3">
+								<Select
+									value={currentDepartmentId}
+									disabled={
+										departmentAssignmentDisabled ||
+										isDepartmentsLoading ||
+										departmentMutation.isPending
+									}
+									onValueChange={(val) =>
+										departmentMutation.mutate(val === "none" ? null : val)
+									}
+								>
+									<SelectTrigger className="w-[240px] max-w-xs">
+										<SelectValue placeholder="Select department" />
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value="none">No department</SelectItem>
+										{departmentOptions.map((dept) => (
+											<SelectItem key={dept.id} value={dept.id}>
+												{dept.name}
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
+								{departmentAssignmentDisabled ? (
+									<span className="text-xs text-muted-foreground">
+										Department can be assigned when employment and platform are
+										Active and you have department.manage.
+									</span>
+								) : null}
+								{departmentMutation.isPending ? (
+									<span className="text-xs text-muted-foreground">
+										Updating…
+									</span>
+								) : null}
+							</div>
+						</section>
+
+						<section className="space-y-2">
+							<p className="text-sm font-semibold text-foreground">Contact</p>
+							<div className="grid gap-3 md:grid-cols-3">
+								{infoItems.slice(0, 9).map((item) => (
+									<InfoRow
+										key={item.label}
+										label={item.label}
+										value={item.value}
+									/>
+								))}
+							</div>
+						</section>
+
+						<section className="space-y-2">
+							<p className="text-sm font-semibold text-foreground">
+								Employment & Access
+							</p>
+							<div className="grid gap-3 md:grid-cols-3">
+								{infoItems.slice(9).map((item) => (
+									<InfoRow
+										key={item.label}
+										label={item.label}
+										value={item.value}
+									/>
+								))}
+							</div>
+						</section>
+					</div>
+				</div>
 			</div>
 
 			<OrgUserProfileDialog

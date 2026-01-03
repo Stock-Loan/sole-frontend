@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle, CheckCircle2, Search } from "lucide-react";
+import { Link } from "react-router-dom";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/common/PageHeader";
 import { TabButton } from "@/components/common/TabButton";
@@ -14,6 +15,7 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import { useDebounce } from "@/hooks/useDebounce";
 import { listOrgUsers } from "@/features/org-users/api/orgUsers.api";
 import { getOrgUserDisplayName } from "@/features/org-users/constants";
@@ -25,6 +27,7 @@ import { usePermissions } from "@/features/auth/hooks/usePermissions";
 import { queryKeys } from "@/lib/queryKeys";
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { routes } from "@/lib/routes";
 import { getStockSummary, listStockGrants } from "@/features/stock/api/stock.api";
 import { StockGrantsSection } from "@/features/stock/components/StockGrantsSection";
 import { formatShares, getEligibilityReasonLabel } from "@/features/stock/constants";
@@ -252,6 +255,57 @@ export function StockAdminPage() {
 	const displayName = selectedUser
 		? getOrgUserDisplayName(selectedUser.user)
 		: "";
+	const userDetailPath = selectedUser
+		? `${routes.users}/${selectedUser.membership.id}`
+		: "";
+	const userInitials = useMemo(() => {
+		if (!selectedUser) return "U";
+		const nameSource = displayName || selectedUser.user.email || "";
+		const parts = nameSource
+			.split(" ")
+			.map((part) => part.trim())
+			.filter(Boolean);
+		if (parts.length >= 2) {
+			return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+		}
+		if (parts.length === 1) {
+			return parts[0].slice(0, 2).toUpperCase();
+		}
+		return selectedUser.user.email?.slice(0, 2)?.toUpperCase() || "U";
+	}, [displayName, selectedUser]);
+
+	const statusChips = selectedUser
+		? [
+				{ label: "Employment", value: selectedUser.membership.employment_status },
+				{ label: "Platform", value: selectedUser.membership.platform_status },
+				selectedUser.membership.invitation_status
+					? {
+							label: "Invitation",
+							value: selectedUser.membership.invitation_status,
+						}
+					: null,
+		  ].filter(Boolean) as { label: string; value?: string | null }[]
+		: [];
+
+	const metaItems = selectedUser
+		? [
+				{
+					label: "Employee ID",
+					value: selectedUser.membership.employee_id ?? "—",
+				},
+				{
+					label: "Department",
+					value:
+						selectedUser.membership.department_name ||
+						selectedUser.membership.department ||
+						"—",
+				},
+				{
+					label: "Membership created",
+					value: formatDate(selectedUser.membership.created_at) || "—",
+				},
+		  ]
+		: [];
 
 	const renderSummaryContent = () => {
 		if (!canViewSummary) {
@@ -489,10 +543,45 @@ export function StockAdminPage() {
 
 			{selectedUser ? (
 				<>
-					<div className="rounded-lg border border-border/60 bg-card px-4 py-3 text-sm text-muted-foreground">
-						Viewing <span className="font-semibold text-foreground">{displayName}</span>
-						{" • "}
-						{selectedUser.user.email}
+					<div className="rounded-lg border border-border/60 bg-card px-5 py-4 shadow-sm">
+						<div className="flex flex-wrap items-start justify-between gap-4">
+							<div className="flex items-center gap-4">
+								<div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
+									{userInitials}
+								</div>
+								<div>
+									<p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+										Currently viewing
+									</p>
+									<p className="text-lg font-semibold text-foreground">
+										{displayName}
+									</p>
+									<p className="text-sm text-muted-foreground">
+										{selectedUser.user.email}
+									</p>
+								</div>
+							</div>
+							<div className="flex flex-wrap items-center gap-2">
+								{statusChips.map((chip) => (
+									<Badge key={chip.label} variant="secondary">
+										{chip.label}: {chip.value || "—"}
+									</Badge>
+								))}
+								<Button asChild size="sm" variant="outline">
+									<Link to={userDetailPath}>View user</Link>
+								</Button>
+							</div>
+						</div>
+						<div className="mt-4 grid gap-3 text-xs text-muted-foreground sm:grid-cols-2 lg:grid-cols-3">
+							{metaItems.map((item) => (
+								<div key={item.label} className="space-y-1">
+									<p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+										{item.label}
+									</p>
+									<p className="text-sm text-foreground">{item.value}</p>
+								</div>
+							))}
+						</div>
 					</div>
 
 					<div className="inline-flex w-fit items-center gap-2 rounded-lg border bg-card px-2 py-2 shadow-sm">
