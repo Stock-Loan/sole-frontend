@@ -19,6 +19,18 @@ export const dataTablePreferencesPrefix = "sole.dataTable.preferences";
 export const filterOperatorOptions: FilterOperatorOption[] = [
 	{ value: "equals", label: "Is equal to", requiresValue: true },
 	{ value: "not_equals", label: "Is not equal to", requiresValue: true },
+	{ value: "greater_than", label: "Greater than", requiresValue: true },
+	{
+		value: "greater_than_or_equal",
+		label: "Greater than or equal to",
+		requiresValue: true,
+	},
+	{ value: "less_than", label: "Less than", requiresValue: true },
+	{
+		value: "less_than_or_equal",
+		label: "Less than or equal to",
+		requiresValue: true,
+	},
 	{ value: "starts_with", label: "Starts with", requiresValue: true },
 	{ value: "contains", label: "Contains", requiresValue: true },
 	{ value: "not_contains", label: "Does not contain", requiresValue: true },
@@ -79,6 +91,21 @@ export function isFilterActive(filter: ColumnFilterState) {
 	return filter.value.trim().length > 0;
 }
 
+function parseNumberValue(value: unknown): number | null {
+	if (typeof value === "number") {
+		return Number.isFinite(value) ? value : null;
+	}
+	if (typeof value !== "string") return null;
+	const trimmed = value.trim();
+	if (!trimmed) return null;
+	const cleaned = trimmed.replace(/[^0-9.-]/g, "");
+	if (!cleaned || cleaned === "-" || cleaned === "." || cleaned === "-.") {
+		return null;
+	}
+	const parsed = Number(cleaned);
+	return Number.isFinite(parsed) ? parsed : null;
+}
+
 export function applyFilterOperator(
 	operator: FilterOperator,
 	cellValue: unknown,
@@ -93,14 +120,33 @@ export function applyFilterOperator(
 
 	if (isNullish(cellValue)) return false;
 
+	const numericCell = parseNumberValue(cellValue);
+	const numericFilter = parseNumberValue(filterValue);
+	const hasNumericValues =
+		numericCell !== null && numericFilter !== null && Number.isFinite(numericCell);
+
 	const normalizedCell = normalizeFilterValue(cellValue);
 	const normalizedFilter = normalizeFilterValue(filterValue.trim());
 
 	switch (operator) {
 		case "equals":
+			if (hasNumericValues) {
+				return numericCell === numericFilter;
+			}
 			return normalizedCell === normalizedFilter;
 		case "not_equals":
+			if (hasNumericValues) {
+				return numericCell !== numericFilter;
+			}
 			return normalizedCell !== normalizedFilter;
+		case "greater_than":
+			return hasNumericValues ? numericCell > numericFilter : false;
+		case "greater_than_or_equal":
+			return hasNumericValues ? numericCell >= numericFilter : false;
+		case "less_than":
+			return hasNumericValues ? numericCell < numericFilter : false;
+		case "less_than_or_equal":
+			return hasNumericValues ? numericCell <= numericFilter : false;
 		case "starts_with":
 			return normalizedCell.startsWith(normalizedFilter);
 		case "contains":

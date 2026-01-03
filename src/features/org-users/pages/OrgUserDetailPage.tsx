@@ -79,7 +79,7 @@ export function OrgUserDetailPage() {
 			return Array.from(new Set([...names, ...selfNames])).sort();
 		}
 		return names.sort();
-	}, [assignedRoles, authUser?.id, data?.user.id, selfContext?.roles]);
+	}, [assignedRoles, authUser?.id, data?.user.id, selfContext]);
 	const departmentOptions = useMemo(
 		() => (departmentsData?.items ?? []).filter((dept) => !dept.is_archived),
 		[departmentsData?.items]

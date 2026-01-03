@@ -123,12 +123,12 @@ export function DataTableColumnMenu<T>({
 					<DropdownMenuSub>
 						<DropdownMenuSubTrigger>Filter</DropdownMenuSubTrigger>
 						<DropdownMenuPortal>
-							<DropdownMenuSubContent className="w-72">
-								<div className="space-y-3 px-2 py-2">
-									<div className="space-y-2">
-										<Select
-											value={draft.operator}
-											onValueChange={(value) =>
+						<DropdownMenuSubContent className="w-72 max-h-[70vh] overflow-y-auto">
+							<div className="space-y-3 px-2 py-2">
+								<div className="space-y-2">
+									<Select
+										value={draft.operator}
+										onValueChange={(value) =>
 												onFilterOperatorChange(
 													column.id,
 													value as FilterOperator
@@ -138,7 +138,7 @@ export function DataTableColumnMenu<T>({
 											<SelectTrigger className="h-9">
 												<SelectValue placeholder="Choose filter" />
 											</SelectTrigger>
-											<SelectContent>
+											<SelectContent className="max-h-64">
 												{filterOperatorOptions.map((option) => (
 													<SelectItem
 														key={option.value}

@@ -17,6 +17,10 @@ export type SortValue = number | string;
 export type FilterOperator =
 	| "equals"
 	| "not_equals"
+	| "greater_than"
+	| "greater_than_or_equal"
+	| "less_than"
+	| "less_than_or_equal"
 	| "starts_with"
 	| "contains"
 	| "not_contains"

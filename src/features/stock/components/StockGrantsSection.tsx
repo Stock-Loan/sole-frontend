@@ -6,6 +6,7 @@ import {
 	useState,
 } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { PaginationState } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/data-table/DataTable";
@@ -70,15 +71,23 @@ export const StockGrantsSection = forwardRef<
 	const [dialogOpen, setDialogOpen] = useState(false);
 	const [dialogMode, setDialogMode] = useState<StockGrantFormMode>("create");
 	const [editingGrant, setEditingGrant] = useState<StockGrant | null>(null);
+	const [paginationState, setPaginationState] = useState<PaginationState>({
+		pageIndex: 0,
+		pageSize: 10,
+	});
+
+	const listParams = useMemo(
+		() => ({
+			page: paginationState.pageIndex + 1,
+			page_size: paginationState.pageSize,
+		}),
+		[paginationState.pageIndex, paginationState.pageSize]
+	);
 
 	const grantsQuery = useQuery<StockGrantListResponse>({
 		enabled: Boolean(membershipId),
-		queryKey: queryKeys.stock.grants.list(membershipId, {
-			page: 1,
-			page_size: 50,
-		}),
-		queryFn: () =>
-			listStockGrants(membershipId, { page: 1, page_size: 50 }),
+		queryKey: queryKeys.stock.grants.list(membershipId, listParams),
+		queryFn: () => listStockGrants(membershipId, listParams),
 		placeholderData: (previous) => previous,
 	});
 
@@ -89,6 +98,11 @@ export const StockGrantsSection = forwardRef<
 	});
 
 	const grants = grantsQuery.data?.items ?? [];
+	const totalRows = grantsQuery.data?.total ?? grants.length;
+	const totalPages = Math.max(
+		1,
+		Math.ceil(totalRows / paginationState.pageSize)
+	);
 	const summaryMap = useMemo(() => {
 		const map = new Map<string, GrantSummary>();
 		(summaryQuery.data?.grants ?? []).forEach((grant) => {
@@ -410,7 +424,14 @@ export const StockGrantsSection = forwardRef<
 				emptyMessage="No grants yet for this employee."
 				enableRowSelection={canManage}
 				enableExport={false}
-				pagination={{ enabled: false }}
+				pagination={{
+					enabled: true,
+					mode: "server",
+					state: paginationState,
+					onPaginationChange: setPaginationState,
+					pageCount: totalPages,
+					totalRows,
+				}}
 				className="flex-1 min-h-0"
 				renderToolbarActions={(selectedGrants) => {
 					if (!canManage) return null;
