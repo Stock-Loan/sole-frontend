@@ -31,7 +31,8 @@ import {
 	unassignDepartments,
 } from "@/features/departments/api/departments.api";
 import { StockGrantsSection } from "@/features/stock/components/StockGrantsSection";
-import type { StockGrantsSectionHandle } from "@/features/stock/types";
+import { getStockSummary } from "@/features/stock/api/stock.api";
+import type { StockGrantsSectionHandle, StockSummary } from "@/features/stock/types";
 import { TabButton } from "@/components/common/TabButton";
 import {
 	Select,
@@ -67,6 +68,16 @@ export function OrgUserDetailPage() {
 		queryKey: queryKeys.departments.list({ page: 1, page_size: 100 }),
 		queryFn: () => listDepartments({ page: 1, page_size: 100 }),
 		staleTime: 5 * 60 * 1000,
+	});
+	const canViewStockSummary = can([
+		"stock.vesting.view",
+		"stock.eligibility.view",
+	]);
+	const stockSummaryQuery = useQuery<StockSummary>({
+		enabled: Boolean(membershipId) && canViewStockSummary,
+		queryKey: queryKeys.stock.summary(membershipId || ""),
+		queryFn: () => getStockSummary(membershipId || ""),
+		placeholderData: (previous) => previous,
 	});
 
 	const assignedRoles = useMemo(() => data?.roles ?? [], [data?.roles]);
@@ -204,6 +215,12 @@ export function OrgUserDetailPage() {
 	const canViewStockGrants =
 		can("stock.grant.view") || can("stock.grant.manage");
 	const canManageStockGrants = can("stock.grant.manage");
+	const grantEligibility =
+		stockSummaryQuery.data?.eligibility_result?.eligible_to_exercise;
+	const isGrantActionBlocked =
+		grantEligibility === false ||
+		(canViewStockSummary &&
+			(stockSummaryQuery.isLoading || stockSummaryQuery.isFetching));
 	const departmentAssignmentDisabled =
 		!canManageDepartments ||
 		employmentStatus !== "ACTIVE" ||
@@ -369,6 +386,15 @@ export function OrgUserDetailPage() {
 									<Button
 										size="sm"
 										onClick={() => grantsRef.current?.openCreate()}
+										disabled={isGrantActionBlocked}
+										title={
+											isGrantActionBlocked
+												? stockSummaryQuery.isLoading ||
+												  stockSummaryQuery.isFetching
+													? "Checking eligibility…"
+													: "This employee is not eligible to exercise shares."
+												: undefined
+										}
 									>
 										New grant
 									</Button>
@@ -378,6 +404,7 @@ export function OrgUserDetailPage() {
 						<div className="flex min-h-0 flex-1 flex-col px-6 py-4">
 							{canViewStockGrants ? (
 								<StockGrantsSection
+									key={data.membership.id}
 									ref={grantsRef}
 									membershipId={data.membership.id}
 									canManage={canManageStockGrants}

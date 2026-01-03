@@ -18,6 +18,7 @@ import { OverviewPage } from "@/pages/OverviewPage";
 import { DataTableDemoPage } from "@/pages/data-table-demo/DataTableDemoPage";
 import { UserSettingsPage } from "@/features/user-settings/pages/UserSettingsPage";
 import { OrgSettingsPage } from "@/features/org-settings/components/OrgSettingsPage";
+import { StockAdminPage } from "@/features/stock/pages/StockAdminPage";
 import { AppErrorBoundary } from "./error-boundary";
 import { PermissionGate } from "@/components/layout/PermissionGate";
 
@@ -131,6 +132,17 @@ export const router = createBrowserRouter([
 						fallback={<NotAuthorizedPage />}
 					>
 						<AnnouncementsAdminPage />
+					</PermissionGate>
+				),
+			},
+			{
+				path: "stock",
+				element: (
+					<PermissionGate
+						permission="stock.grant.view"
+						fallback={<NotAuthorizedPage />}
+					>
+						<StockAdminPage />
 					</PermissionGate>
 				),
 			},

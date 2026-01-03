@@ -6,7 +6,7 @@ import {
 	useState,
 } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { PaginationState } from "@tanstack/react-table";
+import type { PaginationState, VisibilityState } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/data-table/DataTable";
@@ -16,6 +16,8 @@ import { useApiErrorToast } from "@/hooks/useApiErrorToast";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { queryKeys } from "@/lib/queryKeys";
 import { usePermissions } from "@/features/auth/hooks/usePermissions";
+import { formatShares } from "@/features/stock/constants";
+import { useAuth } from "@/features/auth/hooks/useAuth";
 import {
 	createStockGrant,
 	getStockSummary,
@@ -35,11 +37,6 @@ import type {
 	StockGrantsSectionProps,
 	StockSummary,
 } from "../types";
-
-function formatShares(value?: number) {
-	if (value === null || value === undefined) return "—";
-	return value.toLocaleString();
-}
 
 function getGrantSummary(
 	grant: StockGrant,
@@ -67,6 +64,7 @@ export const StockGrantsSection = forwardRef<
 	const queryClient = useQueryClient();
 	const { can } = usePermissions();
 	const canViewSummary = can(["stock.vesting.view", "stock.eligibility.view"]);
+	const { user } = useAuth();
 
 	const [dialogOpen, setDialogOpen] = useState(false);
 	const [dialogMode, setDialogMode] = useState<StockGrantFormMode>("create");
@@ -75,6 +73,17 @@ export const StockGrantsSection = forwardRef<
 		pageIndex: 0,
 		pageSize: 10,
 	});
+
+	const preferencesConfig = useMemo(
+		() => ({
+			id: `stock-grants-${membershipId}`,
+			scope: "user" as const,
+			userKey: user?.id ?? null,
+			orgKey: user?.org_id ?? null,
+			version: 1,
+		}),
+		[membershipId, user?.id, user?.org_id]
+	);
 
 	const listParams = useMemo(
 		() => ({
@@ -399,6 +408,18 @@ export const StockGrantsSection = forwardRef<
 		return baseColumns;
 	}, [summaryMap]);
 
+	const initialColumnVisibility = useMemo<VisibilityState>(
+		() => ({
+			id: false,
+			orgId: false,
+			orgMembershipId: false,
+			vestingEvents: false,
+			nextVestingSummary: false,
+			notes: false,
+		}),
+		[]
+	);
+
 	if (grantsQuery.isError) {
 		return (
 			<div className="flex flex-wrap items-center gap-3 text-sm text-destructive">
@@ -424,6 +445,8 @@ export const StockGrantsSection = forwardRef<
 				emptyMessage="No grants yet for this employee."
 				enableRowSelection={canManage}
 				enableExport={false}
+				preferences={preferencesConfig}
+				initialColumnVisibility={initialColumnVisibility}
 				pagination={{
 					enabled: true,
 					mode: "server",

@@ -66,6 +66,8 @@ export const queryKeys = {
 		grants: {
 			list: (membershipId: string, params?: StockGrantListParams) =>
 				["stock", "grants", "list", membershipId, params ?? {}] as const,
+			all: (membershipId: string) =>
+				["stock", "grants", "all", membershipId] as const,
 		},
 		summary: (membershipId: string, params?: StockSummaryParams) =>
 			["stock", "summary", membershipId, params ?? {}] as const,

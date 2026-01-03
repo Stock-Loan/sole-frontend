@@ -1,4 +1,5 @@
 import {
+	Coins,
 	LayoutDashboard,
 	Megaphone,
 	Settings,
@@ -44,6 +45,12 @@ export const dashboardRoutes: DashboardRoute[] = [
 		path: routes.announcements,
 		icon: Megaphone,
 		requiredPermission: "announcement.view",
+	},
+	{
+		label: "Stock admin",
+		path: routes.stockAdmin,
+		icon: Coins,
+		requiredPermission: "stock.grant.view",
 	},
 	{
 		label: "Org settings",

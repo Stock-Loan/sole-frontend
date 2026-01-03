@@ -1,4 +1,5 @@
 import type { AddUserFormValues } from "./types";
+import type { OrgUserDto } from "./types";
 
 export const statusTone: Record<string, string> = {
 	active: "border-emerald-200 bg-emerald-50 text-emerald-700",
@@ -51,3 +52,10 @@ export const BULK_ONBOARDING_VALIDATION_NOTES: string[] = [
 	"Per-field length limits are enforced before fuzzy matching to avoid CPU spikes.",
 	"Unexpected headers or length issues return clear row-numbered errors—remove any extra columns.",
 ];
+
+export function getOrgUserDisplayName(user: OrgUserDto) {
+	const fullName =
+		user.full_name ||
+		[user.first_name, user.last_name].filter(Boolean).join(" ").trim();
+	return fullName || user.email || "—";
+}

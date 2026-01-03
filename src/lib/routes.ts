@@ -11,6 +11,7 @@ export const routes = {
 	roles: "/app/roles",
 	departments: "/app/departments",
 	announcements: "/app/announcements",
+	stockAdmin: "/app/stock",
 	orgSettings: "/app/settings",
 	userSettings: "/app/user-settings",
 	dataTableDemo: "/app/data-table-demo",

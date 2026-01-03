@@ -132,3 +132,10 @@ export interface StockGrantsSectionProps {
 export interface StockGrantsSectionHandle {
 	openCreate: () => void;
 }
+
+export type StockAdminTabKey = "summary" | "grants";
+
+export interface StockSummaryMetric {
+	label: string;
+	value: string;
+}
