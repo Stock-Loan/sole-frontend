@@ -4,13 +4,6 @@ export type UserSettingsProfile = AuthUser;
 
 export type UserSettingsTabKey = "profile" | "security";
 
-export interface UserSettingsTabButtonProps {
-	label: string;
-	value: UserSettingsTabKey;
-	active: boolean;
-	onSelect: (val: UserSettingsTabKey) => void;
-}
-
 export interface UserSettingsInfoCardProps {
 	label: string;
 	value: string;

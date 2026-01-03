@@ -8,8 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { queryKeys } from "@/lib/queryKeys";
 import { routes } from "@/lib/routes";
-import { cn } from "@/lib/utils";
 import { formatDate } from "@/lib/format";
+import { TabButton } from "@/components/common/TabButton";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { getUserSettings } from "@/features/user-settings/api/userSettings.api";
 import { listOrgUsers } from "@/features/org-users/api/orgUsers.api";
@@ -18,7 +18,6 @@ import type {
 	UserSettingsInfoCardProps,
 	UserSettingsProfile,
 	UserSettingsSectionGridProps,
-	UserSettingsTabButtonProps,
 	UserSettingsTabKey,
 } from "../types";
 
@@ -222,28 +221,6 @@ export function UserSettingsPage() {
 				)}
 			</div>
 		</PageContainer>
-	);
-}
-
-function TabButton({
-	label,
-	value,
-	active,
-	onSelect,
-}: UserSettingsTabButtonProps) {
-	return (
-		<button
-			type="button"
-			onClick={() => onSelect(value)}
-			className={cn(
-				"flex items-center rounded-md px-3 py-2 text-sm font-semibold transition",
-				active
-					? "bg-primary text-primary-foreground shadow-sm"
-					: "text-muted-foreground hover:bg-muted hover:text-foreground"
-			)}
-		>
-			{label}
-		</button>
 	);
 }
 

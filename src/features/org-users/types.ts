@@ -161,6 +161,8 @@ export interface UpdateOrgUserProfilePayload {
 
 export type BulkOnboardingRowStatus = "success" | "failure";
 
+export type OrgUserDetailTabKey = "info" | "grants";
+
 export interface BulkOnboardingRowResult {
 	row: number;
 	email?: string;
@@ -227,6 +229,11 @@ export interface OrgUserProfileDialogProps {
 	user: OrgUserListItem | null;
 	membershipId: string | null;
 	onUpdated: () => void;
+}
+
+export interface OrgUserInfoRowProps {
+	label: string;
+	value?: string | null;
 }
 export interface BulkOnboardingGuideProps {
 	className?: string;

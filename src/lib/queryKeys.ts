@@ -3,6 +3,11 @@ import type { AnnouncementListParams } from "@/features/announcements/types";
 import type { OrgSettingsUpdatePayload } from "@/features/org-settings/types";
 import type { RoleListParams } from "@/features/roles/types";
 import type { DepartmentListParams } from "@/features/departments/types";
+import type { StockDashboardSummaryParams } from "@/features/dashboard/types";
+import type {
+	StockGrantListParams,
+	StockSummaryParams,
+} from "@/features/stock/types";
 
 export const queryKeys = {
 	auth: {
@@ -52,5 +57,17 @@ export const queryKeys = {
 		get: () => ["org-settings", "get"] as const,
 		update: (payload?: OrgSettingsUpdatePayload) =>
 			["org-settings", "update", payload ?? {}] as const,
+	},
+	dashboard: {
+		stockSummary: (params?: StockDashboardSummaryParams) =>
+			["dashboard", "stock-summary", params ?? {}] as const,
+	},
+	stock: {
+		grants: {
+			list: (membershipId: string, params?: StockGrantListParams) =>
+				["stock", "grants", "list", membershipId, params ?? {}] as const,
+		},
+		summary: (membershipId: string, params?: StockSummaryParams) =>
+			["stock", "summary", membershipId, params ?? {}] as const,
 	},
 };

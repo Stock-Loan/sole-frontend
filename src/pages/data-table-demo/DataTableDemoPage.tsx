@@ -5,12 +5,7 @@ import { DataTable } from "@/components/data-table/DataTable";
 import type { ColumnDefinition } from "@/components/data-table/types";
 import type { BadgeVariant } from "@/components/ui/badge";
 import type { DemoEmploymentType, DemoStatus, DemoTableRow } from "./types";
-
-const currencyFormatter = new Intl.NumberFormat("en-US", {
-	style: "currency",
-	currency: "USD",
-	maximumFractionDigits: 0,
-});
+import { formatCurrency } from "@/lib/format";
 
 const dateFormatter = new Intl.DateTimeFormat("en-US", {
 	month: "short",
@@ -330,7 +325,8 @@ const demoColumns: ColumnDefinition<DemoTableRow>[] = [
 		id: "loanBalance",
 		header: "Loan balance",
 		accessor: "loanBalance",
-		cell: (row) => currencyFormatter.format(row.loanBalance),
+		cell: (row) =>
+			formatCurrency(row.loanBalance, { maximumFractionDigits: 0 }),
 		sortAccessor: (row) => row.loanBalance,
 		filterAccessor: (row) => row.loanBalance,
 		exportAccessor: (row) => row.loanBalance,

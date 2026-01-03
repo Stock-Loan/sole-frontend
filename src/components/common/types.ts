@@ -76,3 +76,10 @@ export interface SearchItem {
 }
 
 export type SearchInputProps = InputHTMLAttributes<HTMLInputElement>;
+
+export interface TabButtonProps<T extends string> {
+	label: string;
+	value: T;
+	active: boolean;
+	onSelect: (value: T) => void;
+}

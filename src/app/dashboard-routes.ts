@@ -17,7 +17,7 @@ export interface DashboardRoute {
 
 export const dashboardRoutes: DashboardRoute[] = [
 	{
-		label: "Overview",
+		label: "Dashboard",
 		path: routes.overview,
 		icon: LayoutDashboard,
 	},

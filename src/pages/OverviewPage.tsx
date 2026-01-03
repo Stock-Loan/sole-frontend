@@ -1,34 +1,128 @@
-import { Card, CardContent } from "@/components/ui/card";
+import { useQuery } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
 import { PageHeader } from "@/components/common/PageHeader";
+import { PageContainer } from "@/components/layout/PageContainer";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/common/EmptyState";
+import { LoadingState } from "@/components/common/LoadingState";
+import { queryKeys } from "@/lib/queryKeys";
+import { routes } from "@/lib/routes";
+import { formatDate } from "@/lib/format";
+import { usePermissions } from "@/features/auth/hooks/usePermissions";
+import { getStockDashboardSummary } from "@/features/dashboard/api/dashboard.api";
+import type { StockDashboardSummary } from "@/features/dashboard/types";
+
+function formatMetric(value?: number) {
+	if (value === null || value === undefined) return "—";
+	return value.toLocaleString();
+}
 
 export function OverviewPage() {
+	const { can } = usePermissions();
+	const canViewStock = can("stock.dashboard.view");
+	const summaryQuery = useQuery<StockDashboardSummary>({
+		queryKey: queryKeys.dashboard.stockSummary(),
+		queryFn: () => getStockDashboardSummary(),
+		enabled: canViewStock,
+	});
+
+	const summary = summaryQuery.data;
+	const metricCards = summary
+		? [
+				{
+					label: "Total program employees",
+					value: formatMetric(summary.total_program_employees),
+				},
+				{
+					label: "Total granted shares",
+					value: formatMetric(summary.total_granted_shares),
+				},
+				{
+					label: "Total vested shares",
+					value: formatMetric(summary.total_vested_shares),
+				},
+				{
+					label: "Total unvested shares",
+					value: formatMetric(summary.total_unvested_shares),
+				},
+				{
+					label: "Eligible to exercise",
+					value: formatMetric(summary.eligible_to_exercise_count),
+				},
+				{
+					label: "Blocked by service rule",
+					value: formatMetric(summary.not_eligible_due_to_service_count),
+				},
+				{
+					label: "Blocked by min vested rule",
+					value: formatMetric(summary.not_eligible_due_to_min_vested_count),
+				},
+				{
+					label: "Other ineligible",
+					value: formatMetric(summary.not_eligible_due_to_other_count ?? 0),
+				},
+				{
+					label: "Next global vesting date",
+					value: formatDate(summary.next_global_vesting_date),
+				},
+		  ]
+		: [];
+
 	return (
-		<div className="space-y-6">
+		<PageContainer className="space-y-6">
 			<PageHeader
-				title="Overview"
-				subtitle="Welcome to SOLE. This admin surface will guide org setup, users, and loans."
+				title="Dashboard"
+				subtitle="Track stock program coverage and eligibility at a glance."
 			/>
-			<div className="grid gap-4 md:grid-cols-2">
-				<Card>
-					<CardContent className="space-y-2 p-6">
-						<p className="text-sm font-semibold text-muted-foreground">Next up</p>
-						<ul className="space-y-1 text-sm">
-							<li>• Configure API base URL and auth once backend is connected.</li>
-							<li>• Wire login/tenant context to backend endpoints.</li>
-							<li>• Add Org Admin routes for users, roles, departments, announcements.</li>
-						</ul>
-					</CardContent>
-				</Card>
-				<Card>
-					<CardContent className="space-y-2 p-6">
-						<p className="text-sm font-semibold text-muted-foreground">State</p>
-						<p className="text-sm text-muted-foreground">
-							Query Client, auth, and tenant providers are loaded. Replace placeholder pages with
-							real feature screens as backend endpoints land.
-						</p>
-					</CardContent>
-				</Card>
-			</div>
-		</div>
+
+			{!canViewStock ? (
+				<EmptyState
+					title="Stock metrics unavailable"
+					message="You do not have permission to view the stock dashboard metrics."
+				/>
+			) : summaryQuery.isLoading ? (
+				<LoadingState label="Loading dashboard metrics..." />
+			) : summaryQuery.isError ? (
+				<EmptyState
+					title="Unable to load dashboard"
+					message="We couldn't fetch stock program metrics right now."
+					actionLabel="Retry"
+					onRetry={() => summaryQuery.refetch()}
+				/>
+			) : (
+				<div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+					{metricCards.map((metric) => (
+						<Card key={metric.label}>
+							<CardHeader className="pb-2">
+								<CardTitle className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+									{metric.label}
+								</CardTitle>
+							</CardHeader>
+							<CardContent>
+								<p className="text-2xl font-semibold text-foreground">
+									{metric.value}
+								</p>
+							</CardContent>
+						</Card>
+					))}
+					<Card className="border-dashed">
+						<CardHeader className="pb-2">
+							<CardTitle className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+								System status
+							</CardTitle>
+						</CardHeader>
+						<CardContent className="space-y-3">
+							<p className="text-sm text-muted-foreground">
+								Check API availability and service health.
+							</p>
+							<Button asChild variant="outline" size="sm">
+								<Link to={routes.status}>View status</Link>
+							</Button>
+						</CardContent>
+					</Card>
+				</div>
+			)}
+		</PageContainer>
 	);
 }
