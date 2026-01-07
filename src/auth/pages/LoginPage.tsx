@@ -202,7 +202,7 @@ export function LoginPage() {
 											</FormItem>
 										)}
 									/>
-									<Button className="w-full" type="submit" disabled={startLoginMutation.isPending}>
+									<Button className="w-full h-10" type="submit" disabled={startLoginMutation.isPending}>
 										{startLoginMutation.isPending ? (
 											<>
 												<Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -250,7 +250,7 @@ export function LoginPage() {
 											</FormItem>
 										)}
 									/>
-									<Button className="w-full" type="submit" disabled={completeLoginMutation.isPending}>
+									<Button className="w-full h-10" type="submit" disabled={completeLoginMutation.isPending}>
 										{completeLoginMutation.isPending ? (
 											<>
 												<Loader2 className="mr-2 h-4 w-4 animate-spin" />
