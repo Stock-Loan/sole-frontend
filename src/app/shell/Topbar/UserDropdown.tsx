@@ -74,8 +74,8 @@ export function UserDropdown({ showChevron = false }: UserDropdownProps) {
 					type="button"
 					className="inline-flex items-center gap-3 bg-transparent p-0 text-foreground outline-none ring-0 ring-offset-0 hover:text-foreground focus-visible:outline-none focus-visible:ring-0"
 				>
-					<Avatar className="h-11 w-11 rounded-md border-0 bg-transparent">
-						<AvatarFallback className="rounded-md bg-transparent text-sm font-semibold text-foreground">
+					<Avatar className="h-11 w-11 rounded-lg border border-border/60 bg-muted/50">
+						<AvatarFallback className="rounded-lg bg-primary/10 text-sm font-semibold text-primary">
 							{initials}
 						</AvatarFallback>
 					</Avatar>

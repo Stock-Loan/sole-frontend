@@ -71,9 +71,23 @@ export const navConfig: NavConfig = {
 	],
 	stock: [
 		{
+			id: "stock-dashboard",
+			label: "Dashboard",
+			path: "/app/stock",
+			icon: Gauge,
+			permissions: "stock.dashboard.view",
+		},
+		{
+			id: "stock-admin",
+			label: "Administration",
+			path: "/app/stock/manage",
+			icon: Users,
+			permissions: "stock.grant.manage",
+		},
+		{
 			id: "stock-grants",
 			label: "Grants",
-			path: "/app/stock",
+			path: "/app/stock/grants",
 			icon: ClipboardList,
 			permissions: ["stock.grant.view", "stock.program.view"],
 		},

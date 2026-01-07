@@ -61,7 +61,7 @@ export function DepartmentFormDialog({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent>
+			<DialogContent size="sm">
 				<DialogHeader>
 					<DialogTitle>{title}</DialogTitle>
 					<p className="text-sm text-muted-foreground">{description}</p>

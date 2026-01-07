@@ -53,3 +53,12 @@ export async function getStockSummary(
 	);
 	return unwrapApiResponse<StockSummary>(data);
 }
+
+export async function getMeStockSummary(
+	params: StockSummaryParams = {}
+): Promise<StockSummary> {
+	const { data } = await apiClient.get<StockSummary>("/me/stock/summary", {
+		params,
+	});
+	return unwrapApiResponse<StockSummary>(data);
+}

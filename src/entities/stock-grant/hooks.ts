@@ -8,6 +8,7 @@ import {
 import { stockGrantKeys } from "@/entities/stock-grant/keys";
 import {
 	createStockGrant,
+	getMeStockSummary,
 	getStockSummary,
 	listStockGrants,
 	updateStockGrant,
@@ -31,6 +32,18 @@ export function useStockSummary(
 		queryKey: stockGrantKeys.summary(membershipId, params),
 		queryFn: () => getStockSummary(membershipId, params),
 		enabled: Boolean(membershipId) && (options.enabled ?? true),
+		placeholderData: (previous) => previous,
+		...options,
+	});
+}
+
+export function useMeStockSummary(
+	params: StockSummaryParams = {},
+	options: Omit<UseQueryOptions<StockSummary>, "queryKey" | "queryFn"> = {}
+) {
+	return useQuery({
+		queryKey: stockGrantKeys.summary("me", params),
+		queryFn: () => getMeStockSummary(params),
 		placeholderData: (previous) => previous,
 		...options,
 	});

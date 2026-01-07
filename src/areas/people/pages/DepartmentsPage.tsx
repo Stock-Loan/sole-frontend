@@ -206,7 +206,7 @@ export function DepartmentsPage() {
 		id?: string
 	) => {
 		if (formMode === "edit" && id) {
-			await updateMutation.mutateAsync({ id, values });
+			await updateMutation.mutateAsync({ id, payload: values });
 		} else {
 			await createMutation.mutateAsync(values);
 		}
@@ -353,7 +353,7 @@ export function DepartmentsPage() {
 								{canManage ? (
 									<>
 										<ToolbarButton
-											variant="secondary"
+											variant="outline"
 											size="sm"
 											disabled={!hasSingle}
 											onClick={() => {
@@ -437,7 +437,7 @@ export function DepartmentsPage() {
 			/>
 
 			<Dialog open={membersOpen} onOpenChange={setMembersOpen}>
-				<DialogContent size="md">
+				<DialogContent size="sm">
 					<DialogHeader>
 						<DialogTitle className="flex items-center gap-2">
 							<Users className="h-4 w-4" />

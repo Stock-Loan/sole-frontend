@@ -125,6 +125,33 @@ export function useAssignDepartmentToUsers(
 	});
 }
 
+export function useAssignUsersToDepartment(
+	options: Omit<
+		UseMutationOptions<
+			DepartmentAssignResponse,
+			unknown,
+			{ departmentId: string; membershipIds: string[] }
+		>,
+		"mutationFn"
+	> = {}
+) {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: ({ departmentId, membershipIds }) =>
+			assignDepartmentToUsers(departmentId, membershipIds),
+		onSuccess: (data, variables, context) => {
+			queryClient.invalidateQueries({ queryKey: userKeys.list() });
+			queryClient.invalidateQueries({ queryKey: departmentKeys.list() });
+			options.onSuccess?.(data, variables, context);
+		},
+		onError: (error, variables, context) => {
+			options.onError?.(error, variables, context);
+		},
+		...options,
+	});
+}
+
 export function useUnassignDepartments(
 	options: Omit<
 		UseMutationOptions<void, unknown, string[]>,

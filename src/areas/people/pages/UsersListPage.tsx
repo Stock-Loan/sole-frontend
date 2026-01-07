@@ -33,6 +33,7 @@ import {
 	useOnboardUser,
 	useOrgUsersList,
 } from "@/entities/user/hooks";
+import { AssignDepartmentDialog } from "@/entities/department/components/AssignDepartmentDialog";
 import type {
 	OnboardUserPayload,
 	OrgUserListItem,
@@ -305,6 +306,8 @@ export function UsersListPage() {
 	const bulkDeleteOrgUsersMutation = useBulkDeleteOrgUsers();
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 	const [pendingDelete, setPendingDelete] = useState<OrgUserListItem[]>([]);
+	const [assignDialogOpen, setAssignDialogOpen] = useState(false);
+	const [pendingAssign, setPendingAssign] = useState<OrgUserListItem[]>([]);
 	const [addUserOpen, setAddUserOpen] = useState(false);
 
 	const onboardUserMutation = useOnboardUser();
@@ -430,10 +433,23 @@ export function UsersListPage() {
 		setDeleteDialogOpen(true);
 	};
 
+	const openAssignDialog = (selectedRows: OrgUserListItem[]) => {
+		if (selectedRows.length === 0) return;
+		setPendingAssign(selectedRows);
+		setAssignDialogOpen(true);
+	};
+
 	const handleDeleteDialogChange = (open: boolean) => {
 		setDeleteDialogOpen(open);
 		if (!open) {
 			setPendingDelete([]);
+		}
+	};
+
+	const handleAssignDialogChange = (open: boolean) => {
+		setAssignDialogOpen(open);
+		if (!open) {
+			setPendingAssign([]);
 		}
 	};
 
@@ -458,14 +474,23 @@ export function UsersListPage() {
 	};
 
 	const renderToolbarActions = (selectedRows: OrgUserListItem[]) => (
-		<ToolbarButton
-			variant="destructive"
-			size="sm"
-			disabled={isDeleting}
-			onClick={() => openDeleteDialog(selectedRows)}
-		>
-			{selectedRows.length === 1 ? "Delete user" : "Delete users"}
-		</ToolbarButton>
+		<div className="flex items-center gap-2">
+			<ToolbarButton
+				variant="outline"
+				size="sm"
+				onClick={() => openAssignDialog(selectedRows)}
+			>
+				Assign department
+			</ToolbarButton>
+			<ToolbarButton
+				variant="destructive"
+				size="sm"
+				disabled={isDeleting}
+				onClick={() => openDeleteDialog(selectedRows)}
+			>
+				{selectedRows.length === 1 ? "Delete user" : "Delete users"}
+			</ToolbarButton>
+		</div>
 	);
 
 	const pendingDeleteCount = pendingDelete.length;
@@ -535,6 +560,15 @@ export function UsersListPage() {
 					}}
 				/>
 			)}
+			<AssignDepartmentDialog
+				open={assignDialogOpen}
+				onOpenChange={handleAssignDialogChange}
+				membershipIds={pendingAssign.map((row) => row.membership.id)}
+				onSuccess={() => {
+					// Optionally clear selection or refetch
+					// The mutation hook already invalidates userKeys.list()
+				}}
+			/>
 			<Dialog open={deleteDialogOpen} onOpenChange={handleDeleteDialogChange}>
 				<DialogContent size="sm">
 					<DialogHeader>
