@@ -1,4 +1,4 @@
-import type { AuthUser } from "@/features/auth/types";
+import type { AuthUser } from "@/auth/types";
 
 export type UserSettingsProfile = AuthUser;
 

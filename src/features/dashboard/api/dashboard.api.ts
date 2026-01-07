@@ -1,5 +1,5 @@
-import { apiClient } from "@/lib/apiClient";
-import { unwrapApiResponse } from "@/lib/api-response";
+import { apiClient } from "@/shared/api/http";
+import { unwrapApiResponse } from "@/shared/api/response";
 import type {
 	StockDashboardSummary,
 	StockDashboardSummaryParams,

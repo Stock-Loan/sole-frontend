@@ -1,73 +1,81 @@
-# React + TypeScript + Vite
+# SOLE Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Employee Stock Loan web app frontend built with React, TypeScript, Vite, TailwindCSS, and shadcn/ui.
 
-Currently, two official plugins are available:
+## Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- React + TypeScript + Vite
+- TailwindCSS + shadcn/ui (Radix)
+- React Router v6 (data routers)
+- TanStack Query
+- React Hook Form + Zod
+- Axios (shared client)
+- Yarn (package manager)
 
-## React Compiler
+## Getting started
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+1) Install dependencies:
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+yarn install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+2) Start dev server:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+yarn dev
 ```
+
+3) Build for production:
+
+```bash
+yarn build
+```
+
+4) Lint:
+
+```bash
+yarn lint
+```
+
+## Environment
+
+Create a `.env` file (or use `.env.example`) with:
+
+```
+VITE_API_BASE_URL=...
+```
+
+## Project structure
+
+```
+src/
+  app/          # bootstrapping, router, shell, navigation, permissions
+  auth/         # public auth flows
+  areas/        # route-level pages grouped by top-nav area
+  entities/     # domain types, API, hooks, components
+  features/     # cross-area features (notifications, search, tenancy, system)
+  shared/       # UI kit, api client, hooks, utilities, assets
+```
+
+Key entry points:
+- `src/app/bootstrap/main.tsx` (Vite entry)
+- `src/app/App.tsx` (RouterProvider)
+- `src/app/router/routes.tsx` (route composition)
+
+## Routing model
+
+- Public/auth routes live under `/auth/*` and system pages (status, errors) live outside the shell.
+- Post-login areas are mounted under `/app/<area>/*`.
+- Area navigation is defined in `src/app/navigation/nav-config.ts`.
+- Guards live in `src/app/router/route-guards.tsx` and use permissions/tenancy state.
+
+## Data access conventions
+
+- API calls live in `entities/*/api.ts` or `features/*/api.ts`.
+- UI uses entity/feature hooks (React Query is hidden behind hooks).
+- Query keys are centralized in per-entity `keys.ts` modules.
+
+## Styling
+
+Global styles are in `src/app/styles/globals.css`. Tailwind config lives in `tailwind.config.ts`.

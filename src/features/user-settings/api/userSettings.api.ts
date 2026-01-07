@@ -1,5 +1,5 @@
-import { apiClient } from "@/lib/apiClient";
-import { unwrapApiResponse } from "@/lib/api-response";
+import { apiClient } from "@/shared/api/http";
+import { unwrapApiResponse } from "@/shared/api/response";
 import type { UserSettingsProfile } from "../types";
 
 export async function getUserSettings(): Promise<UserSettingsProfile> {
