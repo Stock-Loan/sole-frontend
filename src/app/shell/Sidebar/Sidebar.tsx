@@ -8,7 +8,6 @@ import { useLocalStorage } from "@/shared/hooks/useLocalStorage";
 import { cn } from "@/shared/lib/utils";
 import { getNavItems } from "@/app/navigation/nav-config";
 import { useActiveArea } from "@/app/navigation/useActiveArea";
-import { PermissionGate } from "@/app/permissions/PermissionGate";
 import { SidebarItem } from "./SidebarItem";
 import type { SidebarProps } from "./types";
 
@@ -43,54 +42,63 @@ export function Sidebar({ collapsed: collapsedProp, onCollapseChange, onNavigate
 		[navItems, can]
 	);
 
+	const activeItemId = useMemo(() => {
+		let bestMatchId: string | null = null;
+		let bestMatchLength = -1;
+
+		for (const item of visibleItems) {
+			const path = item.path;
+			// Match exact path or sub-path (e.g. /users matches /users/123, but /users shouldn't match /users-extra)
+			const isMatch =
+				location.pathname === path || location.pathname.startsWith(`${path}/`);
+
+			if (isMatch && path.length > bestMatchLength) {
+				bestMatchId = item.id;
+				bestMatchLength = path.length;
+			}
+		}
+		return bestMatchId;
+	}, [visibleItems, location.pathname]);
+
 	return (
 		<aside
 			className={cn(
-				"flex h-screen flex-col border-r border-border/60 bg-background/80 backdrop-blur",
-				collapsed ? "w-20" : "w-64"
+				"relative flex h-screen flex-col border-r border-border/60 bg-background/80 backdrop-blur transition-[width] duration-300",
+				collapsed ? "w-24" : "w-50"
 			)}
 		>
-			<div className={cn("flex items-center gap-3 px-4 py-4", collapsed && "justify-center")}>
-				<Logo showTagline={!collapsed} size="sm" className={cn(collapsed && "px-0")} />
-				<Button
-					variant="ghost"
-					size="icon"
-					className={cn("ml-auto", collapsed && "hidden")}
-					onClick={handleToggle}
-					aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-				>
-					<ChevronLeft className={cn("h-4 w-4 transition", collapsed && "rotate-180")} />
-				</Button>
+			<Button
+				variant="ghost"
+				size="icon"
+				className="absolute -right-3 top-20 z-50 h-6 w-6 rounded-full border border-border bg-background p-0 shadow-sm hover:bg-accent focus-visible:ring-offset-0"
+				onClick={handleToggle}
+				aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+			>
+				<ChevronLeft className={cn("h-3 w-3 transition-transform", collapsed && "rotate-180")} />
+			</Button>
+
+			<div className={cn("flex items-center px-6 py-5", collapsed && "justify-center px-0")}>
+				<Logo showTagline={!collapsed} size="sm" />
 			</div>
-			{collapsed ? (
-				<Button
-					variant="ghost"
-					size="icon"
-					className="mx-auto mb-2"
-					onClick={handleToggle}
-					aria-label="Expand sidebar"
-				>
-					<ChevronLeft className="h-4 w-4 rotate-180" />
-				</Button>
-			) : null}
-			<div className="px-4 pb-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-				{activeArea.label}
+
+			<div className={cn("px-6 pb-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground mt-4", collapsed && "text-center px-0")}>
+				{collapsed ? "..." : activeArea.label}
 			</div>
-			<nav className={cn("flex-1 space-y-1 px-2", collapsed && "px-1")}>
+
+			<nav className={cn("flex-1 space-y-3 mt-4", collapsed ? "px-2" : "pl-6 pr-3")}>
 				{visibleItems.length === 0 ? (
 					<div className={cn("rounded-lg border border-dashed border-border/60 px-3 py-3 text-xs text-muted-foreground", collapsed && "px-2 text-center")}>
 						{collapsed ? "—" : "No visible sections"}
 					</div>
 				) : (
-					navItems.map((item) => (
-						<PermissionGate key={item.id} permission={item.permissions} mode="any">
-							<SidebarItem
-								item={item}
-								collapsed={collapsed}
-								isActive={location.pathname.startsWith(item.path)}
-								onNavigate={onNavigate}
-							/>
-						</PermissionGate>
+					visibleItems.map((item) => (
+						<SidebarItem
+							key={item.id}
+							item={item}
+							collapsed={collapsed}
+							isActive={item.id === activeItemId}
+							onNavigate={onNavigate}
+						/>
 					))
 				)}
 			</nav>

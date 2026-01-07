@@ -1,9 +1,9 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useWatch } from "react-hook-form";
+import { Archive, Coins, ShieldCheck } from "lucide-react";
 import { PageContainer } from "@/shared/ui/PageContainer";
 import { PageHeader } from "@/shared/ui/PageHeader";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { Button } from "@/shared/ui/Button";
 import {
 	Form,
@@ -14,7 +14,8 @@ import {
 	FormMessage,
 } from "@/shared/ui/Form/form";
 import { Input } from "@/shared/ui/input";
-import { Checkbox } from "@/shared/ui/checkbox";
+import { Switch } from "@/shared/ui/switch";
+import { TabButton } from "@/shared/ui/TabButton";
 import { usePermissions } from "@/auth/hooks";
 import { useApiErrorToast } from "@/shared/api/useApiErrorToast";
 import { useToast } from "@/shared/ui/use-toast";
@@ -24,11 +25,14 @@ import { useOrgSettings, useUpdateOrgSettings } from "@/entities/org/hooks";
 import type { OrgSettingsFormValues } from "@/entities/org/types";
 import { orgSettingsSchema } from "../schemas";
 
+type OrgSettingsTabKey = "general" | "retention" | "stock";
+
 export function OrgSettingsPage() {
 	const { can } = usePermissions();
 	const canManage = can("org.settings.manage");
 	const apiErrorToast = useApiErrorToast();
 	const { toast } = useToast();
+	const [tab, setTab] = useState<OrgSettingsTabKey>("general");
 
 	const settingsQuery = useOrgSettings();
 
@@ -138,7 +142,7 @@ export function OrgSettingsPage() {
 	}
 
 	return (
-		<PageContainer>
+		<PageContainer className="flex min-h-0 flex-1 flex-col gap-4">
 			<PageHeader
 				title="Organization settings"
 				subtitle="Control profile editing, data export, and retention rules for this organization."
@@ -154,280 +158,398 @@ export function OrgSettingsPage() {
 				}
 			/>
 
-			<Form {...form}>
-				<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-					<Card>
-						<CardHeader>
-							<CardTitle>Access controls</CardTitle>
-						</CardHeader>
-						<CardContent className="space-y-3">
-							<FormField
-								control={form.control}
-								name="allow_profile_edit"
-								render={({ field }) => (
-									<FormItem className="flex items-start justify-between space-y-0 border border-border/60 bg-muted/20 p-3 rounded-md">
-										<div className="space-y-1">
-											<FormLabel>Allow profile editing</FormLabel>
-											<p className="text-sm text-muted-foreground">
-												When disabled, profile updates are blocked.
-											</p>
-										</div>
-										<FormControl>
-											<Checkbox
-												checked={field.value}
-												onCheckedChange={field.onChange}
-												disabled={!canManage || updateMutation.isPending}
-											/>
-										</FormControl>
-									</FormItem>
-								)}
-							/>
-							<FormField
-								control={form.control}
-								name="allow_user_data_export"
-								render={({ field }) => (
-									<FormItem className="flex items-start justify-between space-y-0 border border-border/60 bg-muted/20 p-3 rounded-md">
-										<div className="space-y-1">
-											<FormLabel>Allow user data export</FormLabel>
-											<p className="text-sm text-muted-foreground">
-												Enable or disable user data export for this org.
-											</p>
-										</div>
-										<FormControl>
-											<Checkbox
-												checked={field.value}
-												onCheckedChange={field.onChange}
-												disabled={!canManage || updateMutation.isPending}
-											/>
-										</FormControl>
-									</FormItem>
-								)}
-							/>
-							<FormField
-								control={form.control}
-								name="require_two_factor"
-								render={({ field }) => (
-									<FormItem className="flex items-start justify-between space-y-0 border border-border/60 bg-muted/20 p-3 rounded-md">
-										<div className="space-y-1">
-											<FormLabel>Require 2FA (reserved)</FormLabel>
-											<p className="text-sm text-muted-foreground">
-												Flag reserved for future MFA enforcement.
-											</p>
-										</div>
-										<FormControl>
-											<Checkbox
-												checked={field.value}
-												onCheckedChange={field.onChange}
-												disabled={!canManage || updateMutation.isPending}
-											/>
-										</FormControl>
-									</FormItem>
-								)}
-							/>
-						</CardContent>
-					</Card>
+			<div className="inline-flex w-fit items-center gap-2 rounded-lg border bg-card px-2 py-2 shadow-sm">
+				<TabButton
+					label="General"
+					value="general"
+					active={tab === "general"}
+					onSelect={(v) => setTab(v as OrgSettingsTabKey)}
+				/>
+				<TabButton
+					label="Retention"
+					value="retention"
+					active={tab === "retention"}
+					onSelect={(v) => setTab(v as OrgSettingsTabKey)}
+				/>
+				<TabButton
+					label="Stock"
+					value="stock"
+					active={tab === "stock"}
+					onSelect={(v) => setTab(v as OrgSettingsTabKey)}
+				/>
+			</div>
 
-					<Card>
-						<CardHeader>
-							<CardTitle>Retention</CardTitle>
-						</CardHeader>
-						<CardContent className="grid gap-4 md:grid-cols-2">
-							<FormField
-								control={form.control}
-								name="audit_log_retention_days"
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel>Audit log retention (days)</FormLabel>
-										<FormControl>
-											<Input
-												type="number"
-												min={30}
-												max={3650}
-												{...field}
-												value={Number.isNaN(field.value) ? "" : field.value}
-												onChange={(event) =>
-													field.onChange(event.target.valueAsNumber)
-												}
-												disabled={!canManage || updateMutation.isPending}
-											/>
-										</FormControl>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
-							<FormField
-								control={form.control}
-								name="inactive_user_retention_days"
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel>Inactive user retention (days)</FormLabel>
-										<FormControl>
-											<Input
-												type="number"
-												min={30}
-												max={3650}
-												{...field}
-												value={Number.isNaN(field.value) ? "" : field.value}
-												onChange={(event) =>
-													field.onChange(event.target.valueAsNumber)
-												}
-												disabled={!canManage || updateMutation.isPending}
-											/>
-										</FormControl>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
-						</CardContent>
-					</Card>
-
-					<Card>
-						<CardHeader>
-							<CardTitle>Stock program rules</CardTitle>
-						</CardHeader>
-						<CardContent className="space-y-4">
-							<FormField
-								control={form.control}
-								name="enforce_service_duration_rule"
-								render={({ field }) => (
-									<FormItem className="flex items-start justify-between space-y-0 rounded-md border border-border/60 bg-muted/20 p-3">
-										<div className="space-y-1">
-											<FormLabel>Require minimum service duration</FormLabel>
+			<div className="flex min-h-0 flex-1 flex-col rounded-lg border bg-card shadow-sm">
+				<Form {...form}>
+					<form
+						onSubmit={form.handleSubmit(onSubmit)}
+						className="flex min-h-0 flex-1 flex-col"
+					>
+						{tab === "general" && (
+							<div className="flex min-h-0 flex-1 flex-col">
+								<div className="border-b border-border/70 px-6 py-4">
+									<div className="flex items-center gap-3">
+										<div className="flex h-12 w-12 items-center justify-center rounded-md bg-primary/10 text-primary">
+											<ShieldCheck className="h-6 w-6" />
+										</div>
+										<div>
+											<h2 className="text-lg font-semibold">Access controls</h2>
 											<p className="text-sm text-muted-foreground">
-												Block exercises until an employee meets the minimum
-												service duration.
+												Manage user permissions and security policies.
 											</p>
 										</div>
-										<FormControl>
-											<Checkbox
-												checked={field.value}
-												onCheckedChange={(checked) => {
-													const nextValue = Boolean(checked);
-													field.onChange(nextValue);
-													if (!nextValue) {
-														form.setValue("min_service_duration_days", null, {
-															shouldDirty: true,
-														});
-													}
-												}}
-												disabled={!canManage || updateMutation.isPending}
-											/>
-										</FormControl>
-									</FormItem>
-								)}
-							/>
-							<FormField
-								control={form.control}
-								name="min_service_duration_days"
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel>Minimum service duration (days)</FormLabel>
-										<FormControl>
-											<Input
-												type="number"
-												min={0}
-												max={36500}
-												{...field}
-												value={field.value ?? ""}
-												onChange={(event) => {
-													const nextValue =
-														event.target.value === ""
-															? null
-															: event.target.valueAsNumber;
-													field.onChange(
-														Number.isNaN(nextValue) ? null : nextValue
-													);
-												}}
-												disabled={
-													!canManage ||
-													updateMutation.isPending ||
-													!enforceServiceDuration
-												}
-											/>
-										</FormControl>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
+									</div>
+								</div>
+								<div className="min-h-0 flex-1 overflow-y-auto px-6 py-6">
+									<div className="space-y-6">
+										<FormField
+											control={form.control}
+											name="allow_profile_edit"
+											render={({ field }) => (
+												<FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 shadow-sm">
+													<div className="space-y-0.5">
+														<FormLabel className="text-base">
+															Allow profile editing
+														</FormLabel>
+														<div className="text-sm text-muted-foreground">
+															When disabled, users cannot change their profile
+															details.
+														</div>
+													</div>
+													<FormControl>
+														<Switch
+															checked={field.value}
+															onCheckedChange={field.onChange}
+															disabled={!canManage || updateMutation.isPending}
+														/>
+													</FormControl>
+												</FormItem>
+											)}
+										/>
+										<FormField
+											control={form.control}
+											name="allow_user_data_export"
+											render={({ field }) => (
+												<FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 shadow-sm">
+													<div className="space-y-0.5">
+														<FormLabel className="text-base">
+															Allow user data export
+														</FormLabel>
+														<div className="text-sm text-muted-foreground">
+															Enable or disable personal data export for
+															employees.
+														</div>
+													</div>
+													<FormControl>
+														<Switch
+															checked={field.value}
+															onCheckedChange={field.onChange}
+															disabled={!canManage || updateMutation.isPending}
+														/>
+													</FormControl>
+												</FormItem>
+											)}
+										/>
+										<FormField
+											control={form.control}
+											name="require_two_factor"
+											render={({ field }) => (
+												<FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 shadow-sm">
+													<div className="space-y-0.5">
+														<FormLabel className="text-base">
+															Require 2FA (reserved)
+														</FormLabel>
+														<div className="text-sm text-muted-foreground">
+															Future enforcement policy for multi-factor
+															authentication.
+														</div>
+													</div>
+													<FormControl>
+														<Switch
+															checked={field.value}
+															onCheckedChange={field.onChange}
+															disabled={!canManage || updateMutation.isPending}
+														/>
+													</FormControl>
+												</FormItem>
+											)}
+										/>
+									</div>
+								</div>
+							</div>
+						)}
 
-							<FormField
-								control={form.control}
-								name="enforce_min_vested_to_exercise"
-								render={({ field }) => (
-									<FormItem className="flex items-start justify-between space-y-0 rounded-md border border-border/60 bg-muted/20 p-3">
-										<div className="space-y-1">
-											<FormLabel>Require minimum vested shares</FormLabel>
+						{tab === "retention" && (
+							<div className="flex min-h-0 flex-1 flex-col">
+								<div className="border-b border-border/70 px-6 py-4">
+									<div className="flex items-center gap-3">
+										<div className="flex h-12 w-12 items-center justify-center rounded-md bg-primary/10 text-primary">
+											<Archive className="h-6 w-6" />
+										</div>
+										<div>
+											<h2 className="text-lg font-semibold">Data retention</h2>
 											<p className="text-sm text-muted-foreground">
-												Require a minimum cumulative vested share count before
-												exercising.
+												Configure how long sensitive data is kept.
 											</p>
 										</div>
-										<FormControl>
-											<Checkbox
-												checked={field.value}
-												onCheckedChange={(checked) => {
-													const nextValue = Boolean(checked);
-													field.onChange(nextValue);
-													if (!nextValue) {
-														form.setValue(
-															"min_vested_shares_to_exercise",
-															null,
-															{ shouldDirty: true }
-														);
-													}
-												}}
-												disabled={!canManage || updateMutation.isPending}
-											/>
-										</FormControl>
-									</FormItem>
-								)}
-							/>
-							<FormField
-								control={form.control}
-								name="min_vested_shares_to_exercise"
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel>Minimum vested shares to exercise</FormLabel>
-										<FormControl>
-											<Input
-												type="number"
-												min={0}
-												max={1_000_000_000}
-												{...field}
-												value={field.value ?? ""}
-												onChange={(event) => {
-													const nextValue =
-														event.target.value === ""
-															? null
-															: event.target.valueAsNumber;
-													field.onChange(
-														Number.isNaN(nextValue) ? null : nextValue
-													);
-												}}
-												disabled={
-													!canManage ||
-													updateMutation.isPending ||
-													!enforceMinVested
-												}
-											/>
-										</FormControl>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
-						</CardContent>
-					</Card>
+									</div>
+								</div>
+								<div className="min-h-0 flex-1 overflow-y-auto px-6 py-6">
+									<div className="grid max-w-2xl gap-6">
+										<FormField
+											control={form.control}
+											name="audit_log_retention_days"
+											render={({ field }) => (
+												<FormItem>
+													<FormLabel>Audit log retention (days)</FormLabel>
+													<div className="mb-2 text-sm text-muted-foreground">
+														How long to keep audit trail records before
+														deletion.
+													</div>
+													<FormControl>
+														<Input
+															type="number"
+															min={30}
+															max={3650}
+															{...field}
+															value={
+																Number.isNaN(field.value) ? "" : field.value
+															}
+															onChange={(event) =>
+																field.onChange(event.target.valueAsNumber)
+															}
+															disabled={!canManage || updateMutation.isPending}
+														/>
+													</FormControl>
+													<FormMessage />
+												</FormItem>
+											)}
+										/>
+										<FormField
+											control={form.control}
+											name="inactive_user_retention_days"
+											render={({ field }) => (
+												<FormItem>
+													<FormLabel>Inactive user retention (days)</FormLabel>
+													<div className="mb-2 text-sm text-muted-foreground">
+														Period to retain data for deactivated users.
+													</div>
+													<FormControl>
+														<Input
+															type="number"
+															min={30}
+															max={3650}
+															{...field}
+															value={
+																Number.isNaN(field.value) ? "" : field.value
+															}
+															onChange={(event) =>
+																field.onChange(event.target.valueAsNumber)
+															}
+															disabled={!canManage || updateMutation.isPending}
+														/>
+													</FormControl>
+													<FormMessage />
+												</FormItem>
+											)}
+										/>
+									</div>
+								</div>
+							</div>
+						)}
 
-					<div className="flex justify-end">
-						<Button
-							type="submit"
-							disabled={!canManage || updateMutation.isPending}
-						>
-							{updateMutation.isPending ? "Saving..." : "Save settings"}
-						</Button>
-					</div>
-				</form>
-			</Form>
+						{tab === "stock" && (
+							<div className="flex min-h-0 flex-1 flex-col">
+								<div className="border-b border-border/70 px-6 py-4">
+									<div className="flex items-center gap-3">
+										<div className="flex h-12 w-12 items-center justify-center rounded-md bg-primary/10 text-primary">
+											<Coins className="h-6 w-6" />
+										</div>
+										<div>
+											<h2 className="text-lg font-semibold">Stock program</h2>
+											<p className="text-sm text-muted-foreground">
+												Define rules for exercise eligibility and vesting.
+											</p>
+										</div>
+									</div>
+								</div>
+								<div className="min-h-0 flex-1 overflow-y-auto px-6 py-6">
+									<div className="space-y-6">
+										<div className="space-y-4 rounded-lg border p-4 shadow-sm">
+											<FormField
+												control={form.control}
+												name="enforce_service_duration_rule"
+												render={({ field }) => (
+													<FormItem className="flex flex-row items-center justify-between">
+														<div className="space-y-0.5">
+															<FormLabel className="text-base">
+																Require minimum service duration
+															</FormLabel>
+															<div className="text-sm text-muted-foreground">
+																Block exercises until an employee meets the
+																minimum service duration.
+															</div>
+														</div>
+														<FormControl>
+															<Switch
+																checked={field.value}
+																onCheckedChange={(checked) => {
+																	const nextValue = Boolean(checked);
+																	field.onChange(nextValue);
+																	if (!nextValue) {
+																		form.setValue(
+																			"min_service_duration_days",
+																			null,
+																			{
+																				shouldDirty: true,
+																			}
+																		);
+																	}
+																}}
+																disabled={
+																	!canManage || updateMutation.isPending
+																}
+															/>
+														</FormControl>
+													</FormItem>
+												)}
+											/>
+											{enforceServiceDuration && (
+												<div className="pl-1 pt-2">
+													<FormField
+														control={form.control}
+														name="min_service_duration_days"
+														render={({ field }) => (
+															<FormItem className="max-w-xs">
+																<FormLabel>
+																	Minimum service duration (days)
+																</FormLabel>
+																<FormControl>
+																	<Input
+																		type="number"
+																		min={0}
+																		max={36500}
+																		{...field}
+																		value={field.value ?? ""}
+																		onChange={(event) => {
+																			const nextValue =
+																				event.target.value === ""
+																					? null
+																					: event.target.valueAsNumber;
+																			field.onChange(
+																				Number.isNaN(nextValue)
+																					? null
+																					: nextValue
+																			);
+																		}}
+																		disabled={
+																			!canManage ||
+																			updateMutation.isPending
+																		}
+																	/>
+																</FormControl>
+																<FormMessage />
+															</FormItem>
+														)}
+													/>
+												</div>
+											)}
+										</div>
+
+										<div className="space-y-4 rounded-lg border p-4 shadow-sm">
+											<FormField
+												control={form.control}
+												name="enforce_min_vested_to_exercise"
+												render={({ field }) => (
+													<FormItem className="flex flex-row items-center justify-between">
+														<div className="space-y-0.5">
+															<FormLabel className="text-base">
+																Require minimum vested shares
+															</FormLabel>
+															<div className="text-sm text-muted-foreground">
+																Require a minimum cumulative vested share count
+																before exercising.
+															</div>
+														</div>
+														<FormControl>
+															<Switch
+																checked={field.value}
+																onCheckedChange={(checked) => {
+																	const nextValue = Boolean(checked);
+																	field.onChange(nextValue);
+																	if (!nextValue) {
+																		form.setValue(
+																			"min_vested_shares_to_exercise",
+																			null,
+																			{ shouldDirty: true }
+																		);
+																	}
+																}}
+																disabled={
+																	!canManage || updateMutation.isPending
+																}
+															/>
+														</FormControl>
+													</FormItem>
+												)}
+											/>
+											{enforceMinVested && (
+												<div className="pl-1 pt-2">
+													<FormField
+														control={form.control}
+														name="min_vested_shares_to_exercise"
+														render={({ field }) => (
+															<FormItem className="max-w-xs">
+																<FormLabel>
+																	Minimum vested shares to exercise
+																</FormLabel>
+																<FormControl>
+																	<Input
+																		type="number"
+																		min={0}
+																		max={1_000_000_000}
+																		{...field}
+																		value={field.value ?? ""}
+																		onChange={(event) => {
+																			const nextValue =
+																				event.target.value === ""
+																					? null
+																					: event.target.valueAsNumber;
+																			field.onChange(
+																				Number.isNaN(nextValue)
+																					? null
+																					: nextValue
+																			);
+																		}}
+																		disabled={
+																			!canManage ||
+																			updateMutation.isPending
+																		}
+																	/>
+																</FormControl>
+																<FormMessage />
+															</FormItem>
+														)}
+													/>
+												</div>
+											)}
+										</div>
+									</div>
+								</div>
+							</div>
+						)}
+
+						<div className="flex justify-end border-t border-border/70 p-4">
+							<Button
+								type="submit"
+								disabled={!canManage || updateMutation.isPending}
+							>
+								{updateMutation.isPending ? "Saving..." : "Save settings"}
+							</Button>
+						</div>
+					</form>
+				</Form>
+			</div>
 		</PageContainer>
 	);
 }

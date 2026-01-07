@@ -137,7 +137,7 @@ export const navConfig: NavConfig = {
 		{
 			id: "settings-org",
 			label: "Org settings",
-			path: "/app/settings",
+			path: "/app/settings/org",
 			icon: Settings,
 			permissions: "org.settings.view",
 		},

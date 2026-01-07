@@ -68,8 +68,8 @@ export function GlobalSearch({
 	};
 
 	const triggerClasses = compact
-		? "inline-flex h-11 w-11 items-center justify-center rounded border border-border/60 bg-background/80 text-muted-foreground shadow-sm transition hover:-translate-y-[1px] hover:text-foreground hover:shadow-md focus-visible:outline-none focus-visible:ring-0"
-		: "group relative flex w-full min-w-[260px] max-w-lg items-center gap-3 rounded-xl border border-border/60 bg-background/80 px-3 py-2 text-left text-sm shadow-sm transition hover:-translate-y-[1px] hover:border-primary/50 hover:shadow-md focus-visible:outline-none focus-visible:ring-0";
+		? "inline-flex h-11 items-center justify-center rounded border border-border/60 bg-background/80 text-muted-foreground shadow-sm transition hover:-translate-y-[1px] hover:text-foreground hover:shadow-md focus-visible:outline-none focus-visible:ring-0"
+		: "group relative flex items-center gap-3 rounded-xl border border-border/60 bg-background/80 px-3 py-2 text-left text-sm shadow-sm transition hover:-translate-y-[1px] hover:border-primary/50 hover:shadow-md focus-visible:outline-none focus-visible:ring-0";
 
 	return (
 		<Dialog open={open} onOpenChange={handleOpenChange}>

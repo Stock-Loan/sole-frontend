@@ -56,7 +56,7 @@ export function QueuePage() {
 				/>
 			) : (
 				<>
-					<div className="flex flex-wrap gap-2">
+					<div className="inline-flex w-fit items-center gap-2 rounded-lg border bg-card px-2 py-2 shadow-sm">
 						{visibleTabs.map((tab) => (
 							<TabButton
 								key={tab.id}

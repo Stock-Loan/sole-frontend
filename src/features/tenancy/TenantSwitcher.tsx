@@ -3,8 +3,9 @@ import { useMemo } from "react";
 import { Button } from "@/shared/ui/Button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/shared/ui/dropdown-menu";
 import { useTenant } from "@/features/tenancy/hooks";
+import { cn } from "@/shared/lib/utils";
 
-export function TenantSwitcher() {
+export function TenantSwitcher({ className }: { className?: string }) {
 	const { orgs, currentOrgId, setCurrentOrgId } = useTenant();
 
 	const currentOrg = useMemo(
@@ -19,7 +20,7 @@ export function TenantSwitcher() {
 
 	if (!isMultiTenant) {
 		return (
-			<div className="inline-flex items-center gap-2 rounded-full bg-muted/50 px-3 py-2 text-sm font-semibold text-foreground">
+			<div className={cn("inline-flex items-center gap-2 rounded-full bg-muted/50 px-3 py-2 text-sm font-semibold text-foreground", className)}>
 				<Building2 className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
 				<span>{label}</span>
 			</div>
@@ -32,7 +33,7 @@ export function TenantSwitcher() {
 				<Button
 					variant="outline"
 					size="sm"
-					className="inline-flex items-center gap-2 rounded-full border-border/70 bg-background/80"
+					className={cn("inline-flex items-center gap-2 rounded-full border-border/70 bg-background/80", className)}
 				>
 					<Building2 className="h-4 w-4" aria-hidden="true" />
 					<span className="text-sm font-medium">{label}</span>
