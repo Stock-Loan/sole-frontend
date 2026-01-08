@@ -17,6 +17,7 @@ export interface AuthUser {
 	roles?: RoleCode[];
 	orgIds?: string[];
 	permissions?: string[];
+	must_change_password?: boolean;
 }
 
 export interface LoginStartPayload {

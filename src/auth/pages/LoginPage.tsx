@@ -94,6 +94,18 @@ export function LoginPage() {
 				onSuccess: async (tokens) => {
 					try {
 						const user = await getMeWithToken(tokens.access_token);
+						if (user.must_change_password) {
+							setSession(tokens, user);
+							if (typeof localStorage !== "undefined") {
+								localStorage.removeItem(PENDING_EMAIL_KEY);
+							}
+							toast({
+								title: "Password change required",
+								description: "Please update your password to finish signing in.",
+							});
+							navigate(routes.changePassword, { replace: true });
+							return;
+						}
 						setSession(tokens, user);
 						if (typeof localStorage !== "undefined") {
 							localStorage.removeItem(PENDING_EMAIL_KEY);
@@ -108,29 +120,30 @@ export function LoginPage() {
 							: routes.workspace;
 						navigate(destination, { replace: true });
 					} catch (error) {
-						if (
-							isAxiosError(error) &&
-							error.response?.status === 403 &&
-							typeof error.response?.data?.detail === "string" &&
-							error.response.data.detail
-								.toLowerCase()
-								.includes("password change required")
-						) {
-							const placeholderUser: AuthUser = {
-								id: "pending",
-								email: email,
-								is_active: true,
-							};
-							setSession(tokens, placeholderUser);
-							if (typeof localStorage !== "undefined") {
-								localStorage.removeItem(PENDING_EMAIL_KEY);
+						if (isAxiosError(error) && error.response?.status === 403) {
+							const data = error.response.data as
+								| { detail?: string; message?: string; details?: { detail?: string } }
+								| undefined;
+							const detail =
+								data?.details?.detail || data?.detail || data?.message || "";
+
+							if (detail.toLowerCase().includes("password change required")) {
+								const placeholderUser: AuthUser = {
+									id: "pending",
+									email: email,
+									is_active: true,
+								};
+								setSession(tokens, placeholderUser);
+								if (typeof localStorage !== "undefined") {
+									localStorage.removeItem(PENDING_EMAIL_KEY);
+								}
+								toast({
+									title: "Password change required",
+									description: "Please update your password to finish signing in.",
+								});
+								navigate(routes.changePassword, { replace: true });
+								return;
 							}
-							toast({
-								title: "Password change required",
-								description: "Please update your password to finish signing in.",
-							});
-							navigate(routes.changePassword, { replace: true });
-							return;
 						}
 						throw error;
 					}
