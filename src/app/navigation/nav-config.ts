@@ -82,7 +82,11 @@ export const navConfig: NavConfig = {
 			label: "Administration",
 			path: "/app/stock/manage",
 			icon: Users,
-			permissions: "stock.grant.manage",
+			permissions: [
+				"stock.grant.view",
+				"stock.vesting.view",
+				"stock.eligibility.view",
+			],
 		},
 		{
 			id: "stock-grants",

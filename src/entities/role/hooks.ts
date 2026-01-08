@@ -95,19 +95,33 @@ export function useAssignRolesToUser(
 	});
 }
 
-export function useRemoveRolesFromUser(
-	membershipId: string,
+export function useUpdateUserRoles(
 	options: Omit<
-		UseMutationOptions<void, unknown, string[]>,
+		UseMutationOptions<
+			void,
+			unknown,
+			{ membershipId: string; addRoleIds: string[]; removeRoleIds: string[] }
+		>,
 		"mutationFn"
 	> = {}
 ) {
 	const queryClient = useQueryClient();
 
 	return useMutation({
-		mutationFn: (roleIds) => removeRolesFromUser(membershipId, roleIds),
+		mutationFn: async ({ membershipId, addRoleIds, removeRoleIds }) => {
+			if (addRoleIds.length > 0) {
+				await assignRolesToUser(membershipId, addRoleIds);
+			}
+			if (removeRoleIds.length > 0) {
+				await removeRolesFromUser(membershipId, removeRoleIds);
+			}
+		},
 		onSuccess: (data, variables, context) => {
-			queryClient.invalidateQueries({ queryKey: roleKeys.forUser(membershipId) });
+			queryClient.invalidateQueries({
+				queryKey: roleKeys.forUser(variables.membershipId),
+			});
+			// Also invalidate user list as roles are shown there
+			queryClient.invalidateQueries({ queryKey: ["org-users"] }); // Need to check actual key
 			options.onSuccess?.(data, variables, context);
 		},
 		onError: (error, variables, context) => {

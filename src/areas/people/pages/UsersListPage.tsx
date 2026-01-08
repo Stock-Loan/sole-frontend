@@ -25,7 +25,7 @@ import { useApiErrorToast } from "@/shared/api/useApiErrorToast";
 import { routes } from "@/shared/lib/routes";
 import { normalizeDisplay } from "@/shared/lib/utils";
 import { formatDate } from "@/shared/lib/format";
-import { useAuth } from "@/auth/hooks";
+import { useAuth, usePermissions } from "@/auth/hooks";
 import { AddUserDialog } from "@/entities/user/components/AddUserDialog";
 import {
 	useBulkDeleteOrgUsers,
@@ -34,6 +34,7 @@ import {
 	useOrgUsersList,
 } from "@/entities/user/hooks";
 import { AssignDepartmentDialog } from "@/entities/department/components/AssignDepartmentDialog";
+import { ManageRolesDialog } from "@/entities/role/components/ManageRolesDialog";
 import type {
 	OnboardUserPayload,
 	OrgUserListItem,
@@ -300,6 +301,7 @@ const columns: ColumnDefinition<OrgUserListItem>[] = [
 
 export function UsersListPage() {
 	const { user } = useAuth();
+	const { can } = usePermissions();
 	const [searchParams, setSearchParams] = useSearchParams();
 	const apiErrorToast = useApiErrorToast();
 	const deleteOrgUserMutation = useDeleteOrgUser();
@@ -308,6 +310,8 @@ export function UsersListPage() {
 	const [pendingDelete, setPendingDelete] = useState<OrgUserListItem[]>([]);
 	const [assignDialogOpen, setAssignDialogOpen] = useState(false);
 	const [pendingAssign, setPendingAssign] = useState<OrgUserListItem[]>([]);
+	const [manageRolesOpen, setManageRolesOpen] = useState(false);
+	const [userForRoles, setUserForRoles] = useState<OrgUserListItem | null>(null);
 	const [addUserOpen, setAddUserOpen] = useState(false);
 
 	const onboardUserMutation = useOnboardUser();
@@ -453,6 +457,11 @@ export function UsersListPage() {
 		}
 	};
 
+	const openManageRoles = (user: OrgUserListItem) => {
+		setUserForRoles(user);
+		setManageRolesOpen(true);
+	};
+
 	const handleConfirmDelete = () => {
 		if (!pendingDelete.length) return;
 		const membershipIds = Array.from(
@@ -473,25 +482,50 @@ export function UsersListPage() {
 		});
 	};
 
-	const renderToolbarActions = (selectedRows: OrgUserListItem[]) => (
-		<div className="flex items-center gap-2">
-			<ToolbarButton
-				variant="outline"
-				size="sm"
-				onClick={() => openAssignDialog(selectedRows)}
-			>
-				Assign department
-			</ToolbarButton>
-			<ToolbarButton
-				variant="destructive"
-				size="sm"
-				disabled={isDeleting}
-				onClick={() => openDeleteDialog(selectedRows)}
-			>
-				{selectedRows.length === 1 ? "Delete user" : "Delete users"}
-			</ToolbarButton>
-		</div>
-	);
+	const renderToolbarActions = (selectedRows: OrgUserListItem[]) => {
+		const canManageRoles =
+			can("role.manage") &&
+			can("user.manage") &&
+			selectedRows.length === 1 &&
+			selectedRows[0].membership.employment_status?.toUpperCase() === "ACTIVE" &&
+			selectedRows[0].membership.platform_status?.toUpperCase() === "ACTIVE";
+
+		const canAssignDepartment = can("department.manage") && can("user.manage");
+		const canDeleteUsers = can("user.manage");
+
+		return (
+			<div className="flex items-center gap-2">
+				{canManageRoles && (
+					<ToolbarButton
+						variant="outline"
+						size="sm"
+						onClick={() => openManageRoles(selectedRows[0])}
+					>
+						Manage roles
+					</ToolbarButton>
+				)}
+				{canAssignDepartment && (
+					<ToolbarButton
+						variant="outline"
+						size="sm"
+						onClick={() => openAssignDialog(selectedRows)}
+					>
+						Assign department
+					</ToolbarButton>
+				)}
+				{canDeleteUsers && (
+					<ToolbarButton
+						variant="destructive"
+						size="sm"
+						disabled={isDeleting}
+						onClick={() => openDeleteDialog(selectedRows)}
+					>
+						{selectedRows.length === 1 ? "Delete user" : "Delete users"}
+					</ToolbarButton>
+				)}
+			</div>
+		);
+	};
 
 	const pendingDeleteCount = pendingDelete.length;
 	const pendingDeleteLabel =
@@ -509,9 +543,11 @@ export function UsersListPage() {
 				title="Org users"
 				subtitle="View organization users and core statuses."
 				actions={
-					<Button asChild variant="outline" size="sm">
-						<Link to={routes.usersOnboard}>Bulk user onboarding</Link>
-					</Button>
+					can("user.onboard") ? (
+						<Button asChild variant="outline" size="sm">
+							<Link to={routes.usersOnboard}>Bulk user onboarding</Link>
+						</Button>
+					) : null
 				}
 			/>
 			{isError ? (
@@ -533,20 +569,22 @@ export function UsersListPage() {
 					initialColumnVisibility={initialColumnVisibility}
 					className="flex-1 min-h-0"
 					topBarActions={
-						<AddUserDialog
-							open={addUserOpen}
-							onOpenChange={setAddUserOpen}
-							onSubmit={handleAddUser}
-							trigger={
-								<Button
-									size="sm"
-									variant="default"
-									className="h-8 px-3 text-xs"
-								>
-									Add user
-								</Button>
-							}
-						/>
+						can("user.onboard") ? (
+							<AddUserDialog
+								open={addUserOpen}
+								onOpenChange={setAddUserOpen}
+								onSubmit={handleAddUser}
+								trigger={
+									<Button
+										size="sm"
+										variant="default"
+										className="h-8 px-3 text-xs"
+									>
+										Add user
+									</Button>
+								}
+							/>
+						) : null
 					}
 					renderToolbarActions={renderToolbarActions}
 					pagination={{
@@ -568,6 +606,12 @@ export function UsersListPage() {
 					// Optionally clear selection or refetch
 					// The mutation hook already invalidates userKeys.list()
 				}}
+			/>
+			<ManageRolesDialog
+				key={userForRoles?.membership.id}
+				open={manageRolesOpen}
+				onOpenChange={setManageRolesOpen}
+				user={userForRoles}
 			/>
 			<Dialog open={deleteDialogOpen} onOpenChange={handleDeleteDialogChange}>
 				<DialogContent size="sm">

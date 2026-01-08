@@ -1,5 +1,5 @@
 import { Outlet } from "react-router-dom";
-import { StockSearchProvider } from "./context/StockSearchContext";
+import { StockSearchProvider } from "../../entities/stock-grant/context/StockSearchContext";
 
 export function StockLayout() {
 	return (
