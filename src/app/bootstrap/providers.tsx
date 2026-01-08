@@ -15,7 +15,9 @@ export function AppProviders({ children }: PropsWithChildren) {
 					<Toaster />
 				</TenantProvider>
 			</AuthProvider>
-			{import.meta.env.DEV ? <ReactQueryDevtools initialIsOpen={false} /> : null}
+			{import.meta.env.DEV ? (
+				<ReactQueryDevtools initialIsOpen={false} />
+			) : null}
 		</QueryClientProvider>
 	);
 }

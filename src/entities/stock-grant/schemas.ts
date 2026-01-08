@@ -1,5 +1,4 @@
 import { z } from "zod";
-import type { VestingStrategy, StockGrantStatus } from "./types";
 
 const vestingEventSchema = z.object({
 	vest_date: z.string().min(1, "Vesting date is required"),
@@ -17,12 +16,10 @@ export const stockGrantFormSchema = z
 			.min(1, "Total shares must be at least 1")
 			.max(1_000_000_000, "Total shares are too large"),
 		exercise_price: z.string().min(1, "Exercise price is required"),
-		vesting_strategy: z.enum(["IMMEDIATE", "SCHEDULED"]) as z.ZodType<VestingStrategy>,
+		vesting_strategy: z.enum(["IMMEDIATE", "SCHEDULED"]),
 		notes: z.string().optional().nullable(),
 		vesting_events: z.array(vestingEventSchema).default([]),
-		status: z
-			.enum(["ACTIVE", "CANCELLED", "EXERCISED_OUT"])
-			.optional() as z.ZodType<StockGrantStatus | undefined>,
+		status: z.enum(["ACTIVE", "CANCELLED", "EXERCISED_OUT"]).default("ACTIVE"),
 	})
 	.superRefine((values, ctx) => {
 		if (values.vesting_strategy !== "SCHEDULED") return;

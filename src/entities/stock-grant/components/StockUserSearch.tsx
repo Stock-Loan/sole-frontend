@@ -4,7 +4,7 @@ import { Input } from "@/shared/ui/input";
 import { useDebounce } from "@/shared/hooks/useDebounce";
 import { getOrgUserDisplayName } from "@/entities/user/constants";
 import { useOrgUsersSearch } from "@/entities/user/hooks";
-import { useStockSearch } from "../context/StockSearchContext";
+import { useStockSearch } from "../context/context";
 import type { OrgUserListItem } from "@/entities/user/types";
 
 const SEARCH_PAGE_SIZE = 25;
@@ -19,7 +19,7 @@ export function StockUserSearch() {
 		isSearchOpen,
 		setIsSearchOpen,
 	} = useStockSearch();
-	
+
 	const searchInputRef = useRef<HTMLInputElement>(null);
 
 	const debouncedSearch = useDebounce(searchValue.trim(), 300);
@@ -27,16 +27,12 @@ export function StockUserSearch() {
 	const backendSearchTerm =
 		debouncedSearch.length > 3 ? debouncedSearch.slice(0, 3) : debouncedSearch;
 
-	const searchQuery = useOrgUsersSearch(
-		backendSearchTerm,
-		debouncedSearch,
-		{
-			enabled: isSearchOpen && shouldSearch,
-			pageSize: SEARCH_PAGE_SIZE,
-			maxPages: MAX_SEARCH_PAGES,
-			staleTime: 30 * 1000,
-		}
-	);
+	const searchQuery = useOrgUsersSearch(backendSearchTerm, debouncedSearch, {
+		enabled: isSearchOpen && shouldSearch,
+		pageSize: SEARCH_PAGE_SIZE,
+		maxPages: MAX_SEARCH_PAGES,
+		staleTime: 30 * 1000,
+	});
 
 	const suggestions = useMemo(
 		() => searchQuery.data?.items ?? [],
@@ -57,7 +53,7 @@ export function StockUserSearch() {
 			);
 		});
 	}, [debouncedSearch, shouldSearch, suggestions]);
-	
+
 	const showSuggestions = isSearchOpen && shouldSearch;
 
 	const handleSelectUser = (user: OrgUserListItem) => {
@@ -101,9 +97,7 @@ export function StockUserSearch() {
 								Unable to search users.
 							</div>
 						) : searchQuery.isFetching ? (
-							<div className="px-3 py-2 text-muted-foreground">
-								Searching…
-							</div>
+							<div className="px-3 py-2 text-muted-foreground">Searching…</div>
 						) : filteredSuggestions.length === 0 ? (
 							<div className="px-3 py-2 text-muted-foreground">
 								No users found.

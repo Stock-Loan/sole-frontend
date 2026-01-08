@@ -112,7 +112,7 @@ export interface StockGrantFormValues {
 	vesting_strategy: VestingStrategy;
 	notes?: string | null;
 	vesting_events: VestingEventInput[];
-	status?: StockGrantStatus;
+	status: StockGrantStatus;
 }
 
 export interface StockGrantDialogProps {

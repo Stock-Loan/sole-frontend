@@ -1,5 +1,5 @@
 import type { AuthUser } from "@/auth/types";
-import type { PermissionCode } from "./permissionCodes";
+import type { PermissionCode } from "@/shared/types/permissionCodes";
 
 export type PermissionRequirement = PermissionCode | PermissionCode[];
 export type PermissionCheckMode = "all" | "any";

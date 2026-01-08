@@ -15,7 +15,7 @@ export function Logo({
 			to={to}
 			className={cn(
 				// OUTER PILL (no hover effect)
-				"inline-flex items-center gap-3 rounded-full border border-border/60 " +
+				"inline-flex items-center rounded-full border border-border/60 " +
 					"bg-background/80 ps-2 pe-3 py-1.5 shadow-sm backdrop-blur-sm",
 				className
 			)}
@@ -25,7 +25,7 @@ export function Logo({
 			<span
 				className={cn(
 					"inline-flex items-center gap-1 rounded-full bg-sky-950 px-3 py-0.5 " +
-						"dark:bg-sky-900"
+						"dark:bg-sky-900 shrink-0"
 				)}
 			>
 				<span
@@ -46,16 +46,15 @@ export function Logo({
 			</span>
 
 			{/* Tagline tuned to blend with the palette */}
-			{showTagline && (
-				<span
-					className={cn(
-						"font-medium tracking-wide text-sky-900 dark:text-sky-100/80",
-						taglineSizeClasses[size]
-					)}
-				>
-					Equity Redefined
-				</span>
-			)}
+			<span
+				className={cn(
+					"font-medium tracking-wide text-sky-900 dark:text-sky-100/80 overflow-hidden whitespace-nowrap transition-all duration-300 ease-in-out",
+					taglineSizeClasses[size],
+					showTagline ? "max-w-[200px] opacity-100 ml-3" : "max-w-0 opacity-0 ml-0"
+				)}
+			>
+				Equity Redefined
+			</span>
 		</Link>
 	);
 }

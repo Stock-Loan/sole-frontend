@@ -7,8 +7,8 @@ import { usePermissions } from "@/auth/hooks";
 import { StockGrantsSection } from "@/entities/stock-grant/components/StockGrantsSection";
 import { useStockSummary } from "@/entities/stock-grant/hooks";
 import type { StockGrantsSectionHandle } from "@/entities/stock-grant/types";
-import { useStockSearch } from "../context/StockSearchContext";
-import { StockUserSearch } from "../components/StockUserSearch";
+import { useStockSearch } from "@/entities/stock-grant/context/context";
+import { StockUserSearch } from "@/entities/stock-grant/components/StockUserSearch";
 
 export function GrantsPage() {
 	const { can } = usePermissions();
@@ -20,7 +20,11 @@ export function GrantsPage() {
 
 	const membershipId = selectedUser?.membership.id ?? "";
 
-	const summaryQuery = useStockSummary(
+	const {
+		data: summaryData,
+		isLoading,
+		isFetching,
+	} = useStockSummary(
 		membershipId,
 		{},
 		{
@@ -28,13 +32,10 @@ export function GrantsPage() {
 		}
 	);
 
-	const membership = selectedUser?.membership;
-	const isUserActive =
-		membership?.employment_status?.toUpperCase() === "ACTIVE" &&
-		membership?.platform_status?.toUpperCase() === "ACTIVE" &&
-		membership?.invitation_status?.toUpperCase() === "ACCEPTED";
-
-	const isGrantActionBlocked = !isUserActive;
+	const grantEligibility =
+		summaryData?.eligibility_result?.eligible_to_exercise;
+	const isGrantActionBlocked =
+		grantEligibility === false || (canViewGrants && (isLoading || isFetching));
 
 	return (
 		<PageContainer className="flex min-h-0 flex-1 flex-col gap-4">

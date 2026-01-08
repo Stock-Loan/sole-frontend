@@ -28,9 +28,12 @@ export function StatusPage() {
 
 	if (isLoading) {
 		return (
-			<PageContainer>
-				<LoadingState label="Checking platform status..." />
-			</PageContainer>
+			<>
+				<PublicHeader />
+				<PageContainer className="mx-auto flex max-w-5xl min-h-[60vh] items-center justify-center px-4">
+					<LoadingState label="Checking platform status..." />
+				</PageContainer>
+			</>
 		);
 	}
 
@@ -38,7 +41,7 @@ export function StatusPage() {
 		return (
 			<>
 				<PublicHeader />
-				<PageContainer className="flex min-h-[60vh] items-center justify-center">
+				<PageContainer className="mx-auto flex max-w-5xl min-h-[60vh] items-center justify-center px-4">
 					<EmptyState
 						title="Status service unreachable"
 						message="We couldn't reach the platform backend to retrieve health data. The service may be offline or your network is disconnected. Please retry or contact support if this persists."
@@ -53,8 +56,8 @@ export function StatusPage() {
 	return (
 		<>
 			<PublicHeader />
-			<PageContainer className="space-y-6 pt-6">
-				<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+			<PageContainer className="mx-auto max-w-5xl space-y-8 px-4 py-8 sm:px-6 lg:px-8">
+				<div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
 					<PageHeader
 						title="Platform status"
 						subtitle="Live health for API, database, and Redis."
@@ -65,18 +68,18 @@ export function StatusPage() {
 							</Button>
 						}
 					/>
-					<div className="flex flex-wrap items-center gap-2">
+					<div className="flex flex-wrap items-center gap-2 pb-1">
 						{data.environment ? (
-							<span className="inline-flex items-center rounded-full border bg-muted/60 px-3 py-1 text-xs font-semibold uppercase text-foreground">
+							<span className="inline-flex items-center rounded-full border border-border/60 bg-muted/40 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
 								Environment: {data.environment}
 							</span>
 						) : null}
-						<span className="inline-flex items-center rounded-full bg-muted px-3 py-1 text-xs font-semibold text-foreground">
+						<span className="inline-flex items-center rounded-full bg-muted/60 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
 							Ready: {data.ready ? "Yes" : "No"}
 						</span>
 						{data.version ? (
-							<span className="inline-flex items-center rounded-full bg-muted px-3 py-1 text-xs font-semibold text-foreground">
-								Version: {data.version}
+							<span className="inline-flex items-center rounded-full bg-muted/60 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+								v{data.version}
 							</span>
 						) : null}
 					</div>

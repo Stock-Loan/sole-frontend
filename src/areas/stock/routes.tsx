@@ -1,5 +1,5 @@
 import type { RouteObject } from "react-router-dom";
-import { StockLayout } from "./layout";
+import { StockLayout } from "../../entities/stock-grant/layout";
 import { StockAdminPage } from "./pages/StockAdminPage";
 import { StockOverviewPage } from "./pages/StockOverviewPage";
 import { GrantsPage } from "./pages/GrantsPage";

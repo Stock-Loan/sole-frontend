@@ -12,15 +12,18 @@ import { formatDate } from "@/shared/lib/format";
 import { cn } from "@/shared/lib/utils";
 import { routes } from "@/shared/lib/routes";
 import { useStockSummary } from "@/entities/stock-grant/hooks";
-import { formatShares, getEligibilityReasonLabel } from "@/entities/stock-grant/constants";
+import {
+	formatShares,
+	getEligibilityReasonLabel,
+} from "@/entities/stock-grant/constants";
 import type { StockSummaryMetric } from "@/entities/stock-grant/types";
-import { useStockSearch } from "../context/StockSearchContext";
-import { StockUserSearch } from "../components/StockUserSearch";
+import { useStockSearch } from "@/entities/stock-grant/context/context";
+import { StockUserSearch } from "../../../entities/stock-grant/components/StockUserSearch";
 
 export function StockAdminPage() {
 	const { can } = usePermissions();
 	const { selectedUser } = useStockSearch();
-	
+
 	const canViewSummary = can(["stock.vesting.view", "stock.eligibility.view"]);
 
 	const membershipId = selectedUser?.membership.id ?? "";
@@ -85,16 +88,19 @@ export function StockAdminPage() {
 	}, [displayName, selectedUser]);
 
 	const statusChips = selectedUser
-		? [
-				{ label: "Employment", value: selectedUser.membership.employment_status },
+		? ([
+				{
+					label: "Employment",
+					value: selectedUser.membership.employment_status,
+				},
 				{ label: "Platform", value: selectedUser.membership.platform_status },
 				selectedUser.membership.invitation_status
 					? {
 							label: "Invitation",
 							value: selectedUser.membership.invitation_status,
-						}
+					  }
 					: null,
-		  ].filter(Boolean) as { label: string; value?: string | null }[]
+		  ].filter(Boolean) as { label: string; value?: string | null }[])
 		: [];
 
 	const metaItems = selectedUser

@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
+import type { SubmitHandler, Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
 	Dialog,
@@ -52,7 +53,7 @@ export function StockGrantDialog({
 	isSubmitting = false,
 }: StockGrantDialogProps) {
 	const form = useForm<StockGrantFormValues>({
-		resolver: zodResolver(stockGrantFormSchema),
+		resolver: zodResolver(stockGrantFormSchema) as unknown as Resolver<StockGrantFormValues>,
 		defaultValues,
 	});
 
@@ -97,7 +98,7 @@ export function StockGrantDialog({
 		}
 	}, [append, fields.length, replace, vestingStrategy]);
 
-	const handleSubmit = async (values: StockGrantFormValues) => {
+	const onFormSubmit: SubmitHandler<StockGrantFormValues> = async (values) => {
 		await onSubmit(values);
 	};
 
@@ -117,10 +118,10 @@ export function StockGrantDialog({
 						<form
 							id="stock-grant-form"
 							className="space-y-4"
-							onSubmit={form.handleSubmit(handleSubmit)}
+							onSubmit={form.handleSubmit(onFormSubmit)}
 						>
 							<div className="grid gap-3 md:grid-cols-2">
-								<FormField
+								<FormField<StockGrantFormValues>
 									control={form.control}
 									name="grant_date"
 									render={({ field }) => (
@@ -130,6 +131,7 @@ export function StockGrantDialog({
 												<Input
 													type="date"
 													{...field}
+													value={(field.value as string) || ""}
 													disabled={isSubmitting || mode === "edit"}
 												/>
 											</FormControl>
@@ -137,7 +139,7 @@ export function StockGrantDialog({
 										</FormItem>
 									)}
 								/>
-								<FormField
+								<FormField<StockGrantFormValues>
 									control={form.control}
 									name="total_shares"
 									render={({ field }) => (
@@ -149,11 +151,7 @@ export function StockGrantDialog({
 													min={1}
 													step={1}
 													{...field}
-													value={
-														Number.isNaN(field.value)
-															? ""
-															: field.value ?? ""
-													}
+													value={(field.value as number) ?? ""}
 													onChange={(event) =>
 														field.onChange(event.target.valueAsNumber)
 													}
@@ -164,7 +162,7 @@ export function StockGrantDialog({
 										</FormItem>
 									)}
 								/>
-								<FormField
+								<FormField<StockGrantFormValues>
 									control={form.control}
 									name="exercise_price"
 									render={({ field }) => (
@@ -176,6 +174,7 @@ export function StockGrantDialog({
 													min={0}
 													step="0.01"
 													{...field}
+													value={(field.value as string) || ""}
 													disabled={isSubmitting || mode === "edit"}
 												/>
 											</FormControl>
@@ -183,14 +182,14 @@ export function StockGrantDialog({
 										</FormItem>
 									)}
 								/>
-								<FormField
+								<FormField<StockGrantFormValues>
 									control={form.control}
 									name="vesting_strategy"
 									render={({ field }) => (
 										<FormItem>
 											<FormLabel>Vesting strategy</FormLabel>
 											<Select
-												value={field.value}
+												value={(field.value as string) || undefined}
 												onValueChange={field.onChange}
 												disabled={isSubmitting || mode === "edit"}
 											>
@@ -209,14 +208,14 @@ export function StockGrantDialog({
 									)}
 								/>
 								{mode === "edit" ? (
-									<FormField
+									<FormField<StockGrantFormValues>
 										control={form.control}
 										name="status"
 										render={({ field }) => (
 											<FormItem>
 												<FormLabel>Status</FormLabel>
 												<Select
-													value={field.value ?? "ACTIVE"}
+													value={(field.value as string) || "ACTIVE"}
 													onValueChange={field.onChange}
 													disabled={isSubmitting}
 												>
@@ -238,7 +237,7 @@ export function StockGrantDialog({
 										)}
 									/>
 								) : null}
-								<FormField
+								<FormField<StockGrantFormValues>
 									control={form.control}
 									name="notes"
 									render={({ field }) => (
@@ -248,7 +247,7 @@ export function StockGrantDialog({
 												<Input
 													placeholder="Optional note"
 													{...field}
-													value={field.value ?? ""}
+													value={(field.value as string) || ""}
 													disabled={isSubmitting}
 												/>
 											</FormControl>
@@ -286,7 +285,7 @@ export function StockGrantDialog({
 													key={fieldItem.id}
 													className="grid gap-3 rounded-md border border-border/60 bg-muted/20 p-3 md:grid-cols-[1fr_160px_auto]"
 												>
-													<FormField
+													<FormField<StockGrantFormValues>
 														control={form.control}
 														name={`vesting_events.${index}.vest_date`}
 														render={({ field }) => (
@@ -298,6 +297,7 @@ export function StockGrantDialog({
 																	<Input
 																		type="date"
 																		{...field}
+																		value={(field.value as string) || ""}
 																		disabled={isSubmitting}
 																	/>
 																</FormControl>
@@ -305,7 +305,7 @@ export function StockGrantDialog({
 															</FormItem>
 														)}
 													/>
-													<FormField
+													<FormField<StockGrantFormValues>
 														control={form.control}
 														name={`vesting_events.${index}.shares`}
 														render={({ field }) => (
@@ -319,11 +319,7 @@ export function StockGrantDialog({
 																		min={1}
 																		step={1}
 																		{...field}
-																		value={
-																			Number.isNaN(field.value)
-																				? ""
-																				: field.value ?? ""
-																		}
+																		value={(field.value as number) ?? ""}
 																		onChange={(event) =>
 																			field.onChange(event.target.valueAsNumber)
 																		}

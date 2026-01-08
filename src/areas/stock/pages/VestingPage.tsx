@@ -15,8 +15,8 @@ import { usePermissions } from "@/auth/hooks";
 import { useAllStockGrants } from "@/entities/stock-grant/hooks";
 import { formatShares } from "@/entities/stock-grant/constants";
 import { formatDate } from "@/shared/lib/format";
-import { useStockSearch } from "../context/StockSearchContext";
-import { StockUserSearch } from "../components/StockUserSearch";
+import { useStockSearch } from "@/entities/stock-grant/context/context";
+import { StockUserSearch } from "@/entities/stock-grant/components/StockUserSearch";
 
 export function VestingPage() {
 	const { can } = usePermissions();
@@ -42,8 +42,9 @@ export function VestingPage() {
 					shares: event.shares,
 				}))
 			)
-			.sort((a, b) =>
-				new Date(a.vestDate).getTime() - new Date(b.vestDate).getTime()
+			.sort(
+				(a, b) =>
+					new Date(a.vestDate).getTime() - new Date(b.vestDate).getTime()
 			);
 	}, [allGrantsQuery.data]);
 

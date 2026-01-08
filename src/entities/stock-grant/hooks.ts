@@ -120,10 +120,12 @@ export function useCreateStockGrant(
 			queryClient.invalidateQueries({
 				queryKey: stockGrantKeys.summary(membershipId),
 			});
-			options.onSuccess?.(data, variables, context);
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			(options.onSuccess as any)?.(data, variables, context);
 		},
 		onError: (error, variables, context) => {
-			options.onError?.(error, variables, context);
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			(options.onError as any)?.(error, variables, context);
 		},
 		...options,
 	});
@@ -132,7 +134,11 @@ export function useCreateStockGrant(
 export function useUpdateStockGrant(
 	membershipId: string,
 	options: Omit<
-		UseMutationOptions<StockGrant, unknown, { grantId: string; payload: StockGrantUpdateInput }>,
+		UseMutationOptions<
+			StockGrant,
+			unknown,
+			{ grantId: string; payload: StockGrantUpdateInput }
+		>,
 		"mutationFn"
 	> = {}
 ) {
@@ -150,10 +156,12 @@ export function useUpdateStockGrant(
 			queryClient.invalidateQueries({
 				queryKey: stockGrantKeys.summary(membershipId),
 			});
-			options.onSuccess?.(data, variables, context);
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			(options.onSuccess as any)?.(data, variables, context);
 		},
 		onError: (error, variables, context) => {
-			options.onError?.(error, variables, context);
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			(options.onError as any)?.(error, variables, context);
 		},
 		...options,
 	});

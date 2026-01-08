@@ -20,7 +20,11 @@ function canSeeItem(
 	return required.some((perm) => can(perm));
 }
 
-export function Sidebar({ collapsed: collapsedProp, onCollapseChange, onNavigate }: SidebarProps) {
+export function Sidebar({
+	collapsed: collapsedProp,
+	onCollapseChange,
+	onNavigate,
+}: SidebarProps) {
 	const location = useLocation();
 	const activeArea = useActiveArea();
 	const { can } = usePermissions();
@@ -74,20 +78,59 @@ export function Sidebar({ collapsed: collapsedProp, onCollapseChange, onNavigate
 				onClick={handleToggle}
 				aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
 			>
-				<ChevronLeft className={cn("h-3 w-3 transition-transform", collapsed && "rotate-180")} />
+				<ChevronLeft
+					className={cn(
+						"h-3 w-3 transition-transform",
+						collapsed && "rotate-180"
+					)}
+				/>
 			</Button>
 
-			<div className={cn("flex items-center px-6 py-5", collapsed && "justify-center px-0")}>
+			<div
+				className={cn(
+					"flex items-center px-6 py-5 overflow-hidden",
+					collapsed && "px-2 justify-center"
+				)}
+			>
 				<Logo showTagline={!collapsed} size="sm" />
 			</div>
 
-			<div className={cn("px-6 pb-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground mt-4", collapsed && "text-center px-0")}>
-				{collapsed ? "..." : activeArea.label}
-			</div>
+						<div className={cn("px-6 pb-2 transition-all duration-300", collapsed ? "px-0 text-center" : "px-6")}>
 
-			<nav className={cn("flex-1 space-y-3 mt-4", collapsed ? "px-2" : "pl-6 pr-3")}>
+							<p
+
+								className={cn(
+
+									"text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground whitespace-nowrap transition-all duration-300 ease-in-out",
+
+									collapsed ? "opacity-50" : "opacity-100"
+
+								)}
+
+							>
+
+								{collapsed ? "..." : activeArea.label}
+
+							</p>
+
+						</div>
+
+			
+
+			<nav
+				className={cn(
+					"flex-1 space-y-1 mt-6 transition-all duration-300",
+					collapsed ? "px-2" : "pl-6 pr-3"
+				)}
+			>
+				{" "}
 				{visibleItems.length === 0 ? (
-					<div className={cn("rounded-lg border border-dashed border-border/60 px-3 py-3 text-xs text-muted-foreground", collapsed && "px-2 text-center")}>
+					<div
+						className={cn(
+							"rounded-lg border border-dashed border-border/60 px-3 py-3 text-xs text-muted-foreground",
+							collapsed && "px-2 text-center"
+						)}
+					>
 						{collapsed ? "—" : "No visible sections"}
 					</div>
 				) : (

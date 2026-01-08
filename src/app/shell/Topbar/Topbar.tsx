@@ -12,12 +12,15 @@ export function Topbar() {
 				<AreaSwitcher />
 			</div>
 
-			<div className="flex flex-1 items-center justify-center gap-0 px-4">
-				<div className="w-full max-w-2xl hidden lg:block">
-					<GlobalSearch items={searchItems} className="w-full" />
+			<div className="flex flex-1 items-center justify-center gap-4 px-4">
+				<div className="hidden lg:block xl:w-full xl:max-w-md">
+					<GlobalSearch
+						items={searchItems}
+						className="xl:w-full"
+					/>
 				</div>
 				<div className="hidden md:block shrink-0">
-					<TenantSwitcher />
+					<TenantSwitcher className="h-10 px-4" />
 				</div>
 			</div>
 

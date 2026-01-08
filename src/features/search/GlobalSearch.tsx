@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowUpRight, Search } from "lucide-react";
 import {
@@ -27,6 +27,12 @@ export function GlobalSearch({
 		if (!nextOpen) {
 			setQuery("");
 		}
+	};
+
+	const handleSelect = (path: string) => {
+		setOpen(false);
+		setQuery("");
+		navigate(path);
 	};
 
 	const results = useMemo(() => {
@@ -61,29 +67,34 @@ export function GlobalSearch({
 		return [...sorted, ...extras];
 	}, [results]);
 
-	const handleSelect = (path: string) => {
-		setOpen(false);
-		setQuery("");
-		navigate(path);
-	};
+	useEffect(() => {
+		const down = (e: KeyboardEvent) => {
+			if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+				e.preventDefault();
+				setOpen((open) => !open);
+			}
+		};
+		document.addEventListener("keydown", down);
+		return () => document.removeEventListener("keydown", down);
+	}, []);
 
 	const triggerClasses = compact
-		? "inline-flex h-11 items-center justify-center rounded border border-border/60 bg-background/80 text-muted-foreground shadow-sm transition hover:-translate-y-[1px] hover:text-foreground hover:shadow-md focus-visible:outline-none focus-visible:ring-0"
-		: "group relative flex items-center gap-3 rounded-xl border border-border/60 bg-background/80 px-3 py-2 text-left text-sm shadow-sm transition hover:-translate-y-[1px] hover:border-primary/50 hover:shadow-md focus-visible:outline-none focus-visible:ring-0";
+		? "inline-flex h-10 items-center justify-center rounded border border-border/60 bg-background/80 text-muted-foreground shadow-sm transition hover:-translate-y-[1px] hover:text-foreground hover:shadow-md focus-visible:outline-none focus-visible:ring-0"
+		: "group relative flex items-center justify-center xl:justify-start gap-3 rounded-xl border border-border/60 bg-background/80 px-3 text-left text-sm shadow-sm transition hover:-translate-y-[1px] hover:border-primary/50 hover:shadow-md focus-visible:outline-none focus-visible:ring-0 w-11 xl:w-full xl:max-w-md h-10";
 
 	return (
 		<Dialog open={open} onOpenChange={handleOpenChange}>
 			<DialogTrigger asChild>
 				<button type="button" className={cn(triggerClasses, className)}>
-					<Search className="h-4 w-4 text-muted-foreground" />
+					<Search className="h-4 w-4 text-muted-foreground shrink-0" />
 					{!compact ? (
 						<>
-							<div className="flex flex-1 flex-col">
+							<div className="hidden flex-1 flex-col xl:flex">
 								<span className="text-sm font-semibold text-foreground">
 									Search the portal
 								</span>
 							</div>
-							<span className="hidden items-center gap-1 rounded-md bg-muted px-2 py-1 text-[11px] font-semibold text-muted-foreground md:flex">
+							<span className="hidden items-center gap-1 rounded-md bg-muted px-2 py-1 text-[11px] font-semibold text-muted-foreground xl:flex">
 								Ctrl
 								<span className="text-muted-foreground/80">+</span>
 								<span>K</span>
