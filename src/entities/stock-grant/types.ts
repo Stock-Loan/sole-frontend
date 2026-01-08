@@ -127,6 +127,7 @@ export interface StockGrantDialogProps {
 export interface StockGrantsSectionProps {
 	membershipId: string;
 	canManage: boolean;
+	isGrantActionBlocked?: boolean;
 }
 
 export interface StockGrantsSectionHandle {

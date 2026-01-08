@@ -53,7 +53,10 @@ function getGrantSummary(
 export const StockGrantsSection = forwardRef<
 	StockGrantsSectionHandle,
 	StockGrantsSectionProps
->(function StockGrantsSection({ membershipId, canManage }, ref) {
+>(function StockGrantsSection(
+	{ membershipId, canManage, isGrantActionBlocked = false },
+	ref
+) {
 	const { toast } = useToast();
 	const apiErrorToast = useApiErrorToast();
 	const { can } = usePermissions();
@@ -432,6 +435,22 @@ export const StockGrantsSection = forwardRef<
 					totalRows,
 				}}
 				className="flex-1 min-h-0"
+				topBarActions={
+					canManage ? (
+						<Button
+							size="sm"
+							onClick={handleOpenCreate}
+							disabled={isGrantActionBlocked}
+							title={
+								isGrantActionBlocked
+									? "User must be active, enabled, and have accepted their invitation to receive grants."
+									: undefined
+							}
+						>
+							New grant
+						</Button>
+					) : null
+				}
 				renderToolbarActions={(selectedGrants) => {
 					if (!canManage) return null;
 					const hasSingle = selectedGrants.length === 1;

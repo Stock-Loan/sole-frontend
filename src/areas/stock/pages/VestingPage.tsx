@@ -60,10 +60,10 @@ export function VestingPage() {
 				<div className="flex min-h-0 flex-1 flex-col rounded-lg border bg-card shadow-sm">
 					<div className="border-b border-border/70 px-6 py-4">
 						<div className="space-y-1">
-							<p className="text-sm font-semibold text-foreground">
+							<h2 className="text-md font-semibold text-foreground">
 								Vesting events
-							</p>
-							<p className="text-xs text-muted-foreground">
+							</h2>
+							<p className="text-sm text-muted-foreground">
 								All scheduled vesting events across this employee's grants.
 							</p>
 						</div>

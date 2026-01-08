@@ -1,7 +1,6 @@
 import { useRef } from "react";
 import { PageContainer } from "@/shared/ui/PageContainer";
 import { PageHeader } from "@/shared/ui/PageHeader";
-import { Button } from "@/shared/ui/Button";
 import { EmptyState } from "@/shared/ui/EmptyState";
 import { usePermissions } from "@/auth/hooks";
 import { StockGrantsSection } from "@/entities/stock-grant/components/StockGrantsSection";
@@ -48,27 +47,11 @@ export function GrantsPage() {
 			{selectedUser ? (
 				<div className="flex min-h-0 flex-1 flex-col rounded-lg border bg-card shadow-sm">
 					<div className="border-b border-border/70 px-6 py-4">
-						<div className="flex flex-wrap items-start justify-between gap-3">
-							<div>
-								<h2 className="text-lg font-semibold">Stock Grants</h2>
-								<p className="text-sm text-muted-foreground">
-									Manage grant schedules for this employee.
-								</p>
-							</div>
-							{canManageGrants ? (
-								<Button
-									size="sm"
-									onClick={() => grantsRef.current?.openCreate()}
-									disabled={isGrantActionBlocked}
-									title={
-										isGrantActionBlocked
-											? "User must be active, enabled, and have accepted their invitation to receive grants."
-											: undefined
-									}
-								>
-									New grant
-								</Button>
-							) : null}
+						<div className="space-y-1">
+							<h2 className="text-md font-semibold">Stock Grants</h2>
+							<p className="text-sm text-muted-foreground">
+								Manage grant schedules for this employee.
+							</p>
 						</div>
 					</div>
 					<div className="flex min-h-0 flex-1 flex-col px-6 py-4">
@@ -78,6 +61,7 @@ export function GrantsPage() {
 								ref={grantsRef}
 								membershipId={membershipId}
 								canManage={canManageGrants}
+								isGrantActionBlocked={isGrantActionBlocked}
 							/>
 						) : (
 							<p className="text-sm text-muted-foreground">
