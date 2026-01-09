@@ -23,7 +23,7 @@ export function NotFoundPage() {
 					</Link>
 				</Button>
 				<Button asChild>
-					<Link to={routes.overview}>View overview</Link>
+					<Link to={routes.workspace}>Go to workspace</Link>
 				</Button>
 			</div>
 		</PageContainer>

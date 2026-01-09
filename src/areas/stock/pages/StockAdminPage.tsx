@@ -69,7 +69,10 @@ export function StockAdminPage() {
 		? getOrgUserDisplayName(selectedUser.user)
 		: "";
 	const userDetailPath = selectedUser
-		? `${routes.users}/${selectedUser.membership.id}`
+		? routes.peopleUserDetail.replace(
+				":membershipId",
+				selectedUser.membership.id
+		  )
 		: "";
 	const userInitials = useMemo(() => {
 		if (!selectedUser) return "U";

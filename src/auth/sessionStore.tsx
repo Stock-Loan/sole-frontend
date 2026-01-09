@@ -7,7 +7,7 @@ import {
 	setUnauthorizedHandler,
 } from "@/shared/api/http";
 import { logout as logoutApi } from "@/auth/api";
-import type { AuthUser, PersistedSession, TokenPair } from "@/auth/types";
+import type { AuthUser, PersistedSession, RoleCode, TokenPair } from "@/auth/types";
 import { routes } from "@/shared/lib/routes";
 import { AuthContext } from "./context";
 import type { AuthContextValue } from "./context";

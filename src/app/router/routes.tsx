@@ -17,7 +17,6 @@ import { documentsRoutes } from "@/areas/documents/routes";
 import { announcementsRoutes } from "@/areas/announcements/routes";
 import { settingsRoutes } from "@/areas/settings/routes";
 import { adminRoutes } from "@/areas/admin/routes";
-import { LegacyUserDetailRedirect } from "./LegacyUserDetailRedirect";
 
 export const router = createBrowserRouter([
 	{
@@ -45,15 +44,6 @@ export const router = createBrowserRouter([
 			{ path: "announcements/*", children: announcementsRoutes },
 			{ path: "settings/*", children: settingsRoutes },
 			{ path: "admin/*", children: adminRoutes },
-
-			// Legacy aliases to keep existing links working during migration
-			{ path: "overview", element: <Navigate to="/app/workspace" replace /> },
-			{ path: "user-settings", element: <Navigate to="/app/workspace/settings" replace /> },
-			{ path: "users", element: <Navigate to="/app/people/users" replace /> },
-			{ path: "users/onboard", element: <Navigate to="/app/people/users/onboard" replace /> },
-			{ path: "users/:membershipId", element: <LegacyUserDetailRedirect /> },
-			{ path: "roles", element: <Navigate to="/app/people/roles" replace /> },
-			{ path: "departments", element: <Navigate to="/app/people/departments" replace /> },
 
 			{ path: "*", element: <NotFoundPage /> },
 		],

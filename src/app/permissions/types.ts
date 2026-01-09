@@ -1,5 +1,5 @@
 import type { PropsWithChildren, ReactNode } from "react";
-import type { PermissionCode } from "@/shared/types/permissionCodes";
+import type { PermissionCode } from "@/app/permissions/permissionCodes";
 
 export interface PermissionGateProps extends PropsWithChildren {
 	permission?: PermissionCode | PermissionCode[];

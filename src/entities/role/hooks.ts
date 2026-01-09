@@ -13,14 +13,16 @@ import {
 	removeRolesFromUser,
 	updateRole,
 } from "./api";
-import type { Role, RoleInput, RoleListParams, RoleListResponse } from "./types";
+import type {
+	Role,
+	RoleInput,
+	RoleListParams,
+	RoleListResponse,
+} from "./types";
 
 export function useRolesList(
 	params: RoleListParams = {},
-	options: Omit<
-		UseQueryOptions<RoleListResponse>,
-		"queryKey" | "queryFn"
-	> = {}
+	options: Omit<UseQueryOptions<RoleListResponse>, "queryKey" | "queryFn"> = {}
 ) {
 	return useQuery({
 		queryKey: roleKeys.list(params),
@@ -31,21 +33,18 @@ export function useRolesList(
 }
 
 export function useCreateRole(
-	options: Omit<
-		UseMutationOptions<Role, unknown, RoleInput>,
-		"mutationFn"
-	> = {}
+	options: Omit<UseMutationOptions<Role, unknown, RoleInput>, "mutationFn"> = {}
 ) {
 	const queryClient = useQueryClient();
 
 	return useMutation({
 		mutationFn: createRole,
-		onSuccess: (data, variables, context) => {
+		onSuccess: (data, variables, onMutateResult, context) => {
 			queryClient.invalidateQueries({ queryKey: roleKeys.list() });
-			options.onSuccess?.(data, variables, context);
+			options.onSuccess?.(data, variables, onMutateResult, context);
 		},
-		onError: (error, variables, context) => {
-			options.onError?.(error, variables, context);
+		onError: (error, variables, onMutateResult, context) => {
+			options.onError?.(error, variables, onMutateResult, context);
 		},
 		...options,
 	});
@@ -61,13 +60,13 @@ export function useUpdateRole(
 
 	return useMutation({
 		mutationFn: ({ id, payload }) => updateRole(id, payload),
-		onSuccess: (data, variables, context) => {
+		onSuccess: (data, variables, onMutateResult, context) => {
 			queryClient.invalidateQueries({ queryKey: roleKeys.list() });
 			queryClient.invalidateQueries({ queryKey: roleKeys.detail(data.id) });
-			options.onSuccess?.(data, variables, context);
+			options.onSuccess?.(data, variables, onMutateResult, context);
 		},
-		onError: (error, variables, context) => {
-			options.onError?.(error, variables, context);
+		onError: (error, variables, onMutateResult, context) => {
+			options.onError?.(error, variables, onMutateResult, context);
 		},
 		...options,
 	});
@@ -84,12 +83,14 @@ export function useAssignRolesToUser(
 
 	return useMutation({
 		mutationFn: (roleIds) => assignRolesToUser(membershipId, roleIds),
-		onSuccess: (data, variables, context) => {
-			queryClient.invalidateQueries({ queryKey: roleKeys.forUser(membershipId) });
-			options.onSuccess?.(data, variables, context);
+		onSuccess: (data, variables, onMutateResult, context) => {
+			queryClient.invalidateQueries({
+				queryKey: roleKeys.forUser(membershipId),
+			});
+			options.onSuccess?.(data, variables, onMutateResult, context);
 		},
-		onError: (error, variables, context) => {
-			options.onError?.(error, variables, context);
+		onError: (error, variables, onMutateResult, context) => {
+			options.onError?.(error, variables, onMutateResult, context);
 		},
 		...options,
 	});
@@ -116,16 +117,16 @@ export function useUpdateUserRoles(
 				await removeRolesFromUser(membershipId, removeRoleIds);
 			}
 		},
-		onSuccess: (data, variables, context) => {
+		onSuccess: (data, variables, onMutateResult, context) => {
 			queryClient.invalidateQueries({
 				queryKey: roleKeys.forUser(variables.membershipId),
 			});
 			// Also invalidate user list as roles are shown there
 			queryClient.invalidateQueries({ queryKey: ["org-users"] }); // Need to check actual key
-			options.onSuccess?.(data, variables, context);
+			options.onSuccess?.(data, variables, onMutateResult, context);
 		},
-		onError: (error, variables, context) => {
-			options.onError?.(error, variables, context);
+		onError: (error, variables, onMutateResult, context) => {
+			options.onError?.(error, variables, onMutateResult, context);
 		},
 		...options,
 	});

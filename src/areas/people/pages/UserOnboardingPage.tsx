@@ -5,6 +5,7 @@ import { PageHeader } from "@/shared/ui/PageHeader";
 import { Button } from "@/shared/ui/Button";
 import { useToast } from "@/shared/ui/use-toast";
 import { useApiErrorToast } from "@/shared/api/useApiErrorToast";
+import { routes } from "@/shared/lib/routes";
 import {
 	useDownloadOnboardingTemplate,
 	useUploadOnboardingCsv,
@@ -215,7 +216,7 @@ export function UserOnboardingPage() {
 						<Button
 							variant="outline"
 							size="sm"
-							onClick={() => navigate("/app/users")}
+							onClick={() => navigate(routes.peopleUsers)}
 						>
 							<ArrowLeft className="mr-2 h-4 w-4" />
 							Back to users

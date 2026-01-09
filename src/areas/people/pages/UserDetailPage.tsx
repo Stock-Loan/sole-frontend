@@ -181,7 +181,7 @@ export function UserDetailPage() {
 				subtitle="User profile and access"
 				actions={
 					<Button asChild variant="outline" size="sm">
-						<Link to={routes.users}>Back to users</Link>
+						<Link to={routes.peopleUsers}>Back to users</Link>
 					</Button>
 				}
 			/>

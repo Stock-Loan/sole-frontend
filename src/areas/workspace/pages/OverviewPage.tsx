@@ -132,10 +132,10 @@ export function OverviewPage() {
 
 					<div className="flex gap-4">
 						<Button asChild variant="outline">
-							<Link to={routes.stockAdmin}>View all grants</Link>
+							<Link to={routes.stockGrants}>View all grants</Link>
 						</Button>
 						<Button asChild variant="outline">
-							<Link to={routes.orgSettings}>View program rules</Link>
+							<Link to={routes.settingsOrg}>View program rules</Link>
 						</Button>
 					</div>
 				</div>

@@ -1,6 +1,6 @@
-import { BarChart3, ClipboardCheck, ClipboardList, Cog, FolderOpen, Gauge, Megaphone, Settings, Shield, Users } from "lucide-react";
+import { BarChart3, ClipboardList, Cog, FolderOpen, Gauge, Megaphone, Settings, Shield, Users } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import type { PermissionCode } from "@/shared/types/permissionCodes";
+import type { PermissionCode } from "@/app/permissions/permissionCodes";
 import type { AreaId } from "./areas";
 
 export interface NavItem {
@@ -41,17 +41,6 @@ export const navConfig: NavConfig = {
 				"loan.queue.legal.view",
 			],
 		},
-		{
-			id: "workflows-requests",
-			label: "Requests",
-			path: "/app/workflows/requests",
-			icon: ClipboardCheck,
-			permissions: [
-				"loan.workflow.hr.manage",
-				"loan.workflow.finance.manage",
-				"loan.workflow.legal.manage",
-			],
-		},
 	],
 	loans: [
 		{
@@ -62,9 +51,9 @@ export const navConfig: NavConfig = {
 			permissions: ["loan.apply", "loan.view_all", "loan.view_own"],
 		},
 		{
-			id: "loans-schedules",
-			label: "Schedules",
-			path: "/app/loans/schedules",
+			id: "loans-amortization",
+			label: "Amortization",
+			path: "/app/loans/amortization",
 			icon: ClipboardList,
 			permissions: ["loan.schedule.view", "loan.schedule.self.view"],
 		},

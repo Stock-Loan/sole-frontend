@@ -1,4 +1,4 @@
-import type { PermissionCatalog, PermissionCode } from "@/shared/types/permissionCodes";
+import type { PermissionCatalog, PermissionCode } from "@/app/permissions/permissionCodes";
 
 export interface Role {
 	id: string;

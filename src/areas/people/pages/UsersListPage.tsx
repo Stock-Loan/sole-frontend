@@ -93,7 +93,7 @@ const columns: ColumnDefinition<OrgUserListItem>[] = [
 			`${getDisplayName(row.user)} ${row.user.email}`.trim(),
 		cell: (row) => (
 			<Link
-				to={routes.userDetail.replace(":membershipId", row.membership.id)}
+				to={routes.peopleUserDetail.replace(":membershipId", row.membership.id)}
 				className="font-medium text-primary underline-offset-4 hover:underline"
 			>
 				{getDisplayName(row.user)}
@@ -545,7 +545,7 @@ export function UsersListPage() {
 				actions={
 					can("user.onboard") ? (
 						<Button asChild variant="outline" size="sm">
-							<Link to={routes.usersOnboard}>Bulk user onboarding</Link>
+							<Link to={routes.peopleUsersOnboard}>Bulk user onboarding</Link>
 						</Button>
 					) : null
 				}

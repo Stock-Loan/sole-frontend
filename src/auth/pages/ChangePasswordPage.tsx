@@ -19,12 +19,11 @@ import { useToast } from "@/shared/ui/use-toast";
 import { useApiErrorToast } from "@/shared/api/useApiErrorToast";
 import { routes } from "@/shared/lib/routes";
 import { useAuth, useChangePasswordWithToken } from "@/auth/hooks";
-import { getMeWithToken } from "@/auth/api";
 import { changePasswordSchema } from "@/auth/schemas";
 import type { ChangePasswordFormValues } from "@/auth/types";
 
 export function ChangePasswordPage() {
-	const { setSession, tokens, logout } = useAuth();
+	const { tokens, logout } = useAuth();
 	const { toast } = useToast();
 	const apiErrorToast = useApiErrorToast();
 	const navigate = useNavigate();
@@ -58,23 +57,13 @@ export function ChangePasswordPage() {
 				accessToken: tokens?.access_token,
 			},
 			{
-				onSuccess: async (updatedTokens) => {
-					const user = await getMeWithToken(updatedTokens.access_token);
-					const hadExisting = Boolean(tokens?.access_token);
-					if (hadExisting) {
-						setSession(updatedTokens, user);
-						toast({
-							title: "Password updated",
-							description: "Your session has been refreshed.",
-						});
-						navigate(routes.workspace);
-					} else {
-						toast({
-							title: "Password updated",
-							description: "Please sign in with your new password to continue.",
-						});
-						navigate(routes.login, { replace: true });
-					}
+				onSuccess: async () => {
+					logout();
+					toast({
+						title: "Password updated successfully",
+						description: "Please sign in with your new password.",
+					});
+					navigate(routes.login, { replace: true });
 				},
 				onError: (error) => {
 					apiErrorToast(

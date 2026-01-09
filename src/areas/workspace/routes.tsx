@@ -15,14 +15,6 @@ export const workspaceRoutes: RouteObject[] = [
 		),
 	},
 	{
-		path: "overview",
-		element: (
-			<RequirePermission permission="org.dashboard.view">
-				<OverviewPage />
-			</RequirePermission>
-		),
-	},
-	{
 		path: "loans",
 		element: (
 			<RequirePermission permission="loan.view_own">

@@ -35,21 +35,6 @@ export const workflowsRoutes: RouteObject[] = [
 		),
 	},
 	{
-		path: "requests",
-		element: (
-			<RequirePermission
-				permission={[
-					"loan.workflow.hr.manage",
-					"loan.workflow.finance.manage",
-					"loan.workflow.legal.manage",
-				]}
-				mode="any"
-			>
-				<QueuePage />
-			</RequirePermission>
-		),
-	},
-	{
 		path: "requests/:requestId",
 		element: (
 			<RequirePermission
