@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, type UseQueryOptions } from "@tanstack/react-query";
 import { canPermissions } from "@/app/permissions/can";
 import { authKeys } from "@/auth/keys";
 import { useTenant } from "@/features/tenancy/hooks";
@@ -12,6 +12,7 @@ import {
 } from "@/auth/api";
 import { useAuthContext } from "@/auth/context";
 import type {
+	AuthUser,
 	ChangePasswordPayload,
 	LoginCompletePayload,
 	LoginStartPayload,
@@ -29,21 +30,24 @@ export function useSelfContext() {
 	const query = useQuery({
 		queryKey: authKeys.selfContext(currentOrgId),
 		queryFn: getSelfContext,
-		enabled: Boolean(tokens?.access_token),
+		enabled: Boolean(tokens?.access_token && currentOrgId),
 		staleTime: 5 * 60 * 1000,
 	});
 
 	return query;
 }
 
-export function useMe() {
-	const { tokens } = useAuth();
+export function useMe(
+	options: Omit<UseQueryOptions<AuthUser>, "queryKey" | "queryFn"> = {}
+) {
+	const { tokens, user } = useAuth();
 
 	return useQuery({
 		queryKey: authKeys.me(),
 		queryFn: getMe,
-		enabled: Boolean(tokens?.access_token),
+		enabled: options.enabled ?? Boolean(tokens?.access_token && !user),
 		staleTime: 5 * 60 * 1000,
+		...options,
 	});
 }
 
@@ -87,7 +91,7 @@ export function usePermissions() {
 		selfContext?.roles?.map((role) => role.name ?? role.id) ?? user?.roles ?? [];
 
 	return {
-	permissions,
+		permissions,
 		roles,
 		can: (needed: string | string[]) =>
 			Boolean(isSuperuser) || canPermissions(permissions, needed),

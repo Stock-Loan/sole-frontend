@@ -3,6 +3,7 @@ import {
 	createElement,
 	useContext,
 	useEffect,
+	useLayoutEffect,
 	useMemo,
 	useState,
 } from "react";
@@ -64,6 +65,7 @@ const TenantContext = createContext<TenantContextValue | undefined>(undefined);
 export function TenantProvider({ children }: PropsWithChildren) {
 	const { user, tokens } = useAuth();
 	const persisted = loadPersistedTenancy();
+	const fallbackOrgId = user?.org_id ?? user?.orgIds?.[0] ?? null;
 
 	const [orgs, setOrgs] = useState<OrgSummary[]>(() => {
 		if (persisted.orgs.length) {
@@ -76,14 +78,26 @@ export function TenantProvider({ children }: PropsWithChildren) {
 	});
 
 	const [currentOrgId, setCurrentOrgId] = useState<string | null>(
-		() => persisted.currentOrgId ?? user?.org_id ?? null
+		() => persisted.currentOrgId ?? fallbackOrgId ?? null
 	);
+	const resolvedOrgId = currentOrgId ?? fallbackOrgId;
 
 	const tenantsQuery = useQuery({
 		queryKey: tenancyKeys.tenants(),
 		queryFn: listTenants,
-		enabled: Boolean(tokens?.access_token),
+		enabled: Boolean(tokens?.access_token && resolvedOrgId),
 	});
+
+	useLayoutEffect(() => {
+		if (!currentOrgId && fallbackOrgId) {
+			// eslint-disable-next-line react-hooks/set-state-in-effect
+			setCurrentOrgId(fallbackOrgId);
+		}
+	}, [currentOrgId, fallbackOrgId]);
+
+	useLayoutEffect(() => {
+		setTenantResolver(() => resolvedOrgId);
+	}, [resolvedOrgId]);
 
 	useEffect(() => {
 		if (!user) {
@@ -113,10 +127,6 @@ export function TenantProvider({ children }: PropsWithChildren) {
 			}
 		}
 	}, [tenantsQuery.data, currentOrgId]);
-
-	useEffect(() => {
-		setTenantResolver(() => currentOrgId);
-	}, [currentOrgId]);
 
 	useEffect(() => {
 		if (!user) return;

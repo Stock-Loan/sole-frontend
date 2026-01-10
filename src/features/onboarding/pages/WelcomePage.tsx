@@ -4,8 +4,12 @@ import { Button } from "@/shared/ui/Button";
 import { PageContainer } from "@/shared/ui/PageContainer";
 import { PublicHeader } from "@/shared/ui/PublicHeader";
 import { routes } from "@/shared/lib/routes";
+import { useAuth } from "@/auth/hooks";
 
 export function WelcomePage() {
+	const { user, logout } = useAuth();
+	const isSignedIn = Boolean(user);
+
 	return (
 		<>
 			<PublicHeader />
@@ -27,15 +31,29 @@ export function WelcomePage() {
 						</p>
 					</div>
 					<div className="flex flex-wrap items-center justify-center gap-3">
-						<Button asChild size="lg">
-							<Link to={routes.login}>
-								Sign in
-								<ArrowRight className="ml-2 h-4 w-4" />
-							</Link>
-						</Button>
+						{isSignedIn ? (
+							<Button asChild size="lg">
+								<Link to={routes.workspace}>
+									Go to workspace
+									<ArrowRight className="ml-2 h-4 w-4" />
+								</Link>
+							</Button>
+						) : (
+							<Button asChild size="lg">
+								<Link to={routes.login}>
+									Sign in
+									<ArrowRight className="ml-2 h-4 w-4" />
+								</Link>
+							</Button>
+						)}
 						<Button asChild variant="outline" size="lg">
 							<Link to={routes.status}>View platform status</Link>
 						</Button>
+						{isSignedIn ? (
+							<Button variant="outline" size="lg" onClick={() => void logout()}>
+								Log out
+							</Button>
+						) : null}
 					</div>
 				</div>
 				<div className="grid gap-4 md:grid-cols-3">
