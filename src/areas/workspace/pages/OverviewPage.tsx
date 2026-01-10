@@ -1,12 +1,9 @@
-import { Link } from "react-router-dom";
 import { AlertTriangle, CheckCircle2 } from "lucide-react";
 import { PageHeader } from "@/shared/ui/PageHeader";
 import { PageContainer } from "@/shared/ui/PageContainer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
-import { Button } from "@/shared/ui/Button";
 import { EmptyState } from "@/shared/ui/EmptyState";
 import { LoadingState } from "@/shared/ui/LoadingState";
-import { routes } from "@/shared/lib/routes";
 import { formatDate } from "@/shared/lib/format";
 import { usePermissions } from "@/auth/hooks";
 import { useMeStockSummary } from "@/entities/stock-grant/hooks";
@@ -130,14 +127,6 @@ export function OverviewPage() {
 						</div>
 					)}
 
-					<div className="flex gap-4">
-						<Button asChild variant="outline">
-							<Link to={routes.stockGrants}>View all grants</Link>
-						</Button>
-						<Button asChild variant="outline">
-							<Link to={routes.settingsOrg}>View program rules</Link>
-						</Button>
-					</div>
 				</div>
 			)}
 		</PageContainer>

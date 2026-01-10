@@ -26,6 +26,13 @@ export const peopleRoutes: RouteObject[] = [
 						<UserOnboardingPage />
 					</RequirePermission>
 				),
+				handle: {
+					search: {
+						title: "Bulk onboarding",
+						description: "Upload a CSV to onboard new users.",
+						permissions: "user.onboard",
+					},
+				},
 			},
 			{
 				path: ":membershipId",

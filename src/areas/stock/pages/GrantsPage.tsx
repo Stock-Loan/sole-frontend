@@ -14,8 +14,12 @@ export function GrantsPage() {
 	const { selectedUser } = useStockSearch();
 	const grantsRef = useRef<StockGrantsSectionHandle>(null);
 
-	const canViewGrants = can("stock.grant.view") || can("stock.grant.manage");
-	const canManageGrants = can("stock.grant.manage");
+	const canViewGrants = can("stock.view") || can("stock.manage");
+	const canManageGrants = can("stock.manage");
+	const canViewEligibility = can([
+		"stock.vesting.view",
+		"stock.eligibility.view",
+	]);
 
 	const membershipId = selectedUser?.membership.id ?? "";
 
@@ -27,14 +31,15 @@ export function GrantsPage() {
 		membershipId,
 		{},
 		{
-			enabled: Boolean(membershipId) && canViewGrants,
+			enabled: Boolean(membershipId) && canViewEligibility,
 		}
 	);
 
 	const grantEligibility =
 		summaryData?.eligibility_result?.eligible_to_exercise;
 	const isGrantActionBlocked =
-		grantEligibility === false || (canViewGrants && (isLoading || isFetching));
+		grantEligibility === false ||
+		(canViewEligibility && (isLoading || isFetching));
 
 	return (
 		<PageContainer className="flex min-h-0 flex-1 flex-col gap-4">

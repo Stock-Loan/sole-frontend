@@ -3,9 +3,14 @@ import { GlobalSearch } from "@/features/search/GlobalSearch";
 import { TenantSwitcher } from "@/features/tenancy/TenantSwitcher";
 import { NotificationBell } from "@/features/notifications/components/NotificationBell";
 import { UserMenu } from "./UserMenu";
-import { searchItems } from "./search-items";
+import { useMemo } from "react";
+import { usePermissions } from "@/auth/hooks";
+import { getSearchItems } from "./search-items";
 
 export function Topbar() {
+	const { can } = usePermissions();
+	const searchItems = useMemo(() => getSearchItems(can), [can]);
+
 	return (
 		<header className="sticky top-0 z-40 flex items-center justify-between gap-4 border-b border-border/60 bg-background/95 px-10 py-4 shadow-sm backdrop-blur">
 			<div className="flex items-center gap-3 shrink-0">

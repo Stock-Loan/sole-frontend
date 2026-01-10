@@ -1,5 +1,5 @@
 // Stock grants & vesting types.
-// Permission notes: stock.grant.view for read access; stock.grant.manage for create/edit.
+// Permission notes: stock.view for read access; stock.manage for create/edit.
 // Stock summary requires stock.vesting.view and stock.eligibility.view.
 
 export type VestingStrategy = "IMMEDIATE" | "SCHEDULED";

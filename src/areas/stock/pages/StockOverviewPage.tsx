@@ -67,6 +67,16 @@ export function StockOverviewPage() {
 			<PageHeader
 				title="Stock Dashboard"
 				subtitle="Track stock program coverage and eligibility at a glance."
+				actions={
+					<div className="flex flex-wrap gap-2">
+						<Button asChild variant="outline" size="sm">
+							<Link to={routes.stockGrants}>View all grants</Link>
+						</Button>
+						<Button asChild variant="outline" size="sm">
+							<Link to={routes.settingsOrg}>View program rules</Link>
+						</Button>
+					</div>
+				}
 			/>
 
 			{!canViewStock ? (
@@ -99,21 +109,6 @@ export function StockOverviewPage() {
 							</CardContent>
 						</Card>
 					))}
-					<Card className="border-dashed">
-						<CardHeader className="pb-2">
-							<CardTitle className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-								System status
-							</CardTitle>
-						</CardHeader>
-						<CardContent className="space-y-3">
-							<p className="text-sm text-muted-foreground">
-								Check API availability and service health.
-							</p>
-							<Button asChild variant="outline" size="sm">
-								<Link to={routes.status}>View status</Link>
-							</Button>
-						</CardContent>
-					</Card>
 				</div>
 			)}
 		</PageContainer>

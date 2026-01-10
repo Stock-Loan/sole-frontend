@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate } from "react-router-dom";
+import { createBrowserRouter, Navigate, Outlet } from "react-router-dom";
 import { authRoutes } from "@/auth/routes";
 import { AppErrorBoundary } from "@/app/error-boundary";
 import { AppLayout } from "@/app/layouts/AppLayout";
@@ -17,6 +17,29 @@ import { documentsRoutes } from "@/areas/documents/routes";
 import { announcementsRoutes } from "@/areas/announcements/routes";
 import { settingsRoutes } from "@/areas/settings/routes";
 import { adminRoutes } from "@/areas/admin/routes";
+import { RequirePermission } from "./route-guards";
+
+const workflowAreaPermissions = [
+	"loan.queue.hr.view",
+	"loan.queue.finance.view",
+	"loan.queue.legal.view",
+] as const;
+
+const loanAreaPermissions = [
+	"loan.view_all",
+	"loan.manage",
+	"loan.dashboard.view",
+	"loan.schedule.view",
+	"loan.payment.view",
+	"loan.what_if.simulate",
+] as const;
+
+const documentAreaPermissions = [
+	"loan.document.view",
+	"loan.document.manage_hr",
+	"loan.document.manage_finance",
+	"loan.document.manage_legal",
+] as const;
 
 export const router = createBrowserRouter([
 	{
@@ -36,11 +59,41 @@ export const router = createBrowserRouter([
 		children: [
 			{ index: true, element: <Navigate to="/app/workspace" replace /> },
 			{ path: "workspace/*", children: workspaceRoutes },
-			{ path: "workflows/*", children: workflowsRoutes },
-			{ path: "loans/*", children: loansRoutes },
+			{
+				path: "workflows/*",
+				element: (
+					<RequirePermission
+						permission={[...workflowAreaPermissions]}
+						mode="any"
+					>
+						<Outlet />
+					</RequirePermission>
+				),
+				children: workflowsRoutes,
+			},
+			{
+				path: "loans/*",
+				element: (
+					<RequirePermission permission={[...loanAreaPermissions]} mode="any">
+						<Outlet />
+					</RequirePermission>
+				),
+				children: loansRoutes,
+			},
 			{ path: "stock/*", children: stockRoutes },
 			{ path: "people/*", children: peopleRoutes },
-			{ path: "documents/*", children: documentsRoutes },
+			{
+				path: "documents/*",
+				element: (
+					<RequirePermission
+						permission={[...documentAreaPermissions]}
+						mode="any"
+					>
+						<Outlet />
+					</RequirePermission>
+				),
+				children: documentsRoutes,
+			},
 			{ path: "announcements/*", children: announcementsRoutes },
 			{ path: "settings/*", children: settingsRoutes },
 			{ path: "admin/*", children: adminRoutes },

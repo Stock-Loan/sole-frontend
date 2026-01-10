@@ -103,8 +103,8 @@ export function GlobalSearch({
 					) : null}
 				</button>
 			</DialogTrigger>
-			<DialogContent>
-				<DialogBody className="flex flex-col gap-4 p-5 pt-10">
+			<DialogContent className="h-[70vh] max-h-[70vh]">
+				<DialogBody className="flex h-full flex-col gap-4 p-5 pt-10">
 					<div className="flex items-center gap-3 rounded-xl border border-border/60 bg-muted/30 px-3 py-3 shadow-inner">
 						<Search className="h-4 w-4 text-muted-foreground" />
 						<Input
@@ -116,7 +116,7 @@ export function GlobalSearch({
 							className="border-0 bg-transparent shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
 						/>
 					</div>
-					<div className="max-h-[60vh] space-y-4 overflow-y-auto pr-1">
+					<div className="flex-1 min-h-0 space-y-4 overflow-y-auto pr-1">
 						{groupedResults.length === 0 ? (
 							<div className="rounded-lg border border-dashed border-border/60 bg-muted/30 px-4 py-8 text-center text-sm text-muted-foreground">
 								No matches yet. Try a different term or browse a category.

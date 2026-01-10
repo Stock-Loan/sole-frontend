@@ -23,11 +23,10 @@ export const stockRoutes: RouteObject[] = [
 				element: (
 					<RequirePermission
 						permission={[
-							"stock.grant.manage",
 							"stock.vesting.view",
 							"stock.eligibility.view",
 						]}
-						mode="any"
+						mode="all"
 					>
 						<StockAdminPage />
 					</RequirePermission>
@@ -37,7 +36,7 @@ export const stockRoutes: RouteObject[] = [
 				path: "grants",
 				element: (
 					<RequirePermission
-						permission={["stock.grant.view", "stock.program.view"]}
+						permission={["stock.view", "stock.manage"]}
 						mode="any"
 					>
 						<GrantsPage />
@@ -48,7 +47,7 @@ export const stockRoutes: RouteObject[] = [
 				path: "vesting",
 				element: (
 					<RequirePermission
-						permission={["stock.vesting.view", "stock.self.view"]}
+						permission={["stock.view", "stock.manage"]}
 						mode="any"
 					>
 						<VestingPage />

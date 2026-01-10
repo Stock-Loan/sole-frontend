@@ -20,6 +20,8 @@ export type PermissionCode =
 	| "announcement.view"
 	| "announcement.manage"
 	// Stock program
+	| "stock.view"
+	| "stock.manage"
 	| "stock.program.view"
 	| "stock.program.manage"
 	| "stock.grant.view"
@@ -96,6 +98,8 @@ export const ALL_PERMISSION_CODES: PermissionCode[] = [
 	"announcement.view",
 	"announcement.manage",
 	// Stock program
+	"stock.view",
+	"stock.manage",
 	"stock.program.view",
 	"stock.program.manage",
 	"stock.grant.view",
@@ -174,13 +178,15 @@ export const PERMISSION_CATALOG: PermissionCatalog[] = [
 		category: "Announcements",
 		codes: ["announcement.view", "announcement.manage"],
 	},
-	{
-		category: "Stock",
-		codes: [
-			"stock.program.view",
-			"stock.program.manage",
-			"stock.grant.view",
-			"stock.grant.manage",
+		{
+			category: "Stock",
+			codes: [
+				"stock.view",
+				"stock.manage",
+				"stock.program.view",
+				"stock.program.manage",
+				"stock.grant.view",
+				"stock.grant.manage",
 			"stock.vesting.view",
 			"stock.eligibility.view",
 			"stock.dashboard.view",

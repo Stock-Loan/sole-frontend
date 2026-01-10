@@ -1,4 +1,4 @@
-import { BarChart3, ClipboardList, Cog, FolderOpen, Gauge, Megaphone, Settings, Shield, Users } from "lucide-react";
+import { BarChart3, ClipboardList, Cog, FileText, FolderOpen, Gauge, Megaphone, Settings, Shield, Users } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { PermissionCode } from "@/app/permissions/permissionCodes";
 import type { AreaId } from "./areas";
@@ -20,7 +20,27 @@ export const navConfig: NavConfig = {
 			label: "Overview",
 			path: "/app/workspace",
 			icon: Gauge,
-			permissions: "org.dashboard.view",
+		},
+		{
+			id: "workspace-loans",
+			label: "My loans",
+			path: "/app/workspace/loans",
+			icon: FileText,
+			permissions: ["loan.view_own", "loan.apply"],
+		},
+		{
+			id: "workspace-documents",
+			label: "My documents",
+			path: "/app/workspace/documents",
+			icon: FolderOpen,
+			permissions: ["loan.document.self_view", "loan.document.self_upload_83b"],
+		},
+		{
+			id: "workspace-amortization",
+			label: "My amortization",
+			path: "/app/workspace/amortization",
+			icon: ClipboardList,
+			permissions: ["loan.schedule.self.view"],
 		},
 		{
 			id: "workspace-settings",
@@ -48,14 +68,14 @@ export const navConfig: NavConfig = {
 			label: "Applications",
 			path: "/app/loans",
 			icon: BarChart3,
-			permissions: ["loan.apply", "loan.view_all", "loan.view_own"],
+			permissions: ["loan.view_all", "loan.manage"],
 		},
 		{
 			id: "loans-amortization",
 			label: "Amortization",
 			path: "/app/loans/amortization",
 			icon: ClipboardList,
-			permissions: ["loan.schedule.view", "loan.schedule.self.view"],
+			permissions: ["loan.schedule.view"],
 		},
 	],
 	stock: [
@@ -72,7 +92,6 @@ export const navConfig: NavConfig = {
 			path: "/app/stock/manage",
 			icon: Users,
 			permissions: [
-				"stock.grant.view",
 				"stock.vesting.view",
 				"stock.eligibility.view",
 			],
@@ -82,14 +101,14 @@ export const navConfig: NavConfig = {
 			label: "Grants",
 			path: "/app/stock/grants",
 			icon: ClipboardList,
-			permissions: ["stock.grant.view", "stock.program.view"],
+			permissions: ["stock.view", "stock.manage"],
 		},
 		{
 			id: "stock-vesting",
 			label: "Vesting",
 			path: "/app/stock/vesting",
 			icon: BarChart3,
-			permissions: ["stock.vesting.view", "stock.self.view"],
+			permissions: ["stock.view", "stock.manage"],
 		},
 	],
 	people: [
@@ -121,14 +140,18 @@ export const navConfig: NavConfig = {
 			label: "Documents",
 			path: "/app/documents",
 			icon: FolderOpen,
-			permissions: ["loan.document.view", "loan.document.self_view"],
+			permissions: ["loan.document.view"],
 		},
 		{
 			id: "documents-templates",
 			label: "Templates",
 			path: "/app/documents/templates",
 			icon: FolderOpen,
-			permissions: ["loan.document.manage_hr", "loan.document.manage_finance"],
+			permissions: [
+				"loan.document.manage_hr",
+				"loan.document.manage_finance",
+				"loan.document.manage_legal",
+			],
 		},
 	],
 	announcements: [

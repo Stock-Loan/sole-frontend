@@ -24,6 +24,7 @@ import { formatDate } from "@/shared/lib/format";
 import { loadDataTablePreferences } from "@/shared/ui/Table/constants";
 import {
 	useAdminAnnouncementsList,
+	useAnnouncementsList,
 	useChangeAnnouncementStatus,
 	useCreateAnnouncement,
 	useUpdateAnnouncement,
@@ -117,9 +118,15 @@ export function AnnouncementsPage() {
 		[canManage, page, pageSize]
 	);
 
-	const { data, isLoading, isError, refetch } = useAdminAnnouncementsList(
-		listParams
-	);
+	const adminAnnouncementsQuery = useAdminAnnouncementsList(listParams, {
+		enabled: canManage,
+	});
+	const announcementsQuery = useAnnouncementsList(listParams, {
+		enabled: !canManage,
+	});
+	const { data, isLoading, isError, refetch } = canManage
+		? adminAnnouncementsQuery
+		: announcementsQuery;
 
 	const createMutation = useCreateAnnouncement({
 		onSuccess: () => {

@@ -22,7 +22,7 @@ export function VestingPage() {
 	const { can } = usePermissions();
 	const { selectedUser } = useStockSearch();
 
-	const canViewGrants = can("stock.grant.view") || can("stock.grant.manage");
+	const canViewGrants = can("stock.view") || can("stock.manage");
 	const membershipId = selectedUser?.membership.id ?? "";
 
 	const allGrantsQuery = useAllStockGrants(membershipId, {

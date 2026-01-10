@@ -11,7 +11,7 @@ export const loansRoutes: RouteObject[] = [
 		index: true,
 		element: (
 			<RequirePermission
-				permission={["loan.apply", "loan.view_all", "loan.view_own"]}
+				permission={["loan.view_all", "loan.manage"]}
 				mode="any"
 			>
 				<LoanApplicationsPage />
@@ -22,7 +22,7 @@ export const loansRoutes: RouteObject[] = [
 		path: "applications",
 		element: (
 			<RequirePermission
-				permission={["loan.apply", "loan.view_all", "loan.view_own"]}
+				permission={["loan.view_all", "loan.manage"]}
 				mode="any"
 			>
 				<LoanApplicationsPage />
@@ -33,7 +33,7 @@ export const loansRoutes: RouteObject[] = [
 		path: ":loanId",
 		element: (
 			<RequirePermission
-				permission={["loan.view_all", "loan.view_own"]}
+				permission={["loan.view_all", "loan.manage"]}
 				mode="any"
 			>
 				<LoanDetailPage />
@@ -47,14 +47,18 @@ export const loansRoutes: RouteObject[] = [
 				<RepaymentsPage />
 			</RequirePermission>
 		),
+		handle: {
+			search: {
+				title: "Repayments",
+				description: "Review loan repayments and payment history.",
+				permissions: "loan.payment.view",
+			},
+		},
 	},
 	{
 		path: "amortization",
 		element: (
-			<RequirePermission
-				permission={["loan.schedule.view", "loan.schedule.self.view"]}
-				mode="any"
-			>
+			<RequirePermission permission="loan.schedule.view">
 				<AmortizationPage />
 			</RequirePermission>
 		),
@@ -62,12 +66,16 @@ export const loansRoutes: RouteObject[] = [
 	{
 		path: "what-if",
 		element: (
-			<RequirePermission
-				permission={["loan.what_if.simulate", "loan.what_if.self.simulate"]}
-				mode="any"
-			>
+			<RequirePermission permission="loan.what_if.simulate">
 				<WhatIfPage />
 			</RequirePermission>
 		),
+		handle: {
+			search: {
+				title: "Loan what-if",
+				description: "Run loan scenario simulations.",
+				permissions: "loan.what_if.simulate",
+			},
+		},
 	},
 ];

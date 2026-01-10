@@ -39,9 +39,9 @@ export const workflowsRoutes: RouteObject[] = [
 		element: (
 			<RequirePermission
 				permission={[
-					"loan.workflow.hr.manage",
-					"loan.workflow.finance.manage",
-					"loan.workflow.legal.manage",
+					"loan.queue.hr.view",
+					"loan.queue.finance.view",
+					"loan.queue.legal.view",
 				]}
 				mode="any"
 			>
