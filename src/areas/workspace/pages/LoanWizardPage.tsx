@@ -17,16 +17,22 @@ import {
 } from "@/entities/loan/hooks";
 import { useMeStockSummary } from "@/entities/stock-grant/hooks";
 import { getStockValueMetrics } from "@/entities/stock-grant/utils";
-import type { LoanQuoteOption, LoanSelectionMode } from "@/entities/loan/types";
+import type {
+	LoanApplicationDraftUpdate,
+	LoanQuoteOption,
+	LoanSelectionMode,
+} from "@/entities/loan/types";
 import type {
 	LoanInterestType,
 	LoanRepaymentMethod,
 } from "@/entities/org/types";
 import { useSelfOrgPolicy } from "@/entities/org/hooks";
+import { useUserSettings } from "@/features/user-settings/hooks";
 import { loanWizardSteps } from "@/entities/loan/components/loan-wizard/constants";
 import { LoanWizardStepHeader } from "@/entities/loan/components/loan-wizard/LoanWizardStepHeader";
 import { LoanWizardExerciseStep } from "@/entities/loan/components/loan-wizard/LoanWizardExerciseStep";
 import { LoanWizardTermsStep } from "@/entities/loan/components/loan-wizard/LoanWizardTermsStep";
+import { LoanWizardMaritalStep } from "@/entities/loan/components/loan-wizard/LoanWizardMaritalStep";
 
 export function LoanWizardPage() {
 	const navigate = useNavigate();
@@ -51,6 +57,13 @@ export function LoanWizardPage() {
 		number | null | undefined
 	>(undefined);
 	const [termsError, setTermsError] = useState<string | null>(null);
+	const [maritalConfirmation, setMaritalConfirmation] = useState<
+		boolean | null
+	>(null);
+	const [maritalStatusSnapshot, setMaritalStatusSnapshot] = useState<
+		string | null | undefined
+	>(undefined);
+	const [maritalError, setMaritalError] = useState<string | null>(null);
 	const [createdDraftId, setCreatedDraftId] = useState<string | null>(null);
 	const [selectedQuoteIndex, setSelectedQuoteIndex] = useState(0);
 	const apiErrorToast = useApiErrorToast();
@@ -60,6 +73,7 @@ export function LoanWizardPage() {
 	const loanQuery = useMyLoanApplication(id ?? "", { enabled: isEdit });
 	const summaryQuery = useMeStockSummary();
 	const policyQuery = useSelfOrgPolicy({ enabled: stepIndex >= 1 });
+	const profileQuery = useUserSettings({ enabled: stepIndex >= 2 });
 	const createDraftMutation = useCreateMyLoanDraft({
 		onSuccess: (draft) => {
 			setCreatedDraftId(draft.id);
@@ -156,6 +170,17 @@ export function LoanWizardPage() {
 		return fallback;
 	})();
 	const effectiveDraftId = createdDraftId ?? draft?.id ?? null;
+	const hrMaritalStatus = profileQuery.data?.user?.marital_status ?? null;
+	const draftMaritalSnapshot = draft?.marital_status_snapshot ?? null;
+	const resolvedMaritalSnapshot =
+		maritalConfirmation === false
+			? null
+			: maritalStatusSnapshot ?? draftMaritalSnapshot ?? null;
+	const resolvedMaritalConfirmation =
+		maritalConfirmation ??
+		(draftMaritalSnapshot !== null && draftMaritalSnapshot !== undefined
+			? true
+			: null);
 
 	const blocker = useBlocker(hasUnsavedChanges);
 	const showLeaveDialog = blocker?.state === "blocked";
@@ -259,6 +284,7 @@ export function LoanWizardPage() {
 		termValid &&
 		Boolean(quote) &&
 		Boolean(selectedQuoteOption);
+	const canProceedFromStep3 = resolvedMaritalConfirmation === true;
 
 	const handleBack = () => {
 		if (isFirstStep) {
@@ -268,7 +294,9 @@ export function LoanWizardPage() {
 		setStepIndex((prev) => Math.max(0, prev - 1));
 	};
 
-	const handleSaveDraft = async () => {
+	const handleSaveDraft = async (
+		overrides?: Partial<LoanApplicationDraftUpdate>
+	) => {
 		if (!quoteInput || !selectionValueValid || !selectionWithinLimit) {
 			setTermsError("Complete Step 1 selections before saving.");
 			return false;
@@ -290,7 +318,7 @@ export function LoanWizardPage() {
 		const payloadTermMonths =
 			selectedQuoteOption?.term_months ?? resolvedTermMonths ?? undefined;
 
-		const payload = {
+		const payload: LoanApplicationDraftUpdate = {
 			selection_mode: resolvedSelectionMode,
 			selection_value: resolvedSelectionValue,
 			as_of_date: resolvedAsOfDate,
@@ -298,6 +326,9 @@ export function LoanWizardPage() {
 			desired_repayment_method: payloadRepaymentMethod,
 			desired_term_months: payloadTermMonths,
 		};
+		if (overrides) {
+			Object.assign(payload, overrides);
+		}
 
 		if (effectiveDraftId) {
 			await updateDraftMutation.mutateAsync({
@@ -344,6 +375,20 @@ export function LoanWizardPage() {
 			if (!saved) {
 				return;
 			}
+		}
+		if (currentStep.key === "marital") {
+			if (resolvedMaritalConfirmation !== true) {
+				setMaritalError("Please confirm your marital status to continue.");
+				return;
+			}
+			const saved = await handleSaveDraft({
+				marital_status_snapshot:
+					resolvedMaritalSnapshot ?? hrMaritalStatus ?? null,
+			});
+			if (!saved) {
+				return;
+			}
+			setMaritalError(null);
 		}
 		if (isLastStep) {
 			return;
@@ -433,9 +478,43 @@ export function LoanWizardPage() {
 				);
 			case "marital":
 				return (
-					<EmptyState
-						title="Step 3 coming soon"
-						message="Marital status confirmation will be available in Phase F6.3."
+					<LoanWizardMaritalStep
+						isLoading={profileQuery.isLoading}
+						isError={profileQuery.isError}
+						onRetry={() => profileQuery.refetch()}
+						maritalStatusOnFile={hrMaritalStatus}
+						confirmation={
+							resolvedMaritalConfirmation === true
+								? "yes"
+								: resolvedMaritalConfirmation === false
+									? "no"
+									: null
+						}
+						onConfirmYes={() => {
+							setMaritalConfirmation(true);
+							setMaritalStatusSnapshot(hrMaritalStatus ?? null);
+							setMaritalError(null);
+							setHasUnsavedChanges(true);
+						}}
+						onConfirmNo={async () => {
+							setMaritalConfirmation(false);
+							setMaritalStatusSnapshot(null);
+							setMaritalError(null);
+							setHasUnsavedChanges(true);
+							const saved = await handleSaveDraft({
+								marital_status_snapshot: null,
+							});
+							if (!saved) {
+								setMaritalError(
+									"We couldn't save your draft yet. Please try again."
+								);
+							}
+						}}
+						onBackToLoans={() => navigate(routes.workspaceLoans)}
+						errorMessage={maritalError}
+						isSaving={
+							createDraftMutation.isPending || updateDraftMutation.isPending
+						}
 					/>
 				);
 			case "review":
@@ -512,6 +591,7 @@ export function LoanWizardPage() {
 							isLastStep ||
 							(currentStep.key === "exercise" && !canProceedFromStep1) ||
 							(currentStep.key === "terms" && !canProceedFromStep2) ||
+							(currentStep.key === "marital" && !canProceedFromStep3) ||
 							createDraftMutation.isPending ||
 							updateDraftMutation.isPending
 						}
