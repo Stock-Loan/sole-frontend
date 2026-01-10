@@ -54,7 +54,7 @@ export async function getStockSummary(
 	return unwrapApiResponse<StockSummary>(data);
 }
 
-export async function getMeStockSummary(
+export async function getMyStockSummary(
 	params: StockSummaryParams = {}
 ): Promise<StockSummary> {
 	const { data } = await apiClient.get<StockSummary>("/me/stock/summary", {
@@ -62,3 +62,6 @@ export async function getMeStockSummary(
 	});
 	return unwrapApiResponse<StockSummary>(data);
 }
+
+// Backwards-compatible alias.
+export const getMeStockSummary = getMyStockSummary;

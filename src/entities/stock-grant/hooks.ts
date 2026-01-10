@@ -6,9 +6,10 @@ import {
 	type UseQueryOptions,
 } from "@tanstack/react-query";
 import { stockGrantKeys } from "@/entities/stock-grant/keys";
+import { meKeys } from "@/shared/api/queryKeys";
 import {
 	createStockGrant,
-	getMeStockSummary,
+	getMyStockSummary,
 	getStockSummary,
 	listStockGrants,
 	updateStockGrant,
@@ -42,8 +43,8 @@ export function useMeStockSummary(
 	options: Omit<UseQueryOptions<StockSummary>, "queryKey" | "queryFn"> = {}
 ) {
 	return useQuery({
-		queryKey: stockGrantKeys.summary("me", params),
-		queryFn: () => getMeStockSummary(params),
+		queryKey: meKeys.stock.summary(params),
+		queryFn: () => getMyStockSummary(params),
 		placeholderData: (previous) => previous,
 		...options,
 	});

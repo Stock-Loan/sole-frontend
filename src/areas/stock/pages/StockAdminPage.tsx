@@ -9,7 +9,7 @@ import { Badge } from "@/shared/ui/badge";
 import { Skeleton } from "@/shared/ui/Skeleton";
 import { getOrgUserDisplayName } from "@/entities/user/constants";
 import { usePermissions } from "@/auth/hooks";
-import { formatDate } from "@/shared/lib/format";
+import { formatCurrency, formatDate } from "@/shared/lib/format";
 import { cn } from "@/shared/lib/utils";
 import { routes } from "@/shared/lib/routes";
 import { useStockSummary } from "@/entities/stock-grant/hooks";
@@ -17,6 +17,7 @@ import {
 	formatShares,
 	getEligibilityReasonLabel,
 } from "@/entities/stock-grant/constants";
+import { getStockValueMetrics } from "@/entities/stock-grant/utils";
 import type { StockSummaryMetric } from "@/entities/stock-grant/types";
 import { useStockSearch } from "@/entities/stock-grant/context/context";
 import { StockUserSearch } from "../../../entities/stock-grant/components/StockUserSearch";
@@ -160,6 +161,9 @@ export function StockAdminPage() {
 		const reasons =
 			eligibility.reasons?.map((reason) => getEligibilityReasonLabel(reason)) ??
 			[];
+		const { averageExercisePrice, totalStockValue } = getStockValueMetrics(
+			summaryQuery.data
+		);
 
 		return (
 			<div className="space-y-5">
@@ -177,6 +181,25 @@ export function StockAdminPage() {
 							</p>
 						</div>
 					))}
+					<div className="rounded-lg border border-border/60 bg-card/70 p-4">
+						<p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+							Grant value
+						</p>
+						<div className="mt-3 space-y-2 text-sm">
+							<div className="flex items-center justify-between text-muted-foreground">
+								<span>Average exercise price</span>
+								<span className="text-foreground">
+									{formatCurrency(averageExercisePrice)}
+								</span>
+							</div>
+							<div className="flex items-center justify-between text-muted-foreground">
+								<span>Total stock value</span>
+								<span className="text-foreground">
+									{formatCurrency(totalStockValue)}
+								</span>
+							</div>
+						</div>
+					</div>
 				</div>
 
 				<div
@@ -319,6 +342,19 @@ function StockSummarySkeleton() {
 						<Skeleton className="mt-3 h-5 w-24" />
 					</div>
 				))}
+				<div className="rounded-lg border border-border/60 bg-card/70 p-4">
+					<Skeleton className="h-3 w-28" />
+					<div className="mt-3 space-y-2">
+						<div className="flex items-center justify-between">
+							<Skeleton className="h-3 w-32" />
+							<Skeleton className="h-3 w-20" />
+						</div>
+						<div className="flex items-center justify-between">
+							<Skeleton className="h-3 w-24" />
+							<Skeleton className="h-3 w-20" />
+						</div>
+					</div>
+				</div>
 			</div>
 			<div className="rounded-lg border border-border/60 bg-card/70 p-4">
 				<div className="flex items-start gap-3">

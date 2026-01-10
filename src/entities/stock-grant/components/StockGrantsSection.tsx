@@ -443,7 +443,7 @@ export const StockGrantsSection = forwardRef<
 							disabled={isGrantActionBlocked}
 							title={
 								isGrantActionBlocked
-									? "User must be active, enabled, and have accepted their invitation to receive grants."
+									? "User must have active employment and platform status to receive grants."
 									: undefined
 							}
 						>

@@ -26,7 +26,7 @@ export const navConfig: NavConfig = {
 			label: "My loans",
 			path: "/app/workspace/loans",
 			icon: FileText,
-			permissions: ["loan.view_own", "loan.apply"],
+			permissions: "loan.view_own",
 		},
 		{
 			id: "workspace-documents",

@@ -1,16 +1,23 @@
 import type { RouteObject } from "react-router-dom";
 import { RequirePermission } from "@/app/router/route-guards";
-import { OverviewPage } from "./pages/OverviewPage";
 import { MyLoansPage } from "./pages/MyLoansPage";
 import { MyStockPage } from "./pages/MyStockPage";
 import { MySettingsPage } from "./pages/MySettingsPage";
 import { MyDocumentsPage } from "./pages/MyDocumentsPage";
 import { MyAmortizationPage } from "./pages/MyAmortizationPage";
+import { LoanWizardPage } from "./pages/LoanWizardPage";
+import { MyLoanDetailPage } from "./pages/MyLoanDetailPage";
 
 export const workspaceRoutes: RouteObject[] = [
 	{
 		index: true,
-		element: <OverviewPage />,
+		element: <MyStockPage />,
+		handle: {
+			search: {
+				title: "Overview",
+				description: "Review your stock summary and eligibility overview.",
+			},
+		},
 	},
 	{
 		path: "loans",
@@ -21,19 +28,28 @@ export const workspaceRoutes: RouteObject[] = [
 		),
 	},
 	{
-		path: "stock",
+		path: "loans/new",
 		element: (
-			<RequirePermission permission="stock.self.view">
-				<MyStockPage />
+			<RequirePermission permission="loan.apply">
+				<LoanWizardPage />
 			</RequirePermission>
 		),
-		handle: {
-			search: {
-				title: "My stock",
-				description: "Review personal stock summaries and eligibility.",
-				permissions: "stock.self.view",
-			},
-		},
+	},
+	{
+		path: "loans/:id/edit",
+		element: (
+			<RequirePermission permission="loan.apply">
+				<LoanWizardPage />
+			</RequirePermission>
+		),
+	},
+	{
+		path: "loans/:id",
+		element: (
+			<RequirePermission permission="loan.view_own">
+				<MyLoanDetailPage />
+			</RequirePermission>
+		),
 	},
 	{
 		path: "documents",
