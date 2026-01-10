@@ -42,12 +42,6 @@ export const navConfig: NavConfig = {
 			icon: ClipboardList,
 			permissions: ["loan.schedule.self.view"],
 		},
-		{
-			id: "workspace-settings",
-			label: "My settings",
-			path: "/app/workspace/settings",
-			icon: Settings,
-		},
 	],
 	workflows: [
 		{

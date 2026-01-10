@@ -19,10 +19,10 @@ export function NotAuthorizedPage() {
 				your administrator.
 			</p>
 			<div className="mt-6 flex gap-3">
-				<Button asChild variant="outline">
+				<Button asChild variant="outline" size="lg">
 					<Link to={routes.workspace}>Go to workspace</Link>
 				</Button>
-				<Button onClick={() => void logout()}>
+				<Button size="lg" onClick={() => void logout()}>
 					Log out
 				</Button>
 			</div>

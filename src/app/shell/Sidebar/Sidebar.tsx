@@ -6,6 +6,7 @@ import { Button } from "@/shared/ui/Button";
 import { usePermissions } from "@/auth/hooks";
 import { useLocalStorage } from "@/shared/hooks/useLocalStorage";
 import { cn } from "@/shared/lib/utils";
+import { routes } from "@/shared/lib/routes";
 import { getNavItems } from "@/app/navigation/nav-config";
 import { useActiveArea } from "@/app/navigation/useActiveArea";
 import { SidebarItem } from "./SidebarItem";
@@ -47,6 +48,9 @@ export function Sidebar({
 	);
 
 	const activeItemId = useMemo(() => {
+		if (location.pathname === routes.workspaceSettings) {
+			return null;
+		}
 		let bestMatchId: string | null = null;
 		let bestMatchLength = -1;
 

@@ -54,5 +54,15 @@ export const workspaceRoutes: RouteObject[] = [
 			</RequirePermission>
 		),
 	},
-	{ path: "settings", element: <MySettingsPage /> },
+	{
+		path: "settings",
+		element: <MySettingsPage />,
+		handle: {
+			search: {
+				title: "My profile",
+				description: "Manage your account details and security settings.",
+				category: "Account",
+			},
+		},
+	},
 ];

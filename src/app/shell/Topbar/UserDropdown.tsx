@@ -96,6 +96,9 @@ export function UserDropdown({ showChevron = false }: UserDropdownProps) {
 				<DropdownMenuLabel>Signed in</DropdownMenuLabel>
 				<DropdownMenuSeparator />
 				<DropdownMenuItem asChild>
+					<Link to={routes.workspaceSettings}>My profile</Link>
+				</DropdownMenuItem>
+				<DropdownMenuItem asChild>
 					<Link to={routes.changePassword}>Change password</Link>
 				</DropdownMenuItem>
 				<DropdownMenuSeparator />
