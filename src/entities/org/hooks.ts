@@ -6,8 +6,8 @@ import {
 	type UseQueryOptions,
 } from "@tanstack/react-query";
 import { orgSettingsKeys } from "@/entities/org/keys";
-import { getOrgSettings, updateOrgSettings } from "./api";
-import type { OrgSettings, OrgSettingsUpdatePayload } from "./types";
+import { getOrgSettings, getSelfOrgPolicy, updateOrgSettings } from "./api";
+import type { OrgSettings, OrgSettingsUpdatePayload, SelfOrgPolicy } from "./types";
 
 export function useOrgSettings(
 	options: Omit<UseQueryOptions<OrgSettings>, "queryKey" | "queryFn"> = {}
@@ -29,13 +29,23 @@ export function useUpdateOrgSettings(
 
 	return useMutation({
 		mutationFn: updateOrgSettings,
-		onSuccess: (data, variables, context) => {
+		onSuccess: (data, variables, onMutateResult, context) => {
 			queryClient.invalidateQueries({ queryKey: orgSettingsKeys.get() });
-			options.onSuccess?.(data, variables, context);
+			options.onSuccess?.(data, variables, onMutateResult, context);
 		},
-		onError: (error, variables, context) => {
-			options.onError?.(error, variables, context);
+		onError: (error, variables, onMutateResult, context) => {
+			options.onError?.(error, variables, onMutateResult, context);
 		},
+		...options,
+	});
+}
+
+export function useSelfOrgPolicy(
+	options: Omit<UseQueryOptions<SelfOrgPolicy>, "queryKey" | "queryFn"> = {}
+) {
+	return useQuery({
+		queryKey: orgSettingsKeys.selfPolicy(),
+		queryFn: getSelfOrgPolicy,
 		...options,
 	});
 }

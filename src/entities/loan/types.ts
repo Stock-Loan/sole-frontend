@@ -1,4 +1,5 @@
 import type { EligibilityResult } from "@/entities/stock-grant/types";
+import type { LoanSelectionMode } from "./types";
 
 export type LoanApplicationStatus =
 	| "DRAFT"
@@ -146,4 +147,18 @@ export interface LoanApplicationListParams {
 export interface LoanApplicationListResponse {
 	items: LoanApplicationSummary[];
 	total: number;
+}
+export interface LoanWizardExerciseStepProps {
+	isLoading: boolean;
+	isError: boolean;
+	onRetry: () => void;
+	hasSummary: boolean;
+	selectionMode: LoanSelectionMode;
+	selectionValue: string;
+	selectionError: string | null;
+	onSelectionModeChange: (mode: LoanSelectionMode) => void;
+	onSelectionValueChange: (value: string) => void;
+	totalExercisableShares: number;
+	sharesToExercise: number;
+	estimatedPurchasePrice: number | null;
 }

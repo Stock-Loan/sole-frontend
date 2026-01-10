@@ -6,7 +6,7 @@ export interface OrgSettings {
 	audit_log_retention_days: number;
 	inactive_user_retention_days: number;
 	enforce_service_duration_rule: boolean;
-	min_service_duration_days: number | null;
+	min_service_duration_years: number | null;
 	enforce_min_vested_to_exercise: boolean;
 	min_vested_shares_to_exercise: number | null;
 	allowed_repayment_methods: LoanRepaymentMethod[];
@@ -29,7 +29,7 @@ export interface OrgSettingsUpdatePayload {
 	audit_log_retention_days?: number;
 	inactive_user_retention_days?: number;
 	enforce_service_duration_rule?: boolean;
-	min_service_duration_days?: number | null;
+	min_service_duration_years?: number | null;
 	enforce_min_vested_to_exercise?: boolean;
 	min_vested_shares_to_exercise?: number | null;
 	allowed_repayment_methods?: LoanRepaymentMethod[];
@@ -50,7 +50,7 @@ export interface OrgSettingsFormValues {
 	audit_log_retention_days: number;
 	inactive_user_retention_days: number;
 	enforce_service_duration_rule: boolean;
-	min_service_duration_days: number | null;
+	min_service_duration_years: number | null;
 	enforce_min_vested_to_exercise: boolean;
 	min_vested_shares_to_exercise: number | null;
 	allowed_repayment_methods: LoanRepaymentMethod[];
@@ -78,4 +78,24 @@ export interface OrgSummary {
 	name: string;
 	slug?: string;
 	status?: "active" | "inactive" | "suspended";
+}
+
+export interface SelfOrgPolicy {
+	org_id: string;
+	allow_user_data_export?: boolean;
+	allow_profile_edit?: boolean;
+	require_two_factor?: boolean;
+	enforce_service_duration_rule?: boolean;
+	min_service_duration_years?: number | null;
+	enforce_min_vested_to_exercise?: boolean;
+	min_vested_shares_to_exercise?: number | null;
+	allowed_repayment_methods: LoanRepaymentMethod[];
+	allowed_interest_types: LoanInterestType[];
+	min_loan_term_months: number;
+	max_loan_term_months: number;
+	fixed_interest_rate_annual_percent: DecimalValue;
+	variable_base_rate_annual_percent: DecimalValue;
+	variable_margin_annual_percent: DecimalValue;
+	require_down_payment: boolean;
+	down_payment_percent: DecimalValue;
 }

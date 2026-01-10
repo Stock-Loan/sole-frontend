@@ -90,7 +90,7 @@ export function OrgSettingsPage() {
 			audit_log_retention_days: 180,
 			inactive_user_retention_days: 180,
 			enforce_service_duration_rule: false,
-			min_service_duration_days: null,
+			min_service_duration_years: null,
 			enforce_min_vested_to_exercise: false,
 			min_vested_shares_to_exercise: null,
 			allowed_repayment_methods: [],
@@ -117,8 +117,8 @@ export function OrgSettingsPage() {
 				enforce_service_duration_rule: Boolean(
 					data.enforce_service_duration_rule
 				),
-				min_service_duration_days:
-					data.min_service_duration_days ?? null,
+				min_service_duration_years:
+					data.min_service_duration_years ?? null,
 				enforce_min_vested_to_exercise: Boolean(
 					data.enforce_min_vested_to_exercise
 				),
@@ -155,8 +155,8 @@ export function OrgSettingsPage() {
 				enforce_service_duration_rule: Boolean(
 					updated.enforce_service_duration_rule
 				),
-				min_service_duration_days:
-					updated.min_service_duration_days ?? null,
+				min_service_duration_years:
+					updated.min_service_duration_years ?? null,
 				enforce_min_vested_to_exercise: Boolean(
 					updated.enforce_min_vested_to_exercise
 				),
@@ -186,8 +186,8 @@ export function OrgSettingsPage() {
 		if (!canManage) return;
 		updateMutation.mutate({
 			...values,
-			min_service_duration_days: values.enforce_service_duration_rule
-				? values.min_service_duration_days
+			min_service_duration_years: values.enforce_service_duration_rule
+				? values.min_service_duration_years
 				: null,
 			min_vested_shares_to_exercise: values.enforce_min_vested_to_exercise
 				? values.min_vested_shares_to_exercise
@@ -499,7 +499,7 @@ export function OrgSettingsPage() {
 																	field.onChange(nextValue);
 																	if (!nextValue) {
 																		form.setValue(
-																			"min_service_duration_days",
+																			"min_service_duration_years",
 																			null,
 																			{
 																				shouldDirty: true,
@@ -519,17 +519,18 @@ export function OrgSettingsPage() {
 												<div className="pl-1 pt-2">
 													<FormField
 														control={form.control}
-														name="min_service_duration_days"
+														name="min_service_duration_years"
 														render={({ field }) => (
 															<FormItem className="max-w-xs">
 																<FormLabel>
-																	Minimum service duration (days)
+																	Minimum service duration (years)
 																</FormLabel>
 																<FormControl>
 																	<Input
 																		type="number"
 																		min={0}
-																		max={36500}
+																		max={100}
+																		step="0.1"
 																		{...field}
 																		value={field.value ?? ""}
 																		onChange={(event) => {
