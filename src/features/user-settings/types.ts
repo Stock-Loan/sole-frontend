@@ -1,6 +1,6 @@
-import type { AuthUser } from "@/auth/types";
+import type { OrgUserListItem } from "@/entities/user/types";
 
-export type UserSettingsProfile = AuthUser;
+export type UserSettingsProfile = OrgUserListItem;
 
 export type UserSettingsTabKey = "profile" | "security";
 

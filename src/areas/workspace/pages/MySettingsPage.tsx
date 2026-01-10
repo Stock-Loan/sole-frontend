@@ -10,7 +10,6 @@ import { formatDate } from "@/shared/lib/format";
 import { TabButton } from "@/shared/ui/TabButton";
 import { useAuth } from "@/auth/hooks";
 import { useUserSettings } from "@/features/user-settings/hooks";
-import { useOrgUserByEmail } from "@/entities/user/hooks";
 import type {
 	UserSettingsInfoCardProps,
 	UserSettingsSectionGridProps,
@@ -21,77 +20,89 @@ export function MySettingsPage() {
 	const { user: cachedUser } = useAuth();
 	const [tab, setTab] = useState<UserSettingsTabKey>("profile");
 
-	const { data, isLoading, isError } = useUserSettings();
+	const { data: profile, isLoading, isError } = useUserSettings();
 
-	const currentEmail = data?.email || cachedUser?.email || "";
+	const profileUser = profile?.user;
+	const membership = profile?.membership;
+	const user = profileUser ?? cachedUser;
+	const securityUser = cachedUser ?? profileUser;
 
-	const { data: orgUser } = useOrgUserByEmail(currentEmail);
-
-	const user = data ?? cachedUser;
+	const roleLabels =
+		profile?.roles?.length
+			? profile.roles
+					.map((role) => role.name || role.id)
+					.filter(Boolean)
+					.join(", ")
+			: user?.roles?.length
+				? user.roles.join(", ")
+				: "—";
 
 	const personalItems = [
-		{ label: "First name", value: orgUser?.user.first_name || "—" },
-		{ label: "Middle name", value: orgUser?.user.middle_name || "—" },
-		{ label: "Last name", value: orgUser?.user.last_name || "—" },
-		{ label: "Preferred name", value: orgUser?.user.preferred_name || "—" },
-		{ label: "Email", value: orgUser?.user.email || user?.email || "—" },
-		{ label: "Phone number", value: orgUser?.user.phone_number || "—" },
-		{ label: "Timezone", value: orgUser?.user.timezone || "—" },
-		{ label: "Marital status", value: orgUser?.user.marital_status || "—" },
-		{ label: "Country", value: orgUser?.user.country || "—" },
-		{ label: "State", value: orgUser?.user.state || "—" },
-		{ label: "Address line 1", value: orgUser?.user.address_line1 || "—" },
-		{ label: "Address line 2", value: orgUser?.user.address_line2 || "—" },
-		{ label: "Postal code", value: orgUser?.user.postal_code || "—" },
-		{ label: "Org ID", value: orgUser?.user.org_id || user?.org_id || "—" },
-		{ label: "User ID", value: orgUser?.user.id || user?.id || "—" },
+		{ label: "First name", value: profileUser?.first_name || "—" },
+		{ label: "Middle name", value: profileUser?.middle_name || "—" },
+		{ label: "Last name", value: profileUser?.last_name || "—" },
+		{ label: "Preferred name", value: profileUser?.preferred_name || "—" },
+		{ label: "Email", value: profileUser?.email || user?.email || "—" },
+		{ label: "Phone number", value: profileUser?.phone_number || "—" },
+		{ label: "Timezone", value: profileUser?.timezone || "—" },
+		{ label: "Marital status", value: profileUser?.marital_status || "—" },
+		{ label: "Country", value: profileUser?.country || "—" },
+		{ label: "State", value: profileUser?.state || "—" },
+		{ label: "Address line 1", value: profileUser?.address_line1 || "—" },
+		{ label: "Address line 2", value: profileUser?.address_line2 || "—" },
+		{ label: "Postal code", value: profileUser?.postal_code || "—" },
+		{
+			label: "Org ID",
+			value: profileUser?.org_id || membership?.org_id || user?.org_id || "—",
+		},
+		{ label: "User ID", value: profileUser?.id || user?.id || "—" },
 		{
 			label: "Created at",
-			value: formatDate(orgUser?.user.created_at) || "—",
+			value: formatDate(profileUser?.created_at) || "—",
 		},
 	];
 
 	const employmentItems = [
-		{ label: "Employee ID", value: orgUser?.membership.employee_id || "—" },
+		{ label: "Employee ID", value: membership?.employee_id || "—" },
 		{
 			label: "Employment status",
-			value: orgUser?.membership.employment_status || "—",
+			value: membership?.employment_status || "—",
 		},
 		{
 			label: "Platform status",
-			value: orgUser?.membership.platform_status || "—",
+			value: membership?.platform_status || "—",
 		},
 		{
 			label: "Invitation status",
-			value: orgUser?.membership.invitation_status || "—",
+			value: membership?.invitation_status || "—",
 		},
 		{
 			label: "Employment start date",
-			value: formatDate(orgUser?.membership.employment_start_date) || "—",
+			value: formatDate(membership?.employment_start_date) || "—",
 		},
 		{
 			label: "Invited at",
-			value: formatDate(orgUser?.membership.invited_at) || "—",
+			value: formatDate(membership?.invited_at) || "—",
 		},
 		{
 			label: "Accepted at",
-			value: formatDate(orgUser?.membership.accepted_at) || "—",
+			value: formatDate(membership?.accepted_at) || "—",
 		},
 		{
 			label: "Membership created",
-			value: formatDate(orgUser?.membership.created_at) || "—",
+			value: formatDate(membership?.created_at) || "—",
 		},
 		{
 			label: "Active",
-			value: user?.is_active ? "Yes" : "No",
+			value: securityUser?.is_active ? "Yes" : "No",
 		},
 		{
 			label: "Superuser",
-			value: user?.is_superuser ? "Yes" : "No",
+			value: securityUser?.is_superuser ? "Yes" : "No",
 		},
 		{
 			label: "Roles",
-			value: user?.roles?.length ? user.roles.join(", ") : "—",
+			value: roleLabels,
 		},
 	];
 
@@ -170,7 +181,7 @@ export function MySettingsPage() {
 						<div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 py-4">
 							<div className="space-y-2 text-sm text-muted-foreground">
 								<div className="flex items-center gap-2">
-									{user?.mfa_enabled ? (
+									{securityUser?.mfa_enabled ? (
 										<ShieldCheck className="h-4 w-4 text-emerald-600" />
 									) : (
 										<ShieldOff className="h-4 w-4 text-amber-500" />
@@ -178,12 +189,12 @@ export function MySettingsPage() {
 									<span className="font-medium text-foreground">MFA</span>
 								</div>
 								<p>
-									{user?.mfa_enabled
+									{securityUser?.mfa_enabled
 										? "Multi-factor authentication is active on your account."
 										: "Add MFA in the identity provider to increase account protection."}
 								</p>
 								<p className="text-xs text-muted-foreground">
-									Status: {user?.mfa_enabled ? "Enabled" : "Not enabled"}
+									Status: {securityUser?.mfa_enabled ? "Enabled" : "Not enabled"}
 								</p>
 							</div>
 							<Separator />

@@ -7,7 +7,7 @@ export function useUserSettings(
 	options: Omit<UseQueryOptions<UserSettingsProfile>, "queryKey" | "queryFn"> = {}
 ) {
 	return useQuery({
-		queryKey: authKeys.me(),
+		queryKey: authKeys.selfProfile(),
 		queryFn: getUserSettings,
 		staleTime: 5 * 60 * 1000,
 		...options,
