@@ -152,7 +152,7 @@ export function ChangePasswordPage() {
 							/>
 							<div className="flex gap-2">
 								<Button
-									className="w-full"
+									className="w-full h-10"
 									type="submit"
 									disabled={changePasswordMutation.isPending}
 								>
@@ -162,7 +162,7 @@ export function ChangePasswordPage() {
 								</Button>
 								<Button
 									variant="outline"
-									className="w-full"
+									className="w-full h-10"
 									type="button"
 									onClick={() => void logout()}
 									disabled={changePasswordMutation.isPending}
