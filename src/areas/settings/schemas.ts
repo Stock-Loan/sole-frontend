@@ -1,5 +1,10 @@
 import { z } from "zod";
 
+const repaymentMethodsSchema = z.array(
+	z.enum(["INTEREST_ONLY", "BALLOON", "PRINCIPAL_AND_INTEREST"])
+);
+const interestTypesSchema = z.array(z.enum(["FIXED", "VARIABLE"]));
+
 export const orgSettingsSchema = z
 	.object({
 		allow_user_data_export: z.boolean(),
@@ -25,6 +30,27 @@ export const orgSettingsSchema = z
 			.min(0, "Minimum 0 shares")
 			.max(1_000_000_000, "Maximum 1,000,000,000 shares")
 			.nullable(),
+		allowed_repayment_methods: repaymentMethodsSchema.min(
+			1,
+			"Select at least one repayment method."
+		),
+		allowed_interest_types: interestTypesSchema.min(
+			1,
+			"Select at least one interest type."
+		),
+		min_loan_term_months: z
+			.number()
+			.min(1, "Minimum 1 month")
+			.max(360, "Maximum 360 months"),
+		max_loan_term_months: z
+			.number()
+			.min(1, "Minimum 1 month")
+			.max(360, "Maximum 360 months"),
+		fixed_interest_rate_annual_percent: z.number().min(0).nullable(),
+		variable_base_rate_annual_percent: z.number().min(0).nullable(),
+		variable_margin_annual_percent: z.number().min(0).nullable(),
+		require_down_payment: z.boolean(),
+		down_payment_percent: z.number().min(0).nullable(),
 	})
 	.superRefine((values, ctx) => {
 		if (
@@ -46,5 +72,22 @@ export const orgSettingsSchema = z
 				path: ["min_vested_shares_to_exercise"],
 				message: "Minimum vested shares is required when the rule is enabled.",
 			});
+		}
+		if (values.min_loan_term_months > values.max_loan_term_months) {
+			ctx.addIssue({
+				code: z.ZodIssueCode.custom,
+				path: ["max_loan_term_months"],
+				message: "Maximum term must be greater than or equal to minimum term.",
+			});
+		}
+		if (values.require_down_payment) {
+			const downPayment = values.down_payment_percent ?? 0;
+			if (!Number.isFinite(downPayment) || downPayment <= 0) {
+				ctx.addIssue({
+					code: z.ZodIssueCode.custom,
+					path: ["down_payment_percent"],
+					message: "Down payment percent must be greater than 0.",
+				});
+			}
 		}
 	});
