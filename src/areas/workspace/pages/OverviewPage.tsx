@@ -3,7 +3,7 @@ import { PageHeader } from "@/shared/ui/PageHeader";
 import { PageContainer } from "@/shared/ui/PageContainer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { EmptyState } from "@/shared/ui/EmptyState";
-import { LoadingState } from "@/shared/ui/LoadingState";
+import { Skeleton } from "@/shared/ui/Skeleton";
 import { formatDate } from "@/shared/lib/format";
 import { usePermissions } from "@/auth/hooks";
 import { useMeStockSummary } from "@/entities/stock-grant/hooks";
@@ -62,7 +62,7 @@ export function OverviewPage() {
 					message="You do not have permission to view your stock summary."
 				/>
 			) : summaryQuery.isLoading ? (
-				<LoadingState label="Loading your stock summary..." />
+				<OverviewSkeleton />
 			) : summaryQuery.isError ? (
 				<EmptyState
 					title="Unable to load summary"
@@ -130,5 +130,38 @@ export function OverviewPage() {
 				</div>
 			)}
 		</PageContainer>
+	);
+}
+
+function OverviewSkeleton() {
+	return (
+		<div className="space-y-6">
+			<div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+				{Array.from({ length: 4 }).map((_, index) => (
+					<Card key={`summary-skeleton-${index}`}>
+						<CardHeader className="pb-2">
+							<Skeleton className="h-3 w-24" />
+						</CardHeader>
+						<CardContent>
+							<Skeleton className="h-7 w-28" />
+						</CardContent>
+					</Card>
+				))}
+			</div>
+			<div className="rounded-lg border p-4">
+				<div className="flex items-start gap-3">
+					<Skeleton className="mt-0.5 h-5 w-5 rounded-full" />
+					<div className="flex-1 space-y-2">
+						<Skeleton className="h-4 w-40" />
+						<Skeleton className="h-3 w-72" />
+						<Skeleton className="h-3 w-64" />
+						<div className="space-y-1 pt-2">
+							<Skeleton className="h-3 w-48" />
+							<Skeleton className="h-3 w-44" />
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
 	);
 }

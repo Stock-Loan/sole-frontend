@@ -4,7 +4,7 @@ import { PageContainer } from "@/shared/ui/PageContainer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { Button } from "@/shared/ui/Button";
 import { EmptyState } from "@/shared/ui/EmptyState";
-import { LoadingState } from "@/shared/ui/LoadingState";
+import { Skeleton } from "@/shared/ui/Skeleton";
 import { routes } from "@/shared/lib/routes";
 import { formatDate } from "@/shared/lib/format";
 import { usePermissions } from "@/auth/hooks";
@@ -85,7 +85,7 @@ export function StockOverviewPage() {
 					message="You do not have permission to view the stock dashboard metrics."
 				/>
 			) : summaryQuery.isLoading ? (
-				<LoadingState label="Loading dashboard metrics..." />
+				<StockOverviewSkeleton />
 			) : summaryQuery.isError ? (
 				<EmptyState
 					title="Unable to load dashboard"
@@ -112,5 +112,30 @@ export function StockOverviewPage() {
 				</div>
 			)}
 		</PageContainer>
+	);
+}
+
+function StockOverviewSkeleton() {
+	return (
+		<div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+			{Array.from({ length: 8 }).map((_, index) => (
+				<Card key={`stock-summary-skeleton-${index}`}>
+					<CardHeader className="pb-2">
+						<Skeleton className="h-3 w-28" />
+					</CardHeader>
+					<CardContent>
+						<Skeleton className="h-7 w-24" />
+					</CardContent>
+				</Card>
+			))}
+			<Card>
+				<CardHeader className="pb-2">
+					<Skeleton className="h-3 w-36" />
+				</CardHeader>
+				<CardContent>
+					<Skeleton className="h-5 w-32" />
+				</CardContent>
+			</Card>
+		</div>
 	);
 }

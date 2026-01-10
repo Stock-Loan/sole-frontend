@@ -5,6 +5,7 @@ import { PageHeader } from "@/shared/ui/PageHeader";
 import { PageContainer } from "@/shared/ui/PageContainer";
 import { Button } from "@/shared/ui/Button";
 import { Separator } from "@/shared/ui/separator";
+import { Skeleton } from "@/shared/ui/Skeleton";
 import { routes } from "@/shared/lib/routes";
 import { formatDate } from "@/shared/lib/format";
 import { TabButton } from "@/shared/ui/TabButton";
@@ -130,9 +131,7 @@ export function MySettingsPage() {
 
 			<div className="flex min-h-0 flex-1 flex-col rounded-lg border bg-card shadow-sm">
 				{isLoading ? (
-					<div className="p-6 text-sm text-muted-foreground">
-						Loading your settings…
-					</div>
+					<SettingsSkeleton />
 				) : isError ? (
 					<div className="p-6 text-sm text-destructive">
 						Unable to load your profile right now. Please retry in a moment.
@@ -230,6 +229,37 @@ function SectionGrid({ items }: UserSettingsSectionGridProps) {
 			{items.map((item) => (
 				<InfoCard key={item.label} label={item.label} value={item.value} />
 			))}
+		</div>
+	);
+}
+
+function SettingsSkeleton() {
+	return (
+		<div className="p-6 space-y-6">
+			<div className="flex items-center gap-3">
+				<Skeleton className="h-12 w-12 rounded-md" />
+				<div className="space-y-2">
+					<Skeleton className="h-4 w-32" />
+					<Skeleton className="h-3 w-56" />
+				</div>
+			</div>
+			<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+				{Array.from({ length: 6 }).map((_, index) => (
+					<div key={`profile-skeleton-${index}`} className="space-y-2">
+						<Skeleton className="h-3 w-24" />
+						<Skeleton className="h-4 w-32" />
+					</div>
+				))}
+			</div>
+			<Separator className="my-2" />
+			<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+				{Array.from({ length: 6 }).map((_, index) => (
+					<div key={`employment-skeleton-${index}`} className="space-y-2">
+						<Skeleton className="h-3 w-24" />
+						<Skeleton className="h-4 w-36" />
+					</div>
+				))}
+			</div>
 		</div>
 	);
 }

@@ -6,6 +6,7 @@ import { PageHeader } from "@/shared/ui/PageHeader";
 import { EmptyState } from "@/shared/ui/EmptyState";
 import { Button } from "@/shared/ui/Button";
 import { Badge } from "@/shared/ui/badge";
+import { Skeleton } from "@/shared/ui/Skeleton";
 import { getOrgUserDisplayName } from "@/entities/user/constants";
 import { usePermissions } from "@/auth/hooks";
 import { formatDate } from "@/shared/lib/format";
@@ -136,7 +137,7 @@ export function StockAdminPage() {
 		}
 
 		if (summaryQuery.isLoading) {
-			return <p className="text-sm text-muted-foreground">Loading summary…</p>;
+			return <StockSummarySkeleton />;
 		}
 
 		if (summaryQuery.isError || !summaryQuery.data) {
@@ -302,5 +303,41 @@ export function StockAdminPage() {
 				/>
 			)}
 		</PageContainer>
+	);
+}
+
+function StockSummarySkeleton() {
+	return (
+		<div className="space-y-5">
+			<div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+				{Array.from({ length: 4 }).map((_, index) => (
+					<div
+						key={`summary-metric-skeleton-${index}`}
+						className="rounded-lg border border-border/60 bg-card/70 p-4"
+					>
+						<Skeleton className="h-3 w-28" />
+						<Skeleton className="mt-3 h-5 w-24" />
+					</div>
+				))}
+			</div>
+			<div className="rounded-lg border border-border/60 bg-card/70 p-4">
+				<div className="flex items-start gap-3">
+					<Skeleton className="mt-0.5 h-5 w-5 rounded-full" />
+					<div className="flex-1 space-y-2">
+						<Skeleton className="h-4 w-40" />
+						<Skeleton className="h-3 w-64" />
+						<Skeleton className="h-3 w-52" />
+						<div className="space-y-1 pt-2">
+							<Skeleton className="h-3 w-44" />
+							<Skeleton className="h-3 w-36" />
+						</div>
+					</div>
+				</div>
+			</div>
+			<div className="rounded-lg border border-border/60 bg-card/70 p-4">
+				<Skeleton className="h-3 w-36" />
+				<Skeleton className="mt-3 h-4 w-48" />
+			</div>
+		</div>
 	);
 }

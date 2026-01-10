@@ -15,8 +15,15 @@ import {
 	type VisibilityState,
 } from "@tanstack/react-table";
 import { Checkbox } from "@/shared/ui/checkbox";
-import { Table } from "@/shared/ui/Table/table";
-import { LoadingState } from "@/shared/ui/LoadingState";
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "@/shared/ui/Table/table";
+import { Skeleton } from "@/shared/ui/Skeleton";
 import { cn } from "@/shared/lib/utils";
 import { useDebounce } from "@/shared/hooks/useDebounce";
 import { DataTableBody } from "./DataTableBody";
@@ -508,7 +515,15 @@ export function DataTable<T>({
 	);
 
 	if (isLoading) {
-		return <LoadingState />;
+		return (
+			<DataTableSkeleton
+				columnCount={table.getVisibleLeafColumns().length}
+				rowCount={Math.min(resolvedPaginationState.pageSize, 8)}
+				showTopBar={Boolean(enableExport || search || topBarActions)}
+				showPagination={paginationEnabled}
+				className={className}
+			/>
+		);
 	}
 
 	return (
@@ -573,6 +588,81 @@ export function DataTable<T>({
 					onExportSelected={exportSelectedRows}
 					toolbarContent={toolbarContent}
 				/>
+			) : null}
+		</div>
+	);
+}
+
+type DataTableSkeletonProps = {
+	columnCount: number;
+	rowCount: number;
+	showTopBar: boolean;
+	showPagination: boolean;
+	className?: string;
+};
+
+function DataTableSkeleton({
+	columnCount,
+	rowCount,
+	showTopBar,
+	showPagination,
+	className,
+}: DataTableSkeletonProps) {
+	const columns = Math.max(1, columnCount);
+	const rows = Math.max(3, rowCount);
+	const headerWidths = ["w-16", "w-24", "w-32", "w-20", "w-28"];
+
+	return (
+		<div
+			className={cn(
+				"flex min-h-0 flex-col rounded-md border border-border/70",
+				className
+			)}
+		>
+			{showTopBar ? (
+				<div className="flex flex-wrap items-center gap-3 border-b border-border/60 bg-muted/20 px-4 py-3">
+					<Skeleton className="h-8 w-28" />
+					<Skeleton className="h-8 w-48" />
+					<div className="ml-auto flex items-center gap-2">
+						<Skeleton className="h-8 w-24" />
+					</div>
+				</div>
+			) : null}
+			<Table
+				className="text-[13px]"
+				containerClassName="flex-1 min-h-0 overflow-auto scrollbar-hidden"
+			>
+				<TableHeader>
+					<TableRow>
+						{Array.from({ length: columns }).map((_, index) => (
+							<TableHead key={`header-skeleton-${index}`}>
+								<Skeleton className={`h-3 ${headerWidths[index % headerWidths.length]}`} />
+							</TableHead>
+						))}
+					</TableRow>
+				</TableHeader>
+				<TableBody>
+					{Array.from({ length: rows }).map((_, rowIndex) => (
+						<TableRow key={`row-skeleton-${rowIndex}`}>
+							{Array.from({ length: columns }).map((__, columnIndex) => (
+								<TableCell key={`cell-skeleton-${rowIndex}-${columnIndex}`}>
+									<Skeleton
+										className={`h-3 ${headerWidths[(rowIndex + columnIndex) % headerWidths.length]}`}
+									/>
+								</TableCell>
+							))}
+						</TableRow>
+					))}
+				</TableBody>
+			</Table>
+			{showPagination ? (
+				<div className="flex flex-wrap items-center justify-between gap-3 border-t border-border/60 px-4 py-3">
+					<Skeleton className="h-3 w-48" />
+					<div className="flex items-center gap-2">
+						<Skeleton className="h-8 w-20" />
+						<Skeleton className="h-8 w-20" />
+					</div>
+				</div>
 			) : null}
 		</div>
 	);

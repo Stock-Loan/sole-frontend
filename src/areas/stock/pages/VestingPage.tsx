@@ -17,6 +17,7 @@ import { formatShares } from "@/entities/stock-grant/constants";
 import { formatDate } from "@/shared/lib/format";
 import { useStockSearch } from "@/entities/stock-grant/context/context";
 import { StockUserSearch } from "@/entities/stock-grant/components/StockUserSearch";
+import { Skeleton } from "@/shared/ui/Skeleton";
 
 export function VestingPage() {
 	const { can } = usePermissions();
@@ -74,9 +75,7 @@ export function VestingPage() {
 								You do not have access to view vesting events.
 							</p>
 						) : allGrantsQuery.isLoading ? (
-							<p className="text-sm text-muted-foreground">
-								Loading vesting events…
-							</p>
+							<VestingTableSkeleton />
 						) : allGrantsQuery.isError ? (
 							<div className="flex flex-wrap items-center gap-3 text-sm text-destructive">
 								<span>Unable to load vesting events.</span>
@@ -127,5 +126,33 @@ export function VestingPage() {
 				/>
 			)}
 		</PageContainer>
+	);
+}
+
+function VestingTableSkeleton() {
+	const columns = ["Vest date", "Shares", "Grant date", "Status", "Grant ID"];
+	return (
+		<Table containerClassName="rounded-md border border-border/60">
+			<TableHeader>
+				<TableRow>
+					{columns.map((label) => (
+						<TableHead key={label}>
+							<Skeleton className="h-3 w-24" />
+						</TableHead>
+					))}
+				</TableRow>
+			</TableHeader>
+			<TableBody>
+				{Array.from({ length: 6 }).map((_, index) => (
+					<TableRow key={`vesting-skeleton-${index}`}>
+						{columns.map((_, columnIndex) => (
+							<TableCell key={`vesting-cell-${index}-${columnIndex}`}>
+								<Skeleton className="h-3 w-24" />
+							</TableCell>
+						))}
+					</TableRow>
+				))}
+			</TableBody>
+		</Table>
 	);
 }
