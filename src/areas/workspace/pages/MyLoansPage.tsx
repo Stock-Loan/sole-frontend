@@ -1,23 +1,48 @@
-import { Link } from "react-router-dom";
+import { useMemo, useState } from "react";
+import type { PaginationState } from "@tanstack/react-table";
+import { useNavigate } from "react-router-dom";
 import { PageContainer } from "@/shared/ui/PageContainer";
 import { PageHeader } from "@/shared/ui/PageHeader";
 import { EmptyState } from "@/shared/ui/EmptyState";
-import { Button } from "@/shared/ui/Button";
 import { Badge } from "@/shared/ui/badge";
 import { DataTable } from "@/shared/ui/Table/DataTable";
 import type { ColumnDefinition } from "@/shared/ui/Table/types";
+import { ToolbarButton } from "@/shared/ui/toolbar";
 import { routes } from "@/shared/lib/routes";
 import { formatDate, formatCurrency } from "@/shared/lib/format";
 import { usePermissions } from "@/auth/hooks";
 import { useMyLoanApplications } from "@/entities/loan/hooks";
 import type { LoanApplicationSummary } from "@/entities/loan/types";
 
+const PAGE_SIZE_OPTIONS = [5, 10, 20, 30];
+const DEFAULT_PAGE_SIZE = 10;
+
 export function MyLoansPage() {
 	const { can } = usePermissions();
 	const canViewLoans = can("loan.view_own");
 
-	const loansQuery = useMyLoanApplications({}, { enabled: canViewLoans });
+	const navigate = useNavigate();
+	const [paginationState, setPaginationState] = useState<PaginationState>({
+		pageIndex: 0,
+		pageSize: DEFAULT_PAGE_SIZE,
+	});
+	const listParams = useMemo(
+		() => ({
+			limit: paginationState.pageSize,
+			offset: paginationState.pageIndex * paginationState.pageSize,
+		}),
+		[paginationState.pageIndex, paginationState.pageSize]
+	);
+
+	const loansQuery = useMyLoanApplications(listParams, {
+		enabled: canViewLoans,
+	});
 	const loans = loansQuery.data?.items ?? [];
+	const totalRows = loansQuery.data?.total ?? loans.length;
+	const totalPages = Math.max(
+		1,
+		Math.ceil(totalRows / paginationState.pageSize)
+	);
 
 	const columns: ColumnDefinition<LoanApplicationSummary>[] = [
 		{
@@ -50,31 +75,10 @@ export function MyLoansPage() {
 			accessor: (loan) => loan.loan_principal ?? "",
 			cell: (loan) => formatCurrency(loan.loan_principal),
 		},
-		{
-			id: "actions",
-			header: "Actions",
-			cell: (loan) => {
-				const detailPath = routes.workspaceLoanDetail.replace(":id", loan.id);
-				const editPath = routes.workspaceLoanWizardEdit.replace(":id", loan.id);
-				return (
-					<div className="flex flex-wrap items-center gap-2">
-						<Button asChild size="sm" variant="outline">
-							<Link to={detailPath}>View</Link>
-						</Button>
-						{loan.status === "DRAFT" ? (
-							<Button asChild size="sm">
-								<Link to={editPath}>Edit draft</Link>
-							</Button>
-						) : null}
-					</div>
-				);
-			},
-			enableSorting: false,
-		},
 	];
 
 	return (
-		<PageContainer className="space-y-4">
+		<PageContainer className="flex min-h-0 flex-1 flex-col gap-4">
 			<PageHeader
 				title="My loans"
 				subtitle="Track your active loan applications and repayment status."
@@ -100,8 +104,58 @@ export function MyLoansPage() {
 					isLoading={loansQuery.isLoading}
 					emptyMessage="No loan applications yet."
 					enableExport={false}
-					enableRowSelection={false}
-					pagination={{ enabled: false }}
+					enableRowSelection
+					className="flex-1 min-h-0"
+					renderToolbarActions={(selectedLoans) => {
+						const hasSingle = selectedLoans.length === 1;
+						const selectedLoan = hasSingle ? selectedLoans[0] : null;
+						const isDraft = selectedLoan?.status === "DRAFT";
+						return (
+							<div className="flex items-center gap-2">
+								<ToolbarButton
+									variant="outline"
+									size="sm"
+									disabled={!hasSingle}
+									onClick={() => {
+										if (!selectedLoan) return;
+										navigate(
+											routes.workspaceLoanDetail.replace(
+												":id",
+												selectedLoan.id
+											)
+										);
+									}}
+								>
+									View
+								</ToolbarButton>
+								<ToolbarButton
+									variant="secondary"
+									size="sm"
+									disabled={!hasSingle || !isDraft}
+									onClick={() => {
+										if (!selectedLoan) return;
+										navigate(
+											routes.workspaceLoanWizardEdit.replace(
+												":id",
+												selectedLoan.id
+											)
+										);
+									}}
+								>
+									Edit draft
+								</ToolbarButton>
+							</div>
+						);
+					}}
+					pagination={{
+						enabled: true,
+						mode: "server",
+						state: paginationState,
+						onPaginationChange: setPaginationState,
+						pageCount: totalPages,
+						totalRows,
+						pageSizeOptions: PAGE_SIZE_OPTIONS,
+					}}
 				/>
 			)}
 		</PageContainer>

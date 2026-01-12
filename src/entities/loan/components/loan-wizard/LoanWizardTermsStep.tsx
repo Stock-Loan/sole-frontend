@@ -60,7 +60,7 @@ export function LoanWizardTermsStep({
 				Loan terms are based on your organization’s policy settings.
 			</p>
 			<div className="grid gap-4 lg:grid-cols-2">
-				<div className="rounded-lg border border-border/70 p-4 shadow-sm">
+				<div className="rounded-xl border border-border/60 bg-card/70 p-5 shadow-sm">
 					<p className="text-sm font-semibold text-foreground">Interest type</p>
 					<div className="mt-3 grid gap-3">
 						{loanWizardInterestTypeOptions
@@ -75,10 +75,10 @@ export function LoanWizardTermsStep({
 										type="button"
 										onClick={() => onInterestTypeChange(option.value)}
 										className={cn(
-											"flex w-full items-start gap-3 rounded-lg border px-4 py-3 text-left text-sm transition",
+											"flex w-full items-start gap-3 rounded-xl border px-4 py-3 text-left text-sm transition",
 											isActive
-												? "border-primary bg-primary/5"
-												: "border-border/70 hover:border-primary/50"
+												? "border-primary bg-primary/10 shadow-sm"
+												: "border-border/70 bg-background hover:border-primary/50 hover:bg-muted/40"
 										)}
 									>
 										<span
@@ -103,7 +103,7 @@ export function LoanWizardTermsStep({
 					</div>
 				</div>
 
-				<div className="rounded-lg border border-border/70 p-4 shadow-sm">
+				<div className="rounded-xl border border-border/60 bg-card/70 p-5 shadow-sm">
 					<p className="text-sm font-semibold text-foreground">
 						Repayment method
 					</p>
@@ -120,10 +120,10 @@ export function LoanWizardTermsStep({
 										type="button"
 										onClick={() => onRepaymentMethodChange(option.value)}
 										className={cn(
-											"flex w-full items-start gap-3 rounded-lg border px-4 py-3 text-left text-sm transition",
+											"flex w-full items-start gap-3 rounded-xl border px-4 py-3 text-left text-sm transition",
 											isActive
-												? "border-primary bg-primary/5"
-												: "border-border/70 hover:border-primary/50"
+												? "border-primary bg-primary/10 shadow-sm"
+												: "border-border/70 bg-background hover:border-primary/50 hover:bg-muted/40"
 										)}
 									>
 										<span
@@ -150,7 +150,7 @@ export function LoanWizardTermsStep({
 			</div>
 
 			<div className="grid gap-4 md:grid-cols-2">
-				<div className="rounded-lg border border-border/70 p-4 shadow-sm">
+				<div className="rounded-xl border border-border/60 bg-card/70 p-5 shadow-sm">
 					<label className="text-sm font-medium text-foreground">
 						Term length (months)
 					</label>
@@ -171,7 +171,7 @@ export function LoanWizardTermsStep({
 						Allowed range: {policy.min_loan_term_months}–{policy.max_loan_term_months} months
 					</p>
 				</div>
-				<div className="rounded-lg border border-border/70 p-4 shadow-sm">
+				<div className="rounded-xl border border-border/60 bg-card/70 p-5 shadow-sm">
 					<p className="text-sm font-semibold text-foreground">Down payment</p>
 					<p className="mt-2 text-sm text-muted-foreground">
 						{policy.require_down_payment
@@ -181,7 +181,7 @@ export function LoanWizardTermsStep({
 				</div>
 			</div>
 
-			<div className="rounded-lg border border-border/70 p-4 shadow-sm">
+			<div className="rounded-xl border border-border/60 bg-card/70 p-5 shadow-sm">
 				<div className="flex items-center justify-between">
 					<p className="text-sm font-semibold text-foreground">Quote</p>
 					{termsError ? (
@@ -210,10 +210,10 @@ export function LoanWizardTermsStep({
 												type="button"
 												onClick={() => onSelectQuoteOption(index, option)}
 												className={cn(
-													"rounded-lg border px-4 py-3 text-left text-sm transition",
+													"rounded-xl border px-4 py-3 text-left text-sm transition",
 													isActive
-														? "border-primary bg-primary/5"
-														: "border-border/70 hover:border-primary/50"
+														? "border-primary bg-primary/10 shadow-sm"
+														: "border-border/70 bg-background hover:border-primary/50 hover:bg-muted/40"
 												)}
 											>
 												<p className="font-medium text-foreground">

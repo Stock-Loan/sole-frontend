@@ -36,8 +36,8 @@ export function LoanWizardMaritalStep({
 
 	return (
 		<div className="space-y-6">
-			<div className="rounded-lg border border-border/70 p-4 shadow-sm">
-				<p className="text-sm font-semibold text-foreground">
+			<div className="rounded-xl border border-border/60 bg-card/70 p-5 shadow-sm">
+				<p className="text-base font-semibold text-foreground">
 					Marital status on file (HR record)
 				</p>
 				<p className="mt-1 text-sm text-muted-foreground">{statusLabel}</p>
@@ -51,10 +51,10 @@ export function LoanWizardMaritalStep({
 						onClick={onConfirmYes}
 						disabled={isSaving}
 						className={cn(
-							"flex w-full items-start gap-3 rounded-lg border px-4 py-3 text-left text-sm transition",
+							"flex w-full items-start gap-3 rounded-xl border px-4 py-3 text-left text-sm transition",
 							confirmation === "yes"
-								? "border-primary bg-primary/5"
-								: "border-border/70 hover:border-primary/50"
+								? "border-primary bg-primary/10 shadow-sm"
+								: "border-border/70 bg-background hover:border-primary/50 hover:bg-muted/40"
 						)}
 					>
 						<span
@@ -77,10 +77,10 @@ export function LoanWizardMaritalStep({
 						onClick={onConfirmNo}
 						disabled={isSaving}
 						className={cn(
-							"flex w-full items-start gap-3 rounded-lg border px-4 py-3 text-left text-sm transition",
+							"flex w-full items-start gap-3 rounded-xl border px-4 py-3 text-left text-sm transition",
 							confirmation === "no"
-								? "border-destructive bg-destructive/5"
-								: "border-border/70 hover:border-destructive/40"
+								? "border-destructive bg-destructive/10 shadow-sm"
+								: "border-border/70 bg-background hover:border-destructive/40 hover:bg-destructive/5"
 						)}
 					>
 						<span
@@ -108,7 +108,7 @@ export function LoanWizardMaritalStep({
 			</div>
 
 			{confirmation === "no" ? (
-				<div className="rounded-lg border border-destructive/20 bg-destructive/5 p-4 text-sm">
+				<div className="rounded-xl border border-destructive/20 bg-destructive/5 p-5 text-sm">
 					<p className="font-semibold text-foreground">
 						We saved your application as a draft.
 					</p>

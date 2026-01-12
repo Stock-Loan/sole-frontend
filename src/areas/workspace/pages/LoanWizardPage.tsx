@@ -51,7 +51,7 @@ export function LoanWizardPage() {
 	const { content, ...layoutProps } = wizard.layout;
 
 	return (
-		<PageContainer className="space-y-6">
+		<PageContainer className="flex min-h-0 flex-1 flex-col gap-6" fullHeight>
 			<PageHeader
 				title="Loan application"
 				subtitle="Build and submit your stock exercise loan request."

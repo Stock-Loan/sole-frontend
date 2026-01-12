@@ -49,11 +49,11 @@ export function LoanWizardExerciseStep({
 
 	return (
 		<div className="space-y-6">
-			<div className="rounded-lg border border-border/70 p-4 shadow-sm">
-				<p className="text-sm font-semibold text-foreground">
+			<div className="rounded-xl border border-border/60 bg-card/70 p-5 shadow-sm">
+				<p className="text-base font-semibold text-foreground">
 					Select exercise amount
 				</p>
-				<div className="space-y-1 text-sm text-muted-foreground">
+				<div className="mt-3 space-y-1 text-sm text-muted-foreground">
 					<div className="flex items-center justify-between">
 						<span>Vested shares</span>
 						<span className="font-semibold text-foreground">
@@ -81,7 +81,7 @@ export function LoanWizardExerciseStep({
 						</span>
 					</div>
 				</div>
-				<div className="mt-4 inline-flex rounded-lg border bg-muted/30 p-1">
+				<div className="mt-4 inline-flex rounded-full border border-border/70 bg-muted/30 p-1 shadow-sm">
 					<TabButton
 						label="By shares"
 						value="SHARES"
@@ -106,7 +106,7 @@ export function LoanWizardExerciseStep({
 						min={0}
 						max={selectionMode === "PERCENT" ? 100 : totalExercisableShares}
 						step={selectionMode === "PERCENT" ? 1 : 1}
-						className="mt-2"
+						className="mt-2 bg-background"
 						value={selectionValue}
 						onChange={(event) => onSelectionValueChange(event.target.value)}
 					/>
@@ -116,8 +116,8 @@ export function LoanWizardExerciseStep({
 				</div>
 			</div>
 
-			<div className="rounded-lg border border-border/70 p-4 shadow-sm">
-				<p className="text-sm font-semibold text-foreground">Estimate</p>
+			<div className="rounded-xl border border-border/60 bg-card/70 p-5 shadow-sm">
+				<p className="text-base font-semibold text-foreground">Estimate</p>
 				<div className="mt-3 grid gap-2 text-sm text-muted-foreground">
 					<div className="flex items-center justify-between">
 						<span>Shares to exercise</span>

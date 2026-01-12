@@ -17,13 +17,15 @@ export function LoanWizardLayout({
 }: LoanWizardLayoutProps) {
 	return (
 		<>
-			<div className="rounded-lg border bg-card shadow-sm">
+			<div className="flex min-h-0 flex-1 flex-col rounded-xl border bg-card shadow-sm">
 				<LoanWizardStepHeader
 					steps={steps}
 					currentStep={currentStep}
 					stepIndex={stepIndex}
 				/>
-				<div className="min-h-[320px] px-6 py-6">{children}</div>
+				<div className="flex-1 min-h-0 overflow-y-auto px-6 py-6">
+					{children}
+				</div>
 				<div className="flex items-center justify-between border-t border-border/70 px-6 py-4">
 					<Button variant="outline" onClick={onBack}>
 						{backLabel}
