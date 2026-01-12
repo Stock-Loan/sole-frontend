@@ -42,11 +42,15 @@ function getGrantSummary(
 		return {
 			vested: summary.vested_shares,
 			unvested: summary.unvested_shares,
+			reserved: summary.reserved_shares ?? null,
+			available: summary.available_vested_shares ?? null,
 		};
 	}
 	return {
 		vested: grant.vested_shares ?? null,
 		unvested: grant.unvested_shares ?? null,
+		reserved: grant.reserved_shares ?? null,
+		available: grant.available_vested_shares ?? null,
 	};
 }
 
@@ -222,6 +226,16 @@ export const StockGrantsSection = forwardRef<
 			)} unvested`;
 		};
 
+		const getReservedShares = (grant: StockGrant) => {
+			const summary = getGrantSummary(grant, summaryMap);
+			return summary.reserved ?? grant.reserved_shares ?? null;
+		};
+
+		const getAvailableVestedShares = (grant: StockGrant) => {
+			const summary = getGrantSummary(grant, summaryMap);
+			return summary.available ?? grant.available_vested_shares ?? null;
+		};
+
 		const getExercisePriceNumber = (value?: string | null) => {
 			if (!value) return null;
 			const numeric = Number(value.replace(/,/g, "").trim());
@@ -332,6 +346,18 @@ export const StockGrantsSection = forwardRef<
 				header: "Vested shares",
 				accessor: (grant) => grant.vested_shares ?? 0,
 				cell: (grant) => formatShares(grant.vested_shares),
+			},
+			{
+				id: "reservedShares",
+				header: "Reserved shares",
+				accessor: (grant) => getReservedShares(grant) ?? 0,
+				cell: (grant) => formatShares(getReservedShares(grant)),
+			},
+			{
+				id: "availableVestedShares",
+				header: "Available vested shares",
+				accessor: (grant) => getAvailableVestedShares(grant) ?? 0,
+				cell: (grant) => formatShares(getAvailableVestedShares(grant)),
 			},
 			{
 				id: "unvestedShares",

@@ -2,21 +2,7 @@ import { Button } from "@/shared/ui/Button";
 import { EmptyState } from "@/shared/ui/EmptyState";
 import { LoadingState } from "@/shared/ui/LoadingState";
 import { cn } from "@/shared/lib/utils";
-
-type MaritalConfirmation = "yes" | "no" | null;
-
-interface LoanWizardMaritalStepProps {
-	isLoading: boolean;
-	isError: boolean;
-	onRetry: () => void;
-	maritalStatusOnFile: string | null;
-	confirmation: MaritalConfirmation;
-	onConfirmYes: () => void;
-	onConfirmNo: () => void;
-	onBackToLoans: () => void;
-	errorMessage: string | null;
-	isSaving: boolean;
-}
+import type { LoanWizardMaritalStepProps } from "@/entities/loan/types";
 
 export function LoanWizardMaritalStep({
 	isLoading,
@@ -29,6 +15,7 @@ export function LoanWizardMaritalStep({
 	onBackToLoans,
 	errorMessage,
 	isSaving,
+	children,
 }: LoanWizardMaritalStepProps) {
 	if (isLoading) {
 		return <LoadingState label="Loading profile..." />;
@@ -136,6 +123,8 @@ export function LoanWizardMaritalStep({
 					</div>
 				</div>
 			) : null}
+
+			{children}
 		</div>
 	);
 }

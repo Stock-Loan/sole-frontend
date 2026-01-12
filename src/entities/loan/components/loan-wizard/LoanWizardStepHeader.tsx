@@ -1,10 +1,4 @@
-import type { LoanWizardStep } from "./types";
-
-interface LoanWizardStepHeaderProps {
-	steps: LoanWizardStep[];
-	currentStep: LoanWizardStep;
-	stepIndex: number;
-}
+import type { LoanWizardStepHeaderProps } from "@/entities/loan/types";
 
 export function LoanWizardStepHeader({
 	steps,

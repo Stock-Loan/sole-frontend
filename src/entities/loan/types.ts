@@ -1,5 +1,27 @@
+import type { ReactNode } from "react";
+import type { UseFormReturn } from "react-hook-form";
+import { z } from "zod";
+import type { loanSpouseInfoSchema } from "@/entities/loan/schemas";
+import type {
+	LoanInterestType,
+	LoanRepaymentMethod,
+	SelfOrgPolicy,
+} from "@/entities/org/types";
 import type { EligibilityResult } from "@/entities/stock-grant/types";
-import type { LoanSelectionMode } from "./types";
+
+export type LoanWizardStepKey = "exercise" | "terms" | "marital" | "review";
+
+export interface LoanWizardStep {
+	key: LoanWizardStepKey;
+	title: string;
+	description: string;
+}
+
+export interface LoanWizardOption<T extends string = string> {
+	value: T;
+	label: string;
+	description: string;
+}
 
 export type LoanApplicationStatus =
 	| "DRAFT"
@@ -148,6 +170,8 @@ export interface LoanApplicationListResponse {
 	items: LoanApplicationSummary[];
 	total: number;
 }
+
+export type LoanSpouseInfoFormValues = z.infer<typeof loanSpouseInfoSchema>;
 export interface LoanWizardExerciseStepProps {
 	isLoading: boolean;
 	isError: boolean;
@@ -159,6 +183,132 @@ export interface LoanWizardExerciseStepProps {
 	onSelectionModeChange: (mode: LoanSelectionMode) => void;
 	onSelectionValueChange: (value: string) => void;
 	totalExercisableShares: number;
+	totalVestedShares?: number | null;
+	totalReservedShares?: number | null;
+	totalAvailableVestedShares?: number | null;
 	sharesToExercise: number;
 	estimatedPurchasePrice: number | null;
+}
+export interface LoanWizardTermsStepProps {
+	policy: SelfOrgPolicy | null | undefined;
+	isLoading: boolean;
+	isError: boolean;
+	onRetry: () => void;
+	interestType: LoanInterestType | null;
+	repaymentMethod: LoanRepaymentMethod | null;
+	termMonths: number | null;
+	onInterestTypeChange: (value: LoanInterestType) => void;
+	onRepaymentMethodChange: (value: LoanRepaymentMethod) => void;
+	onTermMonthsChange: (value: number | null) => void;
+	termsError: string | null;
+	quote: LoanQuoteResponse | null | undefined;
+	quoteOptions: LoanQuoteOption[];
+	selectedQuoteIndex: number;
+	onSelectQuoteOption: (index: number, option: LoanQuoteOption) => void;
+	quoteLoading: boolean;
+	quoteError: boolean;
+	onRetryQuote: () => void;
+}
+
+export type MaritalConfirmation = "yes" | "no" | null;
+
+export interface LoanWizardMaritalStepProps {
+	isLoading: boolean;
+	isError: boolean;
+	onRetry: () => void;
+	maritalStatusOnFile: string | null;
+	confirmation: MaritalConfirmation;
+	onConfirmYes: () => void;
+	onConfirmNo: () => void;
+	onBackToLoans: () => void;
+	errorMessage: string | null;
+	isSaving: boolean;
+	children?: ReactNode;
+}
+
+export interface LoanWizardSpouseFormProps {
+	form: UseFormReturn<LoanSpouseInfoFormValues>;
+	disabled?: boolean;
+	onFieldChange?: () => void;
+}
+
+export interface LoanWizardReviewStepProps {
+	selectionMode: LoanSelectionMode;
+	selectionValue: string;
+	sharesToExercise: number;
+	asOfDate: string;
+	quote: LoanQuoteResponse | null;
+	selectedQuoteOption: LoanQuoteOption | null;
+	maritalStatus: string | null;
+	spouseInfo: LoanSpouseInfoFormValues | null;
+	requiresSpouseInfo: boolean;
+	submitError: string | null;
+	submitErrorSection: ReviewErrorSection;
+	onEditStep: (step: "exercise" | "terms" | "marital") => void;
+}
+
+export interface LoanWizardDetailRowProps {
+	label: string;
+	value?: string | null;
+}
+
+export interface LoanWizardStepHeaderProps {
+	steps: LoanWizardStep[];
+	currentStep: LoanWizardStep;
+	stepIndex: number;
+}
+
+export interface LoanWizardLeaveDialogProps {
+	open: boolean;
+	onOpenChange: (open: boolean) => void;
+	onCancel: () => void;
+	onConfirm: () => void;
+	title?: string;
+	description?: string;
+	confirmLabel?: string;
+}
+
+export interface LoanWizardLayoutProps {
+	steps: LoanWizardStep[];
+	currentStep: LoanWizardStep;
+	stepIndex: number;
+	children: ReactNode;
+	onBack: () => void;
+	onNext: () => void;
+	backLabel: string;
+	nextLabel: string;
+	nextDisabled?: boolean;
+	leaveDialog?: LoanWizardLeaveDialogProps;
+}
+export type ReviewErrorSection = "exercise" | "terms" | "consents" | null;
+export interface UseLoanWizardArgs {
+	id?: string;
+}
+export type LoanWizardDraftState = "loading" | "error" | "locked" | "ready";
+
+export interface LoanWizardLeaveDialogState {
+	open: boolean;
+	onOpenChange: (open: boolean) => void;
+	onCancel: () => void;
+	onConfirm: () => void;
+}
+
+export interface LoanWizardLayoutState {
+	steps: LoanWizardStep[];
+	currentStep: LoanWizardStep;
+	stepIndex: number;
+	content: ReactNode;
+	backLabel: string;
+	nextLabel: string;
+	nextDisabled: boolean;
+	onBack: () => void;
+	onNext: () => void;
+	leaveDialog: LoanWizardLeaveDialogState;
+}
+
+export interface LoanWizardState {
+	draftState: LoanWizardDraftState;
+	layout?: LoanWizardLayoutState;
+	onRetryDraft?: () => void;
+	onViewDraft?: () => void;
 }

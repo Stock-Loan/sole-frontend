@@ -41,6 +41,14 @@ export function MyStockPage() {
 					value: formatShares(summary.total_vested_shares),
 				},
 				{
+					label: "Reserved shares",
+					value: formatShares(summary.total_reserved_shares),
+				},
+				{
+					label: "Available vested shares",
+					value: formatShares(summary.total_available_vested_shares),
+				},
+				{
 					label: "Unvested shares",
 					value: formatShares(summary.total_unvested_shares),
 				},
@@ -152,8 +160,8 @@ export function MyStockPage() {
 									</p>
 									<p className="text-sm text-muted-foreground">
 										{isEligible
-											? "You currently meet the requirements to exercise your vested shares."
-											: "You are currently blocked from exercising shares."}
+											? "You currently meet the requirements to exercise your available vested shares."
+											: "You are currently blocked from exercising available vested shares."}
 									</p>
 									{reasons.length ? (
 										<ul className="mt-2 space-y-1 text-sm text-muted-foreground">
@@ -176,7 +184,7 @@ function MyStockSkeleton() {
 	return (
 		<div className="space-y-6">
 			<div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-				{Array.from({ length: 4 }).map((_, index) => (
+				{Array.from({ length: 6 }).map((_, index) => (
 					<Card key={`my-stock-skeleton-${index}`}>
 						<CardHeader className="pb-2">
 							<Skeleton className="h-3 w-28" />

@@ -17,6 +17,9 @@ export function LoanWizardExerciseStep({
 	onSelectionModeChange,
 	onSelectionValueChange,
 	totalExercisableShares,
+	totalVestedShares,
+	totalReservedShares,
+	totalAvailableVestedShares,
 	sharesToExercise,
 	estimatedPurchasePrice,
 }: LoanWizardExerciseStepProps) {
@@ -50,12 +53,34 @@ export function LoanWizardExerciseStep({
 				<p className="text-sm font-semibold text-foreground">
 					Select exercise amount
 				</p>
-				<p className="text-sm text-muted-foreground">
-					Exercisable shares available:{" "}
-					<span className="font-semibold text-foreground">
-						{formatShares(totalExercisableShares)}
-					</span>
-				</p>
+				<div className="space-y-1 text-sm text-muted-foreground">
+					<div className="flex items-center justify-between">
+						<span>Vested shares</span>
+						<span className="font-semibold text-foreground">
+							{totalVestedShares !== undefined && totalVestedShares !== null
+								? formatShares(totalVestedShares)
+								: "—"}
+						</span>
+					</div>
+					<div className="flex items-center justify-between">
+						<span>Reserved shares</span>
+						<span className="font-semibold text-foreground">
+							{totalReservedShares !== undefined &&
+							totalReservedShares !== null
+								? formatShares(totalReservedShares)
+								: "—"}
+						</span>
+					</div>
+					<div className="flex items-center justify-between">
+						<span>Available to exercise</span>
+						<span className="font-semibold text-foreground">
+							{totalAvailableVestedShares !== undefined &&
+							totalAvailableVestedShares !== null
+								? formatShares(totalAvailableVestedShares)
+								: formatShares(totalExercisableShares)}
+						</span>
+					</div>
+				</div>
 				<div className="mt-4 inline-flex rounded-lg border bg-muted/30 p-1">
 					<TabButton
 						label="By shares"
@@ -73,7 +98,7 @@ export function LoanWizardExerciseStep({
 				<div className="mt-4 max-w-sm">
 					<label className="text-sm font-medium text-foreground">
 						{selectionMode === "PERCENT"
-							? "Percent of exercisable shares"
+							? "Percent of available vested shares"
 							: "Shares to exercise"}
 					</label>
 					<Input

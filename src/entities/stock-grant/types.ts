@@ -32,6 +32,8 @@ export interface StockGrant {
 	vesting_events?: VestingEvent[];
 	vested_shares?: number;
 	unvested_shares?: number;
+	reserved_shares?: number;
+	available_vested_shares?: number;
 	next_vesting_event?: NextVestingEvent | null;
 	next_vesting_summary?: string | null;
 }
@@ -86,6 +88,8 @@ export interface GrantSummary {
 	total_shares: number;
 	vested_shares: number;
 	unvested_shares: number;
+	reserved_shares: number;
+	available_vested_shares: number;
 	exercise_price: string;
 }
 
@@ -94,6 +98,8 @@ export interface StockSummary {
 	total_granted_shares: number;
 	total_vested_shares: number;
 	total_unvested_shares: number;
+	total_reserved_shares: number;
+	total_available_vested_shares: number;
 	next_vesting_event?: NextVestingEvent | null;
 	eligibility_result: EligibilityResult;
 	grants: GrantSummary[];

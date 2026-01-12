@@ -1,4 +1,5 @@
-import type { LoanWizardOption, LoanWizardStep } from "./types";
+import type { LoanWizardOption, LoanWizardStep } from "@/entities/loan/types";
+import type { LoanInterestType, LoanRepaymentMethod } from "@/entities/org/types";
 
 export const loanWizardSteps: LoanWizardStep[] = [
 	{
@@ -23,7 +24,7 @@ export const loanWizardSteps: LoanWizardStep[] = [
 	},
 ];
 
-export const loanWizardInterestTypeOptions: LoanWizardOption[] = [
+export const loanWizardInterestTypeOptions: LoanWizardOption<LoanInterestType>[] = [
 	{
 		value: "FIXED",
 		label: "Fixed",
@@ -36,7 +37,7 @@ export const loanWizardInterestTypeOptions: LoanWizardOption[] = [
 	},
 ];
 
-export const loanWizardRepaymentMethodOptions: LoanWizardOption[] = [
+export const loanWizardRepaymentMethodOptions: LoanWizardOption<LoanRepaymentMethod>[] = [
 	{
 		value: "INTEREST_ONLY",
 		label: "Interest only",

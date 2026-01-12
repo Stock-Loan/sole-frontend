@@ -4,37 +4,11 @@ import { Input } from "@/shared/ui/input";
 import { cn } from "@/shared/lib/utils";
 import { formatCurrency } from "@/shared/lib/format";
 import { formatShares } from "@/entities/stock-grant/constants";
-import type {
-	LoanInterestType,
-	LoanRepaymentMethod,
-	SelfOrgPolicy,
-} from "@/entities/org/types";
-import type { LoanQuoteOption, LoanQuoteResponse } from "@/entities/loan/types";
+import type { LoanWizardTermsStepProps } from "@/entities/loan/types";
 import {
 	loanWizardInterestTypeOptions,
 	loanWizardRepaymentMethodOptions,
 } from "./constants";
-
-interface LoanWizardTermsStepProps {
-	policy: SelfOrgPolicy | null | undefined;
-	isLoading: boolean;
-	isError: boolean;
-	onRetry: () => void;
-	interestType: LoanInterestType | null;
-	repaymentMethod: LoanRepaymentMethod | null;
-	termMonths: number | null;
-	onInterestTypeChange: (value: LoanInterestType) => void;
-	onRepaymentMethodChange: (value: LoanRepaymentMethod) => void;
-	onTermMonthsChange: (value: number | null) => void;
-	termsError: string | null;
-	quote: LoanQuoteResponse | null | undefined;
-	quoteOptions: LoanQuoteOption[];
-	selectedQuoteIndex: number;
-	onSelectQuoteOption: (index: number, option: LoanQuoteOption) => void;
-	quoteLoading: boolean;
-	quoteError: boolean;
-	onRetryQuote: () => void;
-}
 
 export function LoanWizardTermsStep({
 	policy,
@@ -99,9 +73,7 @@ export function LoanWizardTermsStep({
 									<button
 										key={option.value}
 										type="button"
-										onClick={() =>
-											onInterestTypeChange(option.value as LoanInterestType)
-										}
+										onClick={() => onInterestTypeChange(option.value)}
 										className={cn(
 											"flex w-full items-start gap-3 rounded-lg border px-4 py-3 text-left text-sm transition",
 											isActive
@@ -146,9 +118,7 @@ export function LoanWizardTermsStep({
 									<button
 										key={option.value}
 										type="button"
-										onClick={() =>
-											onRepaymentMethodChange(option.value as LoanRepaymentMethod)
-										}
+										onClick={() => onRepaymentMethodChange(option.value)}
 										className={cn(
 											"flex w-full items-start gap-3 rounded-lg border px-4 py-3 text-left text-sm transition",
 											isActive

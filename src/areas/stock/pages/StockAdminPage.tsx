@@ -41,12 +41,6 @@ export function StockAdminPage() {
 	const summaryMetrics = useMemo<StockSummaryMetric[]>(() => {
 		if (!summaryQuery.data) return [];
 		const summary = summaryQuery.data;
-		const nextVesting = summary.next_vesting_event
-			? `${formatDate(summary.next_vesting_event.vest_date)} • ${formatShares(
-					summary.next_vesting_event.shares
-			  )} shares`
-			: "—";
-
 		return [
 			{
 				label: "Total granted shares",
@@ -57,12 +51,16 @@ export function StockAdminPage() {
 				value: formatShares(summary.total_vested_shares),
 			},
 			{
-				label: "Total unvested shares",
-				value: formatShares(summary.total_unvested_shares),
+				label: "Reserved shares",
+				value: formatShares(summary.total_reserved_shares),
 			},
 			{
-				label: "Next vesting",
-				value: nextVesting,
+				label: "Available vested shares",
+				value: formatShares(summary.total_available_vested_shares),
+			},
+			{
+				label: "Total unvested shares",
+				value: formatShares(summary.total_unvested_shares),
 			},
 		];
 	}, [summaryQuery.data]);
@@ -156,14 +154,20 @@ export function StockAdminPage() {
 			);
 		}
 
-		const eligibility = summaryQuery.data.eligibility_result;
+		const summary = summaryQuery.data;
+		const eligibility = summary.eligibility_result;
 		const isEligible = eligibility.eligible_to_exercise;
 		const reasons =
 			eligibility.reasons?.map((reason) => getEligibilityReasonLabel(reason)) ??
 			[];
 		const { averageExercisePrice, totalStockValue } = getStockValueMetrics(
-			summaryQuery.data
+			summary
 		);
+		const nextVestingLabel = summary.next_vesting_event
+			? `${formatDate(summary.next_vesting_event.vest_date)} • ${formatShares(
+					summary.next_vesting_event.shares
+			  )} shares`
+			: "—";
 
 		return (
 			<div className="space-y-5">
@@ -224,8 +228,8 @@ export function StockAdminPage() {
 							</p>
 							<p className="text-sm text-muted-foreground">
 								{isEligible
-									? "This employee can currently exercise their vested shares."
-									: "This employee is currently blocked from exercising shares."}
+									? "This employee can currently exercise their available vested shares."
+									: "This employee is currently blocked from exercising available vested shares."}
 							</p>
 							{reasons.length ? (
 								<ul className="mt-2 space-y-1 text-sm text-muted-foreground">
@@ -247,7 +251,7 @@ export function StockAdminPage() {
 						Next vesting event
 					</p>
 					<p className="mt-2 text-sm text-foreground">
-						{summaryMetrics[3]?.value || "—"}
+						{nextVestingLabel}
 					</p>
 				</div>
 			</div>
@@ -333,7 +337,7 @@ function StockSummarySkeleton() {
 	return (
 		<div className="space-y-5">
 			<div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-				{Array.from({ length: 4 }).map((_, index) => (
+				{Array.from({ length: 6 }).map((_, index) => (
 					<div
 						key={`summary-metric-skeleton-${index}`}
 						className="rounded-lg border border-border/60 bg-card/70 p-4"
