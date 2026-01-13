@@ -1,12 +1,8 @@
 import type { AuthUser } from "@/auth/types";
-import type { PermissionCode } from "@/app/permissions/permissionCodes";
-
-export type PermissionRequirement = PermissionCode | PermissionCode[];
-export type PermissionCheckMode = "all" | "any";
-
-export interface PermissionCheckOptions {
-	mode?: PermissionCheckMode;
-}
+import type {
+	PermissionCheckOptions,
+	PermissionRequirement,
+} from "@/app/permissions/types";
 
 function normalize(required?: PermissionRequirement) {
 	if (!required) return [];

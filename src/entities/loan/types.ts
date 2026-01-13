@@ -3,6 +3,7 @@ import type { UseFormReturn } from "react-hook-form";
 import { z } from "zod";
 import type { loanSpouseInfoSchema } from "@/entities/loan/schemas";
 import type {
+	DecimalValue,
 	LoanInterestType,
 	LoanRepaymentMethod,
 	SelfOrgPolicy,
@@ -91,8 +92,21 @@ export interface LoanApplicationSummary {
 	status: LoanApplicationStatus;
 	version: number;
 	as_of_date?: string | null;
+	org_id?: string | null;
+	org_membership_id?: string | null;
+	applicant?: LoanApplicantSummary | null;
 	shares_to_exercise?: number | null;
+	total_exercisable_shares_snapshot?: number | null;
+	purchase_price?: string | null;
+	down_payment_amount?: string | null;
 	loan_principal?: string | null;
+	estimated_monthly_payment?: string | null;
+	total_payable_amount?: string | null;
+	interest_type?: string | null;
+	repayment_method?: string | null;
+	term_months?: number | null;
+	current_stage_type?: string | null;
+	current_stage_status?: string | null;
 	created_at: string;
 	updated_at: string;
 }
@@ -111,7 +125,6 @@ export interface LoanApplication extends LoanApplicationSummary {
 	election_83b_due_date?: string | null;
 	selection_mode?: LoanSelectionMode | null;
 	selection_value_snapshot?: string | null;
-	total_exercisable_shares_snapshot?: number | null;
 	purchase_price?: string | null;
 	down_payment_amount?: string | null;
 	interest_type?: string | null;
@@ -121,12 +134,16 @@ export interface LoanApplication extends LoanApplicationSummary {
 	estimated_monthly_payment?: string | null;
 	total_payable_amount?: string | null;
 	total_interest_amount?: string | null;
+	policy_version_snapshot?: number | null;
 	allocation_strategy?: string | null;
 	allocation_snapshot?: LoanAllocationItem[];
 	quote_inputs_snapshot?: LoanApplicationQuoteInputsSnapshot | null;
 	quote_option_snapshot?: LoanQuoteOption | null;
+	org_settings_snapshot?: LoanOrgSettingsSnapshot | null;
+	eligibility_result_snapshot?: EligibilityResult | null;
 	marital_status_snapshot?: string | null;
 	spouse_first_name?: string | null;
+	spouse_middle_name?: string | null;
 	spouse_last_name?: string | null;
 	spouse_email?: string | null;
 	spouse_phone?: string | null;
@@ -139,27 +156,66 @@ export interface LoanApplication extends LoanApplicationSummary {
 	decision_reason?: string | null;
 }
 
+export interface LoanApplicantSummary {
+	org_membership_id: string;
+	user_id: string;
+	full_name: string;
+	email: string;
+	employee_id?: string | null;
+	department_id?: string | null;
+	department_name?: string | null;
+}
+
+export interface LoanOrgSettingsSnapshot {
+	enforce_service_duration_rule: boolean;
+	min_service_duration_years: DecimalValue;
+	enforce_min_vested_to_exercise: boolean;
+	min_vested_shares_to_exercise: number | null;
+	allowed_repayment_methods: LoanRepaymentMethod[];
+	min_loan_term_months: number;
+	max_loan_term_months: number;
+	allowed_interest_types: LoanInterestType[];
+	fixed_interest_rate_annual_percent: DecimalValue;
+	variable_base_rate_annual_percent: DecimalValue;
+	variable_margin_annual_percent: DecimalValue;
+	require_down_payment: boolean;
+	down_payment_percent: DecimalValue;
+	policy_version: number;
+}
+
 export interface LoanWorkflowStage {
+	id?: string;
+	org_id?: string;
+	loan_application_id?: string;
 	stage_type: string;
 	status: string;
 	assigned_role_hint?: string | null;
 	completed_by_user_id?: string | null;
 	completed_at?: string | null;
 	notes?: string | null;
+	created_at?: string | null;
+	updated_at?: string | null;
 }
 
 export interface LoanDocument {
-	id: string;
+	id?: string | null;
+	org_id?: string;
+	loan_application_id?: string;
+	stage_type?: string | null;
 	document_type?: string | null;
-	status?: string | null;
+	file_name?: string | null;
+	storage_path_or_url?: string | null;
 	uploaded_by_user_id?: string | null;
+	uploaded_at?: string | null;
 	created_at?: string | null;
 	updated_at?: string | null;
 	storage_url?: string | null;
+	status?: string | null;
 }
 
 export interface LoanApplicationListParams {
 	status?: LoanApplicationStatus[] | LoanApplicationStatus;
+	stage_type?: string;
 	limit?: number;
 	offset?: number;
 	created_from?: string;

@@ -42,6 +42,13 @@ export interface DepartmentFormDialogProps {
 	isSubmitting?: boolean;
 }
 
+export interface AssignDepartmentDialogProps {
+	open: boolean;
+	onOpenChange: (open: boolean) => void;
+	membershipIds: string[];
+	onSuccess?: () => void;
+}
+
 export interface DepartmentTableProps {
 	departments: Department[];
 	isLoading: boolean;

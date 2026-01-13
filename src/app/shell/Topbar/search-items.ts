@@ -11,23 +11,10 @@ import { documentsRoutes } from "@/areas/documents/routes";
 import { announcementsRoutes } from "@/areas/announcements/routes";
 import { settingsRoutes } from "@/areas/settings/routes";
 import { adminRoutes } from "@/areas/admin/routes";
-
-type SearchItemWithAccess = SearchItem & {
-	permissions?: string | string[];
-};
-
-type RouteSearchMeta = {
-	title: string;
-	description?: string;
-	category?: string;
-	permissions?: string | string[];
-	path?: string;
-	hidden?: boolean;
-};
-
-type RouteHandle = {
-	search?: RouteSearchMeta;
-};
+import type {
+	RouteHandle,
+	SearchItemWithAccess,
+} from "./types";
 
 function canSeeItem(
 	can: ((permission: string | string[]) => boolean) | null | undefined,

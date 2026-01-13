@@ -1,3 +1,5 @@
+import type { OrgUserListItem } from "@/entities/user/types";
+
 // Stock grants & vesting types.
 // Permission notes: stock.view for read access; stock.manage for create/edit.
 // Stock summary requires stock.vesting.view and stock.eligibility.view.
@@ -145,4 +147,13 @@ export type StockAdminTabKey = "summary" | "grants";
 export interface StockSummaryMetric {
 	label: string;
 	value: string;
+}
+
+export interface StockSearchContextValue {
+	searchValue: string;
+	setSearchValue: (value: string) => void;
+	selectedUser: OrgUserListItem | null;
+	setSelectedUser: (user: OrgUserListItem | null) => void;
+	isSearchOpen: boolean;
+	setIsSearchOpen: (open: boolean) => void;
 }

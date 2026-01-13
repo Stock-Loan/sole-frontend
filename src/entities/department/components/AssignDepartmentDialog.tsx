@@ -18,13 +18,7 @@ import {
 import { Label } from "@/shared/ui/label";
 import { useDepartmentsList, useAssignUsersToDepartment } from "../hooks";
 import { useToast } from "@/shared/ui/use-toast";
-
-interface AssignDepartmentDialogProps {
-	open: boolean;
-	onOpenChange: (open: boolean) => void;
-	membershipIds: string[];
-	onSuccess?: () => void;
-}
+import type { AssignDepartmentDialogProps } from "@/entities/department/types";
 
 export function AssignDepartmentDialog({
 	open,

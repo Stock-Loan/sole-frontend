@@ -11,14 +11,7 @@ import { Button } from "@/shared/ui/Button";
 import { Checkbox } from "@/shared/ui/checkbox";
 import { useRolesList, useUpdateUserRoles } from "../hooks";
 import { useToast } from "@/shared/ui/use-toast";
-import type { OrgUserListItem } from "@/entities/user/types";
-
-interface ManageRolesDialogProps {
-	open: boolean;
-	onOpenChange: (open: boolean) => void;
-	user: OrgUserListItem | null;
-	onSuccess?: () => void;
-}
+import type { ManageRolesDialogProps } from "@/entities/role/types";
 
 export function ManageRolesDialog({
 	open,

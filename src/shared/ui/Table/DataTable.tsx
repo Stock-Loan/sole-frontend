@@ -32,7 +32,11 @@ import { DataTablePagination } from "./DataTablePagination";
 import { DataTableSelectionToolbar } from "./DataTableSelectionToolbar";
 import { DataTableTopBar } from "./DataTableTopBar";
 import { useDataTableFilterState } from "./hooks";
-import type { ColumnConfigMap, DataTableProps } from "./types";
+import type {
+	ColumnConfigMap,
+	DataTableProps,
+	DataTableSkeletonProps,
+} from "./types";
 import {
 	defaultPageSize,
 	defaultPageSizeOptions,
@@ -592,14 +596,6 @@ export function DataTable<T>({
 		</div>
 	);
 }
-
-type DataTableSkeletonProps = {
-	columnCount: number;
-	rowCount: number;
-	showTopBar: boolean;
-	showPagination: boolean;
-	className?: string;
-};
 
 function DataTableSkeleton({
 	columnCount,

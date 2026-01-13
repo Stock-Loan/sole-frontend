@@ -1,4 +1,5 @@
-import type { PermissionCatalog, PermissionCode } from "@/app/permissions/permissionCodes";
+import type { PermissionCatalog, PermissionCode } from "@/app/permissions/types";
+import type { OrgUserListItem } from "@/entities/user/types";
 
 export interface Role {
 	id: string;
@@ -48,6 +49,13 @@ export interface RolesTableProps {
 	onRetry: () => void;
 	onViewPermissions: (role: Role) => void;
 	onEdit?: (role: Role) => void;
+}
+
+export interface ManageRolesDialogProps {
+	open: boolean;
+	onOpenChange: (open: boolean) => void;
+	user: OrgUserListItem | null;
+	onSuccess?: () => void;
 }
 
 export interface RolePermissionsDialogProps {

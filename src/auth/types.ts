@@ -20,6 +20,17 @@ export interface AuthUser {
 	must_change_password?: boolean;
 }
 
+export interface AuthContextValue {
+	user: AuthUser | null;
+	tokens: TokenPair | null;
+	isAuthenticating: boolean;
+	setSession: (tokens: TokenPair, user: AuthUser) => void;
+	setUser: (user: AuthUser | null) => void;
+	clearSession: () => void;
+	logout: () => Promise<void>;
+	hasAnyRole: (roles?: RoleCode[]) => boolean;
+}
+
 export interface LoginStartPayload {
 	email: string;
 }

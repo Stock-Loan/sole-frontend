@@ -9,26 +9,7 @@ import {
 	Shield,
 	Users,
 } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
-
-export type AreaId =
-	| "workspace"
-	| "workflows"
-	| "loans"
-	| "stock"
-	| "people"
-	| "documents"
-	| "announcements"
-	| "settings"
-	| "admin";
-
-export interface AppArea {
-	id: AreaId;
-	label: string;
-	icon: LucideIcon;
-	path: string;
-	description?: string;
-}
+import type { AppArea, AreaId } from "@/app/navigation/types";
 
 export const areas: AppArea[] = [
 	{

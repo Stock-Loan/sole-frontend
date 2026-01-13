@@ -64,6 +64,8 @@ export interface OrgSettingsFormValues {
 	down_payment_percent: number | null;
 }
 
+export type OrgSettingsTabKey = "general" | "retention" | "stock" | "loans";
+
 export type LoanRepaymentMethod =
 	| "INTEREST_ONLY"
 	| "BALLOON"

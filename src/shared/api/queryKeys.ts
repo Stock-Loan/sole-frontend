@@ -17,3 +17,11 @@ export const meKeys = {
 			["me", "loans", "quote", input ?? {}] as const,
 	},
 };
+
+export const orgKeys = {
+	loans: {
+		list: (params?: LoanApplicationListParams) =>
+			["org", "loans", "list", params ?? {}] as const,
+		detail: (id: string) => ["org", "loans", "detail", id] as const,
+	},
+};

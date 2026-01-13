@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import { PageContainer } from "@/shared/ui/PageContainer";
 import { PageHeader } from "@/shared/ui/PageHeader";
 import { EmptyState } from "@/shared/ui/EmptyState";
-import { Badge } from "@/shared/ui/badge";
 import { DataTable } from "@/shared/ui/Table/DataTable";
 import type { ColumnDefinition } from "@/shared/ui/Table/types";
 import { ToolbarButton } from "@/shared/ui/toolbar";
@@ -12,6 +11,7 @@ import { routes } from "@/shared/lib/routes";
 import { formatDate, formatCurrency } from "@/shared/lib/format";
 import { usePermissions } from "@/auth/hooks";
 import { useMyLoanApplications } from "@/entities/loan/hooks";
+import { LoanStatusBadge } from "@/entities/loan/components/LoanStatusBadge";
 import type { LoanApplicationSummary } from "@/entities/loan/types";
 
 const PAGE_SIZE_OPTIONS = [5, 10, 20, 30];
@@ -119,10 +119,7 @@ export function MyLoansPage() {
 									onClick={() => {
 										if (!selectedLoan) return;
 										navigate(
-											routes.workspaceLoanDetail.replace(
-												":id",
-												selectedLoan.id
-											)
+											routes.workspaceLoanDetail.replace(":id", selectedLoan.id)
 										);
 									}}
 								>
@@ -159,26 +156,5 @@ export function MyLoansPage() {
 				/>
 			)}
 		</PageContainer>
-	);
-}
-
-function LoanStatusBadge({ status }: { status: LoanApplicationSummary["status"] }) {
-	const variant =
-		status === "SUBMITTED"
-			? "border-blue-200 bg-blue-50 text-blue-700"
-			: status === "IN_REVIEW"
-				? "border-amber-200 bg-amber-50 text-amber-700"
-				: status === "ACTIVE"
-					? "border-emerald-200 bg-emerald-50 text-emerald-700"
-					: status === "REJECTED"
-						? "border-red-200 bg-red-50 text-red-700"
-						: status === "CANCELLED"
-							? "border-slate-200 bg-slate-50 text-slate-600"
-							: "border-border bg-muted text-muted-foreground";
-
-	return (
-		<Badge variant="secondary" className={variant}>
-			{status}
-		</Badge>
 	);
 }

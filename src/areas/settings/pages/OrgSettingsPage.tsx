@@ -23,10 +23,8 @@ import { useToast } from "@/shared/ui/use-toast";
 import { EmptyState } from "@/shared/ui/EmptyState";
 import { LoadingState } from "@/shared/ui/LoadingState";
 import { useOrgSettings, useUpdateOrgSettings } from "@/entities/org/hooks";
-import type { OrgSettingsFormValues } from "@/entities/org/types";
-import { orgSettingsSchema } from "../schemas";
-
-type OrgSettingsTabKey = "general" | "retention" | "stock" | "loans";
+import type { OrgSettingsFormValues, OrgSettingsTabKey } from "@/entities/org/types";
+import { orgSettingsSchema } from "@/entities/org/schemas";
 
 const repaymentMethodOptions = [
 	{

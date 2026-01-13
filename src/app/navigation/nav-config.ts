@@ -1,17 +1,5 @@
 import { BarChart3, ClipboardList, Cog, FileText, FolderOpen, Gauge, Megaphone, Settings, Shield, Users } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
-import type { PermissionCode } from "@/app/permissions/permissionCodes";
-import type { AreaId } from "./areas";
-
-export interface NavItem {
-	id: string;
-	label: string;
-	path: string;
-	icon: LucideIcon;
-	permissions?: PermissionCode | PermissionCode[];
-}
-
-export type NavConfig = Record<AreaId, NavItem[]>;
+import type { AreaId, NavConfig } from "@/app/navigation/types";
 
 export const navConfig: NavConfig = {
 	workspace: [

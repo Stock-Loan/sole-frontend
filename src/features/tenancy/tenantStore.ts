@@ -12,15 +12,10 @@ import { useQuery } from "@tanstack/react-query";
 import { setTenantResolver } from "@/shared/api/http";
 import { useAuth } from "@/auth/hooks";
 import { tenancyKeys } from "@/features/tenancy/keys";
-import type { OrgSummary, TenantContextValue } from "./types";
+import type { OrgSummary, PersistedTenancy, TenantContextValue } from "./types";
 import { listTenants } from "./tenantApi";
 
 const STORAGE_KEY = "sole.tenancy";
-
-type PersistedTenancy = {
-	orgs: OrgSummary[];
-	currentOrgId: string | null;
-};
 
 function loadPersistedTenancy(): PersistedTenancy {
 	if (typeof localStorage === "undefined") {

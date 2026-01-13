@@ -1,15 +1,10 @@
+import type { FormatCurrencyOptions } from "@/shared/lib/types";
+
 export function formatDate(value?: string | null) {
 	if (!value) return "—";
 	const date = new Date(value);
 	if (Number.isNaN(date.getTime())) return value;
 	return date.toLocaleDateString();
-}
-
-interface FormatCurrencyOptions {
-	locale?: string;
-	currency?: string;
-	minimumFractionDigits?: number;
-	maximumFractionDigits?: number;
 }
 
 export function formatCurrency(
@@ -33,4 +28,22 @@ export function formatCurrency(
 	});
 
 	return formatter.format(numericValue);
+}
+
+export function formatPercent(value?: number | string | null) {
+	if (value === null || value === undefined) return "—";
+	const raw = String(value).trim();
+	if (!raw) return "—";
+	const normalized = raw.endsWith("%") ? raw.slice(0, -1).trim() : raw;
+	const numericValue = Number(normalized.replace(/,/g, "").trim());
+	if (!Number.isFinite(numericValue)) {
+		return raw.endsWith("%") ? raw : `${raw}%`;
+	}
+
+	const rounded =
+		Math.abs(numericValue - Math.round(numericValue)) < 1e-9
+			? String(Math.round(numericValue))
+			: numericValue.toFixed(1);
+
+	return `${rounded}%`;
 }

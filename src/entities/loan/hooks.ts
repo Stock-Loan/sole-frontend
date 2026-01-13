@@ -5,12 +5,14 @@ import {
 	type UseMutationOptions,
 	type UseQueryOptions,
 } from "@tanstack/react-query";
-import { meKeys } from "@/shared/api/queryKeys";
+import { meKeys, orgKeys } from "@/shared/api/queryKeys";
 import {
 	cancelMyLoanApplication,
 	createMyLoanDraft,
 	getMyLoanApplication,
+	getOrgLoanApplication,
 	getMyLoanQuote,
+	listOrgLoanApplications,
 	listMyLoanApplications,
 	submitMyLoanApplication,
 	updateMyLoanDraft,
@@ -67,6 +69,33 @@ export function useMyLoanApplication(
 	return useQuery({
 		queryKey: meKeys.loans.detail(id),
 		queryFn: () => getMyLoanApplication(id),
+		enabled: Boolean(id) && (options.enabled ?? true),
+		...options,
+	});
+}
+
+export function useOrgLoanApplications(
+	params: LoanApplicationListParams = {},
+	options: Omit<
+		UseQueryOptions<LoanApplicationListResponse>,
+		"queryKey" | "queryFn"
+	> = {}
+) {
+	return useQuery({
+		queryKey: orgKeys.loans.list(params),
+		queryFn: () => listOrgLoanApplications(params),
+		placeholderData: (previous) => previous,
+		...options,
+	});
+}
+
+export function useOrgLoanApplication(
+	id: string,
+	options: Omit<UseQueryOptions<LoanApplication>, "queryKey" | "queryFn"> = {}
+) {
+	return useQuery({
+		queryKey: orgKeys.loans.detail(id),
+		queryFn: () => getOrgLoanApplication(id),
 		enabled: Boolean(id) && (options.enabled ?? true),
 		...options,
 	});

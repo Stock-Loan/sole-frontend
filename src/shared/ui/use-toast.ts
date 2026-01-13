@@ -1,17 +1,15 @@
 // Adapted from shadcn/ui toast helper
 import * as React from "react";
-import type { ToastActionElement, ToastProps } from "@/shared/ui/toast";
+import type {
+	ToasterToast,
+	ToastStoreAction,
+	ToastStoreState,
+	Toast,
+} from "@/shared/ui/types";
 
 const TOAST_LIMIT = 1;
 const TOAST_REMOVE_DELAY = 1000;
 const TOAST_DEFAULT_DURATION = 4000;
-
-type ToasterToast = ToastProps & {
-	id: string;
-	title?: React.ReactNode;
-	description?: React.ReactNode;
-	action?: ToastActionElement;
-};
 
 const actionTypes = {
 	ADD_TOAST: "ADD_TOAST",
@@ -19,30 +17,6 @@ const actionTypes = {
 	DISMISS_TOAST: "DISMISS_TOAST",
 	REMOVE_TOAST: "REMOVE_TOAST",
 } as const;
-
-type ActionType = typeof actionTypes;
-
-type Action =
-	| {
-			type: ActionType["ADD_TOAST"];
-			toast: ToasterToast;
-	  }
-	| {
-			type: ActionType["UPDATE_TOAST"];
-			toast: Partial<ToasterToast>;
-	  }
-	| {
-			type: ActionType["DISMISS_TOAST"];
-			toastId?: ToasterToast["id"];
-	  }
-	| {
-			type: ActionType["REMOVE_TOAST"];
-			toastId?: ToasterToast["id"];
-	  };
-
-interface State {
-	toasts: ToasterToast[];
-}
 
 const toastTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
 
@@ -62,7 +36,7 @@ function addToRemoveQueue(toastId: string) {
 	toastTimeouts.set(toastId, timeout);
 }
 
-const reducer = (state: State, action: Action): State => {
+const reducer = (state: ToastStoreState, action: ToastStoreAction): ToastStoreState => {
 	switch (action.type) {
 		case actionTypes.ADD_TOAST:
 			return {
@@ -115,18 +89,16 @@ const reducer = (state: State, action: Action): State => {
 	}
 };
 
-const listeners: Array<(state: State) => void> = [];
+const listeners: Array<(state: ToastStoreState) => void> = [];
 
-let memoryState: State = { toasts: [] };
+let memoryState: ToastStoreState = { toasts: [] };
 
-function dispatch(action: Action) {
+function dispatch(action: ToastStoreAction) {
 	memoryState = reducer(memoryState, action);
 	listeners.forEach((listener) => {
 		listener(memoryState);
 	});
 }
-
-type Toast = Omit<ToasterToast, "id">;
 
 function toast({ ...props }: Toast) {
 	const id = crypto.randomUUID();
@@ -164,7 +136,7 @@ function toast({ ...props }: Toast) {
 }
 
 function useToast() {
-	const [state, setState] = React.useState<State>(memoryState);
+	const [state, setState] = React.useState<ToastStoreState>(memoryState);
 
 	React.useEffect(() => {
 		listeners.push(setState);

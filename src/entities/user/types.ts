@@ -88,6 +88,8 @@ export interface RoleSummary {
 	is_system_role?: boolean;
 }
 
+export type MembershipRole = string | RoleSummary;
+
 export interface OrgUserListItem {
 	user: OrgUserDto;
 	membership: OrgMembershipDto;

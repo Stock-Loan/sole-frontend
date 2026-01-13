@@ -1,4 +1,5 @@
 import type { HTMLAttributes, InputHTMLAttributes, ReactNode } from "react";
+import type { ToastActionElement, ToastProps } from "@/shared/ui/toast";
 
 export type LogoSize = "sm" | "md" | "lg";
 
@@ -79,3 +80,40 @@ export interface TabButtonProps<T extends string> {
 	active: boolean;
 	onSelect: (value: T) => void;
 }
+
+export interface ToasterToast extends ToastProps {
+	id: string;
+	title?: ReactNode;
+	description?: ReactNode;
+	action?: ToastActionElement;
+}
+
+export type ToastStoreActionType =
+	| "ADD_TOAST"
+	| "UPDATE_TOAST"
+	| "DISMISS_TOAST"
+	| "REMOVE_TOAST";
+
+export type ToastStoreAction =
+	| {
+			type: "ADD_TOAST";
+			toast: ToasterToast;
+	  }
+	| {
+			type: "UPDATE_TOAST";
+			toast: Partial<ToasterToast>;
+	  }
+	| {
+			type: "DISMISS_TOAST";
+			toastId?: ToasterToast["id"];
+	  }
+	| {
+			type: "REMOVE_TOAST";
+			toastId?: ToasterToast["id"];
+	  };
+
+export interface ToastStoreState {
+	toasts: ToasterToast[];
+}
+
+export type Toast = Omit<ToasterToast, "id">;

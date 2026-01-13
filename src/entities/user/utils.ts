@@ -1,8 +1,6 @@
 import type { Role } from "@/entities/role/types";
-import type { OrgMembershipDto, RoleSummary } from "./types";
+import type { MembershipRole, OrgMembershipDto } from "./types";
 import type { SelfContextResponse } from "@/auth/types";
-
-type MembershipRole = string | RoleSummary;
 
 export function getMembershipRoleIds(membership?: OrgMembershipDto): string[] {
 	if (!membership) return [];

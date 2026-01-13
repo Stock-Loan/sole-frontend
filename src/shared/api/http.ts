@@ -1,13 +1,7 @@
 import axios, { AxiosHeaders } from "axios";
 import { routes } from "@/shared/lib/routes";
 import { unwrapApiResponse } from "@/shared/api/response";
-
-type TokenResolver = () => string | null;
-type TokenUpdater = (tokens: {
-	access_token: string;
-	refresh_token: string;
-}) => void;
-type VoidHandler = () => void;
+import type { TokenResolver, TokenUpdater, VoidHandler } from "@/shared/api/types";
 
 let accessTokenResolver: TokenResolver = () => null;
 let refreshTokenResolver: TokenResolver = () => null;

@@ -77,3 +77,19 @@ export async function getMyLoanApplication(
 	);
 	return unwrapApiResponse<LoanApplication>(data);
 }
+
+export async function listOrgLoanApplications(
+	params: LoanApplicationListParams = {}
+): Promise<LoanApplicationListResponse> {
+	const { data } = await apiClient.get<LoanApplicationListResponse>("/org/loans", {
+		params,
+	});
+	return unwrapApiResponse<LoanApplicationListResponse>(data);
+}
+
+export async function getOrgLoanApplication(
+	id: string
+): Promise<LoanApplication> {
+	const { data } = await apiClient.get<LoanApplication>(`/org/loans/${id}`);
+	return unwrapApiResponse<LoanApplication>(data);
+}

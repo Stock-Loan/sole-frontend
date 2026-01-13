@@ -2,7 +2,7 @@ import { EmptyState } from "@/shared/ui/EmptyState";
 import { LoadingState } from "@/shared/ui/LoadingState";
 import { Input } from "@/shared/ui/input";
 import { cn } from "@/shared/lib/utils";
-import { formatCurrency } from "@/shared/lib/format";
+import { formatCurrency, formatPercent } from "@/shared/lib/format";
 import { formatShares } from "@/entities/stock-grant/constants";
 import type { LoanWizardTermsStepProps } from "@/entities/loan/types";
 import {
@@ -175,7 +175,7 @@ export function LoanWizardTermsStep({
 					<p className="text-sm font-semibold text-foreground">Down payment</p>
 					<p className="mt-2 text-sm text-muted-foreground">
 						{policy.require_down_payment
-							? `Required: ${policy.down_payment_percent ?? 0}%`
+							? `Required: ${formatPercent(policy.down_payment_percent ?? 0)}`
 							: "No down payment required."}
 					</p>
 				</div>
@@ -220,7 +220,7 @@ export function LoanWizardTermsStep({
 													{option.interest_type} • {option.repayment_method}
 												</p>
 												<p className="text-xs text-muted-foreground">
-													{option.term_months} months · {option.nominal_annual_rate}% APR
+													{option.term_months} months · {formatPercent(option.nominal_annual_rate)} APR
 												</p>
 												<p className="mt-2 text-sm text-foreground">
 													{formatCurrency(option.estimated_monthly_payment)} / month

@@ -214,3 +214,11 @@ export interface DataTableSelectionToolbarProps {
 	onExportSelected: () => void;
 	toolbarContent?: ReactNode;
 }
+
+export interface DataTableSkeletonProps {
+	columnCount: number;
+	rowCount: number;
+	showTopBar: boolean;
+	showPagination: boolean;
+	className?: string;
+}

@@ -10,3 +10,8 @@ export interface TenantContextValue {
 	setOrgs: (orgs: OrgSummary[]) => void;
 	isLoading: boolean;
 }
+
+export interface PersistedTenancy {
+	orgs: OrgSummary[];
+	currentOrgId: string | null;
+}

@@ -15,6 +15,7 @@ export const routes = {
 	workspaceSettings: "/app/workspace/settings",
 	workflows: "/app/workflows",
 	loans: "/app/loans",
+	loansDetail: "/app/loans/:loanId",
 	stockOverview: "/app/stock",
 	stockManage: "/app/stock/manage",
 	stockGrants: "/app/stock/grants",
@@ -39,5 +40,4 @@ export const routes = {
 	},
 } as const;
 
-type AppRouteKey = Exclude<keyof typeof routes, "auth">;
-export type AppRoute = (typeof routes)[AppRouteKey];
+export type { AppRoute } from "@/shared/lib/types";
