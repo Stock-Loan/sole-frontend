@@ -14,7 +14,7 @@ const SHARE_CERTIFICATE_TYPE = "SHARE_CERTIFICATE";
 export function PostIssuancePanel({
 	stage,
 	documentGroups,
-	onRegisterDocument,
+	onUploadDocument,
 	isRegistering,
 	disableDocumentForm,
 }: PostIssuancePanelProps) {
@@ -44,10 +44,9 @@ export function PostIssuancePanel({
 		}
 		setErrorMessage(null);
 		try {
-			await onRegisterDocument({
+			await onUploadDocument({
 				document_type: SHARE_CERTIFICATE_TYPE,
-				file_name: selectedFile.name,
-				storage_path_or_url: selectedFile.name,
+				file: selectedFile,
 			});
 			setSelectedFile(null);
 			toast({

@@ -331,7 +331,7 @@ export function QueuePage() {
 				cell: (loan) => formatDate(loan.updated_at),
 			},
 		],
-		[assignMutation, can, toast]
+		[]
 	);
 
 	const initialColumnVisibility: VisibilityState = {

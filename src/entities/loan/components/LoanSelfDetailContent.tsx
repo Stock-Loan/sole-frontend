@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { EmptyState } from "@/shared/ui/EmptyState";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { Skeleton } from "@/shared/ui/Skeleton";
@@ -14,12 +15,17 @@ import { formatShares } from "@/entities/stock-grant/constants";
 import { cn, normalizeDisplay } from "@/shared/lib/utils";
 import { LoanDocumentList } from "@/entities/loan/components/LoanDocumentList";
 import { LoanTimeline } from "@/entities/loan/components/LoanTimeline";
+import { useDownloadMyLoanDocument } from "@/entities/loan/hooks";
+import { useToast } from "@/shared/ui/use-toast";
+import { parseApiError } from "@/shared/api/errors";
+import { downloadBlob } from "@/shared/lib/download";
 import type {
 	LoanAllocationTableProps,
 	LoanDetailRowProps,
 	LoanDetailSummaryCardProps,
 	LoanSelfDetailContentProps,
 } from "@/entities/loan/components/types";
+import type { LoanDocument } from "@/entities/loan/types";
 import {
 	formatDetailBoolean,
 	formatDetailValue,
@@ -39,7 +45,22 @@ export function LoanSelfDetailContent({
 	documentsLoading,
 	documentsError,
 	onDocumentsRetry,
+	canViewDocuments = true,
 }: LoanSelfDetailContentProps) {
+	const { toast } = useToast();
+	const [downloadingDocumentId, setDownloadingDocumentId] = useState<
+		string | null
+	>(null);
+	const downloadMutation = useDownloadMyLoanDocument({
+		onError: (error) => {
+			toast({
+				title: "Download failed",
+				description: parseApiError(error).message,
+				variant: "destructive",
+			});
+		},
+	});
+
 	if (isLoading) {
 		return <LoanSelfDetailSkeleton />;
 	}
@@ -63,6 +84,16 @@ export function LoanSelfDetailContent({
 	const documentGroups =
 		externalDocumentGroups ?? groupDocumentsByStage(documents);
 	const eligibilitySnapshot = loan.eligibility_result_snapshot ?? null;
+	const handleDownload = async (doc: LoanDocument) => {
+		if (!doc.id) return;
+		setDownloadingDocumentId(doc.id);
+		try {
+			const blob = await downloadMutation.mutateAsync(doc.id);
+			downloadBlob(blob, doc.file_name ?? "document");
+		} finally {
+			setDownloadingDocumentId(null);
+		}
+	};
 
 	return (
 		<div className="space-y-6">
@@ -259,6 +290,7 @@ export function LoanSelfDetailContent({
 							stages={workflowStages}
 							activationDate={loan.activation_date}
 							election83bDueDate={loan.election_83b_due_date}
+							loanStatus={loan.status}
 							emptyTitle="No workflow stages yet"
 							emptyMessage="Stages will appear once reviewers start the process."
 						/>
@@ -270,14 +302,20 @@ export function LoanSelfDetailContent({
 						<CardTitle className="text-sm font-semibold">Documents</CardTitle>
 					</CardHeader>
 					<CardContent className="space-y-4 text-sm text-muted-foreground">
-						<LoanDocumentList
-							groups={documentGroups}
-							isLoading={documentsLoading}
-							isError={documentsError}
-							onRetry={onDocumentsRetry}
-							emptyTitle="No documents uploaded yet"
-							emptyMessage="Documents will show up here once uploaded."
-						/>
+						{canViewDocuments ? (
+							<LoanDocumentList
+								groups={documentGroups}
+								isLoading={documentsLoading}
+								isError={documentsError}
+								onRetry={onDocumentsRetry}
+								emptyTitle="No documents uploaded yet"
+								emptyMessage="Documents will show up here once uploaded."
+								onDownload={handleDownload}
+								downloadingDocumentId={downloadingDocumentId}
+							/>
+						) : (
+							<p>You do not have permission to view documents.</p>
+						)}
 					</CardContent>
 				</Card>
 			</div>

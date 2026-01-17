@@ -3,8 +3,15 @@ import { EmptyState } from "@/shared/ui/EmptyState";
 import { LoadingState } from "@/shared/ui/LoadingState";
 import { cn, normalizeDisplay } from "@/shared/lib/utils";
 import { formatDate } from "@/shared/lib/format";
+import { LoanStatusBadge } from "@/entities/loan/components/LoanStatusBadge";
 import { StageStatusBadge } from "@/entities/loan/components/StageStatusBadge";
-import type { LoanTimelineProps } from "@/entities/loan/components/types";
+import type {
+	LoanTimelineProps,
+} from "@/entities/loan/components/types";
+import type {
+	LoanApplicationStatus,
+	LoanWorkflowStageStatus,
+} from "@/entities/loan/types";
 
 const timelineSteps = [
 	{ key: "hr", label: "HR review", stageType: "HR_REVIEW" },
@@ -19,6 +26,7 @@ export function LoanTimeline({
 	stages = [],
 	activationDate,
 	election83bDueDate,
+	loanStatus,
 	isLoading,
 	isError,
 	onRetry,
@@ -46,29 +54,41 @@ export function LoanTimeline({
 	const stageMap = new Map(
 		stages.map((stage) => [stage.stage_type, stage])
 	);
+	const resolveActiveStatus = (
+		status?: LoanApplicationStatus | null
+	): LoanWorkflowStageStatus => {
+		if (status === "ACTIVE") return "COMPLETED";
+		if (status === "IN_REVIEW" || status === "SUBMITTED") return "IN_PROGRESS";
+		return activationDate ? "COMPLETED" : "PENDING";
+	};
 
 	return (
 		<div className="space-y-4">
 			{timelineSteps.map((step, index) => {
 				const stage = step.stageType ? stageMap.get(step.stageType) : undefined;
-				const status = stage?.status ?? "PENDING";
+				const isActiveStep = step.key === "active";
+				const status = isActiveStep
+					? resolveActiveStatus(loanStatus)
+					: stage?.status ?? "PENDING";
 				const isLast = index === timelineSteps.length - 1;
 				const showActivationMeta = step.key === "active";
 				const show83bMeta = step.key === "election";
 				const meta =
 					showActivationMeta && activationDate
 						? `Activated ${formatDate(activationDate)}`
-						: showActivationMeta
-							? "Awaiting activation"
-							: show83bMeta && election83bDueDate
-								? `Due ${formatDate(election83bDueDate)}`
-								: show83bMeta && !election83bDueDate
-									? "Due date pending"
-									: stage?.completed_at
-										? `Completed ${formatDate(stage.completed_at)}`
-										: stage?.updated_at
-											? `Updated ${formatDate(stage.updated_at)}`
-											: null;
+						: showActivationMeta && loanStatus === "ACTIVE"
+							? "Active"
+							: showActivationMeta
+								? "Awaiting activation"
+								: show83bMeta && election83bDueDate
+									? `Due ${formatDate(election83bDueDate)}`
+									: show83bMeta && !election83bDueDate
+										? "Due date pending"
+										: stage?.completed_at
+											? `Completed ${formatDate(stage.completed_at)}`
+											: stage?.updated_at
+												? `Updated ${formatDate(stage.updated_at)}`
+												: null;
 
 				return (
 					<div key={step.key} className="flex gap-4">
@@ -98,7 +118,11 @@ export function LoanTimeline({
 										<p className="text-xs text-muted-foreground">{meta}</p>
 									) : null}
 								</div>
-								<StageStatusBadge status={status} />
+								{isActiveStep && loanStatus ? (
+									<LoanStatusBadge status={loanStatus} />
+								) : (
+									<StageStatusBadge status={status} />
+								)}
 							</div>
 
 							{stage?.notes ? (

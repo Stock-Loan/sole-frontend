@@ -66,23 +66,27 @@ function buildSelectionColumn<T>(): ColumnDef<T, unknown> {
 				!allSelected && rows.some((row) => rowSelection[row.id]);
 
 			return (
-				<Checkbox
-					checked={allSelected || (someSelected && "indeterminate")}
-					onCheckedChange={(checked) =>
-						table.toggleAllPageRowsSelected(Boolean(checked))
-					}
-					aria-label="Select all rows"
-				/>
-			);
-		},
-		cell: ({ row, table }) => (
 			<Checkbox
-				checked={row.getIsSelected() || !!table.getState().rowSelection[row.id]}
-				disabled={!row.getCanSelect()}
-				onCheckedChange={(checked) => row.toggleSelected(Boolean(checked))}
-				aria-label="Select row"
+				checked={allSelected || (someSelected && "indeterminate")}
+				onCheckedChange={(checked) =>
+					table.toggleAllPageRowsSelected(Boolean(checked))
+				}
+				onClick={(event) => event.stopPropagation()}
+				onPointerDown={(event) => event.stopPropagation()}
+				aria-label="Select all rows"
 			/>
-		),
+		);
+	},
+	cell: ({ row, table }) => (
+		<Checkbox
+			checked={row.getIsSelected() || !!table.getState().rowSelection[row.id]}
+			disabled={!row.getCanSelect()}
+			onCheckedChange={(checked) => row.toggleSelected(Boolean(checked))}
+			onClick={(event) => event.stopPropagation()}
+			onPointerDown={(event) => event.stopPropagation()}
+			aria-label="Select row"
+		/>
+	),
 		enableSorting: false,
 		enableHiding: false,
 		meta: {

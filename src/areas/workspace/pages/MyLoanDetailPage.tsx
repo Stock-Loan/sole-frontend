@@ -18,11 +18,12 @@ export function MyLoanDetailPage() {
 	const { can } = usePermissions();
 	const canViewLoans = can("loan.view_own");
 	const canApplyLoan = can("loan.apply");
+	const canViewDocuments = can("loan.document.self_view");
 
 	const loanQuery = useMyLoanApplication(id ?? "", { enabled: canViewLoans });
 	const loan = loanQuery.data;
 	const documentsQuery = useMyLoanDocuments(id ?? "", {
-		enabled: canViewLoans && loan?.status === "ACTIVE",
+		enabled: canViewDocuments && loan?.status === "ACTIVE",
 	});
 	const register83bMutation = useRegisterMyLoan83bDocument();
 
@@ -73,6 +74,7 @@ export function MyLoanDetailPage() {
 				documentsLoading={documentsQuery.isLoading}
 				documentsError={documentsQuery.isError}
 				onDocumentsRetry={() => documentsQuery.refetch()}
+				canViewDocuments={canViewDocuments}
 			/>
 
 			{loan?.status === "ACTIVE" && !loan?.has_83b_election ? (

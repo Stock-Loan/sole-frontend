@@ -29,7 +29,7 @@ export function WorkflowStagePanel({
 	documentGroups,
 	requiredDocumentTypes,
 	documentTypeOptions,
-	onRegisterDocument,
+	onUploadDocument,
 	onUpdateStage,
 	isRegistering,
 	isUpdating,
@@ -58,6 +58,13 @@ export function WorkflowStagePanel({
 	);
 	const canComplete = missingRequired.length === 0;
 	const hasDocumentOptions = documentTypeOptions.length > 0;
+	const optionalDocumentOptions = useMemo(
+		() =>
+			documentTypeOptions.filter(
+				(option) => !requiredDocumentTypes.includes(option.value)
+			),
+		[documentTypeOptions, requiredDocumentTypes]
+	);
 
 	const [documentType, setDocumentType] = useState(
 		documentTypeOptions[0]?.value ?? ""
@@ -78,10 +85,9 @@ export function WorkflowStagePanel({
 
 		setDocError(null);
 		try {
-			await onRegisterDocument({
+			await onUploadDocument({
 				document_type: documentType,
-				file_name: selectedFile.name,
-				storage_path_or_url: selectedFile.name,
+				file: selectedFile,
 			});
 			setSelectedFile(null);
 			toast({
@@ -146,6 +152,31 @@ export function WorkflowStagePanel({
 							})}
 						</ul>
 					)}
+					{optionalDocumentOptions.length > 0 ? (
+						<div className="space-y-2">
+							<p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+								Optional documents
+							</p>
+							<ul className="space-y-1">
+								{optionalDocumentOptions.map((option) => {
+									const hasDoc = existingTypes.has(option.value);
+									return (
+										<li
+											key={option.value}
+											className="flex items-center gap-2 text-sm"
+										>
+											{hasDoc ? (
+												<CheckCircle2 className="h-4 w-4 text-emerald-500" />
+											) : (
+												<AlertCircle className="h-4 w-4 text-muted-foreground" />
+											)}
+											<span>{option.label}</span>
+										</li>
+									);
+								})}
+							</ul>
+						</div>
+					) : null}
 				</CardContent>
 			</Card>
 

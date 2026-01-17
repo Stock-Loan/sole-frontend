@@ -1,9 +1,11 @@
 import type {
 	LoanAllocationItem,
 	LoanApplication,
+	LoanApplicationStatus,
 	LoanApplicationSummary,
 	LoanDocumentCreatePayload,
 	LoanDocumentGroup,
+	LoanDocumentUploadPayload,
 	LoanSelectionMode,
 	LoanWorkflowStage,
 	LoanWorkflowStageStatus,
@@ -37,6 +39,7 @@ export interface LoanSelfDetailContentProps {
 	documentsLoading?: boolean;
 	documentsError?: boolean;
 	onDocumentsRetry?: () => void;
+	canViewDocuments?: boolean;
 }
 
 export interface LoanDetailSummaryCardProps {
@@ -66,6 +69,7 @@ export interface LoanTimelineProps {
 	stages?: LoanWorkflowStage[];
 	activationDate?: string | null;
 	election83bDueDate?: string | null;
+	loanStatus?: LoanApplicationStatus | null;
 	isLoading?: boolean;
 	isError?: boolean;
 	onRetry?: () => void;
@@ -80,6 +84,8 @@ export interface LoanDocumentListProps {
 	onRetry?: () => void;
 	emptyTitle?: string;
 	emptyMessage?: string;
+	onDownload?: (document: LoanDocument) => void;
+	downloadingDocumentId?: string | null;
 }
 
 export interface StageStatusBadgeProps {
@@ -101,7 +107,7 @@ export interface WorkflowStagePanelProps {
 	documentGroups: LoanDocumentGroup[];
 	requiredDocumentTypes: string[];
 	documentTypeOptions: LoanDocumentTypeOption[];
-	onRegisterDocument: (payload: LoanDocumentCreatePayload) => Promise<unknown>;
+	onUploadDocument: (payload: LoanDocumentUploadPayload) => Promise<unknown>;
 	onUpdateStage: (payload: LoanWorkflowStageUpdatePayload) => Promise<unknown>;
 	isRegistering?: boolean;
 	isUpdating?: boolean;
@@ -111,7 +117,7 @@ export interface WorkflowStagePanelProps {
 export interface PostIssuancePanelProps {
 	stage?: LoanWorkflowStage | null;
 	documentGroups: LoanDocumentGroup[];
-	onRegisterDocument: (payload: LoanDocumentCreatePayload) => Promise<unknown>;
+	onUploadDocument: (payload: LoanDocumentUploadPayload) => Promise<unknown>;
 	isRegistering?: boolean;
 	disableDocumentForm?: boolean;
 }

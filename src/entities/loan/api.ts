@@ -11,7 +11,9 @@ import type {
 	LoanApplicationListResponse,
 	LoanDocument,
 	LoanDocumentCreatePayload,
+	LoanDocumentUploadPayload,
 	LoanDocumentsGroupedResponse,
+	LoanActivateBacklogResponse,
 	LoanWorkflowAssignPayload,
 	LoanQueueListParams,
 	LoanQueueListResponse,
@@ -269,6 +271,21 @@ export async function registerHrDocument(
 	return unwrapApiResponse<LoanDocument>(data);
 }
 
+export async function uploadHrDocument(
+	id: string,
+	payload: LoanDocumentUploadPayload
+): Promise<LoanDocument> {
+	const formData = new FormData();
+	formData.append("document_type", payload.document_type);
+	formData.append("file", payload.file);
+	const { data } = await apiClient.post<LoanDocument>(
+		`/org/loans/${id}/documents/hr/upload`,
+		formData,
+		{ headers: { "Content-Type": "multipart/form-data" } }
+	);
+	return unwrapApiResponse<LoanDocument>(data);
+}
+
 export async function registerFinanceDocument(
 	id: string,
 	payload: LoanDocumentCreatePayload
@@ -276,6 +293,21 @@ export async function registerFinanceDocument(
 	const { data } = await apiClient.post<LoanDocument>(
 		`/org/loans/${id}/documents/finance`,
 		payload
+	);
+	return unwrapApiResponse<LoanDocument>(data);
+}
+
+export async function uploadFinanceDocument(
+	id: string,
+	payload: LoanDocumentUploadPayload
+): Promise<LoanDocument> {
+	const formData = new FormData();
+	formData.append("document_type", payload.document_type);
+	formData.append("file", payload.file);
+	const { data } = await apiClient.post<LoanDocument>(
+		`/org/loans/${id}/documents/finance/upload`,
+		formData,
+		{ headers: { "Content-Type": "multipart/form-data" } }
 	);
 	return unwrapApiResponse<LoanDocument>(data);
 }
@@ -291,6 +323,21 @@ export async function registerLegalDocument(
 	return unwrapApiResponse<LoanDocument>(data);
 }
 
+export async function uploadLegalDocument(
+	id: string,
+	payload: LoanDocumentUploadPayload
+): Promise<LoanDocument> {
+	const formData = new FormData();
+	formData.append("document_type", payload.document_type);
+	formData.append("file", payload.file);
+	const { data } = await apiClient.post<LoanDocument>(
+		`/org/loans/${id}/documents/legal/upload`,
+		formData,
+		{ headers: { "Content-Type": "multipart/form-data" } }
+	);
+	return unwrapApiResponse<LoanDocument>(data);
+}
+
 export async function registerLegalIssuanceDocument(
 	id: string,
 	payload: LoanDocumentCreatePayload
@@ -302,6 +349,21 @@ export async function registerLegalIssuanceDocument(
 	return unwrapApiResponse<LoanDocument>(data);
 }
 
+export async function uploadLegalIssuanceDocument(
+	id: string,
+	payload: LoanDocumentUploadPayload
+): Promise<LoanDocument> {
+	const formData = new FormData();
+	formData.append("document_type", payload.document_type);
+	formData.append("file", payload.file);
+	const { data } = await apiClient.post<LoanDocument>(
+		`/org/loans/${id}/documents/legal-issuance/upload`,
+		formData,
+		{ headers: { "Content-Type": "multipart/form-data" } }
+	);
+	return unwrapApiResponse<LoanDocument>(data);
+}
+
 export async function listOrgLoanDocuments(
 	id: string
 ): Promise<LoanDocumentsGroupedResponse> {
@@ -309,4 +371,36 @@ export async function listOrgLoanDocuments(
 		`/org/loans/${id}/documents`
 	);
 	return unwrapApiResponse<LoanDocumentsGroupedResponse>(data);
+}
+
+export async function downloadOrgLoanDocument(
+	documentId: string
+): Promise<Blob> {
+	const { data } = await apiClient.get<Blob>(
+		`/org/loans/documents/${documentId}/download`,
+		{ responseType: "blob" }
+	);
+	return data;
+}
+
+export async function downloadMyLoanDocument(
+	documentId: string
+): Promise<Blob> {
+	const { data } = await apiClient.get<Blob>(
+		`/me/loans/documents/${documentId}/download`,
+		{ responseType: "blob" }
+	);
+	return data;
+}
+
+export async function activateLoanBacklog(params?: {
+	limit?: number;
+	offset?: number;
+}): Promise<LoanActivateBacklogResponse> {
+	const { data } = await apiClient.post<LoanActivateBacklogResponse>(
+		"/org/loans/maintenance/activate-backlog",
+		undefined,
+		{ params }
+	);
+	return unwrapApiResponse<LoanActivateBacklogResponse>(data);
 }

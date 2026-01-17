@@ -250,6 +250,13 @@ export interface LoanDocumentsGroupedResponse {
 	groups: LoanDocumentGroup[];
 }
 
+export interface LoanActivateBacklogResponse {
+	checked: number;
+	activated: number;
+	skipped: number;
+	activated_ids: string[];
+}
+
 export interface LoanWorkflowStageUpdatePayload {
 	status: LoanWorkflowStageStatus;
 	notes?: string | null;
@@ -263,6 +270,11 @@ export interface LoanDocumentCreatePayload {
 	document_type: string;
 	file_name: string;
 	storage_path_or_url: string;
+}
+
+export interface LoanDocumentUploadPayload {
+	document_type: string;
+	file: File;
 }
 
 export interface HrLoanDetailResponse {

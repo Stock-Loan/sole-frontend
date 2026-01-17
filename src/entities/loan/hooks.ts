@@ -25,12 +25,19 @@ import {
 	listOrgLoanApplications,
 	listMyLoanApplications,
 	listMyLoanDocuments,
+	downloadMyLoanDocument,
+	downloadOrgLoanDocument,
+	activateLoanBacklog,
 	assignLoanWorkflowStage,
 	registerMyLoan83bDocument,
 	registerFinanceDocument,
 	registerHrDocument,
 	registerLegalDocument,
 	registerLegalIssuanceDocument,
+	uploadFinanceDocument,
+	uploadHrDocument,
+	uploadLegalDocument,
+	uploadLegalIssuanceDocument,
 	submitMyLoanApplication,
 	updateFinanceStage,
 	updateHrStage,
@@ -48,7 +55,9 @@ import type {
 	LoanApplicationListResponse,
 	LoanDocument,
 	LoanDocumentCreatePayload,
+	LoanDocumentUploadPayload,
 	LoanDocumentsGroupedResponse,
+	LoanActivateBacklogResponse,
 	LoanWorkflowAssignPayload,
 	LoanQueueListParams,
 	LoanQueueListResponse,
@@ -512,6 +521,37 @@ export function useRegisterHrDocument(
 	});
 }
 
+export function useUploadHrDocument(
+	options: Omit<
+		UseMutationOptions<
+			LoanDocument,
+			unknown,
+			{ id: string; payload: LoanDocumentUploadPayload }
+		>,
+		"mutationFn"
+	> = {}
+) {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: ({ id, payload }) => uploadHrDocument(id, payload),
+		onSuccess: (data, variables, context) => {
+			queryClient.invalidateQueries({
+				queryKey: orgKeys.loans.documents.org(variables.id),
+			});
+			queryClient.invalidateQueries({
+				queryKey: orgKeys.loans.workflowDetail.hr(variables.id),
+			});
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			(options.onSuccess as any)?.(data, variables, context);
+		},
+		onError: (error, variables, context) => {
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			(options.onError as any)?.(error, variables, context);
+		},
+		...options,
+	});
+}
+
 export function useRegisterFinanceDocument(
 	options: Omit<
 		UseMutationOptions<
@@ -525,6 +565,37 @@ export function useRegisterFinanceDocument(
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: ({ id, payload }) => registerFinanceDocument(id, payload),
+		onSuccess: (data, variables, context) => {
+			queryClient.invalidateQueries({
+				queryKey: orgKeys.loans.documents.org(variables.id),
+			});
+			queryClient.invalidateQueries({
+				queryKey: orgKeys.loans.workflowDetail.finance(variables.id),
+			});
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			(options.onSuccess as any)?.(data, variables, context);
+		},
+		onError: (error, variables, context) => {
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			(options.onError as any)?.(error, variables, context);
+		},
+		...options,
+	});
+}
+
+export function useUploadFinanceDocument(
+	options: Omit<
+		UseMutationOptions<
+			LoanDocument,
+			unknown,
+			{ id: string; payload: LoanDocumentUploadPayload }
+		>,
+		"mutationFn"
+	> = {}
+) {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: ({ id, payload }) => uploadFinanceDocument(id, payload),
 		onSuccess: (data, variables, context) => {
 			queryClient.invalidateQueries({
 				queryKey: orgKeys.loans.documents.org(variables.id),
@@ -574,6 +645,37 @@ export function useRegisterLegalDocument(
 	});
 }
 
+export function useUploadLegalDocument(
+	options: Omit<
+		UseMutationOptions<
+			LoanDocument,
+			unknown,
+			{ id: string; payload: LoanDocumentUploadPayload }
+		>,
+		"mutationFn"
+	> = {}
+) {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: ({ id, payload }) => uploadLegalDocument(id, payload),
+		onSuccess: (data, variables, context) => {
+			queryClient.invalidateQueries({
+				queryKey: orgKeys.loans.documents.org(variables.id),
+			});
+			queryClient.invalidateQueries({
+				queryKey: orgKeys.loans.workflowDetail.legal(variables.id),
+			});
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			(options.onSuccess as any)?.(data, variables, context);
+		},
+		onError: (error, variables, context) => {
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			(options.onError as any)?.(error, variables, context);
+		},
+		...options,
+	});
+}
+
 export function useRegisterLegalIssuanceDocument(
 	options: Omit<
 		UseMutationOptions<
@@ -587,6 +689,37 @@ export function useRegisterLegalIssuanceDocument(
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: ({ id, payload }) => registerLegalIssuanceDocument(id, payload),
+		onSuccess: (data, variables, context) => {
+			queryClient.invalidateQueries({
+				queryKey: orgKeys.loans.documents.org(variables.id),
+			});
+			queryClient.invalidateQueries({
+				queryKey: orgKeys.loans.workflowDetail.legal(variables.id),
+			});
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			(options.onSuccess as any)?.(data, variables, context);
+		},
+		onError: (error, variables, context) => {
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			(options.onError as any)?.(error, variables, context);
+		},
+		...options,
+	});
+}
+
+export function useUploadLegalIssuanceDocument(
+	options: Omit<
+		UseMutationOptions<
+			LoanDocument,
+			unknown,
+			{ id: string; payload: LoanDocumentUploadPayload }
+		>,
+		"mutationFn"
+	> = {}
+) {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: ({ id, payload }) => uploadLegalIssuanceDocument(id, payload),
 		onSuccess: (data, variables, context) => {
 			queryClient.invalidateQueries({
 				queryKey: orgKeys.loans.documents.org(variables.id),
@@ -625,6 +758,56 @@ export function useRegisterMyLoan83bDocument(
 			queryClient.invalidateQueries({
 				queryKey: meKeys.loans.detail(variables.id),
 			});
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			(options.onSuccess as any)?.(data, variables, context);
+		},
+		onError: (error, variables, context) => {
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			(options.onError as any)?.(error, variables, context);
+		},
+		...options,
+	});
+}
+
+export function useDownloadOrgLoanDocument(
+	options: Omit<
+		UseMutationOptions<Blob, unknown, string>,
+		"mutationFn"
+	> = {}
+) {
+	return useMutation({
+		mutationFn: (documentId) => downloadOrgLoanDocument(documentId),
+		...options,
+	});
+}
+
+export function useDownloadMyLoanDocument(
+	options: Omit<
+		UseMutationOptions<Blob, unknown, string>,
+		"mutationFn"
+	> = {}
+) {
+	return useMutation({
+		mutationFn: (documentId) => downloadMyLoanDocument(documentId),
+		...options,
+	});
+}
+
+export function useActivateLoanBacklog(
+	options: Omit<
+		UseMutationOptions<
+			LoanActivateBacklogResponse,
+			unknown,
+			{ limit?: number; offset?: number }
+		>,
+		"mutationFn"
+	> = {}
+) {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (params) => activateLoanBacklog(params),
+		onSuccess: (data, variables, context) => {
+			queryClient.invalidateQueries({ queryKey: orgKeys.loans.list() });
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			(options.onSuccess as any)?.(data, variables, context);
 		},

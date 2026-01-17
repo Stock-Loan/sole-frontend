@@ -13,6 +13,8 @@ export function LoanDocumentList({
 	onRetry,
 	emptyTitle = "No documents yet",
 	emptyMessage = "Documents will appear here once they are registered.",
+	onDownload,
+	downloadingDocumentId,
 }: LoanDocumentListProps) {
 	if (isLoading) {
 		return <LoadingState label="Loading documents..." />;
@@ -34,10 +36,10 @@ export function LoanDocumentList({
 		return <EmptyState title={emptyTitle} message={emptyMessage} />;
 	}
 
-		return (
-			<div className="space-y-4">
-				{visibleGroups.map((group) => (
-					<div
+	return (
+		<div className="space-y-4">
+			{visibleGroups.map((group) => (
+				<div
 					key={group.stage_type}
 					className="space-y-2 rounded-lg border border-border/60 p-3"
 				>
@@ -48,6 +50,11 @@ export function LoanDocumentList({
 						{group.documents.map((doc) => {
 							const link = doc.storage_path_or_url ?? doc.storage_url;
 							const canLink = Boolean(link && link.includes("://"));
+							const canDownload = Boolean(onDownload && doc.id);
+							const isDownloading =
+								downloadingDocumentId && doc.id
+									? downloadingDocumentId === doc.id
+									: false;
 							return (
 								<div
 									key={doc.id ?? `${group.stage_type}-${doc.file_name}`}
@@ -64,6 +71,18 @@ export function LoanDocumentList({
 									<div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
 										{doc.uploaded_at ? (
 											<span>Uploaded {formatDate(doc.uploaded_at)}</span>
+										) : null}
+										{canDownload ? (
+											<Button
+												variant="ghost"
+												size="sm"
+												className="h-7 px-2 text-xs"
+												disabled={isDownloading}
+												onClick={() => onDownload?.(doc)}
+											>
+												<FileText className="mr-1 h-3.5 w-3.5" />
+												{isDownloading ? "Downloading..." : "Download"}
+											</Button>
 										) : null}
 										{canLink ? (
 											<Button

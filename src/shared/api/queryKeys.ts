@@ -16,6 +16,8 @@ export const meKeys = {
 			["me", "loans", "list", params ?? {}] as const,
 		detail: (id: string) => ["me", "loans", "detail", id] as const,
 		documents: (id: string) => ["me", "loans", "documents", id] as const,
+		documentDownload: (documentId: string) =>
+			["me", "loans", "documents", "download", documentId] as const,
 		quote: (input?: LoanQuoteInput) =>
 			["me", "loans", "quote", input ?? {}] as const,
 	},
@@ -57,6 +59,8 @@ export const orgKeys = {
 		},
 		documents: {
 			org: (id: string) => ["org", "loans", "documents", id] as const,
+			download: (documentId: string) =>
+				["org", "loans", "documents", "download", documentId] as const,
 		},
 	},
 };

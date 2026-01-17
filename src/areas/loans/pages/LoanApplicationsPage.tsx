@@ -11,12 +11,24 @@ import type {
 } from "@/shared/ui/Table/types";
 import { loadDataTablePreferences } from "@/shared/ui/Table/constants";
 import { ToolbarButton } from "@/shared/ui/toolbar";
+import {
+	Dialog,
+	DialogBody,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@/shared/ui/Dialog/dialog";
+import { Button } from "@/shared/ui/Button";
+import { useToast } from "@/shared/ui/use-toast";
+import { useApiErrorToast } from "@/shared/api/useApiErrorToast";
 import { routes } from "@/shared/lib/routes";
 import { formatCurrency, formatDate } from "@/shared/lib/format";
 import { formatShares } from "@/entities/stock-grant/constants";
 import { normalizeDisplay } from "@/shared/lib/utils";
 import { useAuth, usePermissions } from "@/auth/hooks";
-import { useOrgLoanApplications } from "@/entities/loan/hooks";
+import { useActivateLoanBacklog, useOrgLoanApplications } from "@/entities/loan/hooks";
 import { LoanStatusBadge } from "@/entities/loan/components/LoanStatusBadge";
 import type { LoanApplicationSummary } from "@/entities/loan/types";
 
@@ -27,6 +39,9 @@ export function LoanApplicationsPage() {
 	const { user } = useAuth();
 	const { can } = usePermissions();
 	const canViewLoans = can("loan.view_all") || can("loan.manage");
+	const canRunBacklog = can("loan.view_all");
+	const { toast } = useToast();
+	const apiErrorToast = useApiErrorToast();
 
 	const navigate = useNavigate();
 	const preferencesConfig = useMemo<DataTablePreferencesConfig>(
@@ -61,6 +76,24 @@ export function LoanApplicationsPage() {
 
 	const loansQuery = useOrgLoanApplications(listParams, {
 		enabled: canViewLoans,
+	});
+	const [activateDialogOpen, setActivateDialogOpen] = useState(false);
+	const [activateSelectionCount, setActivateSelectionCount] = useState(0);
+	const [activateParams, setActivateParams] = useState<{
+		limit: number;
+		offset: number;
+	} | null>(null);
+	const activateMutation = useActivateLoanBacklog({
+		onSuccess: (data) => {
+			toast({
+				title: "Backlog activation complete",
+				description: `${data.activated} activated, ${data.skipped} skipped (checked ${data.checked}).`,
+			});
+			setActivateDialogOpen(false);
+			setActivateSelectionCount(0);
+		},
+		onError: (error) =>
+			apiErrorToast(error, "Unable to activate backlog loans."),
 	});
 	const loans = loansQuery.data?.items ?? [];
 	const totalRows = loansQuery.data?.total ?? loans.length;
@@ -291,6 +324,7 @@ export function LoanApplicationsPage() {
 					renderToolbarActions={(selectedLoans) => {
 						const hasSingle = selectedLoans.length === 1;
 						const selectedLoan = hasSingle ? selectedLoans[0] : null;
+						const hasSelection = selectedLoans.length > 0;
 						return (
 							<div className="flex items-center gap-2">
 								<ToolbarButton
@@ -309,6 +343,35 @@ export function LoanApplicationsPage() {
 								>
 									View
 								</ToolbarButton>
+								{canRunBacklog ? (
+									<ToolbarButton
+										variant="default"
+										size="sm"
+										disabled={!hasSelection || activateMutation.isPending}
+										onClick={() => {
+											const selectedIndices = selectedLoans
+												.map((loan) =>
+													loans.findIndex((item) => item.id === loan.id)
+												)
+												.filter((index) => index >= 0)
+												.sort((a, b) => a - b);
+											if (selectedIndices.length === 0) return;
+											const minIndex = selectedIndices[0];
+											const maxIndex =
+												selectedIndices[selectedIndices.length - 1];
+											const offset =
+												paginationState.pageIndex *
+													paginationState.pageSize +
+												minIndex;
+											const limit = maxIndex - minIndex + 1;
+											setActivateSelectionCount(selectedLoans.length);
+											setActivateParams({ limit, offset });
+											setActivateDialogOpen(true);
+										}}
+									>
+										Activate backlog
+									</ToolbarButton>
+								) : null}
 							</div>
 						);
 					}}
@@ -323,6 +386,45 @@ export function LoanApplicationsPage() {
 					}}
 				/>
 			)}
+
+			<Dialog open={activateDialogOpen} onOpenChange={setActivateDialogOpen}>
+				<DialogContent size="sm">
+					<DialogHeader>
+						<DialogTitle>Activate backlog loans?</DialogTitle>
+						<DialogDescription>
+							This will check selected loans and activate any that are fully
+							complete. You selected {activateSelectionCount} loans.
+						</DialogDescription>
+					</DialogHeader>
+					<DialogBody>
+						<p className="text-sm text-muted-foreground">
+							This action runs a maintenance check and may activate loans that
+							have all core stages completed.
+						</p>
+					</DialogBody>
+					<DialogFooter>
+						<Button
+							variant="outline"
+							onClick={() => {
+								setActivateDialogOpen(false);
+								setActivateParams(null);
+							}}
+						>
+							Cancel
+						</Button>
+						<Button
+							variant="default"
+							disabled={activateMutation.isPending || !activateParams}
+							onClick={() => {
+								if (!activateParams) return;
+								activateMutation.mutate(activateParams);
+							}}
+						>
+							{activateMutation.isPending ? "Running..." : "Run activation"}
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 		</PageContainer>
 	);
 }

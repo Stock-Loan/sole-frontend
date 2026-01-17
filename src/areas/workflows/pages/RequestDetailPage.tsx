@@ -7,6 +7,9 @@ import { LoadingState } from "@/shared/ui/LoadingState";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { TabButton } from "@/shared/ui/TabButton";
 import { usePermissions } from "@/auth/hooks";
+import { useToast } from "@/shared/ui/use-toast";
+import { parseApiError } from "@/shared/api/errors";
+import { downloadBlob } from "@/shared/lib/download";
 import { getOrgUserDisplayName } from "@/entities/user/constants";
 import { LoanTimeline } from "@/entities/loan/components/LoanTimeline";
 import { LoanDocumentList } from "@/entities/loan/components/LoanDocumentList";
@@ -17,17 +20,19 @@ import {
 	useFinanceLoanDetail,
 	useHrLoanDetail,
 	useLegalLoanDetail,
+	useDownloadOrgLoanDocument,
 	useOrgLoanDocuments,
-	useRegisterFinanceDocument,
-	useRegisterHrDocument,
-	useRegisterLegalDocument,
-	useRegisterLegalIssuanceDocument,
+	useUploadFinanceDocument,
+	useUploadHrDocument,
+	useUploadLegalDocument,
+	useUploadLegalIssuanceDocument,
 	useUpdateFinanceStage,
 	useUpdateHrStage,
 	useUpdateLegalStage,
 } from "@/entities/loan/hooks";
 import { useRolesList, useRoleMemberLookup } from "@/entities/role/hooks";
 import type { LoanDocumentTypeOption } from "@/entities/loan/components/types";
+import type { LoanDocument } from "@/entities/loan/types";
 
 function getRoleNameForStage(stageType?: string | null) {
 	if (stageType === "HR_REVIEW") return "HR";
@@ -82,6 +87,7 @@ const LEGAL_REQUIRED_DOCS = LEGAL_DOCUMENT_OPTIONS.map((doc) => doc.value);
 export function RequestDetailPage() {
 	const { requestId } = useParams();
 	const { can } = usePermissions();
+	const { toast } = useToast();
 
 	const canViewHr = can("loan.queue.hr.view");
 	const canViewFinance = can("loan.queue.finance.view");
@@ -192,15 +198,37 @@ export function RequestDetailPage() {
 		enabled: Boolean(requestId) && canViewDocuments,
 	});
 	const documentGroups = documentsQuery.data?.groups ?? [];
+	const handleDownload = async (doc: LoanDocument) => {
+		if (!doc.id) return;
+		setDownloadingDocumentId(doc.id);
+		try {
+			const blob = await downloadMutation.mutateAsync(doc.id);
+			downloadBlob(blob, doc.file_name ?? "document");
+		} finally {
+			setDownloadingDocumentId(null);
+		}
+	};
 
 	const updateHrStageMutation = useUpdateHrStage();
 	const updateFinanceStageMutation = useUpdateFinanceStage();
 	const updateLegalStageMutation = useUpdateLegalStage();
-	const registerHrDocumentMutation = useRegisterHrDocument();
-	const registerFinanceDocumentMutation = useRegisterFinanceDocument();
-	const registerLegalDocumentMutation = useRegisterLegalDocument();
+	const registerHrDocumentMutation = useUploadHrDocument();
+	const registerFinanceDocumentMutation = useUploadFinanceDocument();
+	const registerLegalDocumentMutation = useUploadLegalDocument();
 	const registerLegalIssuanceDocumentMutation =
-		useRegisterLegalIssuanceDocument();
+		useUploadLegalIssuanceDocument();
+	const [downloadingDocumentId, setDownloadingDocumentId] = useState<
+		string | null
+	>(null);
+	const downloadMutation = useDownloadOrgLoanDocument({
+		onError: (error) => {
+			toast({
+				title: "Download failed",
+				description: parseApiError(error).message,
+				variant: "destructive",
+			});
+		},
+	});
 
 	if (!requestId) {
 		return (
@@ -275,14 +303,20 @@ export function RequestDetailPage() {
 						<CardTitle className="text-sm font-semibold">Documents</CardTitle>
 					</CardHeader>
 					<CardContent className="space-y-4 text-sm text-muted-foreground">
-						<LoanDocumentList
-							groups={documentGroups}
-							isLoading={documentsQuery.isLoading}
-							isError={documentsQuery.isError}
-							onRetry={() => documentsQuery.refetch()}
-							emptyTitle="No documents registered"
-							emptyMessage="Documents will appear once reviewers register them."
-						/>
+						{canViewDocuments ? (
+							<LoanDocumentList
+								groups={documentGroups}
+								isLoading={documentsQuery.isLoading}
+								isError={documentsQuery.isError}
+								onRetry={() => documentsQuery.refetch()}
+								emptyTitle="No documents registered"
+								emptyMessage="Documents will appear once reviewers register them."
+								onDownload={handleDownload}
+								downloadingDocumentId={downloadingDocumentId}
+							/>
+						) : (
+							<p>You do not have permission to view documents.</p>
+						)}
 					</CardContent>
 				</Card>
 			</div>
@@ -324,7 +358,7 @@ export function RequestDetailPage() {
 							documentGroups={documentGroups}
 							requiredDocumentTypes={["PAYMENT_INSTRUCTIONS"]}
 							documentTypeOptions={FINANCE_DOCUMENT_OPTIONS}
-							onRegisterDocument={(payload) =>
+							onUploadDocument={(payload) =>
 								registerFinanceDocumentMutation.mutateAsync({
 									id: requestId,
 									payload,
@@ -351,7 +385,7 @@ export function RequestDetailPage() {
 								documentGroups={documentGroups}
 								requiredDocumentTypes={LEGAL_REQUIRED_DOCS}
 								documentTypeOptions={LEGAL_DOCUMENT_OPTIONS}
-								onRegisterDocument={(payload) =>
+								onUploadDocument={(payload) =>
 									registerLegalDocumentMutation.mutateAsync({
 										id: requestId,
 										payload,
@@ -376,7 +410,7 @@ export function RequestDetailPage() {
 										) ?? null
 									}
 									documentGroups={documentGroups}
-									onRegisterDocument={(payload) =>
+									onUploadDocument={(payload) =>
 										registerLegalIssuanceDocumentMutation.mutateAsync({
 											id: requestId,
 											payload,
@@ -401,7 +435,7 @@ export function RequestDetailPage() {
 								(doc) => doc.value
 							)}
 							documentTypeOptions={HR_DOCUMENT_OPTIONS}
-							onRegisterDocument={(payload) =>
+							onUploadDocument={(payload) =>
 								registerHrDocumentMutation.mutateAsync({
 									id: requestId,
 									payload,

@@ -11,3 +11,14 @@ export const loanSpouseInfoSchema = z.object({
 		.min(7, "Enter a valid phone number"),
 	spouse_address: nonEmptyString,
 });
+
+export const loanDocumentCreateSchema = z.object({
+	document_type: nonEmptyString,
+	file_name: nonEmptyString,
+	storage_path_or_url: nonEmptyString,
+});
+
+export const loanDocumentUploadSchema = z.object({
+	document_type: nonEmptyString,
+	file: z.instanceof(File),
+});

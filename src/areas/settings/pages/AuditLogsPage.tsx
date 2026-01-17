@@ -56,6 +56,12 @@ export function AuditLogsPage() {
 		pageSize: defaultPageSize,
 	});
 	const [resourceType, setResourceType] = useState("all");
+	const handleResourceTypeChange = (value: string) => {
+		setResourceType(value);
+		setPaginationState((prev) =>
+			prev.pageIndex === 0 ? prev : { ...prev, pageIndex: 0 }
+		);
+	};
 
 	const listParams = useMemo(
 		() => ({
@@ -65,12 +71,6 @@ export function AuditLogsPage() {
 		}),
 		[paginationState.pageIndex, paginationState.pageSize, resourceType]
 	);
-
-	useEffect(() => {
-		setPaginationState((prev) =>
-			prev.pageIndex === 0 ? prev : { ...prev, pageIndex: 0 }
-		);
-	}, [resourceType]);
 
 	const auditLogsQuery = useOrgAuditLogs(listParams, {
 		enabled: canViewAuditLogs,
@@ -85,7 +85,10 @@ export function AuditLogsPage() {
 		}
 	}, [apiErrorToast, auditLogsQuery.error, auditLogsQuery.isError]);
 
-	const auditLogs = auditLogsQuery.data?.items ?? [];
+	const auditLogs = useMemo(
+		() => auditLogsQuery.data?.items ?? [],
+		[auditLogsQuery.data?.items]
+	);
 	const totalRows = auditLogsQuery.data?.total ?? auditLogs.length;
 	const totalPages = Math.max(
 		1,
@@ -232,7 +235,7 @@ export function AuditLogsPage() {
 									</Label>
 									<Select
 										value={resourceType}
-										onValueChange={setResourceType}
+										onValueChange={handleResourceTypeChange}
 									>
 										<SelectTrigger
 											id="audit-resource-type"

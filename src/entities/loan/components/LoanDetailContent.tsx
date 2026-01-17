@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { AlertTriangle, CheckCircle2 } from "lucide-react";
 import { EmptyState } from "@/shared/ui/EmptyState";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
@@ -25,12 +26,18 @@ import {
 } from "@/entities/loan/components/detail-utils";
 import { LoanDocumentList } from "@/entities/loan/components/LoanDocumentList";
 import { LoanTimeline } from "@/entities/loan/components/LoanTimeline";
+import { useDownloadOrgLoanDocument, useOrgLoanDocuments } from "@/entities/loan/hooks";
+import { useToast } from "@/shared/ui/use-toast";
+import { parseApiError } from "@/shared/api/errors";
+import { downloadBlob } from "@/shared/lib/download";
+import { usePermissions } from "@/auth/hooks";
 import type {
 	LoanAllocationTableProps,
 	LoanDetailContentProps,
 	LoanDetailRowProps,
 	LoanDetailSummaryCardProps,
 } from "@/entities/loan/components/types";
+import type { LoanDocument } from "@/entities/loan/types";
 
 export function LoanDetailContent({
 	loan,
@@ -40,6 +47,31 @@ export function LoanDetailContent({
 	emptyTitle = "Unable to load loan",
 	emptyMessage = "We couldn't fetch this loan application.",
 }: LoanDetailContentProps) {
+	const { toast } = useToast();
+	const { can } = usePermissions();
+	const [downloadingDocumentId, setDownloadingDocumentId] = useState<
+		string | null
+	>(null);
+	const canViewDocuments = can([
+		"loan.document.view",
+		"loan.document.manage_hr",
+		"loan.document.manage_finance",
+		"loan.document.manage_legal",
+		"loan.workflow.post_issuance.manage",
+	]);
+	const downloadMutation = useDownloadOrgLoanDocument({
+		onError: (error) => {
+			toast({
+				title: "Download failed",
+				description: parseApiError(error).message,
+				variant: "destructive",
+			});
+		},
+	});
+	const documentsQuery = useOrgLoanDocuments(loan?.id ?? "", {
+		enabled: Boolean(loan?.id) && canViewDocuments,
+	});
+
 	if (isLoading) {
 		return <LoanDetailSkeleton />;
 	}
@@ -64,9 +96,20 @@ export function LoanDetailContent({
 	const allocationSnapshot = loan.allocation_snapshot ?? [];
 	const workflowStages = loan.workflow_stages ?? [];
 	const documents = loan.documents ?? [];
-	const documentGroups = groupDocumentsByStage(documents);
+	const documentGroups =
+		documentsQuery.data?.groups ?? groupDocumentsByStage(documents);
 	const orgSettings = loan.org_settings_snapshot ?? null;
 	const eligibilitySnapshot = loan.eligibility_result_snapshot ?? null;
+	const handleDownload = async (doc: LoanDocument) => {
+		if (!doc.id) return;
+		setDownloadingDocumentId(doc.id);
+		try {
+			const blob = await downloadMutation.mutateAsync(doc.id);
+			downloadBlob(blob, doc.file_name ?? "document");
+		} finally {
+			setDownloadingDocumentId(null);
+		}
+	};
 
 	return (
 		<div className="space-y-6">
@@ -471,6 +514,7 @@ export function LoanDetailContent({
 							stages={workflowStages}
 							activationDate={loan.activation_date}
 							election83bDueDate={loan.election_83b_due_date}
+							loanStatus={loan.status}
 							emptyTitle="No workflow stages yet"
 							emptyMessage="Stages will appear once reviewers start the process."
 						/>
@@ -482,11 +526,20 @@ export function LoanDetailContent({
 						<CardTitle className="text-sm font-semibold">Documents</CardTitle>
 					</CardHeader>
 					<CardContent className="space-y-4 text-sm text-muted-foreground">
-						<LoanDocumentList
-							groups={documentGroups}
-							emptyTitle="No documents uploaded yet"
-							emptyMessage="Documents will show up here once uploaded."
-						/>
+						{canViewDocuments ? (
+							<LoanDocumentList
+								groups={documentGroups}
+								isLoading={documentsQuery.isLoading}
+								isError={documentsQuery.isError}
+								onRetry={() => documentsQuery.refetch()}
+								emptyTitle="No documents uploaded yet"
+								emptyMessage="Documents will show up here once uploaded."
+								onDownload={handleDownload}
+								downloadingDocumentId={downloadingDocumentId}
+							/>
+						) : (
+							<p>You do not have permission to view documents.</p>
+						)}
 					</CardContent>
 				</Card>
 			</div>
