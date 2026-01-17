@@ -119,8 +119,8 @@ export function MyStockPage() {
 					onRetry={() => summaryQuery.refetch()}
 				/>
 			) : (
-				<div className="grid gap-6 lg:grid-cols-[2.1fr,1fr]">
-					<div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+				<div className="space-y-6">
+					<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
 						{metricCards.map((metric) => (
 							<Card
 								key={metric.label}
@@ -152,7 +152,10 @@ export function MyStockPage() {
 					</div>
 
 					<div className="space-y-4">
-						<Card style={summaryCardStyle} className="border shadow-sm">
+						<Card
+							style={summaryCardStyle}
+							className="border shadow-sm max-w-[380px]"
+						>
 							<CardHeader className="pb-2">
 								<CardTitle
 									className="text-xs font-semibold uppercase tracking-wide"
@@ -244,8 +247,8 @@ function MyStockSkeleton() {
 					<Skeleton className="h-3 w-64" />
 				</CardContent>
 			</Card>
-			<div className="grid gap-6 lg:grid-cols-[2.1fr,1fr]">
-				<div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+			<div className="space-y-6">
+				<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
 					{Array.from({ length: 6 }).map((_, index) => (
 						<Card key={`my-stock-skeleton-${index}`}>
 							<CardHeader className="pb-2">
@@ -258,7 +261,7 @@ function MyStockSkeleton() {
 					))}
 				</div>
 				<div className="space-y-4">
-					<Card>
+					<Card className="max-w-[380px]">
 						<CardHeader className="pb-2">
 							<Skeleton className="h-3 w-28" />
 						</CardHeader>
