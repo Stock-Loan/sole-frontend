@@ -338,6 +338,9 @@ export function DepartmentsPage() {
 					preferences={preferencesConfig}
 					initialColumnVisibility={initialColumnVisibility}
 					className="flex-1 min-h-0"
+					onRowClick={(dept) => {
+						void openMembers(dept);
+					}}
 					emptyMessage="No departments yet. Create a department to organize your org."
 					renderToolbarActions={(selectedDepartments) => {
 						const hasSingle = selectedDepartments.length === 1;

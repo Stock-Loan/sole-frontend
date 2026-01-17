@@ -110,15 +110,9 @@ export function LoanApplicationsPage() {
 			filterAccessor: (loan) =>
 				`${loan.applicant?.full_name ?? ""} ${loan.applicant?.email ?? ""}`.trim(),
 			cell: (loan) => (
-				<button
-					type="button"
-					className="text-left font-medium text-primary underline-offset-4 hover:underline"
-					onClick={() =>
-						navigate(routes.loansDetail.replace(":loanId", loan.id))
-					}
-				>
+				<span className="font-medium text-foreground">
 					{loan.applicant?.full_name ?? "—"}
-				</button>
+				</span>
 			),
 			headerClassName: "min-w-[180px]",
 		},
@@ -321,6 +315,9 @@ export function LoanApplicationsPage() {
 					preferences={preferencesConfig}
 					initialColumnVisibility={initialColumnVisibility}
 					className="flex-1 min-h-0"
+					onRowClick={(row) =>
+						navigate(routes.loansDetail.replace(":loanId", row.id))
+					}
 					renderToolbarActions={(selectedLoans) => {
 						const hasSingle = selectedLoans.length === 1;
 						const selectedLoan = hasSingle ? selectedLoans[0] : null;

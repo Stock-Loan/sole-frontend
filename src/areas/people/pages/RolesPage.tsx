@@ -314,6 +314,7 @@ export function RolesPage() {
 					emptyMessage="No roles yet. Create or import roles to manage permissions."
 					initialColumnVisibility={initialColumnVisibility}
 					preferences={preferencesConfig}
+					onRowClick={(role) => handleViewPermissions(role)}
 					renderToolbarActions={(selectedRoles) => {
 						const hasSingle = selectedRoles.length === 1;
 						const selectedRole = hasSingle ? selectedRoles[0] : null;

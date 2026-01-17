@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { PaginationState, VisibilityState } from "@tanstack/react-table";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { PageContainer } from "@/shared/ui/PageContainer";
 import { PageHeader } from "@/shared/ui/PageHeader";
 import { EmptyState } from "@/shared/ui/EmptyState";
@@ -92,12 +92,9 @@ const columns: ColumnDefinition<OrgUserListItem>[] = [
 		filterAccessor: (row) =>
 			`${getDisplayName(row.user)} ${row.user.email}`.trim(),
 		cell: (row) => (
-			<Link
-				to={routes.peopleUserDetail.replace(":membershipId", row.membership.id)}
-				className="font-medium text-primary underline-offset-4 hover:underline"
-			>
+			<span className="font-medium text-foreground">
 				{getDisplayName(row.user)}
-			</Link>
+			</span>
 		),
 		headerClassName: "min-w-[200px]",
 	},
@@ -300,6 +297,7 @@ const columns: ColumnDefinition<OrgUserListItem>[] = [
 ];
 
 export function UsersListPage() {
+	const navigate = useNavigate();
 	const { user } = useAuth();
 	const { can } = usePermissions();
 	const [searchParams, setSearchParams] = useSearchParams();
@@ -568,6 +566,14 @@ export function UsersListPage() {
 					preferences={preferencesConfig}
 					initialColumnVisibility={initialColumnVisibility}
 					className="flex-1 min-h-0"
+					onRowClick={(row) =>
+						navigate(
+							routes.peopleUserDetail.replace(
+								":membershipId",
+								row.membership.id
+							)
+						)
+					}
 					headerActions={
 						can("user.onboard")
 							? {
