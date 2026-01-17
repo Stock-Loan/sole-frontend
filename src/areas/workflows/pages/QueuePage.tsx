@@ -527,9 +527,21 @@ export function QueuePage() {
 					<div className="rounded-lg border border-border/70 bg-muted/20 px-4 py-3 text-sm">
 						<div className="flex flex-wrap items-center justify-between gap-3">
 							<div>
-								<p className="text-xs text-muted-foreground">Loan</p>
+								<p className="text-xs text-muted-foreground">Applicant</p>
 								<p className="font-semibold text-foreground">
-									{assignmentTarget?.id ?? "—"}
+									{assignmentTarget?.applicant?.full_name ??
+										assignmentTarget?.applicant?.email ??
+										"—"}
+								</p>
+							</div>
+							<div>
+								<p className="text-xs text-muted-foreground">Amount</p>
+								<p className="font-semibold text-foreground">
+									{formatCurrency(
+										assignmentTarget?.loan_principal ??
+											assignmentTarget?.purchase_price ??
+											null
+									)}
 								</p>
 							</div>
 							<div>

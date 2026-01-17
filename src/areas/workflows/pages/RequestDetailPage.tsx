@@ -7,6 +7,7 @@ import { LoadingState } from "@/shared/ui/LoadingState";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { TabButton } from "@/shared/ui/TabButton";
 import { usePermissions } from "@/auth/hooks";
+import { getOrgUserDisplayName } from "@/entities/user/constants";
 import { LoanTimeline } from "@/entities/loan/components/LoanTimeline";
 import { LoanDocumentList } from "@/entities/loan/components/LoanDocumentList";
 import { LoanWorkflowSummary } from "@/entities/loan/components/workflow/LoanWorkflowSummary";
@@ -25,7 +26,15 @@ import {
 	useUpdateHrStage,
 	useUpdateLegalStage,
 } from "@/entities/loan/hooks";
+import { useRolesList, useRoleMemberLookup } from "@/entities/role/hooks";
 import type { LoanDocumentTypeOption } from "@/entities/loan/components/types";
+
+function getRoleNameForStage(stageType?: string | null) {
+	if (stageType === "HR_REVIEW") return "HR";
+	if (stageType === "FINANCE_PROCESSING") return "FINANCE";
+	if (stageType === "LEGAL_EXECUTION") return "LEGAL";
+	return null;
+}
 
 const HR_DOCUMENT_OPTIONS: LoanDocumentTypeOption[] = [
 	{
@@ -84,6 +93,7 @@ export function RequestDetailPage() {
 	const canManageHrDocs = can("loan.document.manage_hr");
 	const canManageFinanceDocs = can("loan.document.manage_finance");
 	const canManageLegalDocs = can("loan.document.manage_legal");
+	const canViewRoleMembers = can("role.view") && can("user.view");
 	const canViewDocuments =
 		can("loan.document.view") ||
 		canManageHrDocs ||
@@ -140,6 +150,43 @@ export function RequestDetailPage() {
 			? legalDetailQuery.data?.legal_stage
 			: hrDetailQuery.data?.hr_stage;
 	const stockSummary = hrDetailQuery.data?.stock_summary ?? null;
+	const rolesQuery = useRolesList({}, {
+		enabled: Boolean(activeStage) && canViewRoleMembers,
+	});
+	const roleIdsByName = useMemo(() => {
+		const map = new Map<string, string>();
+		(rolesQuery.data?.items ?? []).forEach((role) => {
+			map.set(role.name.toUpperCase(), role.id);
+		});
+		return map;
+	}, [rolesQuery.data?.items]);
+	const stageRoleName = getRoleNameForStage(activeStage?.stage_type ?? null);
+	const stageRoleId = useMemo(() => {
+		if (!stageRoleName) return null;
+		return roleIdsByName.get(stageRoleName) ?? null;
+	}, [roleIdsByName, stageRoleName]);
+	const fallbackAssigneeName =
+		loan?.current_stage_assignee?.full_name ??
+		loan?.current_stage_assignee?.email ??
+		null;
+	const roleMemberLookupQuery = useRoleMemberLookup(
+		stageRoleId,
+		activeStage?.assigned_to_user_id ?? null,
+		{
+			enabled: Boolean(stageRoleId) && canViewRoleMembers && !fallbackAssigneeName,
+		}
+	);
+	const assigneeName = useMemo(() => {
+		if (!activeStage?.assigned_to_user_id) return "Unassigned";
+		if (fallbackAssigneeName) return fallbackAssigneeName;
+		const member = roleMemberLookupQuery.data;
+		if (!member) return "Assigned";
+		return getOrgUserDisplayName(member.user);
+	}, [
+		activeStage?.assigned_to_user_id,
+		fallbackAssigneeName,
+		roleMemberLookupQuery.data,
+	]);
 
 	const documentsQuery = useOrgLoanDocuments(requestId ?? "", {
 		enabled: Boolean(requestId) && canViewDocuments,
@@ -273,6 +320,7 @@ export function RequestDetailPage() {
 							description="Register payment documents and update the finance workflow stage."
 							stageType="FINANCE_PROCESSING"
 							stage={activeStage ?? null}
+							assigneeName={assigneeName}
 							documentGroups={documentGroups}
 							requiredDocumentTypes={["PAYMENT_INSTRUCTIONS"]}
 							documentTypeOptions={FINANCE_DOCUMENT_OPTIONS}
@@ -299,6 +347,7 @@ export function RequestDetailPage() {
 								description="Register legal execution documents and update the legal workflow stage."
 								stageType="LEGAL_EXECUTION"
 								stage={activeStage ?? null}
+								assigneeName={assigneeName}
 								documentGroups={documentGroups}
 								requiredDocumentTypes={LEGAL_REQUIRED_DOCS}
 								documentTypeOptions={LEGAL_DOCUMENT_OPTIONS}
@@ -346,6 +395,7 @@ export function RequestDetailPage() {
 							description="Register HR documents and update the HR workflow stage."
 							stageType="HR_REVIEW"
 							stage={activeStage ?? null}
+							assigneeName={assigneeName}
 							documentGroups={documentGroups}
 							requiredDocumentTypes={HR_DOCUMENT_OPTIONS.map(
 								(doc) => doc.value

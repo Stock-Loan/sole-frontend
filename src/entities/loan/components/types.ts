@@ -97,6 +97,7 @@ export interface WorkflowStagePanelProps {
 	description?: string;
 	stageType: LoanWorkflowStageType;
 	stage?: LoanWorkflowStage | null;
+	assigneeName?: string | null;
 	documentGroups: LoanDocumentGroup[];
 	requiredDocumentTypes: string[];
 	documentTypeOptions: LoanDocumentTypeOption[];

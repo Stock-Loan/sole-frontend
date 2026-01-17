@@ -7,4 +7,6 @@ export const roleKeys = {
 	forUser: (membershipId: string) => ["roles", "for-user", membershipId] as const,
 	members: (roleId: string, params?: OrgUsersListParams) =>
 		["roles", "members", roleId, params ?? {}] as const,
+	memberLookup: (roleId: string, userId: string) =>
+		["roles", "member-lookup", roleId, userId] as const,
 };

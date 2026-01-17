@@ -25,6 +25,7 @@ export function WorkflowStagePanel({
 	description,
 	stageType,
 	stage,
+	assigneeName,
 	documentGroups,
 	requiredDocumentTypes,
 	documentTypeOptions,
@@ -211,7 +212,7 @@ export function WorkflowStagePanel({
 						<p>
 							Assigned to:{" "}
 							<span className="font-medium text-foreground">
-								{stage?.assigned_to_user_id ?? "Unassigned"}
+								{assigneeName ?? "Unassigned"}
 							</span>
 						</p>
 						<p>

@@ -23,6 +23,7 @@ import type {
 import type {
 	OrgUserListItem,
 	OrgUsersListResponse,
+	OrgUsersListParams,
 } from "@/entities/user/types";
 import { getOrgUserDisplayName } from "@/entities/user/constants";
 
@@ -122,6 +123,75 @@ export function useRoleMembersSearch(
 				return runSearch(lower);
 			}
 			return initial;
+		},
+		staleTime,
+	});
+}
+
+export function useRoleMembersList(
+	roleId: string | null,
+	params: OrgUsersListParams = {},
+	options: Omit<
+		UseQueryOptions<OrgUsersListResponse>,
+		"queryKey" | "queryFn"
+	> = {}
+) {
+	const { enabled = true } = options;
+	return useQuery({
+		enabled: enabled && Boolean(roleId),
+		queryKey: roleKeys.members(roleId ?? "unknown", params),
+		queryFn: () => getRoleMembers(roleId ?? "", params),
+		placeholderData: (previous) => previous,
+		...options,
+	});
+}
+
+export function useRoleMemberLookup(
+	roleId: string | null,
+	userId: string | null,
+	options: {
+		enabled?: boolean;
+		pageSize?: number;
+		maxPages?: number;
+		staleTime?: number;
+	} = {}
+) {
+	const {
+		enabled = true,
+		pageSize = 200,
+		maxPages = 10,
+		staleTime = 30 * 1000,
+	} = options;
+
+	return useQuery<OrgUserListItem | null>({
+		enabled: enabled && Boolean(roleId) && Boolean(userId),
+		queryKey: roleKeys.memberLookup(roleId ?? "unknown", userId ?? "unknown"),
+		queryFn: async () => {
+			if (!roleId || !userId) return null;
+			let page = 1;
+			let lastResponse: OrgUsersListResponse | null = null;
+
+			while (page <= maxPages) {
+				lastResponse = await getRoleMembers(roleId, {
+					page,
+					page_size: pageSize,
+				});
+				const match = lastResponse.items?.find(
+					(item) => item.user.id === userId
+				);
+				if (match) return match;
+
+				const total = lastResponse.total ?? lastResponse.items.length;
+				if (
+					lastResponse.items.length === 0 ||
+					page * pageSize >= total
+				) {
+					break;
+				}
+				page += 1;
+			}
+
+			return null;
 		},
 		staleTime,
 	});
