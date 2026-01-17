@@ -3,21 +3,15 @@ import { PageContainer } from "@/shared/ui/PageContainer";
 import { PageHeader } from "@/shared/ui/PageHeader";
 import { EmptyState } from "@/shared/ui/EmptyState";
 import { Button } from "@/shared/ui/Button";
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow,
-} from "@/shared/ui/Table/table";
+import { DataTable } from "@/shared/ui/Table/DataTable";
+import type { ColumnDefinition } from "@/shared/ui/Table/types";
 import { usePermissions } from "@/auth/hooks";
 import { useAllStockGrants } from "@/entities/stock-grant/hooks";
 import { formatShares } from "@/entities/stock-grant/constants";
 import { formatDate } from "@/shared/lib/format";
 import { useStockSearch } from "@/entities/stock-grant/context/context";
 import { StockUserSearch } from "@/entities/stock-grant/components/StockUserSearch";
-import { Skeleton } from "@/shared/ui/Skeleton";
+import type { VestingEventRow } from "@/entities/stock-grant/types";
 
 export function VestingPage() {
 	const { can } = usePermissions();
@@ -30,7 +24,7 @@ export function VestingPage() {
 		enabled: Boolean(membershipId) && canViewGrants,
 	});
 
-	const vestingEvents = useMemo(() => {
+	const vestingEvents = useMemo<VestingEventRow[]>(() => {
 		const grants = allGrantsQuery.data ?? [];
 		return grants
 			.flatMap((grant) =>
@@ -48,6 +42,50 @@ export function VestingPage() {
 					new Date(a.vestDate).getTime() - new Date(b.vestDate).getTime()
 			);
 	}, [allGrantsQuery.data]);
+
+	const columns = useMemo<ColumnDefinition<VestingEventRow>[]>(
+		() => [
+			{
+				id: "vestDate",
+				header: "Vest date",
+				accessor: (event) => event.vestDate,
+				cell: (event) => formatDate(event.vestDate),
+				headerClassName: "whitespace-nowrap",
+			},
+			{
+				id: "shares",
+				header: "Shares",
+				accessor: (event) => event.shares,
+				cell: (event) => formatShares(event.shares),
+				headerClassName: "whitespace-nowrap",
+			},
+			{
+				id: "grantDate",
+				header: "Grant date",
+				accessor: (event) => event.grantDate,
+				cell: (event) => formatDate(event.grantDate),
+				headerClassName: "whitespace-nowrap",
+			},
+			{
+				id: "status",
+				header: "Status",
+				accessor: (event) => event.status,
+				headerClassName: "whitespace-nowrap",
+			},
+			{
+				id: "grantId",
+				header: "Grant ID",
+				accessor: (event) => event.grantId,
+				cell: (event) => (
+					<span className="text-xs text-muted-foreground">
+						{event.grantId}
+					</span>
+				),
+				headerClassName: "whitespace-nowrap",
+			},
+		],
+		[]
+	);
 
 	return (
 		<PageContainer className="flex min-h-0 flex-1 flex-col gap-4">
@@ -69,13 +107,11 @@ export function VestingPage() {
 							</p>
 						</div>
 					</div>
-					<div className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
+					<div className="min-h-0 flex-1 px-6 pb-6 pt-4">
 						{!canViewGrants ? (
 							<p className="text-sm text-muted-foreground">
 								You do not have access to view vesting events.
 							</p>
-						) : allGrantsQuery.isLoading ? (
-							<VestingTableSkeleton />
 						) : allGrantsQuery.isError ? (
 							<div className="flex flex-wrap items-center gap-3 text-sm text-destructive">
 								<span>Unable to load vesting events.</span>
@@ -87,35 +123,19 @@ export function VestingPage() {
 									Retry
 								</Button>
 							</div>
-						) : vestingEvents.length === 0 ? (
-							<p className="text-sm text-muted-foreground">
-								No vesting events found.
-							</p>
 						) : (
-							<Table containerClassName="rounded-md border border-border/60">
-								<TableHeader>
-									<TableRow>
-										<TableHead>Vest date</TableHead>
-										<TableHead>Shares</TableHead>
-										<TableHead>Grant date</TableHead>
-										<TableHead>Status</TableHead>
-										<TableHead>Grant ID</TableHead>
-									</TableRow>
-								</TableHeader>
-								<TableBody>
-									{vestingEvents.map((event) => (
-										<TableRow key={event.id}>
-											<TableCell>{formatDate(event.vestDate)}</TableCell>
-											<TableCell>{formatShares(event.shares)}</TableCell>
-											<TableCell>{formatDate(event.grantDate)}</TableCell>
-											<TableCell>{event.status}</TableCell>
-											<TableCell className="text-xs text-muted-foreground">
-												{event.grantId}
-											</TableCell>
-										</TableRow>
-									))}
-								</TableBody>
-							</Table>
+							<DataTable
+								data={vestingEvents}
+								columns={columns}
+								getRowId={(event) => event.id}
+								isLoading={allGrantsQuery.isLoading}
+								emptyMessage="No vesting events found."
+								enableRowSelection={false}
+								enableExport
+								exportFileName="vesting-events.csv"
+								className="min-h-0 flex-1"
+								pagination={{ enabled: false }}
+							/>
 						)}
 					</div>
 				</div>
@@ -126,33 +146,5 @@ export function VestingPage() {
 				/>
 			)}
 		</PageContainer>
-	);
-}
-
-function VestingTableSkeleton() {
-	const columns = ["Vest date", "Shares", "Grant date", "Status", "Grant ID"];
-	return (
-		<Table containerClassName="rounded-md border border-border/60">
-			<TableHeader>
-				<TableRow>
-					{columns.map((label) => (
-						<TableHead key={label}>
-							<Skeleton className="h-3 w-24" />
-						</TableHead>
-					))}
-				</TableRow>
-			</TableHeader>
-			<TableBody>
-				{Array.from({ length: 6 }).map((_, index) => (
-					<TableRow key={`vesting-skeleton-${index}`}>
-						{columns.map((_, columnIndex) => (
-							<TableCell key={`vesting-cell-${index}-${columnIndex}`}>
-								<Skeleton className="h-3 w-24" />
-							</TableCell>
-						))}
-					</TableRow>
-				))}
-			</TableBody>
-		</Table>
 	);
 }

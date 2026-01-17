@@ -3,8 +3,19 @@ import { isAxiosError } from "axios";
 import { ArrowLeft, CheckCircle2, Loader2, Shield } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
-import { Link, useLocation, useNavigate, type Location } from "react-router-dom";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card";
+import {
+	Link,
+	useLocation,
+	useNavigate,
+	type Location,
+} from "react-router-dom";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "@/shared/ui/card";
 import { Button } from "@/shared/ui/Button";
 import { PageContainer } from "@/shared/ui/PageContainer";
 import { PublicHeader } from "@/shared/ui/PublicHeader";
@@ -74,7 +85,7 @@ export function LoginPage() {
 				onError: (error) => {
 					apiErrorToast(error, "Unable to verify email. Please try again.");
 				},
-			}
+			},
 		);
 	};
 
@@ -101,7 +112,8 @@ export function LoginPage() {
 							}
 							toast({
 								title: "Password change required",
-								description: "Please update your password to finish signing in.",
+								description:
+									"Please update your password to finish signing in.",
 							});
 							navigate(routes.changePassword, { replace: true });
 							return;
@@ -122,7 +134,11 @@ export function LoginPage() {
 					} catch (error) {
 						if (isAxiosError(error) && error.response?.status === 403) {
 							const data = error.response.data as
-								| { detail?: string; message?: string; details?: { detail?: string } }
+								| {
+										detail?: string;
+										message?: string;
+										details?: { detail?: string };
+								  }
 								| undefined;
 							const detail =
 								data?.details?.detail || data?.detail || data?.message || "";
@@ -139,7 +155,8 @@ export function LoginPage() {
 								}
 								toast({
 									title: "Password change required",
-									description: "Please update your password to finish signing in.",
+									description:
+										"Please update your password to finish signing in.",
 								});
 								navigate(routes.changePassword, { replace: true });
 								return;
@@ -151,10 +168,10 @@ export function LoginPage() {
 				onError: (error) => {
 					apiErrorToast(
 						error,
-						"Invalid password or expired challenge. Please try again."
+						"Invalid password or expired challenge. Please try again.",
 					);
 				},
-			}
+			},
 		);
 	};
 
@@ -170,7 +187,8 @@ export function LoginPage() {
 	const statusMessage = useMemo(() => {
 		if (startLoginMutation.isPending) return "Verifying email...";
 		if (completeLoginMutation.isPending) return "Signing you in...";
-		if (step === "password") return "Email verified. Enter your password to continue.";
+		if (step === "password")
+			return "Email verified. Enter your password to continue.";
 		return "Enter your email to get started.";
 	}, [step, startLoginMutation.isPending, completeLoginMutation.isPending]);
 
@@ -183,9 +201,12 @@ export function LoginPage() {
 						<div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
 							<Shield className="h-6 w-6" />
 						</div>
-						<CardTitle className="text-2xl font-semibold">Sign in to SOLE</CardTitle>
+						<CardTitle className="text-2xl font-semibold">
+							Sign in to SOLE
+						</CardTitle>
 						<CardDescription className="text-sm">
-							Step through email verification and password entry to access the console.
+							Step through email verification and password entry to access the
+							console.
 						</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-5 sm:px-8">
@@ -195,7 +216,10 @@ export function LoginPage() {
 
 						{step === "email" ? (
 							<Form {...emailForm}>
-								<form className="space-y-4" onSubmit={emailForm.handleSubmit(handleEmailSubmit)}>
+								<form
+									className="space-y-4"
+									onSubmit={emailForm.handleSubmit(handleEmailSubmit)}
+								>
 									<FormField
 										control={emailForm.control}
 										name="email"
@@ -209,13 +233,18 @@ export function LoginPage() {
 														autoComplete="email"
 														placeholder="you@example.com"
 														disabled={startLoginMutation.isPending}
+														className="h-13"
 													/>
 												</FormControl>
 												<FormMessage />
 											</FormItem>
 										)}
 									/>
-									<Button className="w-full h-10" type="submit" disabled={startLoginMutation.isPending}>
+									<Button
+										className="w-full py-3.5 text-md"
+										type="submit"
+										disabled={startLoginMutation.isPending}
+									>
 										{startLoginMutation.isPending ? (
 											<>
 												<Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -229,11 +258,19 @@ export function LoginPage() {
 							</Form>
 						) : (
 							<Form {...passwordForm}>
-								<form className="space-y-4" onSubmit={passwordForm.handleSubmit(handlePasswordSubmit)}>
+								<form
+									className="space-y-4"
+									onSubmit={passwordForm.handleSubmit(handlePasswordSubmit)}
+								>
 									<div className="flex flex-wrap items-center justify-between gap-2 rounded-md border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
 										<div className="flex items-center gap-2">
-											<CheckCircle2 className="h-4 w-4 text-emerald-600" aria-hidden="true" />
-											<span className="font-medium text-foreground">{email}</span>
+											<CheckCircle2
+												className="h-4 w-4 text-emerald-600"
+												aria-hidden="true"
+											/>
+											<span className="font-medium text-foreground">
+												{email}
+											</span>
 										</div>
 										<button
 											type="button"
@@ -257,13 +294,18 @@ export function LoginPage() {
 														autoComplete="current-password"
 														placeholder="Enter your password"
 														disabled={completeLoginMutation.isPending}
+														className="h-13"
 													/>
 												</FormControl>
 												<FormMessage />
 											</FormItem>
 										)}
 									/>
-									<Button className="w-full h-10" type="submit" disabled={completeLoginMutation.isPending}>
+									<Button
+										className="w-full py-3.5 text-md"
+										type="submit"
+										disabled={completeLoginMutation.isPending}
+									>
 										{completeLoginMutation.isPending ? (
 											<>
 												<Loader2 className="mr-2 h-4 w-4 animate-spin" />

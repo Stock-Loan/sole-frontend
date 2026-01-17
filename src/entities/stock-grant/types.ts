@@ -40,6 +40,15 @@ export interface StockGrant {
 	next_vesting_summary?: string | null;
 }
 
+export interface VestingEventRow {
+	id: string;
+	grantId: string;
+	grantDate: string;
+	status: StockGrantStatus;
+	vestDate: string;
+	shares: number;
+}
+
 export interface StockGrantListResponse {
 	items: StockGrant[];
 	total?: number;
