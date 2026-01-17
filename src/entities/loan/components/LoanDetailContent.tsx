@@ -2,10 +2,17 @@ import { AlertTriangle, CheckCircle2 } from "lucide-react";
 import { EmptyState } from "@/shared/ui/EmptyState";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { Skeleton } from "@/shared/ui/Skeleton";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/Table/table";
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "@/shared/ui/Table/table";
 import { formatCurrency, formatDate, formatPercent } from "@/shared/lib/format";
 import { formatShares } from "@/entities/stock-grant/constants";
-import { cn, normalizeDisplay } from "@/shared/lib/utils";
+import { cn } from "@/shared/lib/utils";
 import {
 	formatDetailBoolean,
 	formatDetailValue,
@@ -13,14 +20,15 @@ import {
 	formatList,
 	formatLoanSelectionValue,
 	formatYears,
+	groupDocumentsByStage,
 } from "@/entities/loan/components/detail-utils";
+import { LoanDocumentList } from "@/entities/loan/components/LoanDocumentList";
+import { LoanTimeline } from "@/entities/loan/components/LoanTimeline";
 import type {
 	LoanAllocationTableProps,
 	LoanDetailContentProps,
 	LoanDetailRowProps,
 	LoanDetailSummaryCardProps,
-	LoanDocumentsListProps,
-	LoanWorkflowStagesProps,
 } from "@/entities/loan/components/types";
 
 export function LoanDetailContent({
@@ -55,6 +63,7 @@ export function LoanDetailContent({
 	const allocationSnapshot = loan.allocation_snapshot ?? [];
 	const workflowStages = loan.workflow_stages ?? [];
 	const documents = loan.documents ?? [];
+	const documentGroups = groupDocumentsByStage(documents);
 	const orgSettings = loan.org_settings_snapshot ?? null;
 	const eligibilitySnapshot = loan.eligibility_result_snapshot ?? null;
 
@@ -457,11 +466,13 @@ export function LoanDetailContent({
 						</CardTitle>
 					</CardHeader>
 					<CardContent className="space-y-4 text-sm text-muted-foreground">
-					{workflowStages.length === 0 ? (
-						<p>No workflow stages yet.</p>
-					) : (
-						<WorkflowStagesList stages={workflowStages} />
-						)}
+						<LoanTimeline
+							stages={workflowStages}
+							activationDate={loan.activation_date}
+							election83bDueDate={loan.election_83b_due_date}
+							emptyTitle="No workflow stages yet"
+							emptyMessage="Stages will appear once reviewers start the process."
+						/>
 					</CardContent>
 				</Card>
 
@@ -470,11 +481,11 @@ export function LoanDetailContent({
 						<CardTitle className="text-sm font-semibold">Documents</CardTitle>
 					</CardHeader>
 					<CardContent className="space-y-4 text-sm text-muted-foreground">
-						{documents.length === 0 ? (
-							<p>No documents uploaded yet.</p>
-						) : (
-							<DocumentsList documents={documents} />
-						)}
+						<LoanDocumentList
+							groups={documentGroups}
+							emptyTitle="No documents uploaded yet"
+							emptyMessage="Documents will show up here once uploaded."
+						/>
 					</CardContent>
 				</Card>
 			</div>
@@ -586,81 +597,6 @@ function AllocationTable({ allocations }: LoanAllocationTableProps) {
 				))}
 			</TableBody>
 		</Table>
-	);
-}
-
-function WorkflowStagesList({ stages }: LoanWorkflowStagesProps) {
-	return (
-		<div className="space-y-4">
-			{stages.map((stage, index) => (
-				<div key={`${stage.stage_type}-${index}`} className="space-y-1">
-					<p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-						{normalizeDisplay(stage.stage_type ?? "Stage")}
-					</p>
-					<DetailRow label="Stage ID" value={stage.id} valueClassName="break-all" />
-					<DetailRow label="Org ID" value={stage.org_id} valueClassName="break-all" />
-					<DetailRow
-						label="Loan application ID"
-						value={stage.loan_application_id}
-						valueClassName="break-all"
-					/>
-					<DetailRow label="Status" value={stage.status} />
-					<DetailRow
-						label="Assigned role"
-						value={stage.assigned_role_hint}
-					/>
-					<DetailRow
-						label="Completed by"
-						value={stage.completed_by_user_id}
-						valueClassName="break-all"
-					/>
-					<DetailRow
-						label="Completed at"
-						value={formatDate(stage.completed_at)}
-					/>
-					<DetailRow label="Notes" value={stage.notes} />
-					<DetailRow label="Created at" value={formatDate(stage.created_at)} />
-					<DetailRow label="Updated at" value={formatDate(stage.updated_at)} />
-				</div>
-			))}
-		</div>
-	);
-}
-
-function DocumentsList({ documents }: LoanDocumentsListProps) {
-	return (
-		<div className="space-y-4">
-			{documents.map((doc, index) => (
-				<div key={doc.id ?? `loan-doc-${index}`} className="space-y-1">
-					<p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-						{normalizeDisplay(doc.document_type ?? "Document")}
-					</p>
-					<DetailRow label="Document ID" value={doc.id} valueClassName="break-all" />
-					<DetailRow label="Org ID" value={doc.org_id} valueClassName="break-all" />
-					<DetailRow
-						label="Loan application ID"
-						value={doc.loan_application_id}
-						valueClassName="break-all"
-					/>
-					<DetailRow label="Stage type" value={normalizeDisplay(doc.stage_type)} />
-					<DetailRow label="File name" value={doc.file_name} />
-					<DetailRow label="Status" value={doc.status} />
-					<DetailRow
-						label="Uploaded by"
-						value={doc.uploaded_by_user_id}
-						valueClassName="break-all"
-					/>
-					<DetailRow label="Uploaded at" value={formatDate(doc.uploaded_at)} />
-					<DetailRow label="Created at" value={formatDate(doc.created_at)} />
-					<DetailRow label="Updated at" value={formatDate(doc.updated_at)} />
-					<DetailRow
-						label="Storage"
-						value={doc.storage_path_or_url ?? doc.storage_url}
-						valueClassName="break-all"
-					/>
-				</div>
-			))}
-		</div>
 	);
 }
 

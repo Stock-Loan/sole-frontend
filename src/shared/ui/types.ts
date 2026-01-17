@@ -63,6 +63,16 @@ export interface PageContainerProps extends HTMLAttributes<HTMLDivElement> {
 	fullHeight?: boolean;
 }
 
+export interface PickDocumentProps {
+	file: File | null;
+	onFileChange: (file: File | null) => void;
+	accept?: string;
+	disabled?: boolean;
+	label?: string;
+	helperText?: string;
+	className?: string;
+}
+
 export interface PublicHeaderProps {
 	actions?: ReactNode;
 }

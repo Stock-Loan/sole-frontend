@@ -129,6 +129,7 @@ export interface DataTableProps<T> {
 	enableExport?: boolean;
 	exportFileName?: string;
 	onSelectionChange?: (selectedRows: T[]) => void;
+	onRowClick?: (row: T) => void;
 	toolbarActions?: ReactNode;
 	renderToolbarActions?: (selectedRows: T[]) => ReactNode;
 	topBarActions?: ReactNode;
@@ -189,6 +190,7 @@ export interface DataTableBodyProps<T> {
 	emptyMessage: string;
 	rowSelection: RowSelectionState;
 	columnVisibility: VisibilityState;
+	onRowClick?: (row: T) => void;
 }
 
 export interface DataTablePaginationProps<T> {

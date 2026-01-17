@@ -1,5 +1,6 @@
 import { flexRender } from "@tanstack/react-table";
 import { TableBody, TableCell, TableRow } from "@/shared/ui/Table/table";
+import { cn } from "@/shared/lib/utils";
 import type { DataTableBodyProps } from "./types";
 
 export function DataTableBody<T>({
@@ -9,6 +10,7 @@ export function DataTableBody<T>({
 	emptyMessage,
 	rowSelection,
 	columnVisibility,
+	onRowClick,
 }: DataTableBodyProps<T>) {
 	const selectionKey = Object.keys(rowSelection).join("|");
 	const visibilityKey = Object.keys(columnVisibility)
@@ -44,6 +46,10 @@ export function DataTableBody<T>({
 				<TableRow
 					key={row.id}
 					data-selected={rowSelection[row.id] ? "true" : undefined}
+					onClick={() => onRowClick?.(row.original)}
+					className={cn(
+						onRowClick && "cursor-pointer hover:bg-muted/40"
+					)}
 				>
 					{visibleColumns.map((column) => {
 						let cell = row

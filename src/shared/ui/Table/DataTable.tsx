@@ -102,6 +102,7 @@ export function DataTable<T>({
 	enableExport = true,
 	exportFileName = "export.csv",
 	onSelectionChange,
+	onRowClick,
 	toolbarActions,
 	renderToolbarActions,
 	topBarActions,
@@ -572,6 +573,7 @@ export function DataTable<T>({
 					emptyMessage={emptyMessage}
 					rowSelection={rowSelection}
 					columnVisibility={columnVisibility}
+					onRowClick={onRowClick}
 				/>
 			</Table>
 			{paginationEnabled ? (

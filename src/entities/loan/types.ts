@@ -8,7 +8,10 @@ import type {
 	LoanRepaymentMethod,
 	SelfOrgPolicy,
 } from "@/entities/org/types";
-import type { EligibilityResult } from "@/entities/stock-grant/types";
+import type {
+	EligibilityResult,
+	StockSummary,
+} from "@/entities/stock-grant/types";
 
 export type LoanWizardStepKey = "exercise" | "terms" | "marital" | "review";
 
@@ -95,6 +98,8 @@ export interface LoanApplicationSummary {
 	org_id?: string | null;
 	org_membership_id?: string | null;
 	applicant?: LoanApplicantSummary | null;
+	current_stage_assignee?: LoanStageAssignee | null;
+	current_stage_assigned_at?: string | null;
 	shares_to_exercise?: number | null;
 	total_exercisable_shares_snapshot?: number | null;
 	purchase_price?: string | null;
@@ -105,8 +110,8 @@ export interface LoanApplicationSummary {
 	interest_type?: string | null;
 	repayment_method?: string | null;
 	term_months?: number | null;
-	current_stage_type?: string | null;
-	current_stage_status?: string | null;
+	current_stage_type?: LoanWorkflowStageType | null;
+	current_stage_status?: LoanWorkflowStageStatus | null;
 	created_at: string;
 	updated_at: string;
 }
@@ -183,13 +188,28 @@ export interface LoanOrgSettingsSnapshot {
 	policy_version: number;
 }
 
+export type LoanWorkflowStageType =
+	| "HR_REVIEW"
+	| "FINANCE_PROCESSING"
+	| "LEGAL_EXECUTION"
+	| "LEGAL_POST_ISSUANCE"
+	| "BORROWER_83B_ELECTION";
+
+export type LoanWorkflowStageStatus =
+	| "PENDING"
+	| "IN_PROGRESS"
+	| "COMPLETED";
+
 export interface LoanWorkflowStage {
 	id?: string;
 	org_id?: string;
 	loan_application_id?: string;
-	stage_type: string;
-	status: string;
+	stage_type: LoanWorkflowStageType;
+	status: LoanWorkflowStageStatus;
 	assigned_role_hint?: string | null;
+	assigned_to_user_id?: string | null;
+	assigned_by_user_id?: string | null;
+	assigned_at?: string | null;
 	completed_by_user_id?: string | null;
 	completed_at?: string | null;
 	notes?: string | null;
@@ -201,7 +221,7 @@ export interface LoanDocument {
 	id?: string | null;
 	org_id?: string;
 	loan_application_id?: string;
-	stage_type?: string | null;
+	stage_type?: LoanWorkflowStageType | null;
 	document_type?: string | null;
 	file_name?: string | null;
 	storage_path_or_url?: string | null;
@@ -213,9 +233,57 @@ export interface LoanDocument {
 	status?: string | null;
 }
 
+export interface LoanDocumentGroup {
+	stage_type: LoanWorkflowStageType;
+	documents: LoanDocument[];
+}
+
+export interface LoanStageAssignee {
+	user_id: string;
+	full_name?: string | null;
+	email?: string | null;
+}
+
+export interface LoanDocumentsGroupedResponse {
+	loan_id: string;
+	total: number;
+	groups: LoanDocumentGroup[];
+}
+
+export interface LoanWorkflowStageUpdatePayload {
+	status: LoanWorkflowStageStatus;
+	notes?: string | null;
+}
+
+export interface LoanWorkflowAssignPayload {
+	assignee_user_id?: string;
+}
+
+export interface LoanDocumentCreatePayload {
+	document_type: string;
+	file_name: string;
+	storage_path_or_url: string;
+}
+
+export interface HrLoanDetailResponse {
+	loan_application: LoanApplication;
+	stock_summary?: StockSummary | null;
+	hr_stage?: LoanWorkflowStage | null;
+}
+
+export interface FinanceLoanDetailResponse {
+	loan_application: LoanApplication;
+	finance_stage?: LoanWorkflowStage | null;
+}
+
+export interface LegalLoanDetailResponse {
+	loan_application: LoanApplication;
+	legal_stage?: LoanWorkflowStage | null;
+}
+
 export interface LoanApplicationListParams {
 	status?: LoanApplicationStatus[] | LoanApplicationStatus;
-	stage_type?: string;
+	stage_type?: LoanWorkflowStageType;
 	limit?: number;
 	offset?: number;
 	created_from?: string;
@@ -223,6 +291,16 @@ export interface LoanApplicationListParams {
 }
 
 export interface LoanApplicationListResponse {
+	items: LoanApplicationSummary[];
+	total: number;
+}
+
+export interface LoanQueueListParams {
+	limit?: number;
+	offset?: number;
+}
+
+export interface LoanQueueListResponse {
 	items: LoanApplicationSummary[];
 	total: number;
 }

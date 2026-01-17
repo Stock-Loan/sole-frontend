@@ -1,6 +1,11 @@
 import { formatPercent } from "@/shared/lib/format";
 import { normalizeDisplay } from "@/shared/lib/utils";
-import type { LoanSelectionMode } from "@/entities/loan/types";
+import type {
+	LoanDocument,
+	LoanDocumentGroup,
+	LoanSelectionMode,
+	LoanWorkflowStageType,
+} from "@/entities/loan/types";
 import type { EligibilityReason } from "@/entities/stock-grant/types";
 import type {
 	LoanDetailValue,
@@ -46,4 +51,33 @@ export function formatYears(value?: string | number | null) {
 	const raw = String(value).trim();
 	if (!raw) return "—";
 	return `${raw} years`;
+}
+
+const workflowStageOrder: LoanWorkflowStageType[] = [
+	"HR_REVIEW",
+	"FINANCE_PROCESSING",
+	"LEGAL_EXECUTION",
+	"LEGAL_POST_ISSUANCE",
+	"BORROWER_83B_ELECTION",
+];
+
+export function groupDocumentsByStage(
+	documents?: LoanDocument[] | null
+): LoanDocumentGroup[] {
+	if (!documents || documents.length === 0) return [];
+	const grouped = new Map<LoanWorkflowStageType, LoanDocument[]>();
+
+	for (const document of documents) {
+		if (!document.stage_type) continue;
+		const items = grouped.get(document.stage_type) ?? [];
+		items.push(document);
+		grouped.set(document.stage_type, items);
+	}
+
+	return workflowStageOrder
+		.filter((stageType) => grouped.has(stageType))
+		.map((stageType) => ({
+			stage_type: stageType,
+			documents: grouped.get(stageType) ?? [],
+		}));
 }

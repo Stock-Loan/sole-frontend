@@ -1,23 +1,31 @@
 import { EmptyState } from "@/shared/ui/EmptyState";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { Skeleton } from "@/shared/ui/Skeleton";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/Table/table";
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "@/shared/ui/Table/table";
 import { formatCurrency, formatDate } from "@/shared/lib/format";
 import { formatShares } from "@/entities/stock-grant/constants";
 import { cn, normalizeDisplay } from "@/shared/lib/utils";
+import { LoanDocumentList } from "@/entities/loan/components/LoanDocumentList";
+import { LoanTimeline } from "@/entities/loan/components/LoanTimeline";
 import type {
 	LoanAllocationTableProps,
 	LoanDetailRowProps,
 	LoanDetailSummaryCardProps,
 	LoanSelfDetailContentProps,
-	LoanSelfDocumentsListProps,
-	LoanSelfWorkflowStagesProps,
 } from "@/entities/loan/components/types";
 import {
 	formatDetailBoolean,
 	formatDetailValue,
 	formatEligibilityReasons,
 	formatLoanSelectionValue,
+	groupDocumentsByStage,
 } from "@/entities/loan/components/detail-utils";
 
 export function LoanSelfDetailContent({
@@ -27,6 +35,10 @@ export function LoanSelfDetailContent({
 	onRetry,
 	emptyTitle = "Unable to load loan",
 	emptyMessage = "We couldn't fetch this loan application.",
+	documentGroups: externalDocumentGroups,
+	documentsLoading,
+	documentsError,
+	onDocumentsRetry,
 }: LoanSelfDetailContentProps) {
 	if (isLoading) {
 		return <LoanSelfDetailSkeleton />;
@@ -48,6 +60,8 @@ export function LoanSelfDetailContent({
 	const allocationSnapshot = loan.allocation_snapshot ?? [];
 	const workflowStages = loan.workflow_stages ?? [];
 	const documents = loan.documents ?? [];
+	const documentGroups =
+		externalDocumentGroups ?? groupDocumentsByStage(documents);
 	const eligibilitySnapshot = loan.eligibility_result_snapshot ?? null;
 
 	return (
@@ -241,11 +255,13 @@ export function LoanSelfDetailContent({
 						</CardTitle>
 					</CardHeader>
 					<CardContent className="space-y-4 text-sm text-muted-foreground">
-						{workflowStages.length === 0 ? (
-							<p>No workflow stages yet.</p>
-						) : (
-							<SelfWorkflowStagesList stages={workflowStages} />
-						)}
+						<LoanTimeline
+							stages={workflowStages}
+							activationDate={loan.activation_date}
+							election83bDueDate={loan.election_83b_due_date}
+							emptyTitle="No workflow stages yet"
+							emptyMessage="Stages will appear once reviewers start the process."
+						/>
 					</CardContent>
 				</Card>
 
@@ -254,11 +270,14 @@ export function LoanSelfDetailContent({
 						<CardTitle className="text-sm font-semibold">Documents</CardTitle>
 					</CardHeader>
 					<CardContent className="space-y-4 text-sm text-muted-foreground">
-						{documents.length === 0 ? (
-							<p>No documents uploaded yet.</p>
-						) : (
-							<SelfDocumentsList documents={documents} />
-						)}
+						<LoanDocumentList
+							groups={documentGroups}
+							isLoading={documentsLoading}
+							isError={documentsError}
+							onRetry={onDocumentsRetry}
+							emptyTitle="No documents uploaded yet"
+							emptyMessage="Documents will show up here once uploaded."
+						/>
 					</CardContent>
 				</Card>
 			</div>
@@ -319,51 +338,6 @@ function AllocationTable({ allocations }: LoanAllocationTableProps) {
 				))}
 			</TableBody>
 		</Table>
-	);
-}
-
-function SelfWorkflowStagesList({ stages }: LoanSelfWorkflowStagesProps) {
-	return (
-		<div className="space-y-4">
-			{stages.map((stage, index) => (
-				<div key={`${stage.stage_type}-${index}`} className="space-y-1">
-					<p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-						{normalizeDisplay(stage.stage_type ?? "Stage")}
-					</p>
-					<DetailRow label="Status" value={stage.status} />
-					<DetailRow label="Created at" value={formatDate(stage.created_at)} />
-					<DetailRow label="Updated at" value={formatDate(stage.updated_at)} />
-					<DetailRow
-						label="Completed at"
-						value={formatDate(stage.completed_at)}
-					/>
-				</div>
-			))}
-		</div>
-	);
-}
-
-function SelfDocumentsList({ documents }: LoanSelfDocumentsListProps) {
-	return (
-		<div className="space-y-4">
-			{documents.map((doc, index) => (
-				<div key={doc.id ?? `loan-doc-${index}`} className="space-y-1">
-					<p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-						{normalizeDisplay(doc.document_type ?? "Document")}
-					</p>
-					<DetailRow label="File name" value={doc.file_name} />
-					<DetailRow
-						label="Uploaded at"
-						value={formatDate(doc.uploaded_at)}
-					/>
-					<DetailRow
-						label="Storage"
-						value={doc.storage_path_or_url ?? doc.storage_url}
-						valueClassName="break-all"
-					/>
-				</div>
-			))}
-		</div>
 	);
 }
 

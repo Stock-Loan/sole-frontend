@@ -14,6 +14,8 @@ export const routes = {
 	workspaceAmortization: "/app/workspace/amortization",
 	workspaceSettings: "/app/workspace/settings",
 	workflows: "/app/workflows",
+	workflowsQueue: "/app/workflows/queue",
+	workflowsRequestDetail: "/app/workflows/requests/:requestId",
 	loans: "/app/loans",
 	loansDetail: "/app/loans/:loanId",
 	stockOverview: "/app/stock",

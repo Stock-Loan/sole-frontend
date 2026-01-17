@@ -5,8 +5,13 @@ import { EmptyState } from "@/shared/ui/EmptyState";
 import { Button } from "@/shared/ui/Button";
 import { routes } from "@/shared/lib/routes";
 import { usePermissions } from "@/auth/hooks";
-import { useMyLoanApplication } from "@/entities/loan/hooks";
+import {
+	useMyLoanApplication,
+	useMyLoanDocuments,
+	useRegisterMyLoan83bDocument,
+} from "@/entities/loan/hooks";
 import { LoanSelfDetailContent } from "@/entities/loan/components/LoanSelfDetailContent";
+import { Loan83bPanel } from "@/entities/loan/components/Loan83bPanel";
 
 export function MyLoanDetailPage() {
 	const { id } = useParams();
@@ -16,6 +21,10 @@ export function MyLoanDetailPage() {
 
 	const loanQuery = useMyLoanApplication(id ?? "", { enabled: canViewLoans });
 	const loan = loanQuery.data;
+	const documentsQuery = useMyLoanDocuments(id ?? "", {
+		enabled: canViewLoans && loan?.status === "ACTIVE",
+	});
+	const register83bMutation = useRegisterMyLoan83bDocument();
 
 	if (!canViewLoans) {
 		return (
@@ -60,7 +69,23 @@ export function MyLoanDetailPage() {
 				isLoading={loanQuery.isLoading}
 				isError={loanQuery.isError}
 				onRetry={() => loanQuery.refetch()}
+				documentGroups={documentsQuery.data?.groups}
+				documentsLoading={documentsQuery.isLoading}
+				documentsError={documentsQuery.isError}
+				onDocumentsRetry={() => documentsQuery.refetch()}
 			/>
+
+			{loan?.status === "ACTIVE" && !loan?.has_83b_election ? (
+				<Loan83bPanel
+					loanId={loan.id}
+					dueDate={loan.election_83b_due_date}
+					daysUntilDue={loan.days_until_83b_due}
+					onRegister={(payload) =>
+						register83bMutation.mutateAsync({ id: loan.id, payload })
+					}
+					isRegistering={register83bMutation.isPending}
+				/>
+			) : null}
 		</PageContainer>
 	);
 }
