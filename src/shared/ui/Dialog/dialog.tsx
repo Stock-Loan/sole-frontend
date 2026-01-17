@@ -124,6 +124,7 @@ const AppDialog = ({
 	onOpenChange,
 	title,
 	description,
+	size = "lg",
 	children,
 	trigger,
 	onCancel,
@@ -137,7 +138,7 @@ const AppDialog = ({
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			{trigger ? <DialogTrigger asChild>{trigger}</DialogTrigger> : null}
-			<DialogContent>
+			<DialogContent size={size}>
 				<DialogHeader>
 					<DialogTitle>{title}</DialogTitle>
 					{description ? (

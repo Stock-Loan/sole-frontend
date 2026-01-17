@@ -24,6 +24,7 @@ export interface AppDialogProps {
 	onOpenChange: (open: boolean) => void;
 	title: string;
 	description?: string;
+	size?: DialogSize;
 	children: React.ReactNode;
 	trigger?: React.ReactNode;
 	onCancel?: () => void;

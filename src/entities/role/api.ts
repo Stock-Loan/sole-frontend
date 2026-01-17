@@ -1,5 +1,9 @@
 import { apiClient } from "@/shared/api/http";
 import { unwrapApiResponse } from "@/shared/api/response";
+import {
+	OrgUsersListResponseSchema,
+} from "@/entities/user/schemas";
+import type { OrgUsersListParams, OrgUsersListResponse } from "@/entities/user/types";
 import type {
 	Role,
 	RoleInput,
@@ -49,4 +53,16 @@ export async function removeRolesFromUser(
 	await apiClient.delete(`/roles/org/users/${membershipId}/roles`, {
 		data: { role_ids: roleIds },
 	});
+}
+
+export async function getRoleMembers(
+	roleId: string,
+	params: OrgUsersListParams = {},
+): Promise<OrgUsersListResponse> {
+	const response = await apiClient.get<OrgUsersListResponse>(
+		`/roles/${roleId}/members`,
+		{ params },
+	);
+	const payload = unwrapApiResponse<OrgUsersListResponse>(response.data);
+	return OrgUsersListResponseSchema.parse(payload);
 }

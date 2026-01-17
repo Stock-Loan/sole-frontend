@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import type { VisibilityState } from "@tanstack/react-table";
 import { Link, useNavigate } from "react-router-dom";
-import { PageHeader } from "@/shared/ui/PageHeader";
 import { PageContainer } from "@/shared/ui/PageContainer";
 import { EmptyState } from "@/shared/ui/EmptyState";
 import { DataTable } from "@/shared/ui/Table/DataTable";
@@ -13,14 +12,7 @@ import { loadDataTablePreferences } from "@/shared/ui/Table/constants";
 import { TabButton } from "@/shared/ui/TabButton";
 import { ToolbarButton } from "@/shared/ui/toolbar";
 import { Input } from "@/shared/ui/input";
-import {
-	Dialog,
-	DialogContent,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-} from "@/shared/ui/Dialog/dialog";
-import { Button } from "@/shared/ui/Button";
+import { AppDialog } from "@/shared/ui/Dialog/dialog";
 import { formatCurrency, formatDate } from "@/shared/lib/format";
 import { normalizeDisplay } from "@/shared/lib/utils";
 import { useToast } from "@/shared/ui/use-toast";
@@ -42,7 +34,8 @@ import type {
 	LoanApplicationSummary,
 	LoanWorkflowStageType,
 } from "@/entities/loan/types";
-import { useOrgUsersSearch } from "@/entities/user/hooks";
+import { useRolesList, useRoleMembersSearch } from "@/entities/role/hooks";
+import type { OrgUserListItem } from "@/entities/user/types";
 
 const PAGE_SIZE_OPTIONS = [10, 20, 30, 40, 50];
 const DEFAULT_PAGE_SIZE = 20;
@@ -79,6 +72,40 @@ function getManagePermission(stageType?: LoanWorkflowStageType | null) {
 	return null;
 }
 
+function getQueuePermissions(stageType?: LoanWorkflowStageType | null) {
+	if (!stageType) return [];
+	if (stageType === "HR_REVIEW") {
+		return ["loan.queue.hr.view", "loan.workflow.hr.manage"];
+	}
+	if (stageType === "FINANCE_PROCESSING") {
+		return ["loan.queue.finance.view", "loan.workflow.finance.manage"];
+	}
+	if (stageType === "LEGAL_EXECUTION") {
+		return ["loan.queue.legal.view", "loan.workflow.legal.manage"];
+	}
+	return [];
+}
+
+function canAssignUserToStage(
+	user: OrgUserListItem,
+	permissions: string[]
+) {
+	if (!user.roles || user.roles.length === 0) return true;
+	if (permissions.length === 0) return false;
+	const roles = user.roles ?? [];
+	return roles.some((role) =>
+		role.permissions?.some((perm) => permissions.includes(perm))
+	);
+}
+
+function getUserDisplayName(user: OrgUserListItem["user"]) {
+	return (
+		user.full_name ||
+		[user.first_name, user.last_name].filter(Boolean).join(" ").trim() ||
+		user.email
+	);
+}
+
 export function QueuePage() {
 	const navigate = useNavigate();
 	const { can } = usePermissions();
@@ -96,7 +123,6 @@ export function QueuePage() {
 		visibleTabs.find((tab) => tab.id === selectedTab)?.id ??
 		visibleTabs[0]?.id ??
 		"";
-	const activeCopy = visibleTabs.find((tab) => tab.id === activeTab);
 
 	const queueParams = useMemo(
 		() => ({
@@ -182,10 +208,59 @@ export function QueuePage() {
 		useState<LoanApplicationSummary | null>(null);
 	const [userSearchTerm, setUserSearchTerm] = useState("");
 	const [selectedAssigneeId, setSelectedAssigneeId] = useState("");
-	const usersQuery = useOrgUsersSearch(userSearchTerm.trim(), userSearchTerm, {
-		enabled: assignDialogOpen && userSearchTerm.trim().length > 0,
-	});
-	const assigneeOptions = usersQuery.data?.items ?? [];
+	const rolesQuery = useRolesList(
+		{ page: 1, page_size: 200 },
+		{ enabled: assignDialogOpen }
+	);
+	const assignmentStageType = assignmentTarget?.current_stage_type ?? null;
+	const managePermission = getManagePermission(assignmentStageType);
+	const stageRoleId = useMemo(() => {
+		if (!managePermission) return null;
+		const matchingRoles = (rolesQuery.data?.items ?? []).filter((role) =>
+			role.permissions.includes(managePermission)
+		);
+		const systemRole = matchingRoles.find((role) => role.is_system_role);
+		return (systemRole ?? matchingRoles[0])?.id ?? null;
+	}, [managePermission, rolesQuery.data?.items]);
+	const usersQuery = useRoleMembersSearch(
+		stageRoleId,
+		userSearchTerm.trim(),
+		userSearchTerm,
+		{
+			enabled:
+				assignDialogOpen &&
+				userSearchTerm.trim().length > 0 &&
+				Boolean(stageRoleId),
+		}
+	);
+	const assigneeOptions = useMemo(
+		() => usersQuery.data?.items ?? [],
+		[usersQuery.data]
+	);
+	const eligiblePermissions = useMemo(
+		() => getQueuePermissions(assignmentStageType),
+		[assignmentStageType]
+	);
+	const eligibleAssignees = useMemo(
+		() =>
+			assigneeOptions.filter((option) =>
+				canAssignUserToStage(option, eligiblePermissions)
+			),
+		[assigneeOptions, eligiblePermissions]
+	);
+	const sortedAssignees = useMemo(() => {
+		const items = [...eligibleAssignees];
+		items.sort((a, b) => {
+			const aIsMe = a.user.id === user?.id;
+			const bIsMe = b.user.id === user?.id;
+			if (aIsMe && !bIsMe) return -1;
+			if (!aIsMe && bIsMe) return 1;
+			return getUserDisplayName(a.user).localeCompare(
+				getUserDisplayName(b.user)
+			);
+		});
+		return items;
+	}, [eligibleAssignees, user?.id]);
 
 	const columns = useMemo<ColumnDefinition<LoanApplicationSummary>[]>(
 		() => [
@@ -260,44 +335,6 @@ export function QueuePage() {
 					),
 			},
 			{
-				id: "assignAction",
-				header: "Assignment",
-				accessor: () => "",
-				enableSorting: false,
-				enableFiltering: false,
-				cell: (loan) => {
-					const stageType = loan.current_stage_type ?? null;
-					const permission = getManagePermission(stageType);
-					const canAssignSelf = permission ? can(permission) : false;
-					const isCompleted = loan.current_stage_status === "COMPLETED";
-					return (
-						<Button
-							variant="outline"
-							size="sm"
-							disabled={!canAssignSelf || isCompleted || !stageType}
-							onClick={async (event) => {
-								event.stopPropagation();
-								if (!stageType) return;
-								try {
-									await assignMutation.mutateAsync({
-										id: loan.id,
-										stageType,
-									});
-								} catch (error) {
-									toast({
-										title: "Assignment failed",
-										description: parseApiError(error).message,
-										variant: "destructive",
-									});
-								}
-							}}
-						>
-							Assign to me
-						</Button>
-					);
-				},
-			},
-			{
 				id: "shares",
 				header: "Shares",
 				accessor: (loan) => loan.shares_to_exercise ?? 0,
@@ -334,10 +371,6 @@ export function QueuePage() {
 	if (visibleTabs.length === 0) {
 		return (
 			<PageContainer className="space-y-6">
-				<PageHeader
-					title="Workflow queue"
-					subtitle="Review stock loan requests by discipline."
-				/>
 				<EmptyState
 					title="No workflow access"
 					message="You don't have queue permissions yet. Contact an administrator if this is unexpected."
@@ -349,10 +382,6 @@ export function QueuePage() {
 	if (activeQuery.isError) {
 		return (
 			<PageContainer className="space-y-6">
-				<PageHeader
-					title="Workflow queue"
-					subtitle="Review stock loan requests by discipline."
-				/>
 				<EmptyState
 					title="Unable to load workflow queue"
 					message="We couldn't fetch queue requests right now."
@@ -365,11 +394,6 @@ export function QueuePage() {
 
 	return (
 		<PageContainer className="flex min-h-0 flex-1 flex-col gap-4">
-			<PageHeader
-				title="Workflow queue"
-				subtitle="Review stock loan requests by discipline."
-			/>
-
 			<div className="inline-flex w-fit items-center gap-2 rounded-lg border bg-card px-2 py-2 shadow-sm">
 				{visibleTabs.map((tab) => (
 					<TabButton
@@ -394,15 +418,6 @@ export function QueuePage() {
 				))}
 			</div>
 
-			<div className="rounded-lg border bg-card p-4">
-				<h2 className="text-base font-semibold text-foreground">
-					{activeCopy?.label} queue
-				</h2>
-				<p className="text-sm text-muted-foreground">
-					{activeCopy?.description}
-				</p>
-			</div>
-
 			<DataTable
 				data={loans}
 				columns={columns}
@@ -417,6 +432,11 @@ export function QueuePage() {
 				renderToolbarActions={(selectedLoans) => {
 					const hasSingle = selectedLoans.length === 1;
 					const selectedLoan = hasSingle ? selectedLoans[0] : null;
+					const stageType = selectedLoan?.current_stage_type ?? null;
+					const permission = getManagePermission(stageType);
+					const canAssignSelf = permission ? can(permission) : false;
+					const isCompleted =
+						selectedLoan?.current_stage_status === "COMPLETED";
 					return (
 						<div className="flex items-center gap-2">
 							<ToolbarButton
@@ -435,9 +455,33 @@ export function QueuePage() {
 							>
 								View
 							</ToolbarButton>
-							{canAssignAny ? (
+							{canAssignSelf ? (
 								<ToolbarButton
 									variant="secondary"
+									size="sm"
+									disabled={!hasSingle || isCompleted || !stageType}
+									onClick={async () => {
+										if (!selectedLoan || !stageType) return;
+										try {
+											await assignMutation.mutateAsync({
+												id: selectedLoan.id,
+												stageType,
+											});
+										} catch (error) {
+											toast({
+												title: "Assignment failed",
+												description: parseApiError(error).message,
+												variant: "destructive",
+											});
+										}
+									}}
+								>
+									Assign to me
+								</ToolbarButton>
+							) : null}
+							{canAssignAny ? (
+								<ToolbarButton
+									variant="outline"
 									size="sm"
 									disabled={!hasSingle}
 									onClick={() => {
@@ -446,7 +490,7 @@ export function QueuePage() {
 										setAssignDialogOpen(true);
 									}}
 								>
-									Assign
+									Assign reviewer
 								</ToolbarButton>
 							) : null}
 						</div>
@@ -458,7 +502,7 @@ export function QueuePage() {
 					pageSizeOptions: PAGE_SIZE_OPTIONS,
 				}}
 			/>
-			<Dialog
+			<AppDialog
 				open={assignDialogOpen}
 				onOpenChange={(open) => {
 					setAssignDialogOpen(open);
@@ -468,56 +512,133 @@ export function QueuePage() {
 						setAssignmentTarget(null);
 					}
 				}}
+				title="Assign reviewer"
+				description="Select a reviewer for this workflow stage."
+				size="sm"
+				actions={[
+					{
+						label: assignMutation.isPending ? "Assigning..." : "Assign",
+						variant: "default",
+						loading: assignMutation.isPending,
+						disabled:
+							!assignmentTarget ||
+							!selectedAssigneeId ||
+							assignmentTarget?.current_stage_status === "COMPLETED" ||
+							assignMutation.isPending,
+						onClick: async () => {
+							if (!assignmentTarget || !selectedAssigneeId) return;
+							const stageType = assignmentTarget.current_stage_type;
+							if (!stageType) return;
+							try {
+								await assignMutation.mutateAsync({
+									id: assignmentTarget.id,
+									stageType,
+									payload: { assignee_user_id: selectedAssigneeId },
+								});
+								setAssignDialogOpen(false);
+								setUserSearchTerm("");
+								setSelectedAssigneeId("");
+							} catch (error) {
+								toast({
+									title: "Assignment failed",
+									description: parseApiError(error).message,
+									variant: "destructive",
+								});
+							}
+						},
+					},
+				]}
 			>
-				<DialogContent size="sm">
-					<DialogHeader>
-						<DialogTitle>Assign workflow</DialogTitle>
-					</DialogHeader>
-					<div className="space-y-3 text-sm">
-						<p className="text-muted-foreground">
-							Assign{" "}
-							<span className="font-medium text-foreground">
-								{assignmentTarget?.id ?? "this loan"}
-							</span>{" "}
-							to a reviewer.
+				<div className="space-y-4">
+					<div className="rounded-lg border border-border/70 bg-muted/20 px-4 py-3 text-sm">
+						<div className="flex flex-wrap items-center justify-between gap-3">
+							<div>
+								<p className="text-xs text-muted-foreground">Loan</p>
+								<p className="font-semibold text-foreground">
+									{assignmentTarget?.id ?? "—"}
+								</p>
+							</div>
+							<div>
+								<p className="text-xs text-muted-foreground">Stage</p>
+								<p className="font-semibold text-foreground">
+									{normalizeDisplay(assignmentStageType ?? "—")}
+								</p>
+							</div>
+							<div>
+								<p className="text-xs text-muted-foreground">Current assignee</p>
+								<p className="font-semibold text-foreground">
+									{assignmentTarget?.current_stage_assignee?.full_name ??
+										assignmentTarget?.current_stage_assignee?.email ??
+										"Unassigned"}
+								</p>
+							</div>
+						</div>
+						<p className="mt-2 text-xs text-muted-foreground">
+							Only users with access to this queue are shown.
+						</p>
+					</div>
+
+					<div className="space-y-2">
+						<p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+							Select reviewer
 						</p>
 						<Input
 							value={userSearchTerm}
 							onChange={(event) => setUserSearchTerm(event.target.value)}
-							placeholder="Search user by name, email, or employee ID"
+							placeholder="Search by name, email, or employee ID"
+							className="h-9"
 						/>
-						<div className="space-y-2 max-h-64 overflow-auto rounded-md border p-2">
+						<div className="max-h-72 space-y-2 overflow-auto rounded-lg border border-border/70 bg-background p-2">
 							{userSearchTerm.trim().length === 0 ? (
-								<p className="text-xs text-muted-foreground">
-									Start typing to find users.
+								<p className="px-2 py-3 text-xs text-muted-foreground">
+									Start typing to find eligible users.
+								</p>
+							) : rolesQuery.isLoading ? (
+								<p className="px-2 py-3 text-xs text-muted-foreground">
+									Loading role members…
+								</p>
+							) : rolesQuery.isError ? (
+								<p className="px-2 py-3 text-xs text-muted-foreground">
+									Unable to load roles for assignment.
+								</p>
+							) : !stageRoleId ? (
+								<p className="px-2 py-3 text-xs text-muted-foreground">
+									No role configured for this queue.
 								</p>
 							) : usersQuery.isLoading ? (
-								<p className="text-xs text-muted-foreground">Loading users…</p>
-							) : assigneeOptions.length === 0 ? (
-								<p className="text-xs text-muted-foreground">No users found.</p>
+								<p className="px-2 py-3 text-xs text-muted-foreground">
+									Loading users…
+								</p>
+							) : sortedAssignees.length === 0 ? (
+								<p className="px-2 py-3 text-xs text-muted-foreground">
+									No eligible users found for this queue.
+								</p>
 							) : (
-								assigneeOptions.map((option) => {
-									const displayName =
-										option.user.full_name ||
-										[option.user.first_name, option.user.last_name]
-											.filter(Boolean)
-											.join(" ")
-											.trim() ||
-										option.user.email;
+								sortedAssignees.map((option) => {
+									const displayName = getUserDisplayName(option.user);
+									const isSelected = selectedAssigneeId === option.user.id;
+									const isMe = option.user.id === user?.id;
 									return (
 										<button
 											type="button"
 											key={option.user.id}
-											className={`flex w-full items-center justify-between gap-2 rounded-md px-2 py-2 text-left text-sm transition ${
-												selectedAssigneeId === option.user.id
-													? "bg-muted"
-													: "hover:bg-muted/40"
+											className={`flex w-full flex-col gap-1 rounded-md border px-3 py-2 text-left text-sm transition ${
+												isSelected
+													? "border-primary bg-primary/10"
+													: "border-transparent hover:bg-muted/40"
 											}`}
 											onClick={() => setSelectedAssigneeId(option.user.id)}
 										>
-											<span className="font-medium text-foreground">
-												{displayName}
-											</span>
+											<div className="flex items-center justify-between gap-2">
+												<span className="font-medium text-foreground">
+													{displayName}
+												</span>
+												{isMe ? (
+													<span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold uppercase text-muted-foreground">
+														You
+													</span>
+												) : null}
+											</div>
 											<span className="text-xs text-muted-foreground">
 												{option.user.email}
 											</span>
@@ -527,47 +648,8 @@ export function QueuePage() {
 							)}
 						</div>
 					</div>
-					<DialogFooter>
-						<Button
-							variant="outline"
-							onClick={() => setAssignDialogOpen(false)}
-						>
-							Cancel
-						</Button>
-						<Button
-							disabled={
-								!assignmentTarget ||
-								!selectedAssigneeId ||
-								assignmentTarget?.current_stage_status === "COMPLETED" ||
-								assignMutation.isPending
-							}
-							onClick={async () => {
-								if (!assignmentTarget || !selectedAssigneeId) return;
-								const stageType = assignmentTarget.current_stage_type;
-								if (!stageType) return;
-								try {
-									await assignMutation.mutateAsync({
-										id: assignmentTarget.id,
-										stageType,
-										payload: { assignee_user_id: selectedAssigneeId },
-									});
-									setAssignDialogOpen(false);
-									setUserSearchTerm("");
-									setSelectedAssigneeId("");
-								} catch (error) {
-									toast({
-										title: "Assignment failed",
-										description: parseApiError(error).message,
-										variant: "destructive",
-									});
-								}
-							}}
-						>
-							{assignMutation.isPending ? "Assigning..." : "Assign"}
-						</Button>
-					</DialogFooter>
-				</DialogContent>
-			</Dialog>
+				</div>
+			</AppDialog>
 		</PageContainer>
 	);
 }
