@@ -21,6 +21,7 @@ import { getStockValueMetrics } from "@/entities/stock-grant/utils";
 import type { StockSummaryMetric } from "@/entities/stock-grant/types";
 import { useStockSearch } from "@/entities/stock-grant/context/context";
 import { StockUserSearch } from "../../../entities/stock-grant/components/StockUserSearch";
+import { colorPalette } from "@/app/styles/color-palette";
 
 export function StockAdminPage() {
 	const { can } = usePermissions();
@@ -168,6 +169,16 @@ export function StockAdminPage() {
 					summary.next_vesting_event.shares
 			  )} shares`
 			: "—";
+		const metricCardStyle = {
+			borderColor: colorPalette.slate[200],
+			backgroundColor: colorPalette.semantic.surface,
+		};
+		const metricLabelStyle = { color: colorPalette.slate[500] };
+		const metricValueStyle = { color: colorPalette.navy[900] };
+		const summaryCardStyle = {
+			borderColor: colorPalette.slate[200],
+			background: colorPalette.gradients.card,
+		};
 
 		return (
 			<div className="space-y-5">
@@ -175,30 +186,41 @@ export function StockAdminPage() {
 					{summaryMetrics.map((metric) => (
 						<div
 							key={metric.label}
-							className="rounded-lg border border-border/60 bg-card/70 p-4"
+							className="relative overflow-hidden rounded-xl border p-4"
+							style={metricCardStyle}
 						>
-							<p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+							<div
+								className="absolute left-0 top-0 h-full w-1"
+								style={{ backgroundColor: colorPalette.semantic.primary }}
+							/>
+							<p
+								className="text-xs font-semibold uppercase tracking-wide"
+								style={metricLabelStyle}
+							>
 								{metric.label}
 							</p>
-							<p className="mt-2 text-lg font-semibold text-foreground">
+							<p className="mt-2 text-lg font-semibold" style={metricValueStyle}>
 								{metric.value}
 							</p>
 						</div>
 					))}
-					<div className="rounded-lg border border-border/60 bg-card/70 p-4">
-						<p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+					<div className="rounded-xl border p-4" style={summaryCardStyle}>
+						<p
+							className="text-xs font-semibold uppercase tracking-wide"
+							style={metricLabelStyle}
+						>
 							Grant value
 						</p>
 						<div className="mt-3 space-y-2 text-sm">
-							<div className="flex items-center justify-between text-muted-foreground">
+							<div className="flex items-center justify-between" style={metricLabelStyle}>
 								<span>Average exercise price</span>
-								<span className="text-foreground">
+								<span className="font-semibold" style={metricValueStyle}>
 									{formatCurrency(averageExercisePrice)}
 								</span>
 							</div>
-							<div className="flex items-center justify-between text-muted-foreground">
+							<div className="flex items-center justify-between" style={metricLabelStyle}>
 								<span>Total stock value</span>
-								<span className="text-foreground">
+								<span className="font-semibold" style={metricValueStyle}>
 									{formatCurrency(totalStockValue)}
 								</span>
 							</div>
@@ -247,10 +269,13 @@ export function StockAdminPage() {
 				</div>
 
 				<div className="rounded-lg border border-border/60 bg-card/70 p-4">
-					<p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+					<p
+						className="text-xs font-semibold uppercase tracking-wide"
+						style={metricLabelStyle}
+					>
 						Next vesting event
 					</p>
-					<p className="mt-2 text-sm text-foreground">
+					<p className="mt-2 text-sm" style={metricValueStyle}>
 						{nextVestingLabel}
 					</p>
 				</div>

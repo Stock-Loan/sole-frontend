@@ -4,6 +4,7 @@ import { flexRender } from "@tanstack/react-table";
 import { TableHead, TableHeader, TableRow } from "@/shared/ui/Table/table";
 import { Checkbox } from "@/shared/ui/checkbox";
 import { cn } from "@/shared/lib/utils";
+import { Button } from "@/shared/ui/Button";
 import { isFilterActive, selectionColumnId } from "./constants";
 import { DataTableColumnMenu } from "./DataTableColumnMenu";
 import type { DataTableHeaderProps } from "./types";
@@ -164,18 +165,20 @@ export function DataTableHeader<T>({
 							>
 								<div className="flex w-full items-center justify-start gap-2">
 									{canDrag ? (
-										<button
+										<Button
 											type="button"
 											draggable
 											onDragStart={(event) =>
 												handleDragStart(event, header.column.id)
 											}
 											onDragEnd={handleDragEnd}
-											className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition hover:bg-muted"
+											variant="ghost"
+											size="icon"
+											className="h-7 w-7 text-muted-foreground hover:bg-muted"
 											aria-label="Reorder column"
 										>
 											<GripVertical className="h-4 w-4" />
-										</button>
+										</Button>
 									) : null}
 									<span className="text-xs font-medium">
 										{config.header}

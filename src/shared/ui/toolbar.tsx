@@ -1,7 +1,7 @@
 import * as React from "react";
 import * as ToolbarPrimitive from "@radix-ui/react-toolbar";
 import { cn } from "@/shared/lib/utils";
-import { buttonVariants } from "./button-variant";
+import { Button } from "@/shared/ui/Button";
 import type {
 	ToolbarButtonProps,
 	ToolbarGroupProps,
@@ -49,16 +49,20 @@ const ToolbarSeparator = React.forwardRef<
 ));
 ToolbarSeparator.displayName = ToolbarPrimitive.Separator.displayName;
 
-const ToolbarButton = React.forwardRef<
-	React.ComponentRef<typeof ToolbarPrimitive.Button>,
-	ToolbarButtonProps
->(({ className, variant = "ghost", size = "sm", ...props }, ref) => (
-	<ToolbarPrimitive.Button
-		ref={ref}
-		className={cn(buttonVariants({ variant, size }), "h-8 px-2", className)}
-		{...props}
-	/>
-));
-ToolbarButton.displayName = ToolbarPrimitive.Button.displayName;
+const ToolbarButton = React.forwardRef<HTMLButtonElement, ToolbarButtonProps>(
+	({ className, variant = "ghost", size = "sm", asChild, ...props }, ref) => (
+		<ToolbarPrimitive.Button asChild>
+			<Button
+				ref={ref}
+				variant={variant}
+				size={size}
+				asChild={asChild}
+				className={cn(className)}
+				{...props}
+			/>
+		</ToolbarPrimitive.Button>
+	)
+);
+ToolbarButton.displayName = "ToolbarButton";
 
 export { Toolbar, ToolbarButton, ToolbarGroup, ToolbarSeparator };

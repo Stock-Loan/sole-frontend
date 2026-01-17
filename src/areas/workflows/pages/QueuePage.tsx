@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import type { VisibilityState } from "@tanstack/react-table";
 import { Link, useNavigate } from "react-router-dom";
+import { PageHeader } from "@/shared/ui/PageHeader";
 import { PageContainer } from "@/shared/ui/PageContainer";
 import { EmptyState } from "@/shared/ui/EmptyState";
 import { DataTable } from "@/shared/ui/Table/DataTable";
@@ -365,6 +366,10 @@ export function QueuePage() {
 
 	return (
 		<PageContainer className="flex min-h-0 flex-1 flex-col gap-4">
+			<PageHeader
+				title="Workflow queue"
+				subtitle="Review and assign loan workflow requests."
+			/>
 			<div className="inline-flex w-fit items-center gap-2 rounded-lg border bg-card px-2 py-2 shadow-sm">
 				{visibleTabs.map((tab) => (
 					<TabButton
@@ -428,7 +433,7 @@ export function QueuePage() {
 							</ToolbarButton>
 							{canAssignSelf ? (
 								<ToolbarButton
-									variant="secondary"
+									variant="default"
 									size="sm"
 									disabled={!hasSingle || isCompleted || !stageType}
 									onClick={async () => {

@@ -76,7 +76,17 @@ export function LoanApplicationsPage() {
 			accessor: (loan) => loan.applicant?.full_name ?? "",
 			filterAccessor: (loan) =>
 				`${loan.applicant?.full_name ?? ""} ${loan.applicant?.email ?? ""}`.trim(),
-			cell: (loan) => loan.applicant?.full_name ?? "—",
+			cell: (loan) => (
+				<button
+					type="button"
+					className="text-left font-medium text-primary underline-offset-4 hover:underline"
+					onClick={() =>
+						navigate(routes.loansDetail.replace(":loanId", loan.id))
+					}
+				>
+					{loan.applicant?.full_name ?? "—"}
+				</button>
+			),
 			headerClassName: "min-w-[180px]",
 		},
 		{

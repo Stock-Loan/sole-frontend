@@ -13,6 +13,7 @@ import {
 import { formatCurrency, formatDate, formatPercent } from "@/shared/lib/format";
 import { formatShares } from "@/entities/stock-grant/constants";
 import { cn } from "@/shared/lib/utils";
+import { colorPalette } from "@/app/styles/color-palette";
 import {
 	formatDetailBoolean,
 	formatDetailValue,
@@ -547,14 +548,30 @@ export function LoanDetailContent({
 
 function SummaryCard({ label, value }: LoanDetailSummaryCardProps) {
 	return (
-		<Card>
+		<Card
+			className="relative overflow-hidden"
+			style={{
+				borderColor: colorPalette.slate[200],
+				backgroundColor: colorPalette.semantic.surface,
+			}}
+		>
+			<div
+				className="absolute left-0 top-0 h-full w-1"
+				style={{ backgroundColor: colorPalette.semantic.primary }}
+			/>
 			<CardHeader className="pb-2">
-				<CardTitle className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+				<CardTitle
+					className="text-xs font-semibold uppercase tracking-wide"
+					style={{ color: colorPalette.slate[500] }}
+				>
 					{label}
 				</CardTitle>
 			</CardHeader>
 			<CardContent>
-				<p className="text-2xl font-semibold text-foreground">
+				<p
+					className="text-2xl font-semibold"
+					style={{ color: colorPalette.navy[900] }}
+				>
 					{formatDetailValue(value)}
 				</p>
 			</CardContent>

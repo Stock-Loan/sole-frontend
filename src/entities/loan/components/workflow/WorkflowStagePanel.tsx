@@ -114,7 +114,7 @@ export function WorkflowStagePanel({
 	};
 
 	return (
-		<div className="space-y-4">
+		<div className="space-y-4 pb-6">
 			<Card>
 				<CardHeader>
 					<CardTitle>{title}</CardTitle>

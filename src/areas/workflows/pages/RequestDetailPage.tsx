@@ -244,7 +244,7 @@ export function RequestDetailPage() {
 	}
 
 	return (
-		<PageContainer className="flex min-h-0 flex-1 flex-col gap-6 pb-10">
+		<PageContainer className="flex min-h-0 flex-1 flex-col gap-6 pb-16">
 			<PageHeader
 				title="Request detail"
 				subtitle={`Request ID: ${requestId}`}
