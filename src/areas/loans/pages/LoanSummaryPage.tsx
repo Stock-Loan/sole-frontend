@@ -1,10 +1,7 @@
 import { useMemo } from "react";
-import { useSearchParams } from "react-router-dom";
 import { PageContainer } from "@/shared/ui/PageContainer";
 import { PageHeader } from "@/shared/ui/PageHeader";
 import { EmptyState } from "@/shared/ui/EmptyState";
-import { Input } from "@/shared/ui/input";
-import { Button } from "@/shared/ui/Button";
 import { Card, CardContent, CardHeader } from "@/shared/ui/card";
 import { Skeleton } from "@/shared/ui/Skeleton";
 import { usePermissions } from "@/auth/hooks";
@@ -25,10 +22,8 @@ const CHART_LAYOUT = "grid gap-4 lg:grid-cols-2";
 export function LoanSummaryPage() {
 	const { can } = usePermissions();
 	const canViewSummary = can("loan.dashboard.view");
-	const [searchParams, setSearchParams] = useSearchParams();
-	const asOf = searchParams.get("as_of") ?? "";
 	const summaryQuery = useLoanDashboardSummary(
-		{ as_of: asOf || undefined },
+		{},
 		{ enabled: canViewSummary }
 	);
 
@@ -63,16 +58,6 @@ export function LoanSummaryPage() {
 		0
 	);
 
-	const handleAsOfChange = (value: string) => {
-		const next = new URLSearchParams(searchParams);
-		if (value) {
-			next.set("as_of", value);
-		} else {
-			next.delete("as_of");
-		}
-		setSearchParams(next, { replace: true });
-	};
-
 	if (!canViewSummary) {
 		return (
 			<PageContainer className="space-y-6">
@@ -92,34 +77,6 @@ export function LoanSummaryPage() {
 					summary?.as_of
 						? `As of ${formatDate(summary.as_of)}`
 						: "Monitor loan activity and workflow health."
-				}
-				actions={
-					<div className="flex flex-wrap items-end gap-2">
-						<div className="space-y-1">
-							<label
-								htmlFor="loan-summary-as-of"
-								className="text-xs text-muted-foreground"
-							>
-								As of date
-							</label>
-							<Input
-								id="loan-summary-as-of"
-								type="date"
-								value={asOf}
-								onChange={(event) => handleAsOfChange(event.target.value)}
-								className="h-8 w-[160px]"
-							/>
-						</div>
-						{asOf ? (
-							<Button
-								variant="outline"
-								size="sm"
-								onClick={() => handleAsOfChange("")}
-							>
-								Clear
-							</Button>
-						) : null}
-					</div>
 				}
 			/>
 
