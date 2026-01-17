@@ -18,7 +18,7 @@ export const routes = {
 	workflowsQueue: "/app/workflows/queue",
 	workflowsRequestDetail: "/app/workflows/requests/:requestId",
 	loans: "/app/loans",
-	loansSummary: "/app/loans/summary",
+	loansSummary: "/app/loans",
 	loansDetail: "/app/loans/:loanId",
 	stockOverview: "/app/stock",
 	stockManage: "/app/stock/manage",

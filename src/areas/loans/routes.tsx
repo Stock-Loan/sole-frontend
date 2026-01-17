@@ -4,18 +4,14 @@ import { LoanApplicationsPage } from "./pages/LoanApplicationsPage";
 import { LoanDetailPage } from "./pages/LoanDetailPage";
 import { LoanSummaryPage } from "./pages/LoanSummaryPage";
 import { RepaymentsPage } from "./pages/RepaymentsPage";
-import { AmortizationPage } from "./pages/AmortizationPage";
 import { WhatIfPage } from "./pages/WhatIfPage";
 
 export const loansRoutes: RouteObject[] = [
 	{
 		index: true,
 		element: (
-			<RequirePermission
-				permission={["loan.view_all", "loan.manage"]}
-				mode="any"
-			>
-				<LoanApplicationsPage />
+			<RequirePermission permission="loan.dashboard.view">
+				<LoanSummaryPage />
 			</RequirePermission>
 		),
 	},
@@ -70,14 +66,6 @@ export const loansRoutes: RouteObject[] = [
 				permissions: "loan.payment.view",
 			},
 		},
-	},
-	{
-		path: "amortization",
-		element: (
-			<RequirePermission permission="loan.schedule.view">
-				<AmortizationPage />
-			</RequirePermission>
-		),
 	},
 	{
 		path: "what-if",
