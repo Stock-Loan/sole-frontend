@@ -221,7 +221,7 @@ export interface AddUserDialogProps {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 	onSubmit: (values: OnboardUserPayload) => Promise<void>;
-	trigger: React.ReactNode;
+	trigger?: React.ReactNode;
 }
 export type AddUserFormValues = z.infer<typeof formSchema>;
 export type ProfileFormValues = z.infer<typeof profileSchema>;

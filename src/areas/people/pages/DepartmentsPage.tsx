@@ -8,7 +8,6 @@ import { DataTable } from "@/shared/ui/Table/DataTable";
 import type { ColumnDefinition } from "@/shared/ui/Table/types";
 import { Button } from "@/shared/ui/Button";
 import { useToast } from "@/shared/ui/use-toast";
-import { Checkbox } from "@/shared/ui/checkbox";
 import { ToolbarButton } from "@/shared/ui/toolbar";
 import { useAuth } from "@/auth/hooks";
 import {
@@ -289,6 +288,13 @@ export function DepartmentsPage() {
 		}),
 		[]
 	);
+	const handleToggleArchived = () => {
+		const nextValue = !includeArchived;
+		setIncludeArchived(nextValue);
+		const nextParams = new URLSearchParams(searchParams);
+		nextParams.set("page", "1");
+		setSearchParams(nextParams);
+	};
 
 	return (
 		<PageContainer className="flex min-h-0 flex-1 flex-col gap-4">
@@ -383,33 +389,22 @@ export function DepartmentsPage() {
 							</>
 						);
 					}}
-					topBarActions={
-						<div className="flex flex-wrap items-center gap-3">
-							{canManage ? (
-								<Button
-									size="sm"
-									variant="default"
-									className="h-8 px-3 text-xs"
-									onClick={openCreate}
-								>
-									<PlusCircle className="mr-2 h-4 w-4" />
-									New department
-								</Button>
-							) : null}
-							<label className="flex items-center gap-2 text-xs text-muted-foreground">
-								<Checkbox
-									checked={includeArchived}
-									onCheckedChange={(checked) => {
-										setIncludeArchived(Boolean(checked));
-										const nextParams = new URLSearchParams(searchParams);
-										nextParams.set("page", "1");
-										setSearchParams(nextParams);
-									}}
-								/>
-								Show archived
-							</label>
-						</div>
-					}
+					headerActions={{
+						primaryAction: canManage
+							? {
+									label: "New department",
+									onClick: openCreate,
+									icon: PlusCircle,
+							  }
+							: undefined,
+						secondaryActions: [
+							{
+								label: includeArchived ? "Hide archived" : "Show archived",
+								onClick: handleToggleArchived,
+								variant: includeArchived ? "secondary" : "outline",
+							},
+						],
+					}}
 				/>
 			)}
 

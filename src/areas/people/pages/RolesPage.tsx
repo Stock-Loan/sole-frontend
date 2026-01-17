@@ -350,17 +350,15 @@ export function RolesPage() {
 							</>
 						);
 					}}
-					topBarActions={
-						can("role.manage") ? (
-							<Button
-								size="sm"
-								variant="default"
-								className="h-8 px-3 text-xs"
-								onClick={handleCreateClick}
-							>
-								New role
-							</Button>
-						) : null
+					headerActions={
+						can("role.manage")
+							? {
+									primaryAction: {
+										label: "New role",
+										onClick: handleCreateClick,
+									},
+							  }
+							: undefined
 					}
 				/>
 			)}

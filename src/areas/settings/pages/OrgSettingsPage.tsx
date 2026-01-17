@@ -253,25 +253,25 @@ export function OrgSettingsPage() {
 
 			<div className="inline-flex w-fit items-center gap-2 rounded-lg border bg-card px-2 py-2 shadow-sm">
 				<TabButton
-					label="General"
+					label="General Settings"
 					value="general"
 					active={tab === "general"}
 					onSelect={(v) => setTab(v as OrgSettingsTabKey)}
 				/>
 				<TabButton
-					label="Retention"
+					label="Data Retention Settings"
 					value="retention"
 					active={tab === "retention"}
 					onSelect={(v) => setTab(v as OrgSettingsTabKey)}
 				/>
 				<TabButton
-					label="Stock"
+					label="Stock Settings"
 					value="stock"
 					active={tab === "stock"}
 					onSelect={(v) => setTab(v as OrgSettingsTabKey)}
 				/>
 				<TabButton
-					label="Loans"
+					label="Loan Settings"
 					value="loans"
 					active={tab === "loans"}
 					onSelect={(v) => setTab(v as OrgSettingsTabKey)}

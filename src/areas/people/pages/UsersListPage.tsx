@@ -568,23 +568,15 @@ export function UsersListPage() {
 					preferences={preferencesConfig}
 					initialColumnVisibility={initialColumnVisibility}
 					className="flex-1 min-h-0"
-					topBarActions={
-						can("user.onboard") ? (
-							<AddUserDialog
-								open={addUserOpen}
-								onOpenChange={setAddUserOpen}
-								onSubmit={handleAddUser}
-								trigger={
-									<Button
-										size="sm"
-										variant="default"
-										className="h-8 px-3 text-xs"
-									>
-										Add user
-									</Button>
-								}
-							/>
-						) : null
+					headerActions={
+						can("user.onboard")
+							? {
+									primaryAction: {
+										label: "Add user",
+										onClick: () => setAddUserOpen(true),
+									},
+							  }
+							: undefined
 					}
 					renderToolbarActions={renderToolbarActions}
 					pagination={{
@@ -598,6 +590,13 @@ export function UsersListPage() {
 					}}
 				/>
 			)}
+			{can("user.onboard") ? (
+				<AddUserDialog
+					open={addUserOpen}
+					onOpenChange={setAddUserOpen}
+					onSubmit={handleAddUser}
+				/>
+			) : null}
 			<AssignDepartmentDialog
 				open={assignDialogOpen}
 				onOpenChange={handleAssignDialogChange}

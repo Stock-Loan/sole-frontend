@@ -470,18 +470,16 @@ export function AnnouncementsPage() {
 							</>
 						);
 					}}
-					topBarActions={
-						canManage ? (
-							<Button
-								size="sm"
-								variant="default"
-								className="h-8 px-3 text-xs"
-								onClick={openCreate}
-							>
-								<Plus className="mr-2 h-4 w-4" />
-								New announcement
-							</Button>
-						) : null
+					headerActions={
+						canManage
+							? {
+									primaryAction: {
+										label: "New announcement",
+										onClick: openCreate,
+										icon: Plus,
+									},
+							  }
+							: undefined
 					}
 				/>
 			)}

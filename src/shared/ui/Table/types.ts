@@ -10,6 +10,7 @@ import type {
 	VisibilityState,
 } from "@tanstack/react-table";
 import type { ReactNode } from "react";
+import type { ButtonProps } from "@/shared/ui/Button.types";
 
 export type SortDirection = "asc" | "desc";
 export type SortValue = number | string;
@@ -88,6 +89,21 @@ export interface DataTableSearchConfig {
 	placeholder?: string;
 }
 
+export interface DataTableHeaderAction {
+	label: string;
+	onClick: () => void;
+	icon?: React.ComponentType<{ className?: string }>;
+	variant?: ButtonProps["variant"];
+	size?: ButtonProps["size"];
+	disabled?: boolean;
+	title?: string;
+}
+
+export interface DataTableHeaderActions {
+	primaryAction?: DataTableHeaderAction;
+	secondaryActions?: DataTableHeaderAction[];
+}
+
 export interface DataTablePreferencesPagination {
 	pageSize?: number;
 	pageIndex?: number;
@@ -132,7 +148,7 @@ export interface DataTableProps<T> {
 	onRowClick?: (row: T) => void;
 	toolbarActions?: ReactNode;
 	renderToolbarActions?: (selectedRows: T[]) => ReactNode;
-	topBarActions?: ReactNode;
+	headerActions?: DataTableHeaderActions;
 	selectionResetKey?: number | string;
 	pagination?: DataTablePaginationConfig;
 	search?: DataTableSearchConfig;
@@ -207,7 +223,7 @@ export interface DataTableTopBarProps {
 	enableExport: boolean;
 	onExportAll: () => void;
 	search?: DataTableSearchConfig;
-	leftActions?: ReactNode;
+	headerActions?: DataTableHeaderActions;
 }
 
 export interface DataTableSelectionToolbarProps {

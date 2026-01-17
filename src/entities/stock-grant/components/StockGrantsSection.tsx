@@ -461,21 +461,19 @@ export const StockGrantsSection = forwardRef<
 					totalRows,
 				}}
 				className="flex-1 min-h-0"
-				topBarActions={
-					canManage ? (
-						<Button
-							size="sm"
-							onClick={handleOpenCreate}
-							disabled={isGrantActionBlocked}
-							title={
-								isGrantActionBlocked
-									? "User must have active employment and platform status to receive grants."
-									: undefined
-							}
-						>
-							New grant
-						</Button>
-					) : null
+				headerActions={
+					canManage
+						? {
+								primaryAction: {
+									label: "New grant",
+									onClick: handleOpenCreate,
+									disabled: isGrantActionBlocked,
+									title: isGrantActionBlocked
+										? "User must have active employment and platform status to receive grants."
+										: undefined,
+								},
+						  }
+						: undefined
 				}
 				renderToolbarActions={(selectedGrants) => {
 					if (!canManage) return null;

@@ -105,7 +105,7 @@ export function DataTable<T>({
 	onRowClick,
 	toolbarActions,
 	renderToolbarActions,
-	topBarActions,
+	headerActions,
 	pagination,
 	search,
 	preferences,
@@ -530,7 +530,12 @@ export function DataTable<T>({
 			<DataTableSkeleton
 				columnCount={table.getVisibleLeafColumns().length}
 				rowCount={Math.min(resolvedPaginationState.pageSize, 8)}
-				showTopBar={Boolean(enableExport || search || topBarActions)}
+				showTopBar={Boolean(
+					enableExport ||
+						search ||
+						headerActions?.primaryAction ||
+						(headerActions?.secondaryActions?.length ?? 0) > 0
+				)}
 				showPagination={paginationEnabled}
 				className={className}
 			/>
@@ -548,7 +553,7 @@ export function DataTable<T>({
 				enableExport={enableExport}
 				onExportAll={exportAllRows}
 				search={search}
-				leftActions={topBarActions}
+				headerActions={headerActions}
 			/>
 			<Table
 				className="text-[13px]"
