@@ -2,6 +2,7 @@ import type { StockSummaryParams } from "@/entities/stock-grant/types";
 import type { AuditLogListParams } from "@/entities/audit/types";
 import type {
 	LoanApplicationListParams,
+	LoanDashboardSummaryParams,
 	LoanQuoteInput,
 	LoanQueueListParams,
 } from "@/entities/loan/types";
@@ -33,6 +34,8 @@ export const orgKeys = {
 	loans: {
 		list: (params?: LoanApplicationListParams) =>
 			["org", "loans", "list", params ?? {}] as const,
+		summary: (params?: LoanDashboardSummaryParams) =>
+			["org", "loans", "summary", params ?? {}] as const,
 		detail: (id: string) => ["org", "loans", "detail", id] as const,
 		queue: {
 			hr: (params?: LoanQueueListParams) =>

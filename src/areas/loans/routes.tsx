@@ -2,6 +2,7 @@ import type { RouteObject } from "react-router-dom";
 import { RequirePermission } from "@/app/router/route-guards";
 import { LoanApplicationsPage } from "./pages/LoanApplicationsPage";
 import { LoanDetailPage } from "./pages/LoanDetailPage";
+import { LoanSummaryPage } from "./pages/LoanSummaryPage";
 import { RepaymentsPage } from "./pages/RepaymentsPage";
 import { AmortizationPage } from "./pages/AmortizationPage";
 import { WhatIfPage } from "./pages/WhatIfPage";
@@ -17,6 +18,21 @@ export const loansRoutes: RouteObject[] = [
 				<LoanApplicationsPage />
 			</RequirePermission>
 		),
+	},
+	{
+		path: "summary",
+		element: (
+			<RequirePermission permission="loan.dashboard.view">
+				<LoanSummaryPage />
+			</RequirePermission>
+		),
+		handle: {
+			search: {
+				title: "Loan summary",
+				description: "Review loan portfolio metrics and workflow health.",
+				permissions: "loan.dashboard.view",
+			},
+		},
 	},
 	{
 		path: "applications",

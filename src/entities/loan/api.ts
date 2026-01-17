@@ -9,6 +9,8 @@ import type {
 	LoanApplicationDraftUpdate,
 	LoanApplicationListParams,
 	LoanApplicationListResponse,
+	LoanDashboardSummary,
+	LoanDashboardSummaryParams,
 	LoanDocument,
 	LoanDocumentCreatePayload,
 	LoanDocumentUploadPayload,
@@ -119,6 +121,16 @@ export async function listOrgLoanApplications(
 		params,
 	});
 	return unwrapApiResponse<LoanApplicationListResponse>(data);
+}
+
+export async function getLoanDashboardSummary(
+	params: LoanDashboardSummaryParams = {}
+): Promise<LoanDashboardSummary> {
+	const { data } = await apiClient.get<LoanDashboardSummary>(
+		"/org/dashboard/loan-summary",
+		{ params }
+	);
+	return unwrapApiResponse<LoanDashboardSummary>(data);
 }
 
 export async function getOrgLoanApplication(

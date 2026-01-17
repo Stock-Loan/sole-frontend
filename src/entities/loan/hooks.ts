@@ -19,6 +19,7 @@ import {
 	getMyHrLoanQueue,
 	getMyFinanceLoanQueue,
 	getMyLegalLoanQueue,
+	getLoanDashboardSummary,
 	getOrgLoanApplication,
 	getMyLoanQuote,
 	listOrgLoanDocuments,
@@ -53,6 +54,8 @@ import type {
 	LoanApplicationDraftUpdate,
 	LoanApplicationListParams,
 	LoanApplicationListResponse,
+	LoanDashboardSummary,
+	LoanDashboardSummaryParams,
 	LoanDocument,
 	LoanDocumentCreatePayload,
 	LoanDocumentUploadPayload,
@@ -140,6 +143,21 @@ export function useOrgLoanApplications(
 	return useQuery({
 		queryKey: orgKeys.loans.list(params),
 		queryFn: () => listOrgLoanApplications(params),
+		placeholderData: (previous) => previous,
+		...options,
+	});
+}
+
+export function useLoanDashboardSummary(
+	params: LoanDashboardSummaryParams = {},
+	options: Omit<
+		UseQueryOptions<LoanDashboardSummary>,
+		"queryKey" | "queryFn"
+	> = {}
+) {
+	return useQuery({
+		queryKey: orgKeys.loans.summary(params),
+		queryFn: () => getLoanDashboardSummary(params),
 		placeholderData: (previous) => previous,
 		...options,
 	});

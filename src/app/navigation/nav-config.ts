@@ -46,10 +46,17 @@ export const navConfig: NavConfig = {
 	],
 	loans: [
 		{
+			id: "loans-summary",
+			label: "Summary",
+			path: "/app/loans/summary",
+			icon: BarChart3,
+			permissions: "loan.dashboard.view",
+		},
+		{
 			id: "loans-applications",
 			label: "Applications",
 			path: "/app/loans",
-			icon: BarChart3,
+			icon: FileText,
 			permissions: ["loan.view_all", "loan.manage"],
 		},
 		{

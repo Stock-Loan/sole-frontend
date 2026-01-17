@@ -33,7 +33,8 @@ export type LoanApplicationStatus =
 	| "CANCELLED"
 	| "IN_REVIEW"
 	| "ACTIVE"
-	| "REJECTED";
+	| "REJECTED"
+	| "COMPLETED";
 
 export type LoanSelectionMode = "SHARES" | "PERCENT";
 
@@ -77,6 +78,37 @@ export interface LoanQuoteResponse {
 	allocation_strategy: string;
 	allocation: LoanAllocationItem[];
 	eligibility_result: EligibilityResult;
+}
+
+export interface LoanDashboardSummaryParams {
+	as_of?: string;
+}
+
+export interface LoanDashboardSummary {
+	org_id: string;
+	as_of: string;
+	total_loans: number;
+	status_counts: Partial<Record<LoanApplicationStatus, number>>;
+	open_stage_counts: Partial<Record<LoanWorkflowStageType, number>>;
+	created_last_30_days: number;
+	activated_last_30_days: number;
+	total_applications: number;
+	approved_count: number;
+	draft_count: number;
+	active_loan_principal_sum: string;
+	sum_amount_paid: string;
+	sum_amount_owed: string;
+	interest_earned_total: string;
+	active_loan_total_shares: number;
+	completed_loan_total_shares: number;
+	pending_hr: number;
+	pending_finance: number;
+	pending_legal: number;
+	active_fixed_count: number;
+	active_variable_count: number;
+	active_interest_only_count: number;
+	active_balloon_count: number;
+	active_principal_and_interest_count: number;
 }
 
 export interface LoanApplicationDraftCreate extends LoanQuoteInput {

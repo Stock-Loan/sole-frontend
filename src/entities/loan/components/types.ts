@@ -98,6 +98,44 @@ export interface LoanDocumentTypeOption {
 	label: string;
 }
 
+export interface LoanSummaryMetric {
+	label: string;
+	value: string;
+	helper?: string;
+}
+
+export interface LoanSummaryMetricGridProps {
+	metrics: LoanSummaryMetric[];
+}
+
+export interface LoanSummaryBarItem {
+	label: string;
+	value: number;
+	color?: string;
+	helper?: string;
+}
+
+export interface LoanSummaryBarListProps {
+	title: string;
+	items: LoanSummaryBarItem[];
+	total?: number;
+	emptyMessage?: string;
+}
+
+export interface LoanSummaryBarChartProps {
+	title: string;
+	items: LoanSummaryBarItem[];
+	total?: number;
+	emptyMessage?: string;
+}
+
+export interface LoanSummaryPieChartProps {
+	title: string;
+	items: LoanSummaryBarItem[];
+	total?: number;
+	emptyMessage?: string;
+}
+
 export interface WorkflowStagePanelProps {
 	title: string;
 	description?: string;
