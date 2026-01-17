@@ -101,7 +101,7 @@ export function StockOverviewPage() {
 					onRetry={() => summaryQuery.refetch()}
 				/>
 			) : (
-				<div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+				<div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
 					{metricCards.map((metric) => (
 						<Card
 							key={metric.label}
@@ -138,7 +138,7 @@ export function StockOverviewPage() {
 
 function StockOverviewSkeleton() {
 	return (
-		<div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+		<div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
 			{Array.from({ length: 8 }).map((_, index) => (
 				<Card key={`stock-summary-skeleton-${index}`} className="relative overflow-hidden">
 					<div className="absolute left-0 top-0 h-full w-1 bg-muted" />
