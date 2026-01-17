@@ -9,6 +9,7 @@ import { routes } from "@/shared/lib/routes";
 import { formatDate } from "@/shared/lib/format";
 import { usePermissions } from "@/auth/hooks";
 import { useStockDashboardSummary } from "@/features/dashboard/hooks";
+import { colorPalette } from "@/app/styles/color-palette";
 
 function formatMetric(value?: number) {
 	if (value === null || value === undefined) return "—";
@@ -21,6 +22,12 @@ export function StockOverviewPage() {
 	const summaryQuery = useStockDashboardSummary({}, { enabled: canViewStock });
 
 	const summary = summaryQuery.data;
+	const metricCardStyle = {
+		borderColor: colorPalette.slate[200],
+		backgroundColor: colorPalette.semantic.surface,
+	};
+	const metricLabelStyle = { color: colorPalette.slate[500] };
+	const metricValueStyle = { color: colorPalette.navy[900] };
 	const metricCards = summary
 		? [
 				{
@@ -96,14 +103,28 @@ export function StockOverviewPage() {
 			) : (
 				<div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
 					{metricCards.map((metric) => (
-						<Card key={metric.label}>
+						<Card
+							key={metric.label}
+							style={metricCardStyle}
+							className="relative overflow-hidden"
+						>
+							<div
+								className="absolute left-0 top-0 h-full w-1"
+								style={{ backgroundColor: colorPalette.semantic.primary }}
+							/>
 							<CardHeader className="pb-2">
-								<CardTitle className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+								<CardTitle
+									className="text-xs font-semibold uppercase tracking-wide"
+									style={metricLabelStyle}
+								>
 									{metric.label}
 								</CardTitle>
 							</CardHeader>
 							<CardContent>
-								<p className="text-2xl font-semibold text-foreground">
+								<p
+									className="text-2xl font-semibold"
+									style={metricValueStyle}
+								>
 									{metric.value}
 								</p>
 							</CardContent>
@@ -119,7 +140,8 @@ function StockOverviewSkeleton() {
 	return (
 		<div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
 			{Array.from({ length: 8 }).map((_, index) => (
-				<Card key={`stock-summary-skeleton-${index}`}>
+				<Card key={`stock-summary-skeleton-${index}`} className="relative overflow-hidden">
+					<div className="absolute left-0 top-0 h-full w-1 bg-muted" />
 					<CardHeader className="pb-2">
 						<Skeleton className="h-3 w-28" />
 					</CardHeader>

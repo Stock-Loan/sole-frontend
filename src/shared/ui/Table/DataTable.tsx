@@ -540,7 +540,7 @@ export function DataTable<T>({
 	return (
 		<div
 			className={cn(
-				"flex min-h-0 flex-col rounded-md border border-border/70",
+				"flex min-h-0 flex-col rounded-xl border border-border/60 bg-card shadow-sm",
 				className
 			)}
 		>

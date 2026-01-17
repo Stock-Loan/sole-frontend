@@ -93,7 +93,7 @@ export function DataTableHeader<T>({
 	return (
 		<TableHeader
 			data-selection={selectionKey || undefined}
-			className="sticky top-0 z-10 bg-background"
+			className="sticky top-0 z-10 border-b border-border/60 bg-slate-50/90 backdrop-blur supports-[backdrop-filter]:bg-slate-50/70"
 		>
 			{table.getHeaderGroups().map((headerGroup) => (
 				<TableRow key={headerGroup.id}>
@@ -162,7 +162,7 @@ export function DataTableHeader<T>({
 								}
 								onDrop={(event) => handleDrop(event, header.column.id)}
 							>
-								<div className="flex items-center gap-1">
+								<div className="flex w-full items-center justify-start gap-2">
 									{canDrag ? (
 										<button
 											type="button"
@@ -197,7 +197,7 @@ export function DataTableHeader<T>({
 										enableColumnReorder={enableColumnReorder}
 									/>
 									{SortIcon ? (
-										<SortIcon className="h-3.5 w-3.5 text-muted-foreground ml-auto" />
+										<SortIcon className="h-3.5 w-3.5 text-muted-foreground" />
 									) : null}
 								</div>
 							</TableHead>
