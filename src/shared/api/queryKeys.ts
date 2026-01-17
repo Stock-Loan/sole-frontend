@@ -1,4 +1,5 @@
 import type { StockSummaryParams } from "@/entities/stock-grant/types";
+import type { AuditLogListParams } from "@/entities/audit/types";
 import type {
 	LoanApplicationListParams,
 	LoanQuoteInput,
@@ -21,6 +22,12 @@ export const meKeys = {
 };
 
 export const orgKeys = {
+	audit: {
+		logs: {
+			list: (params?: AuditLogListParams) =>
+				["org", "audit", "logs", params ?? {}] as const,
+		},
+	},
 	loans: {
 		list: (params?: LoanApplicationListParams) =>
 			["org", "loans", "list", params ?? {}] as const,

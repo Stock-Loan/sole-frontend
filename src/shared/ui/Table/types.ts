@@ -149,6 +149,7 @@ export interface DataTableProps<T> {
 	toolbarActions?: ReactNode;
 	renderToolbarActions?: (selectedRows: T[]) => ReactNode;
 	headerActions?: DataTableHeaderActions;
+	headerFilters?: ReactNode;
 	selectionResetKey?: number | string;
 	pagination?: DataTablePaginationConfig;
 	search?: DataTableSearchConfig;
@@ -224,6 +225,7 @@ export interface DataTableTopBarProps {
 	onExportAll: () => void;
 	search?: DataTableSearchConfig;
 	headerActions?: DataTableHeaderActions;
+	headerFilters?: ReactNode;
 }
 
 export interface DataTableSelectionToolbarProps {

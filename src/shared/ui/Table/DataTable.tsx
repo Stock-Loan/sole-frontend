@@ -106,6 +106,7 @@ export function DataTable<T>({
 	toolbarActions,
 	renderToolbarActions,
 	headerActions,
+	headerFilters,
 	pagination,
 	search,
 	preferences,
@@ -534,7 +535,8 @@ export function DataTable<T>({
 					enableExport ||
 						search ||
 						headerActions?.primaryAction ||
-						(headerActions?.secondaryActions?.length ?? 0) > 0
+						(headerActions?.secondaryActions?.length ?? 0) > 0 ||
+						headerFilters
 				)}
 				showPagination={paginationEnabled}
 				className={className}
@@ -554,6 +556,7 @@ export function DataTable<T>({
 				onExportAll={exportAllRows}
 				search={search}
 				headerActions={headerActions}
+				headerFilters={headerFilters}
 			/>
 			<Table
 				className="text-[13px]"
