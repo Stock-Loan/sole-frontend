@@ -133,6 +133,7 @@ export interface DataTableProps<T> {
 	toolbarActions?: ReactNode;
 	renderToolbarActions?: (selectedRows: T[]) => ReactNode;
 	topBarActions?: ReactNode;
+	selectionResetKey?: number | string;
 	pagination?: DataTablePaginationConfig;
 	search?: DataTableSearchConfig;
 	preferences?: DataTablePreferencesConfig;

@@ -60,7 +60,7 @@ export function useRoleMembersSearch(
 		enabled: enabled && Boolean(roleId) && Boolean(searchTerm),
 		queryKey: roleKeys.members(
 			roleId ?? "unknown",
-			{ search: searchTerm, page: 1, page_size: pageSize },
+			{ page: 1, page_size: pageSize },
 		),
 		queryFn: async () => {
 			if (!roleId || !searchTerm) {
@@ -87,7 +87,6 @@ export function useRoleMembersSearch(
 
 				while (page <= maxPages) {
 					lastResponse = await getRoleMembers(roleId, {
-						search: term,
 						page,
 						page_size: pageSize,
 					});
@@ -99,19 +98,20 @@ export function useRoleMembersSearch(
 					});
 					total = lastResponse.total ?? items.length;
 
-					if (normalizedFull.length > 0 && items.some(matchesFullTerm)) {
-						break;
-					}
 					if (items.length >= total || (lastResponse.items ?? []).length === 0) {
 						break;
 					}
 					page += 1;
 				}
 
+				const filteredItems =
+					term.trim().length > 0
+						? items.filter(matchesFullTerm)
+						: items;
 				return {
 					...(lastResponse ?? { items: [], total: 0 }),
-					items,
-					total,
+					items: filteredItems,
+					total: filteredItems.length,
 				};
 			};
 

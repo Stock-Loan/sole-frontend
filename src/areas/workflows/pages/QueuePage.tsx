@@ -72,30 +72,11 @@ function getManagePermission(stageType?: LoanWorkflowStageType | null) {
 	return null;
 }
 
-function getQueuePermissions(stageType?: LoanWorkflowStageType | null) {
-	if (!stageType) return [];
-	if (stageType === "HR_REVIEW") {
-		return ["loan.queue.hr.view", "loan.workflow.hr.manage"];
-	}
-	if (stageType === "FINANCE_PROCESSING") {
-		return ["loan.queue.finance.view", "loan.workflow.finance.manage"];
-	}
-	if (stageType === "LEGAL_EXECUTION") {
-		return ["loan.queue.legal.view", "loan.workflow.legal.manage"];
-	}
-	return [];
-}
-
-function canAssignUserToStage(
-	user: OrgUserListItem,
-	permissions: string[]
-) {
-	if (!user.roles || user.roles.length === 0) return true;
-	if (permissions.length === 0) return false;
-	const roles = user.roles ?? [];
-	return roles.some((role) =>
-		role.permissions?.some((perm) => permissions.includes(perm))
-	);
+function getRoleNameForStage(stageType?: LoanWorkflowStageType | null) {
+	if (stageType === "HR_REVIEW") return "HR";
+	if (stageType === "FINANCE_PROCESSING") return "FINANCE";
+	if (stageType === "LEGAL_EXECUTION") return "LEGAL";
+	return null;
 }
 
 function getUserDisplayName(user: OrgUserListItem["user"]) {
@@ -208,20 +189,21 @@ export function QueuePage() {
 		useState<LoanApplicationSummary | null>(null);
 	const [userSearchTerm, setUserSearchTerm] = useState("");
 	const [selectedAssigneeId, setSelectedAssigneeId] = useState("");
-	const rolesQuery = useRolesList(
-		{ page: 1, page_size: 200 },
-		{ enabled: assignDialogOpen }
-	);
+	const [selectionResetKey, setSelectionResetKey] = useState(0);
+	const rolesQuery = useRolesList({}, { enabled: assignDialogOpen });
 	const assignmentStageType = assignmentTarget?.current_stage_type ?? null;
-	const managePermission = getManagePermission(assignmentStageType);
+	const roleIdsByName = useMemo(() => {
+		const map = new Map<string, string>();
+		(rolesQuery.data?.items ?? []).forEach((role) => {
+			map.set(role.name.toUpperCase(), role.id);
+		});
+		return map;
+	}, [rolesQuery.data?.items]);
 	const stageRoleId = useMemo(() => {
-		if (!managePermission) return null;
-		const matchingRoles = (rolesQuery.data?.items ?? []).filter((role) =>
-			role.permissions.includes(managePermission)
-		);
-		const systemRole = matchingRoles.find((role) => role.is_system_role);
-		return (systemRole ?? matchingRoles[0])?.id ?? null;
-	}, [managePermission, rolesQuery.data?.items]);
+		const stageRoleName = getRoleNameForStage(assignmentStageType);
+		if (!stageRoleName) return null;
+		return roleIdsByName.get(stageRoleName) ?? null;
+	}, [assignmentStageType, roleIdsByName]);
 	const usersQuery = useRoleMembersSearch(
 		stageRoleId,
 		userSearchTerm.trim(),
@@ -237,19 +219,8 @@ export function QueuePage() {
 		() => usersQuery.data?.items ?? [],
 		[usersQuery.data]
 	);
-	const eligiblePermissions = useMemo(
-		() => getQueuePermissions(assignmentStageType),
-		[assignmentStageType]
-	);
-	const eligibleAssignees = useMemo(
-		() =>
-			assigneeOptions.filter((option) =>
-				canAssignUserToStage(option, eligiblePermissions)
-			),
-		[assigneeOptions, eligiblePermissions]
-	);
 	const sortedAssignees = useMemo(() => {
-		const items = [...eligibleAssignees];
+		const items = [...assigneeOptions];
 		items.sort((a, b) => {
 			const aIsMe = a.user.id === user?.id;
 			const bIsMe = b.user.id === user?.id;
@@ -260,7 +231,7 @@ export function QueuePage() {
 			);
 		});
 		return items;
-	}, [eligibleAssignees, user?.id]);
+	}, [assigneeOptions, user?.id]);
 
 	const columns = useMemo<ColumnDefinition<LoanApplicationSummary>[]>(
 		() => [
@@ -467,6 +438,7 @@ export function QueuePage() {
 												id: selectedLoan.id,
 												stageType,
 											});
+											setSelectionResetKey((prev) => prev + 1);
 										} catch (error) {
 											toast({
 												title: "Assignment failed",
@@ -496,6 +468,7 @@ export function QueuePage() {
 						</div>
 					);
 				}}
+				selectionResetKey={selectionResetKey}
 				pagination={{
 					enabled: true,
 					pageSize: preferredPageSize,
@@ -538,6 +511,7 @@ export function QueuePage() {
 								setAssignDialogOpen(false);
 								setUserSearchTerm("");
 								setSelectedAssigneeId("");
+								setSelectionResetKey((prev) => prev + 1);
 							} catch (error) {
 								toast({
 									title: "Assignment failed",

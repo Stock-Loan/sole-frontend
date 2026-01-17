@@ -111,6 +111,7 @@ export function DataTable<T>({
 	preferences,
 	enableColumnReorder = true,
 	initialColumnVisibility,
+	selectionResetKey,
 }: DataTableProps<T>) {
 	const preferencesConfig = useMemo(() => preferences ?? null, [preferences]);
 	const preferencesKey = useMemo(
@@ -491,6 +492,11 @@ export function DataTable<T>({
 			onSelectionChange(selectedRowData);
 		}
 	}, [enableRowSelection, onSelectionChange, selectedRowData]);
+
+	useEffect(() => {
+		if (!enableRowSelection) return;
+		table.resetRowSelection();
+	}, [enableRowSelection, selectionResetKey, table]);
 
 	const toolbarContent = showSelectionToolbar
 		? renderToolbarActions
