@@ -8,7 +8,7 @@ import { RolesPage } from "./pages/RolesPage";
 import { DepartmentsPage } from "./pages/DepartmentsPage";
 
 export const peopleRoutes: RouteObject[] = [
-	{ index: true, element: <Navigate to="users" replace /> },
+	{ index: true, element: <Navigate to="summary" replace /> },
 	{
 		path: "summary",
 		element: (

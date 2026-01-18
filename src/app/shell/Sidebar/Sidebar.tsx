@@ -60,6 +60,15 @@ export function Sidebar({
 				return applicationsItem.id;
 			}
 		}
+		const isPeopleUserDetail = /^\/app\/people\/users\/[^/]+$/.test(
+			location.pathname
+		);
+		if (isPeopleUserDetail) {
+			const usersItem = visibleItems.find((item) => item.id === "people-users");
+			if (usersItem) {
+				return usersItem.id;
+			}
+		}
 		let bestMatchId: string | null = null;
 		let bestMatchLength = -1;
 
