@@ -18,6 +18,7 @@ export function LoanRepaymentsPanel({
 	isLoading,
 	isError,
 	onRetry,
+	actions,
 }: LoanRepaymentsPanelProps) {
 	if (isLoading) {
 		return <LoadingState label="Loading repayments..." />;
@@ -45,10 +46,11 @@ export function LoanRepaymentsPanel({
 
 	return (
 		<Card>
-			<CardHeader className="pb-2">
+			<CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
 				<CardTitle className="text-sm font-semibold">
 					Repayments {typeof total === "number" ? `(${total})` : ""}
 				</CardTitle>
+				{actions ? <div className="flex items-center gap-2">{actions}</div> : null}
 			</CardHeader>
 			<CardContent className="space-y-4 text-sm text-muted-foreground">
 				<Table>

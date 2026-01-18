@@ -11,7 +11,9 @@ import type {
 	LoanApplicationListResponse,
 	LoanDashboardSummary,
 	LoanDashboardSummaryParams,
+	LoanRepayment,
 	LoanRepaymentsResponse,
+	LoanRepaymentCreatePayload,
 	LoanScheduleResponse,
 	LoanDocument,
 	LoanDocumentCreatePayload,
@@ -157,6 +159,17 @@ export async function listOrgLoanRepayments(
 		`/org/loans/${id}/repayments`
 	);
 	return unwrapApiResponse<LoanRepaymentsResponse>(data);
+}
+
+export async function createOrgLoanRepayment(
+	id: string,
+	payload: LoanRepaymentCreatePayload
+): Promise<LoanRepayment> {
+	const { data } = await apiClient.post<LoanRepayment>(
+		`/org/loans/${id}/repayments`,
+		payload
+	);
+	return unwrapApiResponse<LoanRepayment>(data);
 }
 
 export async function getOrgLoanSchedule(

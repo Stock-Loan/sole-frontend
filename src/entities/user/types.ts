@@ -118,6 +118,38 @@ export interface UpdateOrgUserStatusPayload {
 	platform_status?: PlatformStatus;
 }
 
+export interface UserSummaryCount {
+	department_id?: string | null;
+	department_name?: string | null;
+	role_id?: string | null;
+	role_name?: string | null;
+	count: number;
+}
+
+export interface UserDashboardSummary {
+	org_id: string;
+	total_users: number;
+	platform_status_counts: Partial<Record<PlatformStatus, number>>;
+	invitation_status_counts: Partial<Record<InvitationStatus, number>>;
+	employment_status_counts: Partial<Record<EmploymentStatus, number>>;
+	active_users: number;
+	suspended_users: number;
+	invited_pending: number;
+	accepted_invites: number;
+	mfa_enabled: number;
+	mfa_disabled: number;
+	never_logged_in: number;
+	active_last_7_days: number;
+	active_last_30_days: number;
+	stale_30_plus_days: number;
+	users_with_temp_password: number;
+	users_without_department: number;
+	missing_profile_fields: number;
+	department_counts: UserSummaryCount[];
+	role_counts: UserSummaryCount[];
+	roles_with_zero_members: string[];
+}
+
 export interface OnboardUserPayload {
 	email: string;
 	first_name: string;

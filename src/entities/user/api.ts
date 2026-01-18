@@ -10,6 +10,7 @@ import type {
 	UpdateOrgUserStatusPayload,
 	UpdateOrgUserProfilePayload,
 	BulkDeleteMembershipsResponse,
+	UserDashboardSummary,
 } from "./types";
 import {
 	OrgUsersListResponseSchema,
@@ -99,4 +100,11 @@ export async function bulkDeleteOrgUsers(
 	);
 	const payloadResponse = unwrapApiResponse<BulkDeleteMembershipsResponse>(data);
 	return BulkDeleteMembershipsResponseSchema.parse(payloadResponse);
+}
+
+export async function getOrgUserSummary(): Promise<UserDashboardSummary> {
+	const { data } = await apiClient.get<UserDashboardSummary>(
+		"/org/dashboard/user-summary",
+	);
+	return unwrapApiResponse<UserDashboardSummary>(data);
 }

@@ -1,6 +1,7 @@
 import { Navigate, type RouteObject } from "react-router-dom";
 import { RequirePermission } from "@/app/router/route-guards";
 import { UsersListPage } from "./pages/UsersListPage";
+import { UserSummaryPage } from "./pages/UserSummaryPage";
 import { UserDetailPage } from "./pages/UserDetailPage";
 import { UserOnboardingPage } from "./pages/UserOnboardingPage";
 import { RolesPage } from "./pages/RolesPage";
@@ -8,6 +9,21 @@ import { DepartmentsPage } from "./pages/DepartmentsPage";
 
 export const peopleRoutes: RouteObject[] = [
 	{ index: true, element: <Navigate to="users" replace /> },
+	{
+		path: "summary",
+		element: (
+			<RequirePermission permission="user.view">
+				<UserSummaryPage />
+			</RequirePermission>
+		),
+		handle: {
+			search: {
+				title: "User summary",
+				description: "Review organization user metrics and engagement.",
+				permissions: "user.view",
+			},
+		},
+	},
 	{
 		path: "users",
 		children: [

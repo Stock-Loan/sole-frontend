@@ -22,3 +22,10 @@ export const loanDocumentUploadSchema = z.object({
 	document_type: nonEmptyString,
 	file: z.instanceof(File),
 });
+
+export const loanRepaymentSchema = z.object({
+	amount: nonEmptyString,
+	principal_amount: nonEmptyString,
+	interest_amount: nonEmptyString,
+	payment_date: nonEmptyString,
+});

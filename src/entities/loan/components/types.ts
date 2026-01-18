@@ -7,6 +7,7 @@ import type {
 	LoanDocumentCreatePayload,
 	LoanDocumentGroup,
 	LoanDocumentUploadPayload,
+	LoanRepaymentCreatePayload,
 	LoanRepayment,
 	LoanScheduleResponse,
 	LoanSelectionMode,
@@ -153,6 +154,7 @@ export interface LoanRepaymentsPanelProps {
 	isLoading?: boolean;
 	isError?: boolean;
 	onRetry?: () => void;
+	actions?: ReactNode;
 }
 
 export type LoanDetailTab = "overview" | "repayments" | "schedule";
@@ -160,6 +162,13 @@ export type LoanDetailTab = "overview" | "repayments" | "schedule";
 export interface LoanDetailTabOption {
 	id: LoanDetailTab;
 	label: string;
+}
+
+export interface LoanRepaymentDialogProps {
+	open: boolean;
+	onOpenChange: (open: boolean) => void;
+	onSubmit: (values: LoanRepaymentCreatePayload) => Promise<void> | void;
+	isSubmitting?: boolean;
 }
 
 export interface WorkflowStagePanelProps {

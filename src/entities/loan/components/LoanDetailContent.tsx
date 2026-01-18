@@ -32,6 +32,7 @@ import { LoanSchedulePanel } from "@/entities/loan/components/LoanSchedulePanel"
 import { LoanTimeline } from "@/entities/loan/components/LoanTimeline";
 import {
 	useDownloadOrgLoanDocument,
+	useCreateOrgLoanRepayment,
 	useExportOrgLoanSchedule,
 	useOrgLoanDocuments,
 	useOrgLoanRepayments,
@@ -50,6 +51,7 @@ import type {
 	LoanDetailSummaryCardProps,
 } from "@/entities/loan/components/types";
 import type { LoanDocument } from "@/entities/loan/types";
+import { LoanRepaymentDialog } from "@/entities/loan/components/LoanRepaymentDialog";
 
 export function LoanDetailContent({
 	loan,
@@ -73,6 +75,7 @@ export function LoanDetailContent({
 		"loan.workflow.post_issuance.manage",
 	]);
 	const canViewRepayments = can("loan.payment.view");
+	const canRecordRepayment = can("loan.payment.record");
 	const canViewSchedule = can("loan.schedule.view");
 	const canExportSchedule = can("loan.export.schedule");
 	const downloadMutation = useDownloadOrgLoanDocument({
@@ -114,6 +117,20 @@ export function LoanDetailContent({
 			isActiveLoan &&
 			canViewSchedule &&
 			activeTab === "schedule",
+	});
+	const [repaymentDialogOpen, setRepaymentDialogOpen] = useState(false);
+	const createRepaymentMutation = useCreateOrgLoanRepayment(loan?.id ?? "", {
+		onSuccess: () => {
+			toast({ title: "Repayment recorded" });
+			setRepaymentDialogOpen(false);
+		},
+		onError: (error) => {
+			toast({
+				title: "Unable to record repayment",
+				description: parseApiError(error).message,
+				variant: "destructive",
+			});
+		},
 	});
 	const exportScheduleMutation = useExportOrgLoanSchedule({
 		onError: (error) => {
@@ -738,6 +755,18 @@ export function LoanDetailContent({
 					isLoading={repaymentsQuery.isLoading}
 					isError={repaymentsQuery.isError}
 					onRetry={() => repaymentsQuery.refetch()}
+					actions={
+						canRecordRepayment ? (
+							<Button
+								variant="default"
+								size="default"
+								className="h-9 px-4"
+								onClick={() => setRepaymentDialogOpen(true)}
+							>
+								Record repayment
+							</Button>
+						) : null
+					}
 				/>
 			) : null}
 
@@ -763,6 +792,15 @@ export function LoanDetailContent({
 					}
 				/>
 			) : null}
+			<LoanRepaymentDialog
+				open={repaymentDialogOpen}
+				onOpenChange={setRepaymentDialogOpen}
+				isSubmitting={createRepaymentMutation.isPending}
+				onSubmit={async (values) => {
+					if (!loan.id) return;
+					await createRepaymentMutation.mutateAsync(values);
+				}}
+			/>
 		</div>
 	);
 }

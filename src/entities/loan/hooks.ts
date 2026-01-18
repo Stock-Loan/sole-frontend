@@ -28,6 +28,7 @@ import {
 	listOrgLoanDocuments,
 	listOrgLoanApplications,
 	listOrgLoanRepayments,
+	createOrgLoanRepayment,
 	getOrgLoanSchedule,
 	exportOrgLoanSchedule,
 	listMyLoanApplications,
@@ -67,6 +68,8 @@ import type {
 	LoanDocumentUploadPayload,
 	LoanDocumentsGroupedResponse,
 	LoanActivateBacklogResponse,
+	LoanRepayment,
+	LoanRepaymentCreatePayload,
 	LoanRepaymentsResponse,
 	LoanScheduleResponse,
 	LoanWorkflowAssignPayload,
@@ -200,6 +203,27 @@ export function useOrgLoanRepayments(
 		queryFn: () => listOrgLoanRepayments(id),
 		enabled: Boolean(id) && (options.enabled ?? true),
 		placeholderData: (previous) => previous,
+		...options,
+	});
+}
+
+export function useCreateOrgLoanRepayment(
+	id: string,
+	options: Omit<
+		UseMutationOptions<LoanRepayment, unknown, LoanRepaymentCreatePayload>,
+		"mutationFn"
+	> = {}
+) {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (payload) => createOrgLoanRepayment(id, payload),
+		onSuccess: (data, variables, onMutateResult, context) => {
+			queryClient.invalidateQueries({ queryKey: orgKeys.loans.repayments(id) });
+			options.onSuccess?.(data, variables, onMutateResult, context);
+		},
+		onError: (error, variables, onMutateResult, context) => {
+			options.onError?.(error, variables, onMutateResult, context);
+		},
 		...options,
 	});
 }

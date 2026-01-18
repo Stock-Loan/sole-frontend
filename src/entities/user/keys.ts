@@ -9,4 +9,5 @@ export const userKeys = {
 		["org-users", "detail", membershipId] as const,
 	currentUser: (email: string) => ["org-users", "current", email] as const,
 	bulkResult: () => ["org-users", "bulk", "result"] as const,
+	summary: () => ["org-users", "summary"] as const,
 };

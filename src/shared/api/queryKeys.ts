@@ -70,4 +70,7 @@ export const orgKeys = {
 				["org", "loans", "documents", "download", documentId] as const,
 		},
 	},
+	users: {
+		summary: () => ["org", "users", "summary"] as const,
+	},
 };

@@ -11,6 +11,7 @@ import {
 	deleteOrgUser,
 	downloadOnboardingTemplate,
 	uploadOnboardingCsv,
+	getOrgUserSummary,
 } from "./api";
 import type {
 	EmploymentStatus,
@@ -21,6 +22,7 @@ import type {
 	UpdateOrgUserStatusPayload,
 	UpdateOrgUserProfilePayload,
 	BulkOnboardingResult,
+	UserDashboardSummary,
 } from "./types";
 import { useToast } from "@/shared/ui/use-toast";
 import { parseApiError } from "@/shared/api/errors";
@@ -30,6 +32,15 @@ export function useOrgUsersList(params: OrgUsersListParams) {
 		queryKey: userKeys.list(params),
 		queryFn: () => listOrgUsers(params),
 		placeholderData: (previousData) => previousData,
+	});
+}
+
+export function useOrgUserSummary(enabled = true) {
+	return useQuery<UserDashboardSummary>({
+		queryKey: userKeys.summary(),
+		queryFn: () => getOrgUserSummary(),
+		enabled,
+		placeholderData: (previous) => previous,
 	});
 }
 

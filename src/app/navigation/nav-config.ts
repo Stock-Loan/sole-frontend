@@ -95,6 +95,13 @@ export const navConfig: NavConfig = {
 	],
 	people: [
 		{
+			id: "people-summary",
+			label: "Summary",
+			path: "/app/people/summary",
+			icon: BarChart3,
+			permissions: "user.view",
+		},
+		{
 			id: "people-users",
 			label: "Users",
 			path: "/app/people/users",

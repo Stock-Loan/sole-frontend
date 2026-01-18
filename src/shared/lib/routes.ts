@@ -27,6 +27,7 @@ export const routes = {
 	peopleUsers: "/app/people/users",
 	peopleUserDetail: "/app/people/users/:membershipId",
 	peopleUsersOnboard: "/app/people/users/onboard",
+	peopleSummary: "/app/people/summary",
 	peopleRoles: "/app/people/roles",
 	peopleDepartments: "/app/people/departments",
 	documents: "/app/documents",

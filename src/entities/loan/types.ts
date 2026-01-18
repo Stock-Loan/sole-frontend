@@ -98,6 +98,13 @@ export interface LoanRepaymentsResponse {
 	items: LoanRepayment[];
 }
 
+export interface LoanRepaymentCreatePayload {
+	amount: string;
+	principal_amount: string;
+	interest_amount: string;
+	payment_date: string;
+}
+
 export interface LoanScheduleEntry {
 	period: number;
 	due_date: string;
