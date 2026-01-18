@@ -12,7 +12,7 @@ export function Topbar() {
 	const searchItems = useMemo(() => getSearchItems(can), [can]);
 
 	return (
-		<header className="sticky top-0 z-40 flex items-center justify-between gap-4 border-b border-border/60 bg-background/95 px-10 py-4 shadow-sm backdrop-blur">
+		<header className="sticky top-0 z-40 flex items-center justify-between gap-4 border-b border-border/60 bg-background px-10 py-4 shadow-sm backdrop-blur">
 			<div className="flex items-center gap-3 shrink-0">
 				<AreaSwitcher />
 			</div>

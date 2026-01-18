@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import type {
 	LoanAllocationItem,
 	LoanApplication,
@@ -6,6 +7,8 @@ import type {
 	LoanDocumentCreatePayload,
 	LoanDocumentGroup,
 	LoanDocumentUploadPayload,
+	LoanRepayment,
+	LoanScheduleResponse,
 	LoanSelectionMode,
 	LoanWorkflowStage,
 	LoanWorkflowStageStatus,
@@ -134,6 +137,29 @@ export interface LoanSummaryPieChartProps {
 	items: LoanSummaryBarItem[];
 	total?: number;
 	emptyMessage?: string;
+}
+
+export interface LoanSchedulePanelProps {
+	schedule?: LoanScheduleResponse | null;
+	isLoading?: boolean;
+	isError?: boolean;
+	onRetry?: () => void;
+	actions?: ReactNode;
+}
+
+export interface LoanRepaymentsPanelProps {
+	repayments?: LoanRepayment[];
+	total?: number;
+	isLoading?: boolean;
+	isError?: boolean;
+	onRetry?: () => void;
+}
+
+export type LoanDetailTab = "overview" | "repayments" | "schedule";
+
+export interface LoanDetailTabOption {
+	id: LoanDetailTab;
+	label: string;
 }
 
 export interface WorkflowStagePanelProps {

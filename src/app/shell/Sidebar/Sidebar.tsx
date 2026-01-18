@@ -51,6 +51,15 @@ export function Sidebar({
 		if (location.pathname === routes.workspaceSettings) {
 			return null;
 		}
+		const isLoanDetail = /^\/app\/loans\/[^/]+$/.test(location.pathname);
+		if (isLoanDetail) {
+			const applicationsItem = visibleItems.find(
+				(item) => item.id === "loans-applications"
+			);
+			if (applicationsItem) {
+				return applicationsItem.id;
+			}
+		}
 		let bestMatchId: string | null = null;
 		let bestMatchLength = -1;
 

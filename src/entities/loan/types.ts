@@ -80,6 +80,44 @@ export interface LoanQuoteResponse {
 	eligibility_result: EligibilityResult;
 }
 
+export interface LoanRepayment {
+	id: string;
+	org_id?: string;
+	loan_application_id: string;
+	amount: string;
+	principal_amount: string;
+	interest_amount: string;
+	payment_date: string;
+	recorded_by_user_id?: string | null;
+	created_at?: string | null;
+}
+
+export interface LoanRepaymentsResponse {
+	loan_id: string;
+	total: number;
+	items: LoanRepayment[];
+}
+
+export interface LoanScheduleEntry {
+	period: number;
+	due_date: string;
+	payment: string;
+	principal: string;
+	interest: string;
+	remaining_balance: string;
+}
+
+export interface LoanScheduleResponse {
+	loan_id: string;
+	as_of_date: string;
+	repayment_method: LoanRepaymentMethod;
+	term_months: number;
+	principal: string;
+	annual_rate_percent: string;
+	estimated_monthly_payment: string;
+	entries: LoanScheduleEntry[];
+}
+
 export interface LoanDashboardSummaryParams {
 	as_of?: string;
 }

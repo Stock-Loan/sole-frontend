@@ -13,6 +13,9 @@ import {
 	getHrLoanDetail,
 	getLegalLoanDetail,
 	getMyLoanApplication,
+	listMyLoanRepayments,
+	getMyLoanSchedule,
+	exportMyLoanCsv,
 	getHrLoanQueue,
 	getFinanceLoanQueue,
 	getLegalLoanQueue,
@@ -24,6 +27,9 @@ import {
 	getMyLoanQuote,
 	listOrgLoanDocuments,
 	listOrgLoanApplications,
+	listOrgLoanRepayments,
+	getOrgLoanSchedule,
+	exportOrgLoanSchedule,
 	listMyLoanApplications,
 	listMyLoanDocuments,
 	downloadMyLoanDocument,
@@ -61,6 +67,8 @@ import type {
 	LoanDocumentUploadPayload,
 	LoanDocumentsGroupedResponse,
 	LoanActivateBacklogResponse,
+	LoanRepaymentsResponse,
+	LoanScheduleResponse,
 	LoanWorkflowAssignPayload,
 	LoanQueueListParams,
 	LoanQueueListResponse,
@@ -118,6 +126,38 @@ export function useMyLoanApplication(
 	});
 }
 
+export function useMyLoanRepayments(
+	id: string,
+	options: Omit<
+		UseQueryOptions<LoanRepaymentsResponse>,
+		"queryKey" | "queryFn"
+	> = {}
+) {
+	return useQuery({
+		queryKey: meKeys.loans.repayments(id),
+		queryFn: () => listMyLoanRepayments(id),
+		enabled: Boolean(id) && (options.enabled ?? true),
+		placeholderData: (previous) => previous,
+		...options,
+	});
+}
+
+export function useMyLoanSchedule(
+	id: string,
+	options: Omit<
+		UseQueryOptions<LoanScheduleResponse>,
+		"queryKey" | "queryFn"
+	> = {}
+) {
+	return useQuery({
+		queryKey: meKeys.loans.schedule(id),
+		queryFn: () => getMyLoanSchedule(id),
+		enabled: Boolean(id) && (options.enabled ?? true),
+		placeholderData: (previous) => previous,
+		...options,
+	});
+}
+
 export function useMyLoanDocuments(
 	id: string,
 	options: Omit<
@@ -148,6 +188,38 @@ export function useOrgLoanApplications(
 	});
 }
 
+export function useOrgLoanRepayments(
+	id: string,
+	options: Omit<
+		UseQueryOptions<LoanRepaymentsResponse>,
+		"queryKey" | "queryFn"
+	> = {}
+) {
+	return useQuery({
+		queryKey: orgKeys.loans.repayments(id),
+		queryFn: () => listOrgLoanRepayments(id),
+		enabled: Boolean(id) && (options.enabled ?? true),
+		placeholderData: (previous) => previous,
+		...options,
+	});
+}
+
+export function useOrgLoanSchedule(
+	id: string,
+	options: Omit<
+		UseQueryOptions<LoanScheduleResponse>,
+		"queryKey" | "queryFn"
+	> = {}
+) {
+	return useQuery({
+		queryKey: orgKeys.loans.schedule(id),
+		queryFn: () => getOrgLoanSchedule(id),
+		enabled: Boolean(id) && (options.enabled ?? true),
+		placeholderData: (previous) => previous,
+		...options,
+	});
+}
+
 export function useLoanDashboardSummary(
 	params: LoanDashboardSummaryParams = {},
 	options: Omit<
@@ -159,6 +231,24 @@ export function useLoanDashboardSummary(
 		queryKey: orgKeys.loans.summary(params),
 		queryFn: () => getLoanDashboardSummary(params),
 		placeholderData: (previous) => previous,
+		...options,
+	});
+}
+
+export function useExportMyLoanCsv(
+	options: UseMutationOptions<Blob, unknown, string> = {}
+) {
+	return useMutation({
+		mutationFn: (id: string) => exportMyLoanCsv(id),
+		...options,
+	});
+}
+
+export function useExportOrgLoanSchedule(
+	options: UseMutationOptions<Blob, unknown, string> = {}
+) {
+	return useMutation({
+		mutationFn: (id: string) => exportOrgLoanSchedule(id),
 		...options,
 	});
 }

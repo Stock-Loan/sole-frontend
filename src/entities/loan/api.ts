@@ -11,6 +11,8 @@ import type {
 	LoanApplicationListResponse,
 	LoanDashboardSummary,
 	LoanDashboardSummaryParams,
+	LoanRepaymentsResponse,
+	LoanScheduleResponse,
 	LoanDocument,
 	LoanDocumentCreatePayload,
 	LoanDocumentUploadPayload,
@@ -94,6 +96,31 @@ export async function getMyLoanApplication(
 	return unwrapApiResponse<LoanApplication>(data);
 }
 
+export async function listMyLoanRepayments(
+	id: string
+): Promise<LoanRepaymentsResponse> {
+	const { data } = await apiClient.get<LoanRepaymentsResponse>(
+		`/me/loans/${id}/repayments`
+	);
+	return unwrapApiResponse<LoanRepaymentsResponse>(data);
+}
+
+export async function getMyLoanSchedule(
+	id: string
+): Promise<LoanScheduleResponse> {
+	const { data } = await apiClient.get<LoanScheduleResponse>(
+		`/me/loans/${id}/schedule`
+	);
+	return unwrapApiResponse<LoanScheduleResponse>(data);
+}
+
+export async function exportMyLoanCsv(id: string): Promise<Blob> {
+	const { data } = await apiClient.get<Blob>(`/me/loans/${id}/export`, {
+		responseType: "blob",
+	});
+	return data;
+}
+
 export async function listMyLoanDocuments(
 	id: string
 ): Promise<LoanDocumentsGroupedResponse> {
@@ -121,6 +148,32 @@ export async function listOrgLoanApplications(
 		params,
 	});
 	return unwrapApiResponse<LoanApplicationListResponse>(data);
+}
+
+export async function listOrgLoanRepayments(
+	id: string
+): Promise<LoanRepaymentsResponse> {
+	const { data } = await apiClient.get<LoanRepaymentsResponse>(
+		`/org/loans/${id}/repayments`
+	);
+	return unwrapApiResponse<LoanRepaymentsResponse>(data);
+}
+
+export async function getOrgLoanSchedule(
+	id: string
+): Promise<LoanScheduleResponse> {
+	const { data } = await apiClient.get<LoanScheduleResponse>(
+		`/org/loans/${id}/schedule`
+	);
+	return unwrapApiResponse<LoanScheduleResponse>(data);
+}
+
+export async function exportOrgLoanSchedule(id: string): Promise<Blob> {
+	const { data } = await apiClient.get<Blob>(
+		`/org/loans/${id}/schedule/export`,
+		{ responseType: "blob" }
+	);
+	return data;
 }
 
 export async function getLoanDashboardSummary(

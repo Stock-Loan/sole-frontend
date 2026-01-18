@@ -16,6 +16,8 @@ export const meKeys = {
 		list: (params?: LoanApplicationListParams) =>
 			["me", "loans", "list", params ?? {}] as const,
 		detail: (id: string) => ["me", "loans", "detail", id] as const,
+		repayments: (id: string) => ["me", "loans", "repayments", id] as const,
+		schedule: (id: string) => ["me", "loans", "schedule", id] as const,
 		documents: (id: string) => ["me", "loans", "documents", id] as const,
 		documentDownload: (documentId: string) =>
 			["me", "loans", "documents", "download", documentId] as const,
@@ -37,6 +39,8 @@ export const orgKeys = {
 		summary: (params?: LoanDashboardSummaryParams) =>
 			["org", "loans", "summary", params ?? {}] as const,
 		detail: (id: string) => ["org", "loans", "detail", id] as const,
+		repayments: (id: string) => ["org", "loans", "repayments", id] as const,
+		schedule: (id: string) => ["org", "loans", "schedule", id] as const,
 		queue: {
 			hr: (params?: LoanQueueListParams) =>
 				["org", "loans", "queue", "hr", params ?? {}] as const,

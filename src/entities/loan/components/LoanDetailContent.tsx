@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AlertTriangle, CheckCircle2 } from "lucide-react";
 import { EmptyState } from "@/shared/ui/EmptyState";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
@@ -15,6 +15,8 @@ import { formatCurrency, formatDate, formatPercent } from "@/shared/lib/format";
 import { formatShares } from "@/entities/stock-grant/constants";
 import { cn } from "@/shared/lib/utils";
 import { colorPalette } from "@/app/styles/color-palette";
+import { TabButton } from "@/shared/ui/TabButton";
+import { Button } from "@/shared/ui/Button";
 import {
 	formatDetailBoolean,
 	formatDetailValue,
@@ -25,13 +27,23 @@ import {
 	groupDocumentsByStage,
 } from "@/entities/loan/components/detail-utils";
 import { LoanDocumentList } from "@/entities/loan/components/LoanDocumentList";
+import { LoanRepaymentsPanel } from "@/entities/loan/components/LoanRepaymentsPanel";
+import { LoanSchedulePanel } from "@/entities/loan/components/LoanSchedulePanel";
 import { LoanTimeline } from "@/entities/loan/components/LoanTimeline";
-import { useDownloadOrgLoanDocument, useOrgLoanDocuments } from "@/entities/loan/hooks";
+import {
+	useDownloadOrgLoanDocument,
+	useExportOrgLoanSchedule,
+	useOrgLoanDocuments,
+	useOrgLoanRepayments,
+	useOrgLoanSchedule,
+} from "@/entities/loan/hooks";
 import { useToast } from "@/shared/ui/use-toast";
 import { parseApiError } from "@/shared/api/errors";
 import { downloadBlob } from "@/shared/lib/download";
 import { usePermissions } from "@/auth/hooks";
 import type {
+	LoanDetailTab,
+	LoanDetailTabOption,
 	LoanAllocationTableProps,
 	LoanDetailContentProps,
 	LoanDetailRowProps,
@@ -52,6 +64,7 @@ export function LoanDetailContent({
 	const [downloadingDocumentId, setDownloadingDocumentId] = useState<
 		string | null
 	>(null);
+	const [activeTab, setActiveTab] = useState<LoanDetailTab>("overview");
 	const canViewDocuments = can([
 		"loan.document.view",
 		"loan.document.manage_hr",
@@ -59,6 +72,9 @@ export function LoanDetailContent({
 		"loan.document.manage_legal",
 		"loan.workflow.post_issuance.manage",
 	]);
+	const canViewRepayments = can("loan.payment.view");
+	const canViewSchedule = can("loan.schedule.view");
+	const canExportSchedule = can("loan.export.schedule");
 	const downloadMutation = useDownloadOrgLoanDocument({
 		onError: (error) => {
 			toast({
@@ -71,6 +87,54 @@ export function LoanDetailContent({
 	const documentsQuery = useOrgLoanDocuments(loan?.id ?? "", {
 		enabled: Boolean(loan?.id) && canViewDocuments,
 	});
+	const isActiveLoan = loan?.status === "ACTIVE";
+	const availableTabs = useMemo<LoanDetailTabOption[]>(() => {
+		const options: LoanDetailTabOption[] = [
+			{ id: "overview", label: "Overview" },
+		];
+		if (isActiveLoan && canViewRepayments) {
+			options.push({ id: "repayments", label: "Repayments" });
+		}
+		if (isActiveLoan && canViewSchedule) {
+			options.push({ id: "schedule", label: "Schedule" });
+		}
+		return options;
+	}, [isActiveLoan, canViewRepayments, canViewSchedule]);
+	const showTabs = isActiveLoan && availableTabs.length > 1;
+	const repaymentsQuery = useOrgLoanRepayments(loan?.id ?? "", {
+		enabled:
+			Boolean(loan?.id) &&
+			isActiveLoan &&
+			canViewRepayments &&
+			activeTab === "repayments",
+	});
+	const scheduleQuery = useOrgLoanSchedule(loan?.id ?? "", {
+		enabled:
+			Boolean(loan?.id) &&
+			isActiveLoan &&
+			canViewSchedule &&
+			activeTab === "schedule",
+	});
+	const exportScheduleMutation = useExportOrgLoanSchedule({
+		onError: (error) => {
+			toast({
+				title: "Export failed",
+				description: parseApiError(error).message,
+				variant: "destructive",
+			});
+		},
+	});
+
+	useEffect(() => {
+		if (!showTabs && activeTab !== "overview") {
+			setActiveTab("overview");
+			return;
+		}
+		const exists = availableTabs.some((tab) => tab.id === activeTab);
+		if (!exists) {
+			setActiveTab("overview");
+		}
+	}, [activeTab, availableTabs, showTabs]);
 
 	if (isLoading) {
 		return <LoanDetailSkeleton />;
@@ -110,490 +174,594 @@ export function LoanDetailContent({
 			setDownloadingDocumentId(null);
 		}
 	};
+	const handleExportSchedule = async () => {
+		if (!loan.id) return;
+		const blob = await exportScheduleMutation.mutateAsync(loan.id);
+		downloadBlob(blob, `loan-schedule-${loan.id}.csv`);
+	};
+	const showOverview = !showTabs || activeTab === "overview";
 
 	return (
 		<div className="space-y-6">
-			<div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-				<SummaryCard label="Status" value={loan.status} />
-				<SummaryCard
-					label="Shares to exercise"
-					value={formatShares(loan.shares_to_exercise)}
-				/>
-				<SummaryCard
-					label="Loan principal"
-					value={formatCurrency(loan.loan_principal)}
-				/>
-				<SummaryCard
-					label="Term"
-					value={loan.term_months ? `${loan.term_months} months` : "—"}
-				/>
-			</div>
-
-			<div className="grid gap-4 lg:grid-cols-2">
-				<Card>
-					<CardHeader className="pb-2">
-						<CardTitle className="text-sm font-semibold">
-							Application info
-						</CardTitle>
-					</CardHeader>
-					<CardContent className="space-y-2 text-sm text-muted-foreground">
-						<DetailRow label="Loan ID" value={loan.id} valueClassName="break-all" />
-						<DetailRow label="Org ID" value={loan.org_id} valueClassName="break-all" />
-						<DetailRow
-							label="Org membership ID"
-							value={loan.org_membership_id}
-							valueClassName="break-all"
-						/>
-						<DetailRow label="Version" value={loan.version} />
-						<DetailRow
-							label="Policy version snapshot"
-							value={loan.policy_version_snapshot}
-						/>
-						<DetailRow label="As of date" value={formatDate(loan.as_of_date)} />
-						<DetailRow
-							label="Activation date"
-							value={formatDate(loan.activation_date)}
-						/>
-						<DetailRow
-							label="83(b) due date"
-							value={formatDate(loan.election_83b_due_date)}
-						/>
-						<DetailRow
-							label="Days until 83(b)"
-							value={loan.days_until_83b_due}
-						/>
-						<DetailRow
-							label="Share certificate"
-							value={formatDetailBoolean(loan.has_share_certificate)}
-						/>
-						<DetailRow
-							label="83(b) election filed"
-							value={formatDetailBoolean(loan.has_83b_election)}
-						/>
-						<DetailRow label="Created at" value={formatDate(loan.created_at)} />
-						<DetailRow label="Updated at" value={formatDate(loan.updated_at)} />
-					</CardContent>
-				</Card>
-
-				<Card>
-					<CardHeader className="pb-2">
-						<CardTitle className="text-sm font-semibold">
-							Selection snapshot
-						</CardTitle>
-					</CardHeader>
-					<CardContent className="space-y-2 text-sm text-muted-foreground">
-						<DetailRow label="Selection mode" value={selectionMode} />
-						<DetailRow
-							label="Selection value"
-							value={formatLoanSelectionValue(selectionMode, selectionValue)}
-						/>
-						<DetailRow
-							label="Total exercisable"
-							value={formatShares(loan.total_exercisable_shares_snapshot)}
-						/>
-						<DetailRow
+			<div className="sticky top-2 z-30 pb-1 relative backdrop-blur before:content-[''] before:absolute before:-top-2.5 before:left-0 before:right-0 before:h-2 before:bg-background/90 before:backdrop-blur before:pointer-events-none">
+				<div className="space-y-4 relative z-10">
+					<div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+						<SummaryCard label="Status" value={loan.status} />
+						<SummaryCard
 							label="Shares to exercise"
 							value={formatShares(loan.shares_to_exercise)}
 						/>
-						<DetailRow
-							label="Allocation strategy"
-							value={loan.allocation_strategy}
-						/>
-					</CardContent>
-				</Card>
-			</div>
-
-			{loan.applicant ? (
-				<Card>
-					<CardHeader className="pb-2">
-						<CardTitle className="text-sm font-semibold">Applicant</CardTitle>
-					</CardHeader>
-					<CardContent className="space-y-2 text-sm text-muted-foreground">
-						<DetailRow label="Full name" value={loan.applicant.full_name} />
-						<DetailRow label="Email" value={loan.applicant.email} />
-						<DetailRow
-							label="Employee ID"
-							value={loan.applicant.employee_id}
-						/>
-						<DetailRow
-							label="Department"
-							value={loan.applicant.department_name}
-						/>
-						<DetailRow
-							label="Department ID"
-							value={loan.applicant.department_id}
-							valueClassName="break-all"
-						/>
-						<DetailRow
-							label="User ID"
-							value={loan.applicant.user_id}
-							valueClassName="break-all"
-						/>
-						<DetailRow
-							label="Org membership ID"
-							value={loan.applicant.org_membership_id}
-							valueClassName="break-all"
-						/>
-					</CardContent>
-				</Card>
-			) : null}
-
-			<div className="grid gap-4 lg:grid-cols-2">
-				<Card>
-					<CardHeader className="pb-2">
-						<CardTitle className="text-sm font-semibold">
-							Financial summary
-						</CardTitle>
-					</CardHeader>
-					<CardContent className="space-y-2 text-sm text-muted-foreground">
-						<DetailRow
-							label="Purchase price"
-							value={formatCurrency(loan.purchase_price)}
-						/>
-						<DetailRow
-							label="Down payment"
-							value={formatCurrency(loan.down_payment_amount)}
-						/>
-						<DetailRow
+						<SummaryCard
 							label="Loan principal"
 							value={formatCurrency(loan.loan_principal)}
 						/>
-					</CardContent>
-				</Card>
-
-				<Card>
-					<CardHeader className="pb-2">
-						<CardTitle className="text-sm font-semibold">
-							Quote summary
-						</CardTitle>
-					</CardHeader>
-					<CardContent className="space-y-2 text-sm text-muted-foreground">
-						<DetailRow label="Interest type" value={loan.interest_type} />
-						<DetailRow label="Repayment method" value={loan.repayment_method} />
-						<DetailRow
+						<SummaryCard
 							label="Term"
 							value={loan.term_months ? `${loan.term_months} months` : "—"}
 						/>
-						<DetailRow
-							label="Nominal annual rate"
-							value={formatPercent(loan.nominal_annual_rate_percent)}
-						/>
-						<DetailRow
-							label="Estimated monthly payment"
-							value={formatCurrency(loan.estimated_monthly_payment)}
-						/>
-						<DetailRow
-							label="Total interest"
-							value={formatCurrency(loan.total_interest_amount)}
-						/>
-						<DetailRow
-							label="Total payable"
-							value={formatCurrency(loan.total_payable_amount)}
-						/>
-					</CardContent>
-				</Card>
+					</div>
+
+					{showTabs ? (
+						<div className="inline-flex w-fit items-center gap-2 rounded-lg border bg-card px-2 py-2 shadow-sm">
+							{availableTabs.map((tab) => (
+								<TabButton
+									key={tab.id}
+									label={tab.label}
+									value={tab.id}
+									active={tab.id === activeTab}
+									onSelect={(value) => setActiveTab(value)}
+								/>
+							))}
+						</div>
+					) : null}
+				</div>
 			</div>
 
-			<div className="grid gap-4 lg:grid-cols-2">
-				<Card>
-					<CardHeader className="pb-2">
-						<CardTitle className="text-sm font-semibold">
-							Eligibility snapshot
-						</CardTitle>
-					</CardHeader>
-					<CardContent className="space-y-2 text-sm text-muted-foreground">
-						<DetailRow
-							label="Eligible to exercise"
-							value={formatDetailBoolean(
-								eligibilitySnapshot?.eligible_to_exercise
+			{showOverview ? (
+				<>
+					<div className="grid gap-4 lg:grid-cols-2">
+						<Card>
+							<CardHeader className="pb-2">
+								<CardTitle className="text-sm font-semibold">
+									Application info
+								</CardTitle>
+							</CardHeader>
+							<CardContent className="space-y-2 text-sm text-muted-foreground">
+								<DetailRow
+									label="Loan ID"
+									value={loan.id}
+									valueClassName="break-all"
+								/>
+								<DetailRow
+									label="Org ID"
+									value={loan.org_id}
+									valueClassName="break-all"
+								/>
+								<DetailRow
+									label="Org membership ID"
+									value={loan.org_membership_id}
+									valueClassName="break-all"
+								/>
+								<DetailRow label="Version" value={loan.version} />
+								<DetailRow
+									label="Policy version snapshot"
+									value={loan.policy_version_snapshot}
+								/>
+								<DetailRow
+									label="As of date"
+									value={formatDate(loan.as_of_date)}
+								/>
+								<DetailRow
+									label="Activation date"
+									value={formatDate(loan.activation_date)}
+								/>
+								<DetailRow
+									label="83(b) due date"
+									value={formatDate(loan.election_83b_due_date)}
+								/>
+								<DetailRow
+									label="Days until 83(b)"
+									value={loan.days_until_83b_due}
+								/>
+								<DetailRow
+									label="Share certificate"
+									value={formatDetailBoolean(loan.has_share_certificate)}
+								/>
+								<DetailRow
+									label="83(b) election filed"
+									value={formatDetailBoolean(loan.has_83b_election)}
+								/>
+								<DetailRow
+									label="Created at"
+									value={formatDate(loan.created_at)}
+								/>
+								<DetailRow
+									label="Updated at"
+									value={formatDate(loan.updated_at)}
+								/>
+							</CardContent>
+						</Card>
+
+						<Card>
+							<CardHeader className="pb-2">
+								<CardTitle className="text-sm font-semibold">
+									Selection snapshot
+								</CardTitle>
+							</CardHeader>
+							<CardContent className="space-y-2 text-sm text-muted-foreground">
+								<DetailRow label="Selection mode" value={selectionMode} />
+								<DetailRow
+									label="Selection value"
+									value={formatLoanSelectionValue(
+										selectionMode,
+										selectionValue,
+									)}
+								/>
+								<DetailRow
+									label="Total exercisable"
+									value={formatShares(loan.total_exercisable_shares_snapshot)}
+								/>
+								<DetailRow
+									label="Shares to exercise"
+									value={formatShares(loan.shares_to_exercise)}
+								/>
+								<DetailRow
+									label="Allocation strategy"
+									value={loan.allocation_strategy}
+								/>
+							</CardContent>
+						</Card>
+					</div>
+
+					{loan.applicant ? (
+						<Card>
+							<CardHeader className="pb-2">
+								<CardTitle className="text-sm font-semibold">
+									Applicant
+								</CardTitle>
+							</CardHeader>
+							<CardContent className="space-y-2 text-sm text-muted-foreground">
+								<DetailRow label="Full name" value={loan.applicant.full_name} />
+								<DetailRow label="Email" value={loan.applicant.email} />
+								<DetailRow
+									label="Employee ID"
+									value={loan.applicant.employee_id}
+								/>
+								<DetailRow
+									label="Department"
+									value={loan.applicant.department_name}
+								/>
+								<DetailRow
+									label="Department ID"
+									value={loan.applicant.department_id}
+									valueClassName="break-all"
+								/>
+								<DetailRow
+									label="User ID"
+									value={loan.applicant.user_id}
+									valueClassName="break-all"
+								/>
+								<DetailRow
+									label="Org membership ID"
+									value={loan.applicant.org_membership_id}
+									valueClassName="break-all"
+								/>
+							</CardContent>
+						</Card>
+					) : null}
+
+					<div className="grid gap-4 lg:grid-cols-2">
+						<Card>
+							<CardHeader className="pb-2">
+								<CardTitle className="text-sm font-semibold">
+									Financial summary
+								</CardTitle>
+							</CardHeader>
+							<CardContent className="space-y-2 text-sm text-muted-foreground">
+								<DetailRow
+									label="Purchase price"
+									value={formatCurrency(loan.purchase_price)}
+								/>
+								<DetailRow
+									label="Down payment"
+									value={formatCurrency(loan.down_payment_amount)}
+								/>
+								<DetailRow
+									label="Loan principal"
+									value={formatCurrency(loan.loan_principal)}
+								/>
+							</CardContent>
+						</Card>
+
+						<Card>
+							<CardHeader className="pb-2">
+								<CardTitle className="text-sm font-semibold">
+									Quote summary
+								</CardTitle>
+							</CardHeader>
+							<CardContent className="space-y-2 text-sm text-muted-foreground">
+								<DetailRow label="Interest type" value={loan.interest_type} />
+								<DetailRow
+									label="Repayment method"
+									value={loan.repayment_method}
+								/>
+								<DetailRow
+									label="Term"
+									value={loan.term_months ? `${loan.term_months} months` : "—"}
+								/>
+								<DetailRow
+									label="Nominal annual rate"
+									value={formatPercent(loan.nominal_annual_rate_percent)}
+								/>
+								<DetailRow
+									label="Estimated monthly payment"
+									value={formatCurrency(loan.estimated_monthly_payment)}
+								/>
+								<DetailRow
+									label="Total interest"
+									value={formatCurrency(loan.total_interest_amount)}
+								/>
+								<DetailRow
+									label="Total payable"
+									value={formatCurrency(loan.total_payable_amount)}
+								/>
+							</CardContent>
+						</Card>
+					</div>
+
+					<div className="grid gap-4 lg:grid-cols-2">
+						<Card>
+							<CardHeader className="pb-2">
+								<CardTitle className="text-sm font-semibold">
+									Eligibility snapshot
+								</CardTitle>
+							</CardHeader>
+							<CardContent className="space-y-2 text-sm text-muted-foreground">
+								<DetailRow
+									label="Eligible to exercise"
+									value={formatDetailBoolean(
+										eligibilitySnapshot?.eligible_to_exercise,
+									)}
+								/>
+								<DetailRow
+									label="Total granted shares"
+									value={formatShares(
+										eligibilitySnapshot?.total_granted_shares,
+									)}
+								/>
+								<DetailRow
+									label="Total vested shares"
+									value={formatShares(eligibilitySnapshot?.total_vested_shares)}
+								/>
+								<DetailRow
+									label="Total unvested shares"
+									value={formatShares(
+										eligibilitySnapshot?.total_unvested_shares,
+									)}
+								/>
+								<DetailRow
+									label="Eligibility reasons"
+									value={formatEligibilityReasons(eligibilitySnapshot?.reasons)}
+								/>
+							</CardContent>
+						</Card>
+
+						<Card>
+							<CardHeader className="pb-2">
+								<CardTitle className="text-sm font-semibold">
+									Policy snapshot
+								</CardTitle>
+							</CardHeader>
+							<CardContent className="space-y-2 text-sm text-muted-foreground">
+								<DetailRow
+									label="Policy version"
+									value={orgSettings?.policy_version}
+								/>
+								<DetailRow
+									label="Service duration rule"
+									value={formatDetailBoolean(
+										orgSettings?.enforce_service_duration_rule,
+									)}
+								/>
+								<DetailRow
+									label="Min service duration"
+									value={formatYears(orgSettings?.min_service_duration_years)}
+								/>
+								<DetailRow
+									label="Min vested rule"
+									value={formatDetailBoolean(
+										orgSettings?.enforce_min_vested_to_exercise,
+									)}
+								/>
+								<DetailRow
+									label="Min vested shares"
+									value={orgSettings?.min_vested_shares_to_exercise}
+								/>
+								<DetailRow
+									label="Allowed repayment methods"
+									value={formatList(orgSettings?.allowed_repayment_methods)}
+								/>
+								<DetailRow
+									label="Allowed interest types"
+									value={formatList(orgSettings?.allowed_interest_types)}
+								/>
+								<DetailRow
+									label="Term range"
+									value={
+										orgSettings
+											? `${orgSettings.min_loan_term_months}–${orgSettings.max_loan_term_months} months`
+											: "—"
+									}
+								/>
+								<DetailRow
+									label="Fixed annual rate"
+									value={formatPercent(
+										orgSettings?.fixed_interest_rate_annual_percent,
+									)}
+								/>
+								<DetailRow
+									label="Variable base rate"
+									value={formatPercent(
+										orgSettings?.variable_base_rate_annual_percent,
+									)}
+								/>
+								<DetailRow
+									label="Variable margin"
+									value={formatPercent(
+										orgSettings?.variable_margin_annual_percent,
+									)}
+								/>
+								<DetailRow
+									label="Require down payment"
+									value={formatDetailBoolean(orgSettings?.require_down_payment)}
+								/>
+								<DetailRow
+									label="Down payment percent"
+									value={formatPercent(orgSettings?.down_payment_percent)}
+								/>
+							</CardContent>
+						</Card>
+					</div>
+
+					<div className="grid gap-4 lg:grid-cols-2">
+						<Card>
+							<CardHeader className="pb-2">
+								<CardTitle className="text-sm font-semibold">
+									Quote inputs snapshot
+								</CardTitle>
+							</CardHeader>
+							<CardContent className="space-y-2 text-sm text-muted-foreground">
+								<DetailRow
+									label="Selection mode"
+									value={loan.quote_inputs_snapshot?.selection_mode}
+								/>
+								<DetailRow
+									label="Selection value"
+									value={formatLoanSelectionValue(
+										loan.quote_inputs_snapshot?.selection_mode ?? null,
+										loan.quote_inputs_snapshot?.selection_value ?? null,
+									)}
+								/>
+								<DetailRow
+									label="Desired term"
+									value={
+										loan.quote_inputs_snapshot?.desired_term_months
+											? `${loan.quote_inputs_snapshot.desired_term_months} months`
+											: "—"
+									}
+								/>
+								<DetailRow
+									label="Desired interest type"
+									value={loan.quote_inputs_snapshot?.desired_interest_type}
+								/>
+								<DetailRow
+									label="Desired repayment method"
+									value={loan.quote_inputs_snapshot?.desired_repayment_method}
+								/>
+								<DetailRow
+									label="As of date"
+									value={formatDate(loan.quote_inputs_snapshot?.as_of_date)}
+								/>
+							</CardContent>
+						</Card>
+
+						<Card>
+							<CardHeader className="pb-2">
+								<CardTitle className="text-sm font-semibold">
+									Quote option snapshot
+								</CardTitle>
+							</CardHeader>
+							<CardContent className="space-y-2 text-sm text-muted-foreground">
+								<DetailRow
+									label="Interest type"
+									value={loan.quote_option_snapshot?.interest_type}
+								/>
+								<DetailRow
+									label="Repayment method"
+									value={loan.quote_option_snapshot?.repayment_method}
+								/>
+								<DetailRow
+									label="Term"
+									value={
+										loan.quote_option_snapshot?.term_months
+											? `${loan.quote_option_snapshot.term_months} months`
+											: "—"
+									}
+								/>
+								<DetailRow
+									label="Nominal annual rate"
+									value={formatPercent(
+										loan.quote_option_snapshot?.nominal_annual_rate,
+									)}
+								/>
+								<DetailRow
+									label="Estimated monthly payment"
+									value={formatCurrency(
+										loan.quote_option_snapshot?.estimated_monthly_payment,
+									)}
+								/>
+								<DetailRow
+									label="Total interest"
+									value={formatCurrency(
+										loan.quote_option_snapshot?.total_interest,
+									)}
+								/>
+								<DetailRow
+									label="Total payable"
+									value={formatCurrency(
+										loan.quote_option_snapshot?.total_payable,
+									)}
+								/>
+							</CardContent>
+						</Card>
+					</div>
+
+					<Card>
+						<CardHeader className="pb-2">
+							<CardTitle className="text-sm font-semibold">
+								Allocation snapshot
+							</CardTitle>
+						</CardHeader>
+						<CardContent className="space-y-3 text-sm text-muted-foreground">
+							{allocationSnapshot.length === 0 ? (
+								<p>No allocation snapshot available.</p>
+							) : (
+								<AllocationTable allocations={allocationSnapshot} />
 							)}
-						/>
-						<DetailRow
-							label="Total granted shares"
-							value={formatShares(eligibilitySnapshot?.total_granted_shares)}
-						/>
-						<DetailRow
-							label="Total vested shares"
-							value={formatShares(eligibilitySnapshot?.total_vested_shares)}
-						/>
-						<DetailRow
-							label="Total unvested shares"
-							value={formatShares(eligibilitySnapshot?.total_unvested_shares)}
-						/>
-						<DetailRow
-							label="Eligibility reasons"
-							value={formatEligibilityReasons(eligibilitySnapshot?.reasons)}
-						/>
-					</CardContent>
-				</Card>
+						</CardContent>
+					</Card>
 
-				<Card>
-					<CardHeader className="pb-2">
-						<CardTitle className="text-sm font-semibold">
-							Policy snapshot
-						</CardTitle>
-					</CardHeader>
-					<CardContent className="space-y-2 text-sm text-muted-foreground">
-						<DetailRow
-							label="Policy version"
-							value={orgSettings?.policy_version}
-						/>
-						<DetailRow
-							label="Service duration rule"
-							value={formatDetailBoolean(
-								orgSettings?.enforce_service_duration_rule
+					<div className="grid gap-4 lg:grid-cols-2">
+						<Card>
+							<CardHeader className="pb-2">
+								<CardTitle className="text-sm font-semibold">
+									Workflow stages
+								</CardTitle>
+							</CardHeader>
+							<CardContent className="space-y-4 text-sm text-muted-foreground">
+								<LoanTimeline
+									stages={workflowStages}
+									activationDate={loan.activation_date}
+									election83bDueDate={loan.election_83b_due_date}
+									loanStatus={loan.status}
+									emptyTitle="No workflow stages yet"
+									emptyMessage="Stages will appear once reviewers start the process."
+								/>
+							</CardContent>
+						</Card>
+
+						<Card>
+							<CardHeader className="pb-2">
+								<CardTitle className="text-sm font-semibold">
+									Documents
+								</CardTitle>
+							</CardHeader>
+							<CardContent className="space-y-4 text-sm text-muted-foreground">
+								{canViewDocuments ? (
+									<LoanDocumentList
+										groups={documentGroups}
+										isLoading={documentsQuery.isLoading}
+										isError={documentsQuery.isError}
+										onRetry={() => documentsQuery.refetch()}
+										emptyTitle="No documents uploaded yet"
+										emptyMessage="Documents will show up here once uploaded."
+										onDownload={handleDownload}
+										downloadingDocumentId={downloadingDocumentId}
+									/>
+								) : (
+									<p>You do not have permission to view documents.</p>
+								)}
+							</CardContent>
+						</Card>
+					</div>
+
+					{loan.marital_status_snapshot ? (
+						<Card>
+							<CardHeader className="pb-2">
+								<CardTitle className="text-sm font-semibold">
+									Consents
+								</CardTitle>
+							</CardHeader>
+							<CardContent className="space-y-2 text-sm text-muted-foreground">
+								<DetailRow
+									label="Marital status"
+									value={loan.marital_status_snapshot}
+								/>
+								{loan.spouse_first_name || loan.spouse_last_name ? (
+									<DetailRow
+										label="Spouse/partner"
+										value={`${loan.spouse_first_name ?? ""} ${loan.spouse_middle_name ?? ""} ${loan.spouse_last_name ?? ""}`
+											.replace(/\s+/g, " ")
+											.trim()}
+									/>
+								) : null}
+								<DetailRow label="Spouse email" value={loan.spouse_email} />
+								<DetailRow label="Spouse phone" value={loan.spouse_phone} />
+								<DetailRow label="Spouse address" value={loan.spouse_address} />
+							</CardContent>
+						</Card>
+					) : null}
+
+					{loan.decision_reason ? (
+						<div
+							className={cn(
+								"rounded-lg border p-4",
+								loan.status === "REJECTED"
+									? "border-red-200 bg-red-50/70"
+									: "border-amber-200 bg-amber-50/70",
 							)}
-						/>
-						<DetailRow
-							label="Min service duration"
-							value={formatYears(orgSettings?.min_service_duration_years)}
-						/>
-						<DetailRow
-							label="Min vested rule"
-							value={formatDetailBoolean(
-								orgSettings?.enforce_min_vested_to_exercise
-							)}
-						/>
-						<DetailRow
-							label="Min vested shares"
-							value={orgSettings?.min_vested_shares_to_exercise}
-						/>
-						<DetailRow
-							label="Allowed repayment methods"
-							value={formatList(orgSettings?.allowed_repayment_methods)}
-						/>
-						<DetailRow
-							label="Allowed interest types"
-							value={formatList(orgSettings?.allowed_interest_types)}
-						/>
-						<DetailRow
-							label="Term range"
-							value={
-								orgSettings
-									? `${orgSettings.min_loan_term_months}–${orgSettings.max_loan_term_months} months`
-									: "—"
-							}
-						/>
-						<DetailRow
-							label="Fixed annual rate"
-							value={formatPercent(orgSettings?.fixed_interest_rate_annual_percent)}
-						/>
-						<DetailRow
-							label="Variable base rate"
-							value={formatPercent(orgSettings?.variable_base_rate_annual_percent)}
-						/>
-						<DetailRow
-							label="Variable margin"
-							value={formatPercent(orgSettings?.variable_margin_annual_percent)}
-						/>
-						<DetailRow
-							label="Require down payment"
-							value={formatDetailBoolean(orgSettings?.require_down_payment)}
-						/>
-						<DetailRow
-							label="Down payment percent"
-							value={formatPercent(orgSettings?.down_payment_percent)}
-						/>
-					</CardContent>
-				</Card>
-			</div>
-
-			<div className="grid gap-4 lg:grid-cols-2">
-				<Card>
-					<CardHeader className="pb-2">
-						<CardTitle className="text-sm font-semibold">
-							Quote inputs snapshot
-						</CardTitle>
-					</CardHeader>
-					<CardContent className="space-y-2 text-sm text-muted-foreground">
-						<DetailRow
-							label="Selection mode"
-							value={loan.quote_inputs_snapshot?.selection_mode}
-						/>
-						<DetailRow
-							label="Selection value"
-							value={formatLoanSelectionValue(
-								loan.quote_inputs_snapshot?.selection_mode ?? null,
-								loan.quote_inputs_snapshot?.selection_value ?? null
-							)}
-						/>
-						<DetailRow
-							label="Desired term"
-							value={
-								loan.quote_inputs_snapshot?.desired_term_months
-									? `${loan.quote_inputs_snapshot.desired_term_months} months`
-									: "—"
-							}
-						/>
-						<DetailRow
-							label="Desired interest type"
-							value={loan.quote_inputs_snapshot?.desired_interest_type}
-						/>
-						<DetailRow
-							label="Desired repayment method"
-							value={loan.quote_inputs_snapshot?.desired_repayment_method}
-						/>
-						<DetailRow
-							label="As of date"
-							value={formatDate(loan.quote_inputs_snapshot?.as_of_date)}
-						/>
-					</CardContent>
-				</Card>
-
-				<Card>
-					<CardHeader className="pb-2">
-						<CardTitle className="text-sm font-semibold">
-							Quote option snapshot
-						</CardTitle>
-					</CardHeader>
-					<CardContent className="space-y-2 text-sm text-muted-foreground">
-						<DetailRow
-							label="Interest type"
-							value={loan.quote_option_snapshot?.interest_type}
-						/>
-						<DetailRow
-							label="Repayment method"
-							value={loan.quote_option_snapshot?.repayment_method}
-						/>
-						<DetailRow
-							label="Term"
-							value={
-								loan.quote_option_snapshot?.term_months
-									? `${loan.quote_option_snapshot.term_months} months`
-									: "—"
-							}
-						/>
-						<DetailRow
-							label="Nominal annual rate"
-							value={formatPercent(
-								loan.quote_option_snapshot?.nominal_annual_rate
-							)}
-						/>
-						<DetailRow
-							label="Estimated monthly payment"
-							value={formatCurrency(
-								loan.quote_option_snapshot?.estimated_monthly_payment
-							)}
-						/>
-						<DetailRow
-							label="Total interest"
-							value={formatCurrency(loan.quote_option_snapshot?.total_interest)}
-						/>
-						<DetailRow
-							label="Total payable"
-							value={formatCurrency(loan.quote_option_snapshot?.total_payable)}
-						/>
-					</CardContent>
-				</Card>
-			</div>
-
-			<Card>
-				<CardHeader className="pb-2">
-					<CardTitle className="text-sm font-semibold">
-						Allocation snapshot
-					</CardTitle>
-				</CardHeader>
-				<CardContent className="space-y-3 text-sm text-muted-foreground">
-					{allocationSnapshot.length === 0 ? (
-						<p>No allocation snapshot available.</p>
-					) : (
-						<AllocationTable allocations={allocationSnapshot} />
-					)}
-				</CardContent>
-			</Card>
-
-			<div className="grid gap-4 lg:grid-cols-2">
-				<Card>
-					<CardHeader className="pb-2">
-						<CardTitle className="text-sm font-semibold">
-							Workflow stages
-						</CardTitle>
-					</CardHeader>
-					<CardContent className="space-y-4 text-sm text-muted-foreground">
-						<LoanTimeline
-							stages={workflowStages}
-							activationDate={loan.activation_date}
-							election83bDueDate={loan.election_83b_due_date}
-							loanStatus={loan.status}
-							emptyTitle="No workflow stages yet"
-							emptyMessage="Stages will appear once reviewers start the process."
-						/>
-					</CardContent>
-				</Card>
-
-				<Card>
-					<CardHeader className="pb-2">
-						<CardTitle className="text-sm font-semibold">Documents</CardTitle>
-					</CardHeader>
-					<CardContent className="space-y-4 text-sm text-muted-foreground">
-						{canViewDocuments ? (
-							<LoanDocumentList
-								groups={documentGroups}
-								isLoading={documentsQuery.isLoading}
-								isError={documentsQuery.isError}
-								onRetry={() => documentsQuery.refetch()}
-								emptyTitle="No documents uploaded yet"
-								emptyMessage="Documents will show up here once uploaded."
-								onDownload={handleDownload}
-								downloadingDocumentId={downloadingDocumentId}
-							/>
-						) : (
-							<p>You do not have permission to view documents.</p>
-						)}
-					</CardContent>
-				</Card>
-			</div>
-
-			{loan.marital_status_snapshot ? (
-				<Card>
-					<CardHeader className="pb-2">
-						<CardTitle className="text-sm font-semibold">Consents</CardTitle>
-					</CardHeader>
-					<CardContent className="space-y-2 text-sm text-muted-foreground">
-						<DetailRow
-							label="Marital status"
-							value={loan.marital_status_snapshot}
-						/>
-						{loan.spouse_first_name || loan.spouse_last_name ? (
-							<DetailRow
-								label="Spouse/partner"
-								value={`${loan.spouse_first_name ?? ""} ${loan.spouse_middle_name ?? ""} ${loan.spouse_last_name ?? ""}`
-									.replace(/\s+/g, " ")
-									.trim()}
-							/>
-						) : null}
-						<DetailRow label="Spouse email" value={loan.spouse_email} />
-						<DetailRow label="Spouse phone" value={loan.spouse_phone} />
-						<DetailRow label="Spouse address" value={loan.spouse_address} />
-					</CardContent>
-				</Card>
+						>
+							<div className="flex items-start gap-3">
+								{loan.status === "REJECTED" ? (
+									<AlertTriangle className="mt-0.5 h-5 w-5 text-red-600" />
+								) : (
+									<CheckCircle2 className="mt-0.5 h-5 w-5 text-amber-600" />
+								)}
+								<div>
+									<p className="text-sm font-semibold text-foreground">
+										Decision notes
+									</p>
+									<p className="text-sm text-muted-foreground">
+										{loan.decision_reason}
+									</p>
+								</div>
+							</div>
+						</div>
+					) : null}
+				</>
 			) : null}
 
-			{loan.decision_reason ? (
-				<div
-					className={cn(
-						"rounded-lg border p-4",
-						loan.status === "REJECTED"
-							? "border-red-200 bg-red-50/70"
-							: "border-amber-200 bg-amber-50/70"
-					)}
-				>
-					<div className="flex items-start gap-3">
-						{loan.status === "REJECTED" ? (
-							<AlertTriangle className="mt-0.5 h-5 w-5 text-red-600" />
-						) : (
-							<CheckCircle2 className="mt-0.5 h-5 w-5 text-amber-600" />
-						)}
-						<div>
-							<p className="text-sm font-semibold text-foreground">
-								Decision notes
-							</p>
-							<p className="text-sm text-muted-foreground">
-								{loan.decision_reason}
-							</p>
-						</div>
-					</div>
-				</div>
+			{activeTab === "repayments" ? (
+				<LoanRepaymentsPanel
+					repayments={repaymentsQuery.data?.items ?? []}
+					total={repaymentsQuery.data?.total}
+					isLoading={repaymentsQuery.isLoading}
+					isError={repaymentsQuery.isError}
+					onRetry={() => repaymentsQuery.refetch()}
+				/>
+			) : null}
+
+			{activeTab === "schedule" ? (
+				<LoanSchedulePanel
+					schedule={scheduleQuery.data ?? null}
+					isLoading={scheduleQuery.isLoading}
+					isError={scheduleQuery.isError}
+					onRetry={() => scheduleQuery.refetch()}
+					actions={
+						canExportSchedule ? (
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={handleExportSchedule}
+								disabled={exportScheduleMutation.isPending}
+							>
+								{exportScheduleMutation.isPending
+									? "Exporting..."
+									: "Export schedule"}
+							</Button>
+						) : null
+					}
+				/>
 			) : null}
 		</div>
 	);
