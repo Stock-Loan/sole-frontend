@@ -8,6 +8,8 @@ export const ALL_PERMISSION_CODES: PermissionCode[] = [
 	"org.settings.manage",
 	"audit_log.view",
 	"impersonation.perform",
+	"org.document.view",
+	"org.document.manage",
 	// Users / roles / departments / ACL
 	"user.view",
 	"user.manage",
@@ -82,6 +84,8 @@ export const PERMISSION_CATALOG: PermissionCatalog[] = [
 			"org.settings.manage",
 			"audit_log.view",
 			"impersonation.perform",
+			"org.document.view",
+			"org.document.manage",
 		],
 	},
 	{

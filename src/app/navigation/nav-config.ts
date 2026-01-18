@@ -122,11 +122,7 @@ export const navConfig: NavConfig = {
 			label: "Templates",
 			path: "/app/documents",
 			icon: FolderOpen,
-			permissions: [
-				"loan.document.manage_hr",
-				"loan.document.manage_finance",
-				"loan.document.manage_legal",
-			],
+			permissions: "org.document.view",
 		},
 	],
 	announcements: [

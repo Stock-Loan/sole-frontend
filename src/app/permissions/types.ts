@@ -8,6 +8,8 @@ export type PermissionCode =
 	| "org.settings.manage"
 	| "audit_log.view"
 	| "impersonation.perform"
+	| "org.document.view"
+	| "org.document.manage"
 	// Users / roles / departments / ACL
 	| "user.view"
 	| "user.manage"

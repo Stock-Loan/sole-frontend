@@ -7,14 +7,7 @@ export const documentsRoutes: RouteObject[] = [
 	{
 		index: true,
 		element: (
-			<RequirePermission
-				permission={[
-					"loan.document.manage_hr",
-					"loan.document.manage_finance",
-					"loan.document.manage_legal",
-				]}
-				mode="any"
-			>
+			<RequirePermission permission="org.document.view">
 				<TemplatesPage />
 			</RequirePermission>
 		),
@@ -22,14 +15,7 @@ export const documentsRoutes: RouteObject[] = [
 	{
 		path: "templates",
 		element: (
-			<RequirePermission
-				permission={[
-					"loan.document.manage_hr",
-					"loan.document.manage_finance",
-					"loan.document.manage_legal",
-				]}
-				mode="any"
-			>
+			<RequirePermission permission="org.document.view">
 				<TemplatesPage />
 			</RequirePermission>
 		),
@@ -37,14 +23,7 @@ export const documentsRoutes: RouteObject[] = [
 	{
 		path: "packets",
 		element: (
-			<RequirePermission
-				permission={[
-					"loan.document.manage_hr",
-					"loan.document.manage_finance",
-					"loan.document.manage_legal",
-				]}
-				mode="any"
-			>
+			<RequirePermission permission="org.document.view">
 				<PacketsPage />
 			</RequirePermission>
 		),
@@ -52,11 +31,7 @@ export const documentsRoutes: RouteObject[] = [
 			search: {
 				title: "Document packets",
 				description: "Manage loan document packets and bundles.",
-				permissions: [
-					"loan.document.manage_hr",
-					"loan.document.manage_finance",
-					"loan.document.manage_legal",
-				],
+				permissions: "org.document.view",
 			},
 		},
 	},

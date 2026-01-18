@@ -33,6 +33,18 @@ export const orgKeys = {
 				["org", "audit", "logs", params ?? {}] as const,
 		},
 	},
+	documents: {
+		folders: {
+			list: () => ["org", "documents", "folders"] as const,
+		},
+		templates: {
+			list: (params?: { folder_id?: string | null }) =>
+				["org", "documents", "templates", params ?? {}] as const,
+			detail: (id: string) => ["org", "documents", "templates", id] as const,
+			download: (id: string) =>
+				["org", "documents", "templates", "download", id] as const,
+		},
+	},
 	loans: {
 		list: (params?: LoanApplicationListParams) =>
 			["org", "loans", "list", params ?? {}] as const,
