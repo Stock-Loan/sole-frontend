@@ -4,7 +4,6 @@ import { MyLoansPage } from "./pages/MyLoansPage";
 import { MyStockPage } from "./pages/MyStockPage";
 import { MySettingsPage } from "./pages/MySettingsPage";
 import { MyDocumentsPage } from "./pages/MyDocumentsPage";
-import { MyAmortizationPage } from "./pages/MyAmortizationPage";
 import { LoanWizardPage } from "./pages/LoanWizardPage";
 import { MyLoanDetailPage } from "./pages/MyLoanDetailPage";
 import { MyLoanDocumentsPage } from "./pages/MyLoanDocumentsPage";
@@ -68,14 +67,6 @@ export const workspaceRoutes: RouteObject[] = [
 		element: (
 			<RequirePermission permission="loan.document.self_view">
 				<MyLoanDocumentsPage />
-			</RequirePermission>
-		),
-	},
-	{
-		path: "amortization",
-		element: (
-			<RequirePermission permission="loan.schedule.self.view">
-				<MyAmortizationPage />
 			</RequirePermission>
 		),
 	},

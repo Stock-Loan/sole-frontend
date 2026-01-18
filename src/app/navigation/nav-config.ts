@@ -23,13 +23,6 @@ export const navConfig: NavConfig = {
 			icon: FolderOpen,
 			permissions: ["loan.document.self_view", "loan.document.self_upload_83b"],
 		},
-		{
-			id: "workspace-amortization",
-			label: "My amortization",
-			path: "/app/workspace/amortization",
-			icon: ClipboardList,
-			permissions: ["loan.schedule.self.view"],
-		},
 	],
 	workflows: [
 		{
@@ -125,16 +118,9 @@ export const navConfig: NavConfig = {
 	],
 	documents: [
 		{
-			id: "documents-library",
-			label: "Documents",
-			path: "/app/documents",
-			icon: FolderOpen,
-			permissions: ["loan.document.view"],
-		},
-		{
 			id: "documents-templates",
 			label: "Templates",
-			path: "/app/documents/templates",
+			path: "/app/documents",
 			icon: FolderOpen,
 			permissions: [
 				"loan.document.manage_hr",
