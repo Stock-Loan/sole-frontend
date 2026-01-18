@@ -1,4 +1,4 @@
-import { FileText, Trash2, Download } from "lucide-react";
+import { FileText, Trash2, Download, Info } from "lucide-react";
 import { Button } from "@/shared/ui/Button";
 import { EmptyState } from "@/shared/ui/EmptyState";
 import { Skeleton } from "@/shared/ui/Skeleton";
@@ -76,8 +76,22 @@ export function OrgDocumentFileGrid({
 										{template.file_name}
 									</p>
 								</div>
-								<div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted/60">
-									<FileText className="h-5 w-5 text-muted-foreground" />
+								<div className="flex items-center gap-2">
+									<Button
+										type="button"
+										variant="ghost"
+										size="icon"
+										className="h-8 w-8"
+										onClick={(event) => {
+											event.stopPropagation();
+											onSelect(template);
+										}}
+									>
+										<Info className="h-4 w-4 text-muted-foreground" />
+									</Button>
+									<div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted/60">
+										<FileText className="h-5 w-5 text-muted-foreground" />
+									</div>
 								</div>
 							</div>
 							<p className="line-clamp-2 text-xs text-muted-foreground">

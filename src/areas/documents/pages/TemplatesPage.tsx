@@ -20,7 +20,7 @@ import {
 } from "@/entities/document/hooks";
 import { OrgDocumentFolderList } from "@/entities/document/components/OrgDocumentFolderList";
 import { OrgDocumentFileGrid } from "@/entities/document/components/OrgDocumentFileGrid";
-import { OrgDocumentTemplateDetailCard } from "@/entities/document/components/OrgDocumentTemplateDetailCard";
+import { OrgDocumentTemplateInfoDialog } from "@/entities/document/components/OrgDocumentTemplateInfoDialog";
 import { OrgDocumentFolderDialog } from "@/entities/document/components/OrgDocumentFolderDialog";
 import { OrgDocumentTemplateUploadDialog } from "@/entities/document/components/OrgDocumentTemplateUploadDialog";
 import type { OrgDocumentFolder, OrgDocumentTemplate } from "@/entities/document/types";
@@ -206,20 +206,6 @@ export function TemplatesPage() {
 							) : null}
 						</div>
 
-						{selectedTemplate ? (
-							<OrgDocumentTemplateDetailCard
-								template={selectedTemplate}
-								folderName={
-									folderNameById[selectedTemplate.folder_id ?? ""] ??
-									"General"
-								}
-								onClose={() => setSelectedTemplate(null)}
-								onDownload={handleDownloadTemplate}
-								onDelete={handleDeleteTemplate}
-								canManage={canManage}
-							/>
-						) : null}
-
 						<OrgDocumentFileGrid
 							templates={templates}
 							selectedTemplateId={selectedTemplate?.id ?? null}
@@ -333,6 +319,19 @@ export function TemplatesPage() {
 						: ""}
 				</p>
 			</AppDialog>
+
+			{selectedTemplate ? (
+				<OrgDocumentTemplateInfoDialog
+					open={Boolean(selectedTemplate)}
+					onOpenChange={(open) => {
+						if (!open) setSelectedTemplate(null);
+					}}
+					template={selectedTemplate}
+					folderName={
+						folderNameById[selectedTemplate.folder_id ?? ""] ?? "General"
+					}
+				/>
+			) : null}
 		</PageContainer>
 	);
 }

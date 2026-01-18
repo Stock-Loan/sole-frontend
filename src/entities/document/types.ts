@@ -36,6 +36,7 @@ export interface OrgDocumentTemplate {
 	file_name: string;
 	storage_path_or_url?: string | null;
 	uploaded_by_user_id?: string | null;
+	uploaded_by_name?: string | null;
 	created_at?: string;
 }
 

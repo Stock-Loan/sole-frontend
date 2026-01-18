@@ -30,13 +30,11 @@ export interface OrgDocumentFileGridProps {
 	canManage?: boolean;
 }
 
-export interface OrgDocumentTemplateDetailCardProps {
+export interface OrgDocumentTemplateInfoDialogProps {
+	open: boolean;
+	onOpenChange: (open: boolean) => void;
 	template: OrgDocumentTemplate;
 	folderName?: string;
-	onClose: () => void;
-	onDownload: (template: OrgDocumentTemplate) => void;
-	onDelete: (template: OrgDocumentTemplate) => void;
-	canManage?: boolean;
 }
 
 export interface OrgDocumentFolderDialogProps {
