@@ -56,7 +56,7 @@ export const navConfig: NavConfig = {
 	stock: [
 		{
 			id: "stock-dashboard",
-			label: "Dashboard",
+			label: "Summary",
 			path: "/app/stock",
 			icon: Gauge,
 			permissions: "stock.dashboard.view",

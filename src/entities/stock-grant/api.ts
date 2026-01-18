@@ -6,6 +6,8 @@ import type {
 	StockGrantListParams,
 	StockGrantListResponse,
 	StockGrantUpdateInput,
+	StockDashboardSummary,
+	StockDashboardSummaryParams,
 	StockSummary,
 	StockSummaryParams,
 } from "./types";
@@ -61,6 +63,16 @@ export async function getMyStockSummary(
 		params,
 	});
 	return unwrapApiResponse<StockSummary>(data);
+}
+
+export async function getOrgStockDashboardSummary(
+	params: StockDashboardSummaryParams = {}
+): Promise<StockDashboardSummary> {
+	const { data } = await apiClient.get<StockDashboardSummary>(
+		"/org/dashboard/stock-summary",
+		{ params }
+	);
+	return unwrapApiResponse<StockDashboardSummary>(data);
 }
 
 // Backwards-compatible alias.

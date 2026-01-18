@@ -1,4 +1,8 @@
-import type { StockGrantListParams, StockSummaryParams } from "./types";
+import type {
+	StockDashboardSummaryParams,
+	StockGrantListParams,
+	StockSummaryParams,
+} from "./types";
 
 export const stockGrantKeys = {
 	summary: (membershipId: string, params?: StockSummaryParams) =>
@@ -9,4 +13,6 @@ export const stockGrantKeys = {
 		all: (membershipId: string) =>
 			["stock", "grants", "all", membershipId] as const,
 	},
+	dashboardSummary: (params?: StockDashboardSummaryParams) =>
+		["stock", "dashboard-summary", params ?? {}] as const,
 };

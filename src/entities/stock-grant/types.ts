@@ -120,6 +120,70 @@ export interface StockSummaryParams {
 	as_of?: string;
 }
 
+export interface StockDashboardTotals {
+	program_employees: number;
+	grant_count: number;
+	total_granted_shares: number;
+	total_vested_shares: number;
+	total_unvested_shares: number;
+	total_reserved_shares: number;
+	total_available_vested_shares: number;
+}
+
+export interface StockDashboardEligibility {
+	eligible_to_exercise_count: number;
+	not_eligible_due_to_service_count: number;
+	not_eligible_due_to_min_vested_count: number;
+	not_eligible_due_to_other_count: number;
+}
+
+export interface StockDashboardVestingEvent {
+	vest_date: string;
+	shares: number;
+}
+
+export interface StockDashboardVestingTimeline {
+	next_vesting_date?: string | null;
+	next_vesting_shares?: number | null;
+	upcoming_events: StockDashboardVestingEvent[];
+}
+
+export interface StockDashboardGrantMix {
+	by_status: Record<StockGrantStatus, number>;
+	by_vesting_strategy: Record<VestingStrategy, number>;
+}
+
+export interface StockDashboardExercisePriceRange {
+	min?: string | null;
+	max?: string | null;
+}
+
+export interface StockDashboardReservationPressure {
+	reserved_share_percent_of_vested: string;
+	reserved_by_status: Record<string, number>;
+}
+
+export interface StockDashboardMembershipSnapshot {
+	by_platform_status: Record<string, number>;
+	by_employment_status: Record<string, number>;
+}
+
+export interface StockDashboardSummary {
+	org_id: string;
+	as_of: string;
+	totals: StockDashboardTotals;
+	eligibility: StockDashboardEligibility;
+	vesting_timeline: StockDashboardVestingTimeline;
+	grant_mix: StockDashboardGrantMix;
+	exercise_price_range: StockDashboardExercisePriceRange;
+	reservation_pressure: StockDashboardReservationPressure;
+	membership_snapshot: StockDashboardMembershipSnapshot;
+}
+
+export interface StockDashboardSummaryParams {
+	as_of?: string;
+}
+
 export type StockGrantFormMode = "create" | "edit";
 
 export interface StockGrantFormValues {
@@ -156,6 +220,7 @@ export type StockAdminTabKey = "summary" | "grants";
 export interface StockSummaryMetric {
 	label: string;
 	value: string;
+	helper?: string;
 }
 
 export interface StockSearchContextValue {

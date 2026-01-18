@@ -9,6 +9,7 @@ import { stockGrantKeys } from "@/entities/stock-grant/keys";
 import { meKeys } from "@/shared/api/queryKeys";
 import {
 	createStockGrant,
+	getOrgStockDashboardSummary,
 	getMyStockSummary,
 	getStockSummary,
 	listStockGrants,
@@ -20,6 +21,8 @@ import type {
 	StockGrantListParams,
 	StockGrantListResponse,
 	StockGrantUpdateInput,
+	StockDashboardSummary,
+	StockDashboardSummaryParams,
 	StockSummary,
 	StockSummaryParams,
 } from "./types";
@@ -45,6 +48,21 @@ export function useMeStockSummary(
 	return useQuery({
 		queryKey: meKeys.stock.summary(params),
 		queryFn: () => getMyStockSummary(params),
+		placeholderData: (previous) => previous,
+		...options,
+	});
+}
+
+export function useOrgStockDashboardSummary(
+	params: StockDashboardSummaryParams = {},
+	options: Omit<
+		UseQueryOptions<StockDashboardSummary>,
+		"queryKey" | "queryFn"
+	> = {}
+) {
+	return useQuery({
+		queryKey: stockGrantKeys.dashboardSummary(params),
+		queryFn: () => getOrgStockDashboardSummary(params),
 		placeholderData: (previous) => previous,
 		...options,
 	});
