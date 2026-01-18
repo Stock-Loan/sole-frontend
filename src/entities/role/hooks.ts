@@ -13,8 +13,10 @@ import {
 	removeRolesFromUser,
 	updateRole,
 	getRoleMembers,
+	invalidateOrgPermissions,
 } from "./api";
 import type {
+	InvalidatePermissionsResponse,
 	Role,
 	RoleInput,
 	RoleListParams,
@@ -293,6 +295,18 @@ export function useUpdateUserRoles(
 		onError: (error, variables, onMutateResult, context) => {
 			options.onError?.(error, variables, onMutateResult, context);
 		},
+		...options,
+	});
+}
+
+export function useInvalidateOrgPermissions(
+	options: Omit<
+		UseMutationOptions<InvalidatePermissionsResponse, unknown, void>,
+		"mutationFn"
+	> = {}
+) {
+	return useMutation({
+		mutationFn: () => invalidateOrgPermissions(),
 		...options,
 	});
 }

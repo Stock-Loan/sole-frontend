@@ -5,6 +5,7 @@ import {
 } from "@/entities/user/schemas";
 import type { OrgUsersListParams, OrgUsersListResponse } from "@/entities/user/types";
 import type {
+	InvalidatePermissionsResponse,
 	Role,
 	RoleInput,
 	RoleListParams,
@@ -65,4 +66,11 @@ export async function getRoleMembers(
 	);
 	const payload = unwrapApiResponse<OrgUsersListResponse>(response.data);
 	return OrgUsersListResponseSchema.parse(payload);
+}
+
+export async function invalidateOrgPermissions(): Promise<InvalidatePermissionsResponse> {
+	const { data } = await apiClient.post<InvalidatePermissionsResponse>(
+		"/roles/org/permissions/invalidate"
+	);
+	return unwrapApiResponse<InvalidatePermissionsResponse>(data);
 }

@@ -104,3 +104,7 @@ export interface UserRoleAssignmentsProps {
 	disableAssignments?: boolean;
 	disableReason?: string;
 }
+
+export interface InvalidatePermissionsResponse {
+	cleared: number;
+}

@@ -10,7 +10,12 @@ import type { ColumnDefinition } from "@/shared/ui/Table/types";
 import type { PaginationState, VisibilityState } from "@tanstack/react-table";
 import { usePermissions } from "@/auth/hooks";
 import { useAuth } from "@/auth/hooks";
-import { useCreateRole, useRolesList, useUpdateRole } from "@/entities/role/hooks";
+import {
+	useCreateRole,
+	useInvalidateOrgPermissions,
+	useRolesList,
+	useUpdateRole,
+} from "@/entities/role/hooks";
 import { RolePermissionsDialog } from "@/entities/role/components/RolePermissionsDialog";
 import { RoleFormDialog } from "@/entities/role/components/RoleFormDialog";
 import { ROLE_TYPE_LABELS, ROLE_TYPE_STYLES } from "@/entities/role/constants";
@@ -159,6 +164,17 @@ export function RolesPage() {
 			apiErrorToast(err, "Unable to update role. Please try again.");
 		},
 	});
+	const invalidatePermissionsMutation = useInvalidateOrgPermissions({
+		onSuccess: (data) => {
+			toast({
+				title: "Permissions cache cleared",
+				description: `${data.cleared} users refreshed.`,
+			});
+		},
+		onError: (err) => {
+			apiErrorToast(err, "Unable to invalidate permissions cache.");
+		},
+	});
 
 	const handleViewPermissions = (role: Role) => {
 		setSelectedRole(role);
@@ -277,6 +293,20 @@ export function RolesPage() {
 			<PageHeader
 				title="Roles & permissions"
 				subtitle="View system and custom roles with their permission sets."
+				actions={
+					can(["role.manage", "user.manage"]) ? (
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={() => invalidatePermissionsMutation.mutate()}
+							disabled={invalidatePermissionsMutation.isPending}
+						>
+							{invalidatePermissionsMutation.isPending
+								? "Refreshing..."
+								: "Refresh permissions cache"}
+						</Button>
+					) : null
+				}
 			/>
 			{isError ? (
 				<div className="rounded-xl border border-border/70 bg-card">
