@@ -755,17 +755,15 @@ export function LoanDetailContent({
 					isLoading={repaymentsQuery.isLoading}
 					isError={repaymentsQuery.isError}
 					onRetry={() => repaymentsQuery.refetch()}
-					actions={
-						canRecordRepayment ? (
-							<Button
-								variant="default"
-								size="default"
-								className="h-9 px-4"
-								onClick={() => setRepaymentDialogOpen(true)}
-							>
-								Record repayment
-							</Button>
-						) : null
+					headerActions={
+						canRecordRepayment
+							? {
+									primaryAction: {
+										label: "Record repayment",
+										onClick: () => setRepaymentDialogOpen(true),
+									},
+							  }
+							: undefined
 					}
 				/>
 			) : null}

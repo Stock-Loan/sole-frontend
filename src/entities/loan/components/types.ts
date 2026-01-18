@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import type { DataTableHeaderActions } from "@/shared/ui/Table/types";
 import type {
 	LoanAllocationItem,
 	LoanApplication,
@@ -154,7 +155,7 @@ export interface LoanRepaymentsPanelProps {
 	isLoading?: boolean;
 	isError?: boolean;
 	onRetry?: () => void;
-	actions?: ReactNode;
+	headerActions?: DataTableHeaderActions;
 }
 
 export type LoanDetailTab = "overview" | "repayments" | "schedule";
