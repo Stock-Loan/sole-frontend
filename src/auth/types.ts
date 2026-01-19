@@ -25,10 +25,12 @@ export interface AuthContextValue {
 	tokens: TokenPair | null;
 	isAuthenticating: boolean;
 	setSession: (tokens: TokenPair, user: AuthUser) => void;
+	setSessionForOrg: (orgId: string, tokens: TokenPair, user: AuthUser) => void;
 	setUser: (user: AuthUser | null) => void;
 	clearSession: () => void;
 	logout: () => Promise<void>;
 	hasAnyRole: (roles?: RoleCode[]) => boolean;
+	getTokensForOrg: (orgId?: string | null) => TokenPair | null;
 }
 
 export interface LoginStartPayload {
@@ -74,6 +76,7 @@ export interface LoginResponse {
 export interface PersistedSession {
 	user: AuthUser | null;
 	tokens: TokenPair | null;
+	tokensByOrgId?: Record<string, TokenPair>;
 }
 
 export interface SelfContextResponse {

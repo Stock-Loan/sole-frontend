@@ -1,3 +1,4 @@
+import axios from "axios";
 import { apiClient } from "@/shared/api/http";
 import { unwrapApiResponse } from "@/shared/api/response";
 import type {
@@ -12,6 +13,8 @@ import type {
 	TokenPair,
 } from "@/auth/types";
 import type { OrgSummary } from "@/entities/org/types";
+
+const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 export async function discoverOrg(payload: OrgDiscoveryPayload): Promise<OrgSummary[]> {
 	const { data } = await apiClient.post<OrgDiscoveryResponse>(
@@ -48,8 +51,24 @@ export async function logout(): Promise<void> {
 	await apiClient.post<null>("/auth/logout");
 }
 
-export async function refreshSession(refresh_token: string) {
-	const { data } = await apiClient.post<TokenPair>("/auth/refresh", { refresh_token });
+export async function refreshSession(refresh_token: string, orgId?: string) {
+	const { data } = await apiClient.post<TokenPair>(
+		"/auth/refresh",
+		{ refresh_token },
+		orgId ? { headers: { "X-Org-Id": orgId } } : undefined
+	);
+	return unwrapApiResponse<TokenPair>(data);
+}
+
+export async function refreshSessionForOrgSwitch(
+	refresh_token: string,
+	orgId: string
+) {
+	const { data } = await axios.post<TokenPair>(
+		`${baseURL}/auth/refresh`,
+		{ refresh_token },
+		{ headers: { "X-Org-Id": orgId } }
+	);
 	return unwrapApiResponse<TokenPair>(data);
 }
 

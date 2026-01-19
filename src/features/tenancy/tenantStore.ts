@@ -16,8 +16,11 @@ import { useAuth } from "@/auth/hooks";
 import { tenancyKeys } from "@/features/tenancy/keys";
 import type { OrgSummary, PersistedTenancy, TenantContextValue } from "./types";
 import { discoverTenants, listTenants } from "./tenantApi";
+import { useToast } from "@/shared/ui/use-toast";
+import { routes } from "@/shared/lib/routes";
 
 const STORAGE_KEY = "sole.tenancy";
+const PENDING_ORG_SWITCH_KEY = "sole.pending-org-switch";
 
 function loadPersistedTenancy(): PersistedTenancy {
 	if (typeof localStorage === "undefined") {
@@ -51,7 +54,8 @@ function persistTenancy(state: PersistedTenancy) {
 const TenantContext = createContext<TenantContextValue | undefined>(undefined);
 
 export function TenantProvider({ children }: PropsWithChildren) {
-	const { user, tokens } = useAuth();
+	const { user, tokens, setSessionForOrg, getTokensForOrg } = useAuth();
+	const { toast } = useToast();
 	const persisted = loadPersistedTenancy();
 	const fallbackOrgId = user?.org_id ?? user?.orgIds?.[0] ?? null;
 
@@ -66,7 +70,7 @@ export function TenantProvider({ children }: PropsWithChildren) {
 	});
 
 	const [currentOrgId, setCurrentOrgId] = useState<string | null>(
-		() => persisted.currentOrgId ?? fallbackOrgId ?? null
+		() => persisted.currentOrgId ?? fallbackOrgId ?? null,
 	);
 	const resolvedOrgId = currentOrgId ?? fallbackOrgId;
 	const lastOrgIdRef = useRef<string | null>(resolvedOrgId);
@@ -90,11 +94,32 @@ export function TenantProvider({ children }: PropsWithChildren) {
 
 	useEffect(() => {
 		const previous = lastOrgIdRef.current;
-		if (previous && resolvedOrgId && previous !== resolvedOrgId) {
-			queryClient.clear();
+		if (!previous || !resolvedOrgId || previous === resolvedOrgId) {
+			lastOrgIdRef.current = resolvedOrgId ?? null;
+			return;
 		}
+
 		lastOrgIdRef.current = resolvedOrgId ?? null;
+		queryClient.invalidateQueries({ refetchType: "active" });
 	}, [resolvedOrgId]);
+
+	const switchOrg = (orgId: string) => {
+		if (orgId === currentOrgId) return;
+		if (user?.is_superuser) {
+			setCurrentOrgId(orgId);
+			return;
+		}
+		const tokensForOrg = getTokensForOrg(orgId);
+		if (!tokensForOrg || !user) {
+			if (typeof localStorage !== "undefined") {
+				localStorage.setItem(PENDING_ORG_SWITCH_KEY, orgId);
+			}
+			window.location.assign(routes.login);
+			return;
+		}
+		setSessionForOrg(orgId, tokensForOrg, user);
+		setCurrentOrgId(orgId);
+	};
 
 	useEffect(() => {
 		if (!user) return;
@@ -105,7 +130,7 @@ export function TenantProvider({ children }: PropsWithChildren) {
 	}, [user, currentOrgId]);
 
 	useEffect(() => {
-		if (!user?.is_superuser || !user.email) return;
+		if (!user?.email) return;
 		if (orgs.length > 1) return;
 
 		let isActive = true;
@@ -124,19 +149,19 @@ export function TenantProvider({ children }: PropsWithChildren) {
 		return () => {
 			isActive = false;
 		};
-	}, [user?.is_superuser, user?.email, orgs.length, currentOrgId]);
+	}, [user?.email, orgs.length, currentOrgId]);
 
 	useEffect(() => {
 		if (!tenantsQuery.data) return;
 
-		if (user?.is_superuser && orgs.length > 0) {
+		if (orgs.length > 1) {
 			const resolvedOrg = tenantsQuery.data[0];
 			if (resolvedOrg) {
 				setOrgs((prev) => {
 					const hasOrg = prev.some((org) => org.id === resolvedOrg.id);
 					if (hasOrg) {
 						return prev.map((org) =>
-							org.id === resolvedOrg.id ? { ...org, ...resolvedOrg } : org
+							org.id === resolvedOrg.id ? { ...org, ...resolvedOrg } : org,
 						);
 					}
 					return [...prev, resolvedOrg];
@@ -152,7 +177,7 @@ export function TenantProvider({ children }: PropsWithChildren) {
 		setOrgs(tenantsQuery.data);
 		if (tenantsQuery.data.length > 0) {
 			const hasCurrent = tenantsQuery.data.some(
-				(org) => org.id === currentOrgId
+				(org) => org.id === currentOrgId,
 			);
 			if (!currentOrgId || !hasCurrent) {
 				setCurrentOrgId(tenantsQuery.data[0].id);
@@ -169,10 +194,11 @@ export function TenantProvider({ children }: PropsWithChildren) {
 			orgs,
 			currentOrgId,
 			setCurrentOrgId,
+			switchOrg,
 			setOrgs,
 			isLoading: tenantsQuery.isLoading,
 		}),
-		[orgs, currentOrgId, tenantsQuery.isLoading]
+		[orgs, currentOrgId, tenantsQuery.isLoading, switchOrg],
 	);
 
 	return createElement(TenantContext.Provider, { value }, children);

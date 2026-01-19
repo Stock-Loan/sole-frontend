@@ -7,6 +7,7 @@ export interface TenantContextValue {
 	orgs: OrgSummary[];
 	currentOrgId: string | null;
 	setCurrentOrgId: (orgId: string | null) => void;
+	switchOrg: (orgId: string) => void;
 	setOrgs: (orgs: OrgSummary[]) => void;
 	isLoading: boolean;
 }

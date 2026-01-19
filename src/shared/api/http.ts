@@ -1,7 +1,11 @@
 import axios, { AxiosHeaders } from "axios";
 import { routes } from "@/shared/lib/routes";
 import { unwrapApiResponse } from "@/shared/api/response";
-import type { TokenResolver, TokenUpdater, VoidHandler } from "@/shared/api/types";
+import type {
+	TokenResolver,
+	TokenUpdater,
+	VoidHandler,
+} from "@/shared/api/types";
 
 let accessTokenResolver: TokenResolver = () => null;
 let refreshTokenResolver: TokenResolver = () => null;
@@ -39,6 +43,14 @@ export function setUnauthorizedHandler(handler: VoidHandler | null) {
 apiClient.interceptors.request.use((config) => {
 	const token = accessTokenResolver();
 	const orgId = orgResolver();
+	const rawUrl = config.url ?? "";
+	const normalizedUrl = rawUrl.startsWith(baseURL)
+		? rawUrl.slice(baseURL.length)
+		: rawUrl;
+	const isAuthLoginFlow =
+		normalizedUrl.startsWith("/auth/login/") ||
+		normalizedUrl.startsWith("/auth/org-discovery") ||
+		normalizedUrl.startsWith("/auth/orgs/resolve");
 
 	if (
 		!config.headers ||
@@ -49,8 +61,12 @@ apiClient.interceptors.request.use((config) => {
 
 	const headers = config.headers as AxiosHeaders;
 
-	if (token) headers.set("Authorization", `Bearer ${token}`);
-	if (orgId) headers.set("X-Org-Id", orgId);
+	if (token && !isAuthLoginFlow && !headers.has("Authorization")) {
+		headers.set("Authorization", `Bearer ${token}`);
+	}
+	if (orgId && !isAuthLoginFlow && !headers.has("X-Org-Id")) {
+		headers.set("X-Org-Id", orgId);
+	}
 
 	return config;
 });
@@ -77,8 +93,8 @@ apiClient.interceptors.response.use(
 			typeof detailRaw === "string"
 				? detailRaw
 				: Array.isArray(detailRaw) && typeof detailRaw[0]?.msg === "string"
-				? detailRaw[0].msg
-				: null;
+					? detailRaw[0].msg
+					: null;
 
 		if (
 			status === 403 &&
@@ -103,7 +119,7 @@ apiClient.interceptors.response.use(
 					const { data } = await axios.post(
 						`${baseURL}/auth/refresh`,
 						{ refresh_token: refreshToken },
-						{ headers: { "X-Org-Id": orgResolver() } }
+						{ headers: { "X-Org-Id": orgResolver() } },
 					);
 
 					const tokens = unwrapApiResponse<{
@@ -112,7 +128,9 @@ apiClient.interceptors.response.use(
 					}>(data);
 
 					if (tokens?.access_token && tokens?.refresh_token) {
-						tokenUpdater?.(tokens as { access_token: string; refresh_token: string });
+						tokenUpdater?.(
+							tokens as { access_token: string; refresh_token: string },
+						);
 						originalRequest.headers.Authorization = `Bearer ${tokens.access_token}`;
 						return apiClient(originalRequest);
 					}
@@ -128,5 +146,5 @@ apiClient.interceptors.response.use(
 		}
 
 		return Promise.reject(error);
-	}
+	},
 );

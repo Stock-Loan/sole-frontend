@@ -8,7 +8,7 @@ import {
 	Loader2,
 	Shield,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import {
 	Link,
@@ -63,14 +63,16 @@ import type { OrgSummary } from "@/entities/org/types";
 import { Label } from "@/shared/ui/label";
 
 const PENDING_EMAIL_KEY = "sole.pending-login-email";
+const PENDING_ORG_SWITCH_KEY = "sole.pending-org-switch";
 
 export function LoginPage() {
 	const navigate = useNavigate();
 	const location = useLocation();
 	const { toast } = useToast();
 	const apiErrorToast = useApiErrorToast();
-	const { setSession } = useAuth();
+	const { setSessionForOrg } = useAuth();
 	const { setOrgs, currentOrgId, setCurrentOrgId } = useTenant();
+	const pendingOrgToastShownRef = useRef(false);
 
 	const [step, setStep] = useState<"email" | "org" | "password">("email");
 	const [challengeToken, setChallengeToken] = useState<string | null>(null);
@@ -91,6 +93,21 @@ export function LoginPage() {
 	const startLoginMutation = useStartLogin();
 	const completeLoginMutation = useCompleteLogin();
 	const orgDiscoveryMutation = useOrgDiscovery();
+
+	useEffect(() => {
+		if (pendingOrgToastShownRef.current) return;
+		const pendingOrgId =
+			typeof localStorage !== "undefined"
+				? localStorage.getItem(PENDING_ORG_SWITCH_KEY)
+				: null;
+		if (!pendingOrgId) return;
+		pendingOrgToastShownRef.current = true;
+		toast({
+			variant: "destructive",
+			title: "Sign in required",
+			description: "Sign in to the requested organization to continue.",
+		});
+	}, [toast]);
 
 	const startLoginForOrg = (emailAddress: string, orgId: string) => {
 		startLoginMutation.mutate(
@@ -124,8 +141,7 @@ export function LoginPage() {
 						toast({
 							variant: "destructive",
 							title: "No organization found",
-							description:
-								"We couldn't find an organization for that email.",
+							description: "We couldn't find an organization for that email.",
 						});
 						return;
 					}
@@ -133,10 +149,18 @@ export function LoginPage() {
 					setAvailableOrgs(orgs);
 					setOrgs(orgs);
 					const defaultOrgId = orgs[0]?.id ?? null;
-					setCurrentOrgId(defaultOrgId);
+					const pendingOrgId =
+						typeof localStorage !== "undefined"
+							? localStorage.getItem(PENDING_ORG_SWITCH_KEY)
+							: null;
+					const resolvedOrgId =
+						pendingOrgId && orgs.some((org) => org.id === pendingOrgId)
+							? pendingOrgId
+							: defaultOrgId;
+					setCurrentOrgId(resolvedOrgId);
 
-					if (orgs.length === 1 && defaultOrgId) {
-						startLoginForOrg(values.email, defaultOrgId);
+					if (orgs.length === 1 && resolvedOrgId) {
+						startLoginForOrg(values.email, resolvedOrgId);
 						return;
 					}
 
@@ -191,11 +215,15 @@ export function LoginPage() {
 			{
 				onSuccess: async (tokens) => {
 					try {
-						const user = await getMeWithToken(tokens.access_token, currentOrgId);
+						const user = await getMeWithToken(
+							tokens.access_token,
+							currentOrgId,
+						);
 						if (user.must_change_password) {
-							setSession(tokens, user);
+							setSessionForOrg(currentOrgId!, tokens, user);
 							if (typeof localStorage !== "undefined") {
 								localStorage.removeItem(PENDING_EMAIL_KEY);
+								localStorage.removeItem(PENDING_ORG_SWITCH_KEY);
 							}
 							toast({
 								title: "Password change required",
@@ -205,9 +233,10 @@ export function LoginPage() {
 							navigate(routes.changePassword, { replace: true });
 							return;
 						}
-						setSession(tokens, user);
+						setSessionForOrg(currentOrgId!, tokens, user);
 						if (typeof localStorage !== "undefined") {
 							localStorage.removeItem(PENDING_EMAIL_KEY);
+							localStorage.removeItem(PENDING_ORG_SWITCH_KEY);
 						}
 						toast({
 							title: "Welcome back",
@@ -236,9 +265,10 @@ export function LoginPage() {
 									email: email,
 									is_active: true,
 								};
-								setSession(tokens, placeholderUser);
+								setSessionForOrg(currentOrgId!, tokens, placeholderUser);
 								if (typeof localStorage !== "undefined") {
 									localStorage.removeItem(PENDING_EMAIL_KEY);
+									localStorage.removeItem(PENDING_ORG_SWITCH_KEY);
 								}
 								toast({
 									title: "Password change required",
@@ -270,6 +300,7 @@ export function LoginPage() {
 		setCurrentOrgId(null);
 		if (typeof localStorage !== "undefined") {
 			localStorage.removeItem(PENDING_EMAIL_KEY);
+			localStorage.removeItem(PENDING_ORG_SWITCH_KEY);
 		}
 		passwordForm.reset();
 	};
@@ -364,9 +395,7 @@ export function LoginPage() {
 							<div className="space-y-4">
 								<div className="rounded-md border bg-muted/30 px-3 py-2 text-sm text-muted-foreground">
 									We found multiple organizations for{" "}
-									<span className="font-semibold text-foreground">
-										{email}
-									</span>
+									<span className="font-semibold text-foreground">{email}</span>
 									. Select the one you want to access.
 								</div>
 								<div className="space-y-2">
@@ -457,13 +486,9 @@ export function LoginPage() {
 															variant="ghost"
 															size="icon"
 															className="absolute right-1 top-1/2 h-9 w-9 -translate-y-1/2"
-															onClick={() =>
-																setShowPassword((prev) => !prev)
-															}
+															onClick={() => setShowPassword((prev) => !prev)}
 															aria-label={
-																showPassword
-																	? "Hide password"
-																	: "Show password"
+																showPassword ? "Hide password" : "Show password"
 															}
 															disabled={completeLoginMutation.isPending}
 														>

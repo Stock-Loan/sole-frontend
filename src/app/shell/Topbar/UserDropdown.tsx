@@ -12,7 +12,7 @@ import { ChevronDown } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/shared/ui/avatar";
 import { useAuth, useMe } from "@/auth/hooks";
 import { routes } from "@/shared/lib/routes";
-import { useOrgUserByEmail } from "@/entities/user/hooks";
+import { useUserSettings } from "@/features/user-settings/hooks";
 import type { UserDropdownProps } from "./types";
 
 export function UserDropdown({ showChevron = false }: UserDropdownProps) {
@@ -20,36 +20,33 @@ export function UserDropdown({ showChevron = false }: UserDropdownProps) {
 
 	const { data: profile } = useMe();
 
-	const currentEmail = profile?.email || user?.email || "";
-
-	const { data: orgUserItem } = useOrgUserByEmail(currentEmail);
-
 	useEffect(() => {
 		if (profile) {
 			setUser(profile);
 		}
 	}, [profile, setUser]);
 
-	const displayUser = orgUserItem?.user ?? profile ?? user;
+	const { data: selfProfile } = useUserSettings();
+	const displayUser = selfProfile?.user ?? profile ?? user;
 	const displayName = useMemo(() => {
-		const first = orgUserItem?.user.first_name;
-		const last = orgUserItem?.user.last_name;
+		const first = selfProfile?.user.first_name;
+		const last = selfProfile?.user.last_name;
 		if (first || last) {
 			return [first, last].filter(Boolean).join(" ").trim();
 		}
 		return displayUser?.full_name || displayUser?.email || "User";
 	}, [
+		selfProfile?.user.first_name,
+		selfProfile?.user.last_name,
 		displayUser?.email,
 		displayUser?.full_name,
-		orgUserItem?.user.first_name,
-		orgUserItem?.user.last_name,
 	]);
 
 	const initials = useMemo(() => {
 		const nameForInitials =
-			orgUserItem?.user.first_name || orgUserItem?.user.last_name
+			selfProfile?.user.first_name || selfProfile?.user.last_name
 				? displayName
-				: displayUser?.full_name;
+				: displayUser?.full_name || displayName;
 		if (nameForInitials) {
 			return nameForInitials
 				.split(" ")
@@ -61,10 +58,10 @@ export function UserDropdown({ showChevron = false }: UserDropdownProps) {
 		return displayUser?.email?.slice(0, 2)?.toUpperCase() || "U";
 	}, [
 		displayName,
+		selfProfile?.user.first_name,
+		selfProfile?.user.last_name,
 		displayUser?.email,
 		displayUser?.full_name,
-		orgUserItem?.user.first_name,
-		orgUserItem?.user.last_name,
 	]);
 
 	return (
@@ -82,7 +79,7 @@ export function UserDropdown({ showChevron = false }: UserDropdownProps) {
 					<div className="hidden text-left text-xs leading-tight sm:block">
 						<p className="font-semibold text-foreground">{displayName}</p>
 						<p className="text-muted-foreground">
-							{orgUserItem?.membership.employee_id ||
+							{selfProfile?.membership.employee_id ||
 								displayUser?.email ||
 								"email@domain"}
 						</p>
@@ -102,7 +99,9 @@ export function UserDropdown({ showChevron = false }: UserDropdownProps) {
 					<Link to={routes.changePassword}>Change password</Link>
 				</DropdownMenuItem>
 				<DropdownMenuSeparator />
-				<DropdownMenuItem onClick={() => void logout()}>Log out</DropdownMenuItem>
+				<DropdownMenuItem onClick={() => void logout()}>
+					Log out
+				</DropdownMenuItem>
 			</DropdownMenuContent>
 		</DropdownMenu>
 	);

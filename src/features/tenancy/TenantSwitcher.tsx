@@ -6,7 +6,7 @@ import { useTenant } from "@/features/tenancy/hooks";
 import { cn } from "@/shared/lib/utils";
 
 export function TenantSwitcher({ className }: { className?: string }) {
-	const { orgs, currentOrgId, setCurrentOrgId } = useTenant();
+	const { orgs, currentOrgId, switchOrg } = useTenant();
 
 	const currentOrg = useMemo(
 		() => orgs.find((org) => org.id === currentOrgId) ?? orgs[0],
@@ -45,7 +45,7 @@ export function TenantSwitcher({ className }: { className?: string }) {
 					<DropdownMenuItem disabled>No orgs available</DropdownMenuItem>
 				) : (
 					orgs.map((org) => (
-						<DropdownMenuItem key={org.id} onClick={() => setCurrentOrgId(org.id)}>
+						<DropdownMenuItem key={org.id} onClick={() => switchOrg(org.id)}>
 							<div className="flex flex-col">
 								<span className="text-sm font-semibold">{org.name}</span>
 								{org.slug ? (
