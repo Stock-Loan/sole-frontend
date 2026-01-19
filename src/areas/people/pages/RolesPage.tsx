@@ -57,11 +57,11 @@ export function RolesPage() {
 			userKey: user?.id ?? null,
 			orgKey: user?.org_id ?? null,
 		}),
-		[user?.id, user?.org_id]
+		[user?.id, user?.org_id],
 	);
 	const persistedPreferences = useMemo(
 		() => loadDataTablePreferences(preferencesConfig),
-		[preferencesConfig]
+		[preferencesConfig],
 	);
 	const preferredPageSize =
 		typeof persistedPreferences?.pagination?.pageSize === "number"
@@ -76,7 +76,7 @@ export function RolesPage() {
 	const page = parsePositiveInt(searchParams.get("page"), DEFAULT_PAGE);
 	const pageSize = parsePositiveInt(
 		searchParams.get("page_size"),
-		preferredPageSize
+		preferredPageSize,
 	);
 
 	useEffect(() => {
@@ -103,12 +103,15 @@ export function RolesPage() {
 			page,
 			page_size: pageSize,
 		}),
-		[page, pageSize]
+		[page, pageSize],
 	);
 
-	const { data, isLoading, isError, error, refetch } = useRolesList(listParams, {
-		staleTime: 5 * 60 * 1000,
-	});
+	const { data, isLoading, isError, error, refetch } = useRolesList(
+		listParams,
+		{
+			staleTime: 5 * 60 * 1000,
+		},
+	);
 
 	useEffect(() => {
 		if (isError) {
@@ -129,11 +132,11 @@ export function RolesPage() {
 
 	const paginationState = useMemo<PaginationState>(
 		() => ({ pageIndex: Math.max(0, page - 1), pageSize }),
-		[page, pageSize]
+		[page, pageSize],
 	);
 
 	const handlePaginationChange = (
-		updater: PaginationState | ((previous: PaginationState) => PaginationState)
+		updater: PaginationState | ((previous: PaginationState) => PaginationState),
 	) => {
 		const nextState =
 			typeof updater === "function" ? updater(paginationState) : updater;
@@ -286,14 +289,14 @@ export function RolesPage() {
 				cell: (role) => formatDate(role.updated_at),
 			},
 		],
-		[]
+		[],
 	);
 
 	const initialColumnVisibility = useMemo<VisibilityState>(
 		() => ({
 			id: false,
 		}),
-		[]
+		[],
 	);
 
 	return (
@@ -396,7 +399,7 @@ export function RolesPage() {
 										label: "New role",
 										onClick: handleCreateClick,
 									},
-							  }
+								}
 							: undefined
 					}
 				/>
