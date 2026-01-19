@@ -136,6 +136,9 @@ export interface LoanSummaryBarChartProps {
 	items: LoanSummaryBarItem[];
 	total?: number;
 	emptyMessage?: string;
+	className?: string;
+	summary?: ReactNode;
+	chartHeightClassName?: string;
 }
 
 export interface LoanSummaryPieChartProps {

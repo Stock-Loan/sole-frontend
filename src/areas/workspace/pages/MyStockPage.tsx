@@ -588,34 +588,27 @@ export function MyStockPage() {
 							</CardContent>
 						</Card>
 
-						<div className="space-y-4">
-							<Card>
-								<CardHeader className="pb-2">
-									<CardTitle className="text-sm font-semibold">
-										Repayment activity
-									</CardTitle>
-								</CardHeader>
-								<CardContent className="space-y-3 text-sm text-muted-foreground">
-									<div className="flex items-center justify-between">
-										<span>Last payment</span>
-										<span className="font-semibold text-foreground">
-											{repaymentActivity?.last_payment_date
-												? `${formatDate(
-														repaymentActivity.last_payment_date,
-													)} • ${formatCurrency(
-														repaymentActivity.last_payment_amount ?? null,
-													)}`
-												: "—"}
-										</span>
-									</div>
-								</CardContent>
-							</Card>
-							<LoanSummaryBarChart
-								title="Recent payments"
-								items={repaymentItems}
-								emptyMessage="No repayments recorded."
-							/>
-						</div>
+						<LoanSummaryBarChart
+							title="Recent payments"
+							items={repaymentItems}
+							emptyMessage="No repayments recorded."
+							className="h-full"
+							chartHeightClassName="h-24"
+							summary={
+								<div className="flex items-center justify-between">
+									<span>Last payment</span>
+									<span className="font-semibold text-foreground">
+										{repaymentActivity?.last_payment_date
+											? `${formatDate(
+												repaymentActivity.last_payment_date,
+											)} • ${formatCurrency(
+												repaymentActivity.last_payment_amount ?? null,
+											)}`
+											: "—"}
+									</span>
+								</div>
+							}
+						/>
 					</div>
 				</div>
 			)}

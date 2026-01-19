@@ -9,21 +9,29 @@ export function LoanSummaryBarChart({
 	items,
 	total,
 	emptyMessage = "No data available.",
+className,
+summary,
+chartHeightClassName,
 }: LoanSummaryBarChartProps) {
 	const max = items.reduce((acc, item) => Math.max(acc, item.value), 0);
 	const sum = items.reduce((acc, item) => acc + item.value, 0);
 	const base = total ?? (sum > 0 ? sum : max);
 
 	return (
-		<Card className="h-full">
+		<Card className={cn("h-full", className)}>
 			<CardHeader className="pb-2">
 				<CardTitle className="text-sm font-semibold">{title}</CardTitle>
 			</CardHeader>
 			<CardContent>
+				{summary ? (
+					<div className="space-y-3 text-sm text-muted-foreground">
+						{summary}
+					</div>
+				) : null}
 				{items.length === 0 || base === 0 ? (
 					<EmptyState title="No data" message={emptyMessage} />
 				) : (
-					<div className="space-y-4">
+					<div className={cn("space-y-4", summary ? "mt-4" : null)}>
 						<div className="flex items-end gap-3 rounded-lg border border-dashed border-border/60 bg-slate-50/60 px-3 py-4">
 							{items.map((item, index) => {
 								const ratio = base > 0 ? item.value / base : 0;
@@ -38,7 +46,12 @@ export function LoanSummaryBarChart({
 										<div className="text-xs font-semibold tabular-nums text-foreground">
 											{item.value.toLocaleString()}
 										</div>
-										<div className="relative flex h-32 w-full items-end justify-center">
+										<div
+											className={cn(
+												"relative flex w-full items-end justify-center",
+												chartHeightClassName ?? "h-32",
+											)}
+										>
 											<div
 												className={cn("w-full rounded-md")}
 												style={{
