@@ -45,6 +45,7 @@ export function LoanWizardLayout({
 						leaveDialog.description ??
 						"You have unsaved updates in this loan application. If you leave now, those changes will be lost."
 					}
+					size="sm"
 					onCancel={leaveDialog.onCancel}
 					actions={[
 						{
@@ -54,7 +55,15 @@ export function LoanWizardLayout({
 						},
 					]}
 				>
-					<div />
+					<div className="space-y-3 text-sm">
+						<div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-amber-900">
+							<p className="font-semibold">Before you leave</p>
+							<ul className="mt-2 space-y-1 text-xs text-amber-800">
+								<li>• Any changes on this step will be discarded.</li>
+								<li>• Save as draft if you want to continue later.</li>
+							</ul>
+						</div>
+					</div>
 				</AppDialog>
 			) : null}
 		</>
