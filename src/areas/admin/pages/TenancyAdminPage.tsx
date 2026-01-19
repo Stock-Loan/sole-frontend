@@ -33,11 +33,10 @@ export function TenancyAdminPage() {
 	const formId = "create-org-form";
 	const createOrgMutation = useCreateOrg({
 		onSuccess: (created) => {
-			setOrgs((prev) => {
-				const exists = prev.some((org) => org.id === created.id);
-				if (exists) return prev;
-				return [mapOrgRecordToSummary(created), ...prev];
-			});
+			const exists = orgs.some((org) => org.id === created.id);
+			if (!exists) {
+				setOrgs([mapOrgRecordToSummary(created), ...orgs]);
+			}
 			setIsDialogOpen(false);
 			toast({ title: "Organization created" });
 		},
@@ -143,7 +142,9 @@ export function TenancyAdminPage() {
 					</DialogHeader>
 					<DialogBody>
 						<OrgCreateForm
-							onSubmit={(values) => createOrgMutation.mutateAsync(values)}
+							onSubmit={async (values) => {
+								await createOrgMutation.mutateAsync(values);
+							}}
 							isSubmitting={createOrgMutation.isPending}
 							formId={formId}
 						/>

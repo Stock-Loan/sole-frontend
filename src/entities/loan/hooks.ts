@@ -90,7 +90,7 @@ export function useMyLoanQuote(
 	options: Omit<
 		UseQueryOptions<LoanQuoteResponse>,
 		"queryKey" | "queryFn"
-	> = {}
+	> = {},
 ) {
 	return useQuery({
 		queryKey: meKeys.loans.quote(input ?? undefined),
@@ -110,7 +110,7 @@ export function useMyLoanApplications(
 	options: Omit<
 		UseQueryOptions<LoanApplicationListResponse>,
 		"queryKey" | "queryFn"
-	> = {}
+	> = {},
 ) {
 	return useQuery({
 		queryKey: meKeys.loans.list(params),
@@ -122,7 +122,7 @@ export function useMyLoanApplications(
 
 export function useMyLoanApplication(
 	id: string,
-	options: Omit<UseQueryOptions<LoanApplication>, "queryKey" | "queryFn"> = {}
+	options: Omit<UseQueryOptions<LoanApplication>, "queryKey" | "queryFn"> = {},
 ) {
 	return useQuery({
 		queryKey: meKeys.loans.detail(id),
@@ -137,7 +137,7 @@ export function useMyLoanRepayments(
 	options: Omit<
 		UseQueryOptions<LoanRepaymentsResponse>,
 		"queryKey" | "queryFn"
-	> = {}
+	> = {},
 ) {
 	return useQuery({
 		queryKey: meKeys.loans.repayments(id),
@@ -153,7 +153,7 @@ export function useMyLoanSchedule(
 	options: Omit<
 		UseQueryOptions<LoanScheduleResponse>,
 		"queryKey" | "queryFn"
-	> = {}
+	> = {},
 ) {
 	return useQuery({
 		queryKey: meKeys.loans.schedule(id),
@@ -167,9 +167,13 @@ export function useMyLoanSchedule(
 export function useMyLoanScheduleWhatIf(
 	id: string,
 	options: Omit<
-		UseMutationOptions<LoanScheduleResponse, unknown, LoanScheduleWhatIfPayload>,
+		UseMutationOptions<
+			LoanScheduleResponse,
+			unknown,
+			LoanScheduleWhatIfPayload
+		>,
 		"mutationFn"
-	> = {}
+	> = {},
 ) {
 	return useMutation({
 		mutationFn: (payload) => runMyLoanScheduleWhatIf(id, payload),
@@ -182,7 +186,7 @@ export function useMyLoanDocuments(
 	options: Omit<
 		UseQueryOptions<LoanDocumentsGroupedResponse>,
 		"queryKey" | "queryFn"
-	> = {}
+	> = {},
 ) {
 	return useQuery({
 		queryKey: meKeys.loans.documents(id),
@@ -197,7 +201,7 @@ export function useOrgLoanApplications(
 	options: Omit<
 		UseQueryOptions<LoanApplicationListResponse>,
 		"queryKey" | "queryFn"
-	> = {}
+	> = {},
 ) {
 	return useQuery({
 		queryKey: orgKeys.loans.list(params),
@@ -212,7 +216,7 @@ export function useOrgLoanRepayments(
 	options: Omit<
 		UseQueryOptions<LoanRepaymentsResponse>,
 		"queryKey" | "queryFn"
-	> = {}
+	> = {},
 ) {
 	return useQuery({
 		queryKey: orgKeys.loans.repayments(id),
@@ -226,17 +230,27 @@ export function useOrgLoanRepayments(
 export function useCreateOrgLoanRepayment(
 	id: string,
 	options: Omit<
-		UseMutationOptions<LoanRepaymentRecordResponse, unknown, LoanRepaymentCreatePayload>,
+		UseMutationOptions<
+			LoanRepaymentRecordResponse,
+			unknown,
+			LoanRepaymentCreatePayload
+		>,
 		"mutationFn"
-	> = {}
+	> = {},
 ) {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: (payload) => createOrgLoanRepayment(id, payload),
 		onSuccess: (data, variables, onMutateResult, context) => {
-			queryClient.invalidateQueries({ queryKey: orgKeys.loans.repayments(id) });
-			queryClient.invalidateQueries({ queryKey: orgKeys.loans.detail(id) });
-			queryClient.invalidateQueries({ queryKey: orgKeys.loans.schedule(id) });
+			void queryClient.invalidateQueries({
+				queryKey: orgKeys.loans.repayments(id),
+			});
+			void queryClient.invalidateQueries({
+				queryKey: orgKeys.loans.detail(id),
+			});
+			void queryClient.invalidateQueries({
+				queryKey: orgKeys.loans.schedule(id),
+			});
 			options.onSuccess?.(data, variables, onMutateResult, context);
 		},
 		onError: (error, variables, onMutateResult, context) => {
@@ -251,7 +265,7 @@ export function useOrgLoanSchedule(
 	options: Omit<
 		UseQueryOptions<LoanScheduleResponse>,
 		"queryKey" | "queryFn"
-	> = {}
+	> = {},
 ) {
 	return useQuery({
 		queryKey: orgKeys.loans.schedule(id),
@@ -265,9 +279,13 @@ export function useOrgLoanSchedule(
 export function useOrgLoanScheduleWhatIf(
 	id: string,
 	options: Omit<
-		UseMutationOptions<LoanScheduleResponse, unknown, LoanScheduleWhatIfPayload>,
+		UseMutationOptions<
+			LoanScheduleResponse,
+			unknown,
+			LoanScheduleWhatIfPayload
+		>,
 		"mutationFn"
-	> = {}
+	> = {},
 ) {
 	return useMutation({
 		mutationFn: (payload) => runOrgLoanScheduleWhatIf(id, payload),
@@ -280,7 +298,7 @@ export function useLoanDashboardSummary(
 	options: Omit<
 		UseQueryOptions<LoanDashboardSummary>,
 		"queryKey" | "queryFn"
-	> = {}
+	> = {},
 ) {
 	return useQuery({
 		queryKey: orgKeys.loans.summary(params),
@@ -291,7 +309,7 @@ export function useLoanDashboardSummary(
 }
 
 export function useExportMyLoanCsv(
-	options: UseMutationOptions<Blob, unknown, string> = {}
+	options: UseMutationOptions<Blob, unknown, string> = {},
 ) {
 	return useMutation({
 		mutationFn: (id: string) => exportMyLoanCsv(id),
@@ -300,7 +318,7 @@ export function useExportMyLoanCsv(
 }
 
 export function useExportOrgLoanSchedule(
-	options: UseMutationOptions<Blob, unknown, string> = {}
+	options: UseMutationOptions<Blob, unknown, string> = {},
 ) {
 	return useMutation({
 		mutationFn: (id: string) => exportOrgLoanSchedule(id),
@@ -310,7 +328,7 @@ export function useExportOrgLoanSchedule(
 
 export function useOrgLoanApplication(
 	id: string,
-	options: Omit<UseQueryOptions<LoanApplication>, "queryKey" | "queryFn"> = {}
+	options: Omit<UseQueryOptions<LoanApplication>, "queryKey" | "queryFn"> = {},
 ) {
 	return useQuery({
 		queryKey: orgKeys.loans.detail(id),
@@ -325,7 +343,7 @@ export function useHrLoanQueue(
 	options: Omit<
 		UseQueryOptions<LoanQueueListResponse>,
 		"queryKey" | "queryFn"
-	> = {}
+	> = {},
 ) {
 	return useQuery({
 		queryKey: orgKeys.loans.queue.hr(params),
@@ -340,7 +358,7 @@ export function useFinanceLoanQueue(
 	options: Omit<
 		UseQueryOptions<LoanQueueListResponse>,
 		"queryKey" | "queryFn"
-	> = {}
+	> = {},
 ) {
 	return useQuery({
 		queryKey: orgKeys.loans.queue.finance(params),
@@ -355,7 +373,7 @@ export function useLegalLoanQueue(
 	options: Omit<
 		UseQueryOptions<LoanQueueListResponse>,
 		"queryKey" | "queryFn"
-	> = {}
+	> = {},
 ) {
 	return useQuery({
 		queryKey: orgKeys.loans.queue.legal(params),
@@ -370,7 +388,7 @@ export function useMyHrLoanQueue(
 	options: Omit<
 		UseQueryOptions<LoanQueueListResponse>,
 		"queryKey" | "queryFn"
-	> = {}
+	> = {},
 ) {
 	return useQuery({
 		queryKey: orgKeys.loans.queue.me.hr(params),
@@ -385,7 +403,7 @@ export function useMyFinanceLoanQueue(
 	options: Omit<
 		UseQueryOptions<LoanQueueListResponse>,
 		"queryKey" | "queryFn"
-	> = {}
+	> = {},
 ) {
 	return useQuery({
 		queryKey: orgKeys.loans.queue.me.finance(params),
@@ -400,7 +418,7 @@ export function useMyLegalLoanQueue(
 	options: Omit<
 		UseQueryOptions<LoanQueueListResponse>,
 		"queryKey" | "queryFn"
-	> = {}
+	> = {},
 ) {
 	return useQuery({
 		queryKey: orgKeys.loans.queue.me.legal(params),
@@ -412,7 +430,10 @@ export function useMyLegalLoanQueue(
 
 export function useHrLoanDetail(
 	id: string,
-	options: Omit<UseQueryOptions<HrLoanDetailResponse>, "queryKey" | "queryFn"> = {}
+	options: Omit<
+		UseQueryOptions<HrLoanDetailResponse>,
+		"queryKey" | "queryFn"
+	> = {},
 ) {
 	return useQuery({
 		queryKey: orgKeys.loans.workflowDetail.hr(id),
@@ -427,7 +448,7 @@ export function useFinanceLoanDetail(
 	options: Omit<
 		UseQueryOptions<FinanceLoanDetailResponse>,
 		"queryKey" | "queryFn"
-	> = {}
+	> = {},
 ) {
 	return useQuery({
 		queryKey: orgKeys.loans.workflowDetail.finance(id),
@@ -442,7 +463,7 @@ export function useLegalLoanDetail(
 	options: Omit<
 		UseQueryOptions<LegalLoanDetailResponse>,
 		"queryKey" | "queryFn"
-	> = {}
+	> = {},
 ) {
 	return useQuery({
 		queryKey: orgKeys.loans.workflowDetail.legal(id),
@@ -457,7 +478,7 @@ export function useOrgLoanDocuments(
 	options: Omit<
 		UseQueryOptions<LoanDocumentsGroupedResponse>,
 		"queryKey" | "queryFn"
-	> = {}
+	> = {},
 ) {
 	return useQuery({
 		queryKey: orgKeys.loans.documents.org(id),
@@ -471,19 +492,17 @@ export function useCreateMyLoanDraft(
 	options: Omit<
 		UseMutationOptions<LoanApplication, unknown, LoanApplicationDraftCreate>,
 		"mutationFn"
-	> = {}
+	> = {},
 ) {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: createMyLoanDraft,
-		onSuccess: (data, variables, context) => {
-			queryClient.invalidateQueries({ queryKey: meKeys.loans.list() });
-			 
-			(options.onSuccess as any)?.(data, variables, context);
+		onSuccess: (data, variables, onMutateResult, context) => {
+			void queryClient.invalidateQueries({ queryKey: meKeys.loans.list() });
+			options.onSuccess?.(data, variables, onMutateResult, context);
 		},
-		onError: (error, variables, context) => {
-			 
-			(options.onError as any)?.(error, variables, context);
+		onError: (error, variables, onMutateResult, context) => {
+			options.onError?.(error, variables, onMutateResult, context);
 		},
 		...options,
 	});
@@ -497,20 +516,20 @@ export function useUpdateMyLoanDraft(
 			{ id: string; payload: LoanApplicationDraftUpdate }
 		>,
 		"mutationFn"
-	> = {}
+	> = {},
 ) {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: ({ id, payload }) => updateMyLoanDraft(id, payload),
-		onSuccess: (data, variables, context) => {
-			queryClient.invalidateQueries({ queryKey: meKeys.loans.list() });
-			queryClient.invalidateQueries({ queryKey: meKeys.loans.detail(variables.id) });
-			 
-			(options.onSuccess as any)?.(data, variables, context);
+		onSuccess: (data, variables, onMutateResult, context) => {
+			void queryClient.invalidateQueries({ queryKey: meKeys.loans.list() });
+			void queryClient.invalidateQueries({
+				queryKey: meKeys.loans.detail(variables.id),
+			});
+			options.onSuccess?.(data, variables, onMutateResult, context);
 		},
-		onError: (error, variables, context) => {
-			 
-			(options.onError as any)?.(error, variables, context);
+		onError: (error, variables, onMutateResult, context) => {
+			options.onError?.(error, variables, onMutateResult, context);
 		},
 		...options,
 	});
@@ -520,20 +539,20 @@ export function useSubmitMyLoanApplication(
 	options: Omit<
 		UseMutationOptions<LoanApplication, unknown, string>,
 		"mutationFn"
-	> = {}
+	> = {},
 ) {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: submitMyLoanApplication,
-		onSuccess: (data, variables, context) => {
-			queryClient.invalidateQueries({ queryKey: meKeys.loans.list() });
-			queryClient.invalidateQueries({ queryKey: meKeys.loans.detail(variables) });
-			 
-			(options.onSuccess as any)?.(data, variables, context);
+		onSuccess: (data, variables, onMutateResult, context) => {
+			void queryClient.invalidateQueries({ queryKey: meKeys.loans.list() });
+			void queryClient.invalidateQueries({
+				queryKey: meKeys.loans.detail(variables),
+			});
+			options.onSuccess?.(data, variables, onMutateResult, context);
 		},
-		onError: (error, variables, context) => {
-			 
-			(options.onError as any)?.(error, variables, context);
+		onError: (error, variables, onMutateResult, context) => {
+			options.onError?.(error, variables, onMutateResult, context);
 		},
 		...options,
 	});
@@ -543,20 +562,20 @@ export function useCancelMyLoanApplication(
 	options: Omit<
 		UseMutationOptions<LoanApplication, unknown, string>,
 		"mutationFn"
-	> = {}
+	> = {},
 ) {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: cancelMyLoanApplication,
-		onSuccess: (data, variables, context) => {
-			queryClient.invalidateQueries({ queryKey: meKeys.loans.list() });
-			queryClient.invalidateQueries({ queryKey: meKeys.loans.detail(variables) });
-			 
-			(options.onSuccess as any)?.(data, variables, context);
+		onSuccess: (data, variables, onMutateResult, context) => {
+			void queryClient.invalidateQueries({ queryKey: meKeys.loans.list() });
+			void queryClient.invalidateQueries({
+				queryKey: meKeys.loans.detail(variables),
+			});
+			options.onSuccess?.(data, variables, onMutateResult, context);
 		},
-		onError: (error, variables, context) => {
-			 
-			(options.onError as any)?.(error, variables, context);
+		onError: (error, variables, onMutateResult, context) => {
+			options.onError?.(error, variables, onMutateResult, context);
 		},
 		...options,
 	});
@@ -570,22 +589,22 @@ export function useUpdateHrStage(
 			{ id: string; payload: LoanWorkflowStageUpdatePayload }
 		>,
 		"mutationFn"
-	> = {}
+	> = {},
 ) {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: ({ id, payload }) => updateHrStage(id, payload),
-		onSuccess: (data, variables, context) => {
-			queryClient.invalidateQueries({
+		onSuccess: (data, variables, onMutateResult, context) => {
+			void queryClient.invalidateQueries({
 				queryKey: orgKeys.loans.workflowDetail.hr(variables.id),
 			});
-			queryClient.invalidateQueries({ queryKey: ["org", "loans", "queue", "hr"] });
-			 
-			(options.onSuccess as any)?.(data, variables, context);
+			void queryClient.invalidateQueries({
+				queryKey: ["org", "loans", "queue", "hr"],
+			});
+			options.onSuccess?.(data, variables, onMutateResult, context);
 		},
-		onError: (error, variables, context) => {
-			 
-			(options.onError as any)?.(error, variables, context);
+		onError: (error, variables, onMutateResult, context) => {
+			options.onError?.(error, variables, onMutateResult, context);
 		},
 		...options,
 	});
@@ -599,24 +618,22 @@ export function useUpdateFinanceStage(
 			{ id: string; payload: LoanWorkflowStageUpdatePayload }
 		>,
 		"mutationFn"
-	> = {}
+	> = {},
 ) {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: ({ id, payload }) => updateFinanceStage(id, payload),
-		onSuccess: (data, variables, context) => {
-			queryClient.invalidateQueries({
+		onSuccess: (data, variables, onMutateResult, context) => {
+			void queryClient.invalidateQueries({
 				queryKey: orgKeys.loans.workflowDetail.finance(variables.id),
 			});
-			queryClient.invalidateQueries({
+			void queryClient.invalidateQueries({
 				queryKey: ["org", "loans", "queue", "finance"],
 			});
-			 
-			(options.onSuccess as any)?.(data, variables, context);
+			options.onSuccess?.(data, variables, onMutateResult, context);
 		},
-		onError: (error, variables, context) => {
-			 
-			(options.onError as any)?.(error, variables, context);
+		onError: (error, variables, onMutateResult, context) => {
+			options.onError?.(error, variables, onMutateResult, context);
 		},
 		...options,
 	});
@@ -630,24 +647,22 @@ export function useUpdateLegalStage(
 			{ id: string; payload: LoanWorkflowStageUpdatePayload }
 		>,
 		"mutationFn"
-	> = {}
+	> = {},
 ) {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: ({ id, payload }) => updateLegalStage(id, payload),
-		onSuccess: (data, variables, context) => {
-			queryClient.invalidateQueries({
+		onSuccess: (data, variables, onMutateResult, context) => {
+			void queryClient.invalidateQueries({
 				queryKey: orgKeys.loans.workflowDetail.legal(variables.id),
 			});
-			queryClient.invalidateQueries({
+			void queryClient.invalidateQueries({
 				queryKey: ["org", "loans", "queue", "legal"],
 			});
-			 
-			(options.onSuccess as any)?.(data, variables, context);
+			options.onSuccess?.(data, variables, onMutateResult, context);
 		},
-		onError: (error, variables, context) => {
-			 
-			(options.onError as any)?.(error, variables, context);
+		onError: (error, variables, onMutateResult, context) => {
+			options.onError?.(error, variables, onMutateResult, context);
 		},
 		...options,
 	});
@@ -661,24 +676,22 @@ export function useRegisterHrDocument(
 			{ id: string; payload: LoanDocumentCreatePayload }
 		>,
 		"mutationFn"
-	> = {}
+	> = {},
 ) {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: ({ id, payload }) => registerHrDocument(id, payload),
-		onSuccess: (data, variables, context) => {
-			queryClient.invalidateQueries({
+		onSuccess: (data, variables, onMutateResult, context) => {
+			void queryClient.invalidateQueries({
 				queryKey: orgKeys.loans.documents.org(variables.id),
 			});
-			queryClient.invalidateQueries({
+			void queryClient.invalidateQueries({
 				queryKey: orgKeys.loans.workflowDetail.hr(variables.id),
 			});
-			 
-			(options.onSuccess as any)?.(data, variables, context);
+			options.onSuccess?.(data, variables, onMutateResult, context);
 		},
-		onError: (error, variables, context) => {
-			 
-			(options.onError as any)?.(error, variables, context);
+		onError: (error, variables, onMutateResult, context) => {
+			options.onError?.(error, variables, onMutateResult, context);
 		},
 		...options,
 	});
@@ -692,24 +705,22 @@ export function useUploadHrDocument(
 			{ id: string; payload: LoanDocumentUploadPayload }
 		>,
 		"mutationFn"
-	> = {}
+	> = {},
 ) {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: ({ id, payload }) => uploadHrDocument(id, payload),
-		onSuccess: (data, variables, context) => {
-			queryClient.invalidateQueries({
+		onSuccess: (data, variables, onMutateResult, context) => {
+			void queryClient.invalidateQueries({
 				queryKey: orgKeys.loans.documents.org(variables.id),
 			});
-			queryClient.invalidateQueries({
+			void queryClient.invalidateQueries({
 				queryKey: orgKeys.loans.workflowDetail.hr(variables.id),
 			});
-			 
-			(options.onSuccess as any)?.(data, variables, context);
+			options.onSuccess?.(data, variables, onMutateResult, context);
 		},
-		onError: (error, variables, context) => {
-			 
-			(options.onError as any)?.(error, variables, context);
+		onError: (error, variables, onMutateResult, context) => {
+			options.onError?.(error, variables, onMutateResult, context);
 		},
 		...options,
 	});
@@ -723,24 +734,22 @@ export function useRegisterFinanceDocument(
 			{ id: string; payload: LoanDocumentCreatePayload }
 		>,
 		"mutationFn"
-	> = {}
+	> = {},
 ) {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: ({ id, payload }) => registerFinanceDocument(id, payload),
-		onSuccess: (data, variables, context) => {
-			queryClient.invalidateQueries({
+		onSuccess: (data, variables, onMutateResult, context) => {
+			void queryClient.invalidateQueries({
 				queryKey: orgKeys.loans.documents.org(variables.id),
 			});
-			queryClient.invalidateQueries({
+			void queryClient.invalidateQueries({
 				queryKey: orgKeys.loans.workflowDetail.finance(variables.id),
 			});
-			 
-			(options.onSuccess as any)?.(data, variables, context);
+			options.onSuccess?.(data, variables, onMutateResult, context);
 		},
-		onError: (error, variables, context) => {
-			 
-			(options.onError as any)?.(error, variables, context);
+		onError: (error, variables, onMutateResult, context) => {
+			options.onError?.(error, variables, onMutateResult, context);
 		},
 		...options,
 	});
@@ -754,24 +763,22 @@ export function useUploadFinanceDocument(
 			{ id: string; payload: LoanDocumentUploadPayload }
 		>,
 		"mutationFn"
-	> = {}
+	> = {},
 ) {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: ({ id, payload }) => uploadFinanceDocument(id, payload),
-		onSuccess: (data, variables, context) => {
-			queryClient.invalidateQueries({
+		onSuccess: (data, variables, onMutateResult, context) => {
+			void queryClient.invalidateQueries({
 				queryKey: orgKeys.loans.documents.org(variables.id),
 			});
-			queryClient.invalidateQueries({
+			void queryClient.invalidateQueries({
 				queryKey: orgKeys.loans.workflowDetail.finance(variables.id),
 			});
-			 
-			(options.onSuccess as any)?.(data, variables, context);
+			options.onSuccess?.(data, variables, onMutateResult, context);
 		},
-		onError: (error, variables, context) => {
-			 
-			(options.onError as any)?.(error, variables, context);
+		onError: (error, variables, onMutateResult, context) => {
+			options.onError?.(error, variables, onMutateResult, context);
 		},
 		...options,
 	});
@@ -785,24 +792,22 @@ export function useRegisterLegalDocument(
 			{ id: string; payload: LoanDocumentCreatePayload }
 		>,
 		"mutationFn"
-	> = {}
+	> = {},
 ) {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: ({ id, payload }) => registerLegalDocument(id, payload),
-		onSuccess: (data, variables, context) => {
-			queryClient.invalidateQueries({
+		onSuccess: (data, variables, onMutateResult, context) => {
+			void queryClient.invalidateQueries({
 				queryKey: orgKeys.loans.documents.org(variables.id),
 			});
-			queryClient.invalidateQueries({
+			void queryClient.invalidateQueries({
 				queryKey: orgKeys.loans.workflowDetail.legal(variables.id),
 			});
-			 
-			(options.onSuccess as any)?.(data, variables, context);
+			options.onSuccess?.(data, variables, onMutateResult, context);
 		},
-		onError: (error, variables, context) => {
-			 
-			(options.onError as any)?.(error, variables, context);
+		onError: (error, variables, onMutateResult, context) => {
+			options.onError?.(error, variables, onMutateResult, context);
 		},
 		...options,
 	});
@@ -816,24 +821,22 @@ export function useUploadLegalDocument(
 			{ id: string; payload: LoanDocumentUploadPayload }
 		>,
 		"mutationFn"
-	> = {}
+	> = {},
 ) {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: ({ id, payload }) => uploadLegalDocument(id, payload),
-		onSuccess: (data, variables, context) => {
-			queryClient.invalidateQueries({
+		onSuccess: (data, variables, onMutateResult, context) => {
+			void queryClient.invalidateQueries({
 				queryKey: orgKeys.loans.documents.org(variables.id),
 			});
-			queryClient.invalidateQueries({
+			void queryClient.invalidateQueries({
 				queryKey: orgKeys.loans.workflowDetail.legal(variables.id),
 			});
-			 
-			(options.onSuccess as any)?.(data, variables, context);
+			options.onSuccess?.(data, variables, onMutateResult, context);
 		},
-		onError: (error, variables, context) => {
-			 
-			(options.onError as any)?.(error, variables, context);
+		onError: (error, variables, onMutateResult, context) => {
+			options.onError?.(error, variables, onMutateResult, context);
 		},
 		...options,
 	});
@@ -847,24 +850,22 @@ export function useRegisterLegalIssuanceDocument(
 			{ id: string; payload: LoanDocumentCreatePayload }
 		>,
 		"mutationFn"
-	> = {}
+	> = {},
 ) {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: ({ id, payload }) => registerLegalIssuanceDocument(id, payload),
-		onSuccess: (data, variables, context) => {
-			queryClient.invalidateQueries({
+		onSuccess: (data, variables, onMutateResult, context) => {
+			void queryClient.invalidateQueries({
 				queryKey: orgKeys.loans.documents.org(variables.id),
 			});
-			queryClient.invalidateQueries({
+			void queryClient.invalidateQueries({
 				queryKey: orgKeys.loans.workflowDetail.legal(variables.id),
 			});
-			 
-			(options.onSuccess as any)?.(data, variables, context);
+			options.onSuccess?.(data, variables, onMutateResult, context);
 		},
-		onError: (error, variables, context) => {
-			 
-			(options.onError as any)?.(error, variables, context);
+		onError: (error, variables, onMutateResult, context) => {
+			options.onError?.(error, variables, onMutateResult, context);
 		},
 		...options,
 	});
@@ -878,24 +879,22 @@ export function useUploadLegalIssuanceDocument(
 			{ id: string; payload: LoanDocumentUploadPayload }
 		>,
 		"mutationFn"
-	> = {}
+	> = {},
 ) {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: ({ id, payload }) => uploadLegalIssuanceDocument(id, payload),
-		onSuccess: (data, variables, context) => {
-			queryClient.invalidateQueries({
+		onSuccess: (data, variables, onMutateResult, context) => {
+			void queryClient.invalidateQueries({
 				queryKey: orgKeys.loans.documents.org(variables.id),
 			});
-			queryClient.invalidateQueries({
+			void queryClient.invalidateQueries({
 				queryKey: orgKeys.loans.workflowDetail.legal(variables.id),
 			});
-			 
-			(options.onSuccess as any)?.(data, variables, context);
+			options.onSuccess?.(data, variables, onMutateResult, context);
 		},
-		onError: (error, variables, context) => {
-			 
-			(options.onError as any)?.(error, variables, context);
+		onError: (error, variables, onMutateResult, context) => {
+			options.onError?.(error, variables, onMutateResult, context);
 		},
 		...options,
 	});
@@ -909,34 +908,29 @@ export function useRegisterMyLoan83bDocument(
 			{ id: string; payload: LoanDocumentCreatePayload }
 		>,
 		"mutationFn"
-	> = {}
+	> = {},
 ) {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: ({ id, payload }) => registerMyLoan83bDocument(id, payload),
-		onSuccess: (data, variables, context) => {
-			queryClient.invalidateQueries({
+		onSuccess: (data, variables, onMutateResult, context) => {
+			void queryClient.invalidateQueries({
 				queryKey: meKeys.loans.documents(variables.id),
 			});
-			queryClient.invalidateQueries({
+			void queryClient.invalidateQueries({
 				queryKey: meKeys.loans.detail(variables.id),
 			});
-			 
-			(options.onSuccess as any)?.(data, variables, context);
+			options.onSuccess?.(data, variables, onMutateResult, context);
 		},
-		onError: (error, variables, context) => {
-			 
-			(options.onError as any)?.(error, variables, context);
+		onError: (error, variables, onMutateResult, context) => {
+			options.onError?.(error, variables, onMutateResult, context);
 		},
 		...options,
 	});
 }
 
 export function useDownloadOrgLoanDocument(
-	options: Omit<
-		UseMutationOptions<Blob, unknown, string>,
-		"mutationFn"
-	> = {}
+	options: Omit<UseMutationOptions<Blob, unknown, string>, "mutationFn"> = {},
 ) {
 	return useMutation({
 		mutationFn: (documentId) => downloadOrgLoanDocument(documentId),
@@ -945,10 +939,7 @@ export function useDownloadOrgLoanDocument(
 }
 
 export function useDownloadMyLoanDocument(
-	options: Omit<
-		UseMutationOptions<Blob, unknown, string>,
-		"mutationFn"
-	> = {}
+	options: Omit<UseMutationOptions<Blob, unknown, string>, "mutationFn"> = {},
 ) {
 	return useMutation({
 		mutationFn: (documentId) => downloadMyLoanDocument(documentId),
@@ -964,19 +955,17 @@ export function useActivateLoanBacklog(
 			{ limit?: number; offset?: number }
 		>,
 		"mutationFn"
-	> = {}
+	> = {},
 ) {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: (params) => activateLoanBacklog(params),
-		onSuccess: (data, variables, context) => {
-			queryClient.invalidateQueries({ queryKey: orgKeys.loans.list() });
-			 
-			(options.onSuccess as any)?.(data, variables, context);
+		onSuccess: (data, variables, onMutateResult, context) => {
+			void queryClient.invalidateQueries({ queryKey: orgKeys.loans.list() });
+			options.onSuccess?.(data, variables, onMutateResult, context);
 		},
-		onError: (error, variables, context) => {
-			 
-			(options.onError as any)?.(error, variables, context);
+		onError: (error, variables, onMutateResult, context) => {
+			options.onError?.(error, variables, onMutateResult, context);
 		},
 		...options,
 	});
@@ -994,32 +983,32 @@ export function useAssignLoanWorkflowStage(
 			}
 		>,
 		"mutationFn"
-	> = {}
+	> = {},
 ) {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: ({ id, stageType, payload }) =>
 			assignLoanWorkflowStage(id, stageType, payload),
-		onSuccess: (data, variables, context) => {
-			queryClient.invalidateQueries({ queryKey: ["org", "loans", "queue"] });
-			queryClient.invalidateQueries({
+		onSuccess: (data, variables, onMutateResult, context) => {
+			void queryClient.invalidateQueries({
+				queryKey: ["org", "loans", "queue"],
+			});
+			void queryClient.invalidateQueries({
 				queryKey: orgKeys.loans.workflowDetail.hr(variables.id),
 			});
-			queryClient.invalidateQueries({
+			void queryClient.invalidateQueries({
 				queryKey: orgKeys.loans.workflowDetail.finance(variables.id),
 			});
-			queryClient.invalidateQueries({
+			void queryClient.invalidateQueries({
 				queryKey: orgKeys.loans.workflowDetail.legal(variables.id),
 			});
-			queryClient.invalidateQueries({
+			void queryClient.invalidateQueries({
 				queryKey: orgKeys.loans.documents.org(variables.id),
 			});
-			 
-			(options.onSuccess as any)?.(data, variables, context);
+			options.onSuccess?.(data, variables, onMutateResult, context);
 		},
-		onError: (error, variables, context) => {
-			 
-			(options.onError as any)?.(error, variables, context);
+		onError: (error, variables, onMutateResult, context) => {
+			options.onError?.(error, variables, onMutateResult, context);
 		},
 		...options,
 	});

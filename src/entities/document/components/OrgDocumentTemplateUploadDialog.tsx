@@ -21,7 +21,14 @@ import {
 	SelectValue,
 } from "@/shared/ui/select";
 import { PickDocument } from "@/shared/ui/PickDocument";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/shared/ui/Form/form";
+import {
+	Form,
+	FormControl,
+	FormField,
+	FormItem,
+	FormLabel,
+	FormMessage,
+} from "@/shared/ui/Form/form";
 import {
 	orgDocumentTemplateUploadSchema,
 	type OrgDocumentTemplateUploadValues,
@@ -130,6 +137,7 @@ export function OrgDocumentTemplateUploadDialog({
 										<FormControl>
 											<Input
 												{...field}
+												value={field.value ?? ""}
 												placeholder="Optional display name"
 											/>
 										</FormControl>
@@ -146,6 +154,7 @@ export function OrgDocumentTemplateUploadDialog({
 										<FormControl>
 											<Textarea
 												{...field}
+												value={field.value ?? ""}
 												placeholder="Optional description"
 												className="min-h-[80px]"
 											/>

@@ -22,27 +22,27 @@ export function UserRoleAssignments({
 	const { toast } = useToast();
 	const apiErrorToast = useApiErrorToast();
 	const [pendingAssignedIds, setPendingAssignedIds] = useState<Set<string>>(
-		() => new Set(assignedRoleIds)
+		() => new Set(assignedRoleIds),
 	);
 
 	const { data, isLoading, isError, refetch, isFetching } = useRolesList(
 		{ page: 1, page_size: 200 },
-		{ staleTime: 5 * 60 * 1000 }
+		{ staleTime: 5 * 60 * 1000 },
 	);
 
 	const assignRolesMutation = useAssignRolesToUser(membershipId, {
-		onError: (err) =>
+		onError: (err: unknown) =>
 			apiErrorToast(
 				err,
-				"Unable to assign roles. Check permissions or try again."
+				"Unable to assign roles. Check permissions or try again.",
 			),
 	});
 
 	const removeRolesMutation = useRemoveRolesFromUser(membershipId, {
-		onError: (err) =>
+		onError: (err: unknown) =>
 			apiErrorToast(
 				err,
-				"Unable to remove roles. Check permissions or try again."
+				"Unable to remove roles. Check permissions or try again.",
 			),
 	});
 
@@ -68,7 +68,7 @@ export function UserRoleAssignments({
 
 		const addedRoleIds = Array.from(newIds).filter((id) => !currentIds.has(id));
 		const removedRoleIds = Array.from(currentIds).filter(
-			(id) => !newIds.has(id)
+			(id) => !newIds.has(id),
 		);
 
 		if (addedRoleIds.length === 0 && removedRoleIds.length === 0) return;

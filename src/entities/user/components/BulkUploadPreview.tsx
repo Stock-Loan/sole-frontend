@@ -11,7 +11,7 @@ export function BulkUploadPreview({ headers, rows }: BulkUploadPreviewProps) {
 				rowNumber: index + 1,
 				values: row,
 			})),
-		[rows]
+		[rows],
 	);
 
 	const previewColumns = useMemo<ColumnDefinition<BulkUploadPreviewRow>[]>(
@@ -27,19 +27,21 @@ export function BulkUploadPreview({ headers, rows }: BulkUploadPreviewProps) {
 				headerClassName: "w-12 min-w-[3rem] text-xs",
 				cellClassName: "text-xs font-medium",
 			},
-			...headers.map((header, index) => ({
-				id: `col-${index}`,
-				header,
-				accessor: (row) => row.values[index] ?? "",
-				cell: (row) => row.values[index] ?? "",
-				enableSorting: false,
-				enableFiltering: false,
-				enableHiding: false,
-				headerClassName: "text-xs capitalize whitespace-nowrap",
-				cellClassName: "text-xs",
-			})),
+			...headers.map<ColumnDefinition<BulkUploadPreviewRow>>(
+				(header, index) => ({
+					id: `col-${index}`,
+					header,
+					accessor: (row: BulkUploadPreviewRow) => row.values[index] ?? "",
+					cell: (row: BulkUploadPreviewRow) => row.values[index] ?? "",
+					enableSorting: false,
+					enableFiltering: false,
+					enableHiding: false,
+					headerClassName: "text-xs capitalize whitespace-nowrap",
+					cellClassName: "text-xs",
+				}),
+			),
 		],
-		[headers]
+		[headers],
 	);
 
 	if (headers.length === 0 || rows.length === 0) {

@@ -1,5 +1,4 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog";
-import * as React from "react";
 import { Button } from "@/shared/ui/Button";
 import { cn } from "@/shared/lib/utils";
 import type { SideModalProps } from "./types";
@@ -28,7 +27,7 @@ export function SideModal({
 				<DialogPrimitive.Overlay className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
 				<DialogPrimitive.Content
 					className={cn(
-						"fixed inset-y-0 right-0 z-50 flex h-full w-full max-w-xl flex-col border-l bg-background shadow-2xl outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:slide-in-from-right data-[state=closed]:slide-out-to-right"
+						"fixed inset-y-0 right-0 z-50 flex h-full w-full max-w-xl flex-col border-l bg-background shadow-2xl outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:slide-in-from-right data-[state=closed]:slide-out-to-right",
 					)}
 				>
 					<div className="flex items-start justify-between border-b px-6 py-4">
@@ -39,7 +38,7 @@ export function SideModal({
 							<DialogPrimitive.Description
 								className={cn(
 									"text-sm text-muted-foreground",
-									!description && "sr-only"
+									!description && "sr-only",
 								)}
 							>
 								{description || title}

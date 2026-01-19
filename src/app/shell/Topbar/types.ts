@@ -16,3 +16,7 @@ export type RouteSearchMeta = {
 export type RouteHandle = {
 	search?: RouteSearchMeta;
 };
+
+export type UserDropdownProps = {
+	showChevron?: boolean;
+};

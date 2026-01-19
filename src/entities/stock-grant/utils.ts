@@ -18,7 +18,7 @@ export function getStockValueMetrics(summary?: StockSummary | null) {
 	const totalStockValue = summary.grants.reduce((sum, grant) => {
 		const shares = grant.total_shares ?? 0;
 		const price = parseExercisePrice(grant.exercise_price);
-		if (!Number.isFinite(price)) return sum;
+		if (price === null || !Number.isFinite(price)) return sum;
 		return sum + shares * price;
 	}, 0);
 

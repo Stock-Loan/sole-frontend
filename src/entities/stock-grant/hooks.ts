@@ -30,7 +30,7 @@ import type {
 export function useStockSummary(
 	membershipId: string,
 	params: StockSummaryParams = {},
-	options: Omit<UseQueryOptions<StockSummary>, "queryKey" | "queryFn"> = {}
+	options: Omit<UseQueryOptions<StockSummary>, "queryKey" | "queryFn"> = {},
 ) {
 	return useQuery({
 		queryKey: stockGrantKeys.summary(membershipId, params),
@@ -43,7 +43,7 @@ export function useStockSummary(
 
 export function useMeStockSummary(
 	params: StockSummaryParams = {},
-	options: Omit<UseQueryOptions<StockSummary>, "queryKey" | "queryFn"> = {}
+	options: Omit<UseQueryOptions<StockSummary>, "queryKey" | "queryFn"> = {},
 ) {
 	return useQuery({
 		queryKey: meKeys.stock.summary(params),
@@ -58,7 +58,7 @@ export function useOrgStockDashboardSummary(
 	options: Omit<
 		UseQueryOptions<StockDashboardSummary>,
 		"queryKey" | "queryFn"
-	> = {}
+	> = {},
 ) {
 	return useQuery({
 		queryKey: stockGrantKeys.dashboardSummary(params),
@@ -74,7 +74,7 @@ export function useStockGrantsList(
 	options: Omit<
 		UseQueryOptions<StockGrantListResponse>,
 		"queryKey" | "queryFn"
-	> = {}
+	> = {},
 ) {
 	return useQuery({
 		queryKey: stockGrantKeys.grants.list(membershipId, params),
@@ -87,7 +87,7 @@ export function useStockGrantsList(
 
 export function useAllStockGrants(
 	membershipId: string,
-	options: Omit<UseQueryOptions<StockGrant[]>, "queryKey" | "queryFn"> = {}
+	options: Omit<UseQueryOptions<StockGrant[]>, "queryKey" | "queryFn"> = {},
 ) {
 	return useQuery({
 		queryKey: stockGrantKeys.grants.all(membershipId),
@@ -123,28 +123,26 @@ export function useCreateStockGrant(
 	options: Omit<
 		UseMutationOptions<StockGrant, unknown, StockGrantInput>,
 		"mutationFn"
-	> = {}
+	> = {},
 ) {
 	const queryClient = useQueryClient();
 
 	return useMutation({
 		mutationFn: (payload) => createStockGrant(membershipId, payload),
-		onSuccess: (data, variables, context) => {
-			queryClient.invalidateQueries({
+		onSuccess: (data, variables, onMutateResult, context) => {
+			void queryClient.invalidateQueries({
 				queryKey: ["stock", "grants", "list", membershipId],
 			});
-			queryClient.invalidateQueries({
+			void queryClient.invalidateQueries({
 				queryKey: stockGrantKeys.grants.all(membershipId),
 			});
-			queryClient.invalidateQueries({
+			void queryClient.invalidateQueries({
 				queryKey: stockGrantKeys.summary(membershipId),
 			});
-			 
-			(options.onSuccess as any)?.(data, variables, context);
+			options.onSuccess?.(data, variables, onMutateResult, context);
 		},
-		onError: (error, variables, context) => {
-			 
-			(options.onError as any)?.(error, variables, context);
+		onError: (error, variables, onMutateResult, context) => {
+			options.onError?.(error, variables, onMutateResult, context);
 		},
 		...options,
 	});
@@ -159,28 +157,26 @@ export function useUpdateStockGrant(
 			{ grantId: string; payload: StockGrantUpdateInput }
 		>,
 		"mutationFn"
-	> = {}
+	> = {},
 ) {
 	const queryClient = useQueryClient();
 
 	return useMutation({
 		mutationFn: ({ grantId, payload }) => updateStockGrant(grantId, payload),
-		onSuccess: (data, variables, context) => {
-			queryClient.invalidateQueries({
+		onSuccess: (data, variables, onMutateResult, context) => {
+			void queryClient.invalidateQueries({
 				queryKey: ["stock", "grants", "list", membershipId],
 			});
-			queryClient.invalidateQueries({
+			void queryClient.invalidateQueries({
 				queryKey: stockGrantKeys.grants.all(membershipId),
 			});
-			queryClient.invalidateQueries({
+			void queryClient.invalidateQueries({
 				queryKey: stockGrantKeys.summary(membershipId),
 			});
-			 
-			(options.onSuccess as any)?.(data, variables, context);
+			options.onSuccess?.(data, variables, onMutateResult, context);
 		},
-		onError: (error, variables, context) => {
-			 
-			(options.onError as any)?.(error, variables, context);
+		onError: (error, variables, onMutateResult, context) => {
+			options.onError?.(error, variables, onMutateResult, context);
 		},
 		...options,
 	});

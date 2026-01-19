@@ -14,6 +14,7 @@ import {
 	formatShares,
 	getEligibilityReasonLabel,
 } from "@/entities/stock-grant/constants";
+import type { EligibilityReason } from "@/entities/stock-grant/types";
 import { cn } from "@/shared/lib/utils";
 import { colorPalette } from "@/app/styles/color-palette";
 import { StockSummaryDonutCard } from "@/entities/stock-grant/components/StockSummaryDonutCard";
@@ -111,8 +112,9 @@ export function MyStockPage() {
 	const showAttentionCard = Boolean(attention || attentionItems.length > 0);
 
 	const reasons =
-		eligibility?.reasons?.map((reason) => getEligibilityReasonLabel(reason)) ??
-		[];
+		eligibility?.reasons?.map((reason) =>
+			getEligibilityReasonLabel(reason as EligibilityReason),
+		) ?? [];
 
 	const nextPaymentLabel =
 		nextPaymentDate || nextPaymentAmount

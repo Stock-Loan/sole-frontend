@@ -7,7 +7,13 @@ import type {
 	UserSummaryTrendItem,
 } from "@/entities/user/components/types";
 
-const platformOrder = ["ACTIVE", "SUSPENDED", "INVITED", "ENABLED", "DISABLED"] as const;
+const platformOrder = [
+	"ACTIVE",
+	"LOCKED",
+	"INVITED",
+	"ENABLED",
+	"DISABLED",
+] as const;
 const invitationOrder = ["PENDING", "ACCEPTED", "EXPIRED", "INVITED"] as const;
 const employmentOrder = [
 	"ACTIVE",
@@ -21,7 +27,7 @@ const formatCount = (value?: number | null) =>
 	value === null || value === undefined ? "—" : value.toLocaleString();
 
 export function buildUserSummaryMetrics(
-	summary?: UserDashboardSummary | null
+	summary?: UserDashboardSummary | null,
 ): UserSummaryMetric[] {
 	if (!summary) return [];
 	return [
@@ -48,7 +54,7 @@ export function buildUserSummaryMetrics(
 }
 
 export function buildPlatformStatusItems(
-	summary?: UserDashboardSummary | null
+	summary?: UserDashboardSummary | null,
 ): UserSummaryPieItem[] {
 	if (!summary) return [];
 	const counts = summary.platform_status_counts ?? {};
@@ -60,7 +66,7 @@ export function buildPlatformStatusItems(
 }
 
 export function buildInvitationStatusItems(
-	summary?: UserDashboardSummary | null
+	summary?: UserDashboardSummary | null,
 ): UserSummaryPieItem[] {
 	if (!summary) return [];
 	const counts = summary.invitation_status_counts ?? {};
@@ -72,7 +78,7 @@ export function buildInvitationStatusItems(
 }
 
 export function buildEmploymentStatusItems(
-	summary?: UserDashboardSummary | null
+	summary?: UserDashboardSummary | null,
 ): UserSummaryPieItem[] {
 	if (!summary) return [];
 	const counts = summary.employment_status_counts ?? {};
@@ -84,7 +90,7 @@ export function buildEmploymentStatusItems(
 }
 
 export function buildMfaItems(
-	summary?: UserDashboardSummary | null
+	summary?: UserDashboardSummary | null,
 ): UserSummaryPieItem[] {
 	if (!summary) return [];
 	return [
@@ -102,7 +108,7 @@ export function buildMfaItems(
 }
 
 export function buildEngagementTrendItems(
-	summary?: UserDashboardSummary | null
+	summary?: UserDashboardSummary | null,
 ): UserSummaryTrendItem[] {
 	if (!summary) return [];
 	return [
@@ -125,7 +131,7 @@ export function buildEngagementTrendItems(
 }
 
 export function buildDepartmentItems(
-	summary?: UserDashboardSummary | null
+	summary?: UserDashboardSummary | null,
 ): UserSummaryPieItem[] {
 	if (!summary) return [];
 	const departments = summary.department_counts ?? [];
@@ -142,7 +148,7 @@ export function buildDepartmentItems(
 		items.push({
 			label: "No department",
 			value: summary.users_without_department,
-			color: colorPalette.slate[300],
+			color: colorPalette.chart[6],
 		});
 	}
 
@@ -152,7 +158,7 @@ export function buildDepartmentItems(
 		items.push({
 			label: "Unclassified",
 			value: remainder,
-			color: colorPalette.slate[200],
+			color: colorPalette.chart[3],
 		});
 	}
 
@@ -160,13 +166,12 @@ export function buildDepartmentItems(
 }
 
 export function buildRoleItems(
-	summary?: UserDashboardSummary | null
+	summary?: UserDashboardSummary | null,
 ): UserSummaryPieItem[] {
 	if (!summary) return [];
 	const items = (summary.role_counts ?? []).filter(
 		(item) =>
-			(item.role_name ?? "").toUpperCase() !== "EMPLOYEE" &&
-			item.count > 0
+			(item.role_name ?? "").toUpperCase() !== "EMPLOYEE" && item.count > 0,
 	);
 	return items
 		.slice()

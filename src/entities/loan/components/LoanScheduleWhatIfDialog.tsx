@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import type { Control, Resolver } from "react-hook-form";
 import {
 	Dialog,
 	DialogBody,
@@ -43,10 +44,12 @@ export function LoanScheduleWhatIfDialog({
 			annual_rate_percent: initialValues?.annual_rate_percent ?? "",
 			principal: initialValues?.principal ?? "",
 		}),
-		[initialValues, fallbackDate]
+		[initialValues, fallbackDate],
 	);
 	const form = useForm<LoanScheduleWhatIfPayload>({
-		resolver: zodResolver(loanScheduleWhatIfSchema),
+		resolver: zodResolver(
+			loanScheduleWhatIfSchema,
+		) as Resolver<LoanScheduleWhatIfPayload>,
 		defaultValues,
 	});
 
@@ -66,7 +69,7 @@ export function LoanScheduleWhatIfDialog({
 					<form
 						onSubmit={form.handleSubmit(async (values) => {
 							const payload: LoanScheduleWhatIfPayload = {
-								...values,
+								...(values as LoanScheduleWhatIfPayload),
 								principal: values.principal?.trim() || undefined,
 							};
 							await onSubmit(payload);
@@ -77,20 +80,20 @@ export function LoanScheduleWhatIfDialog({
 						<DialogBody className="min-h-0 space-y-4">
 							<FormFieldWrapper
 								name="as_of_date"
-								control={form.control}
+								control={form.control as Control<LoanScheduleWhatIfPayload>}
 								label="As of date"
 							>
 								{({ field }) => <Input type="date" {...field} />}
 							</FormFieldWrapper>
 							<FormFieldWrapper
 								name="repayment_method"
-								control={form.control}
+								control={form.control as Control<LoanScheduleWhatIfPayload>}
 								label="Repayment method"
 							>
 								{({ field }) => (
 									<Select
-										value={field.value}
-										onValueChange={field.onChange}
+										value={field.value as string | undefined}
+										onValueChange={field.onChange as (value: string) => void}
 										disabled={isSubmitting}
 									>
 										<SelectTrigger>
@@ -108,21 +111,21 @@ export function LoanScheduleWhatIfDialog({
 							</FormFieldWrapper>
 							<FormFieldWrapper
 								name="term_months"
-								control={form.control}
+								control={form.control as Control<LoanScheduleWhatIfPayload>}
 								label="Term (months)"
 							>
 								{({ field }) => <Input type="number" min={1} {...field} />}
 							</FormFieldWrapper>
 							<FormFieldWrapper
 								name="annual_rate_percent"
-								control={form.control}
+								control={form.control as Control<LoanScheduleWhatIfPayload>}
 								label="Annual rate (%)"
 							>
 								{({ field }) => <Input placeholder="12.50" {...field} />}
 							</FormFieldWrapper>
 							<FormFieldWrapper
 								name="principal"
-								control={form.control}
+								control={form.control as Control<LoanScheduleWhatIfPayload>}
 								label="Principal (optional)"
 							>
 								{({ field }) => <Input placeholder="25000.00" {...field} />}

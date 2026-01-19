@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+import { z } from "zod";
+import { loanScheduleWhatIfSchema } from "@/entities/loan/schemas";
 import type { DataTableHeaderActions } from "@/shared/ui/Table/types";
 import type {
 	LoanAllocationItem,
@@ -7,6 +9,7 @@ import type {
 	LoanApplicationSummary,
 	LoanDocumentCreatePayload,
 	LoanDocumentGroup,
+	LoanDocument,
 	LoanDocumentUploadPayload,
 	LoanRepaymentCreatePayload,
 	LoanRepayment,
@@ -221,3 +224,7 @@ export interface LoanWorkflowSummaryProps {
 	loan: LoanApplication;
 	stockSummary?: StockSummary | null;
 }
+
+export type LoanScheduleWhatIfFormValues = z.infer<
+	typeof loanScheduleWhatIfSchema
+>;

@@ -5,22 +5,35 @@ import { cn, normalizeDisplay } from "@/shared/lib/utils";
 import { formatDate } from "@/shared/lib/format";
 import { LoanStatusBadge } from "@/entities/loan/components/LoanStatusBadge";
 import { StageStatusBadge } from "@/entities/loan/components/StageStatusBadge";
-import type {
-	LoanTimelineProps,
-} from "@/entities/loan/components/types";
+import type { LoanTimelineProps } from "@/entities/loan/components/types";
 import type {
 	LoanApplicationStatus,
+	LoanWorkflowStageType,
 	LoanWorkflowStageStatus,
 } from "@/entities/loan/types";
 
-const timelineSteps = [
+type TimelineStep = {
+	key: string;
+	label: string;
+	stageType?: LoanWorkflowStageType;
+};
+
+const timelineSteps: TimelineStep[] = [
 	{ key: "hr", label: "HR review", stageType: "HR_REVIEW" },
-	{ key: "finance", label: "Finance processing", stageType: "FINANCE_PROCESSING" },
+	{
+		key: "finance",
+		label: "Finance processing",
+		stageType: "FINANCE_PROCESSING",
+	},
 	{ key: "legal", label: "Legal execution", stageType: "LEGAL_EXECUTION" },
 	{ key: "active", label: "Active" },
 	{ key: "post", label: "Post-issuance", stageType: "LEGAL_POST_ISSUANCE" },
-	{ key: "election", label: "83(b) election", stageType: "BORROWER_83B_ELECTION" },
-] as const;
+	{
+		key: "election",
+		label: "83(b) election",
+		stageType: "BORROWER_83B_ELECTION",
+	},
+];
 
 export function LoanTimeline({
 	stages = [],
@@ -51,11 +64,9 @@ export function LoanTimeline({
 		return <EmptyState title={emptyTitle} message={emptyMessage} />;
 	}
 
-	const stageMap = new Map(
-		stages.map((stage) => [stage.stage_type, stage])
-	);
+	const stageMap = new Map(stages.map((stage) => [stage.stage_type, stage]));
 	const resolveActiveStatus = (
-		status?: LoanApplicationStatus | null
+		status?: LoanApplicationStatus | null,
 	): LoanWorkflowStageStatus => {
 		if (status === "ACTIVE") return "COMPLETED";
 		if (status === "IN_REVIEW" || status === "SUBMITTED") return "IN_PROGRESS";
@@ -67,8 +78,7 @@ export function LoanTimeline({
 			{timelineSteps.map((step, index) => {
 				const stage = step.stageType ? stageMap.get(step.stageType) : undefined;
 				const isActiveStep = step.key === "active";
-				const activeStatusLabel =
-					loanStatus && normalizeDisplay(loanStatus);
+				const activeStatusLabel = loanStatus && normalizeDisplay(loanStatus);
 				const stepLabel = isActiveStep
 					? loanStatus && loanStatus !== "ACTIVE"
 						? "Status"
@@ -76,7 +86,7 @@ export function LoanTimeline({
 					: step.label;
 				const status = isActiveStep
 					? resolveActiveStatus(loanStatus)
-					: stage?.status ?? "PENDING";
+					: (stage?.status ?? "PENDING");
 				const isLast = index === timelineSteps.length - 1;
 				const showActivationMeta = step.key === "active";
 				const show83bMeta = step.key === "election";
@@ -107,7 +117,7 @@ export function LoanTimeline({
 										? "bg-emerald-500"
 										: status === "IN_PROGRESS"
 											? "bg-amber-500"
-											: "bg-slate-300"
+											: "bg-slate-300",
 								)}
 							/>
 							{isLast ? null : (
@@ -133,9 +143,7 @@ export function LoanTimeline({
 							</div>
 
 							{stage?.notes ? (
-								<p className="text-xs text-muted-foreground">
-									{stage.notes}
-								</p>
+								<p className="text-xs text-muted-foreground">{stage.notes}</p>
 							) : null}
 
 							{step.stageType ? (

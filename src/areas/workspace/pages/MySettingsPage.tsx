@@ -15,7 +15,7 @@ import type {
 	UserSettingsInfoCardProps,
 	UserSettingsSectionGridProps,
 	UserSettingsTabKey,
-} from "../types";
+} from "@/features/user-settings/types";
 
 export function MySettingsPage() {
 	const { user: cachedUser } = useAuth();
@@ -26,17 +26,16 @@ export function MySettingsPage() {
 	const profileUser = profile?.user;
 	const membership = profile?.membership;
 	const user = profileUser ?? cachedUser;
-	const securityUser = cachedUser ?? profileUser;
+	const securityUser = cachedUser ?? null;
 
-	const roleLabels =
-		profile?.roles?.length
-			? profile.roles
-					.map((role) => role.name || role.id)
-					.filter(Boolean)
-					.join(", ")
-			: user?.roles?.length
-				? user.roles.join(", ")
-				: "—";
+	const roleLabels = profile?.roles?.length
+		? profile.roles
+				.map((role) => role.name || role.id)
+				.filter(Boolean)
+				.join(", ")
+		: cachedUser?.roles?.length
+			? cachedUser.roles.join(", ")
+			: "—";
 
 	const personalItems = [
 		{ label: "First name", value: profileUser?.first_name || "—" },
@@ -95,11 +94,21 @@ export function MySettingsPage() {
 		},
 		{
 			label: "Active",
-			value: securityUser?.is_active ? "Yes" : "No",
+			value:
+				securityUser?.is_active === undefined
+					? "—"
+					: securityUser.is_active
+						? "Yes"
+						: "No",
 		},
 		{
 			label: "Superuser",
-			value: securityUser?.is_superuser ? "Yes" : "No",
+			value:
+				securityUser?.is_superuser === undefined
+					? "—"
+					: securityUser.is_superuser
+						? "Yes"
+						: "No",
 		},
 		{
 			label: "Roles",
@@ -193,7 +202,8 @@ export function MySettingsPage() {
 										: "Add MFA in the identity provider to increase account protection."}
 								</p>
 								<p className="text-xs text-muted-foreground">
-									Status: {securityUser?.mfa_enabled ? "Enabled" : "Not enabled"}
+									Status:{" "}
+									{securityUser?.mfa_enabled ? "Enabled" : "Not enabled"}
 								</p>
 							</div>
 							<Separator />
@@ -226,7 +236,7 @@ function InfoCard({ label, value }: UserSettingsInfoCardProps) {
 function SectionGrid({ items }: UserSettingsSectionGridProps) {
 	return (
 		<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-			{items.map((item) => (
+			{items.map((item: UserSettingsInfoCardProps) => (
 				<InfoCard key={item.label} label={item.label} value={item.value} />
 			))}
 		</div>

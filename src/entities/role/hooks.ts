@@ -31,7 +31,7 @@ import { getOrgUserDisplayName } from "@/entities/user/constants";
 
 export function useRolesList(
 	params: RoleListParams = {},
-	options: Omit<UseQueryOptions<RoleListResponse>, "queryKey" | "queryFn"> = {}
+	options: Omit<UseQueryOptions<RoleListResponse>, "queryKey" | "queryFn"> = {},
 ) {
 	return useQuery({
 		queryKey: roleKeys.list(params),
@@ -61,10 +61,10 @@ export function useRoleMembersSearch(
 
 	return useQuery<OrgUsersListResponse>({
 		enabled: enabled && Boolean(roleId) && Boolean(searchTerm),
-		queryKey: roleKeys.members(
-			roleId ?? "unknown",
-			{ page: 1, page_size: pageSize },
-		),
+		queryKey: roleKeys.members(roleId ?? "unknown", {
+			page: 1,
+			page_size: pageSize,
+		}),
 		queryFn: async () => {
 			if (!roleId || !searchTerm) {
 				return { items: [], total: 0 };
@@ -101,16 +101,17 @@ export function useRoleMembersSearch(
 					});
 					total = lastResponse.total ?? items.length;
 
-					if (items.length >= total || (lastResponse.items ?? []).length === 0) {
+					if (
+						items.length >= total ||
+						(lastResponse.items ?? []).length === 0
+					) {
 						break;
 					}
 					page += 1;
 				}
 
 				const filteredItems =
-					term.trim().length > 0
-						? items.filter(matchesFullTerm)
-						: items;
+					term.trim().length > 0 ? items.filter(matchesFullTerm) : items;
 				return {
 					...(lastResponse ?? { items: [], total: 0 }),
 					items: filteredItems,
@@ -136,7 +137,7 @@ export function useRoleMembersList(
 	options: Omit<
 		UseQueryOptions<OrgUsersListResponse>,
 		"queryKey" | "queryFn"
-	> = {}
+	> = {},
 ) {
 	const { enabled = true } = options;
 	return useQuery({
@@ -156,7 +157,7 @@ export function useRoleMemberLookup(
 		pageSize?: number;
 		maxPages?: number;
 		staleTime?: number;
-	} = {}
+	} = {},
 ) {
 	const {
 		enabled = true,
@@ -179,15 +180,12 @@ export function useRoleMemberLookup(
 					page_size: pageSize,
 				});
 				const match = lastResponse.items?.find(
-					(item) => item.user.id === userId
+					(item) => item.user.id === userId,
 				);
 				if (match) return match;
 
 				const total = lastResponse.total ?? lastResponse.items.length;
-				if (
-					lastResponse.items.length === 0 ||
-					page * pageSize >= total
-				) {
+				if (lastResponse.items.length === 0 || page * pageSize >= total) {
 					break;
 				}
 				page += 1;
@@ -200,7 +198,10 @@ export function useRoleMemberLookup(
 }
 
 export function useCreateRole(
-	options: Omit<UseMutationOptions<Role, unknown, RoleInput>, "mutationFn"> = {}
+	options: Omit<
+		UseMutationOptions<Role, unknown, RoleInput>,
+		"mutationFn"
+	> = {},
 ) {
 	const queryClient = useQueryClient();
 
@@ -221,7 +222,7 @@ export function useUpdateRole(
 	options: Omit<
 		UseMutationOptions<Role, unknown, { id: string; payload: RoleInput }>,
 		"mutationFn"
-	> = {}
+	> = {},
 ) {
 	const queryClient = useQueryClient();
 
@@ -244,7 +245,7 @@ export function useAssignRolesToUser(
 	options: Omit<
 		UseMutationOptions<Role[], unknown, string[]>,
 		"mutationFn"
-	> = {}
+	> = {},
 ) {
 	const queryClient = useQueryClient();
 
@@ -252,6 +253,27 @@ export function useAssignRolesToUser(
 		mutationFn: (roleIds) => assignRolesToUser(membershipId, roleIds),
 		onSuccess: (data, variables, onMutateResult, context) => {
 			queryClient.invalidateQueries({
+				queryKey: roleKeys.forUser(membershipId),
+			});
+			options.onSuccess?.(data, variables, onMutateResult, context);
+		},
+		onError: (error, variables, onMutateResult, context) => {
+			options.onError?.(error, variables, onMutateResult, context);
+		},
+		...options,
+	});
+}
+
+export function useRemoveRolesFromUser(
+	membershipId: string,
+	options: Omit<UseMutationOptions<void, unknown, string[]>, "mutationFn"> = {},
+) {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: (roleIds) => removeRolesFromUser(membershipId, roleIds),
+		onSuccess: (data, variables, onMutateResult, context) => {
+			void queryClient.invalidateQueries({
 				queryKey: roleKeys.forUser(membershipId),
 			});
 			options.onSuccess?.(data, variables, onMutateResult, context);
@@ -271,7 +293,7 @@ export function useUpdateUserRoles(
 			{ membershipId: string; addRoleIds: string[]; removeRoleIds: string[] }
 		>,
 		"mutationFn"
-	> = {}
+	> = {},
 ) {
 	const queryClient = useQueryClient();
 
@@ -303,7 +325,7 @@ export function useInvalidateOrgPermissions(
 	options: Omit<
 		UseMutationOptions<InvalidatePermissionsResponse, unknown, void>,
 		"mutationFn"
-	> = {}
+	> = {},
 ) {
 	return useMutation({
 		mutationFn: () => invalidateOrgPermissions(),

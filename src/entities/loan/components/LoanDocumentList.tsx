@@ -91,7 +91,11 @@ export function LoanDocumentList({
 												size="sm"
 												className="h-7 px-2 text-xs"
 											>
-												<a href={link} target="_blank" rel="noreferrer">
+												<a
+													href={link ?? undefined}
+													target="_blank"
+													rel="noreferrer"
+												>
 													<FileText className="mr-1 h-3.5 w-3.5" />
 													View
 												</a>

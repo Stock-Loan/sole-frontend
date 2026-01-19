@@ -15,7 +15,7 @@ import type {
 } from "@/auth/types";
 import { routes } from "@/shared/lib/routes";
 import { AuthContext } from "./context";
-import type { AuthContextValue } from "./context";
+import type { AuthContextValue } from "./types";
 
 const STORAGE_KEY = "sole.auth.session";
 

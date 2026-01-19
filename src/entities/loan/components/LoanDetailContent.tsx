@@ -52,7 +52,11 @@ import type {
 	LoanDetailRowProps,
 	LoanDetailSummaryCardProps,
 } from "@/entities/loan/components/types";
-import type { LoanDocument, LoanScheduleResponse } from "@/entities/loan/types";
+import type {
+	LoanDocument,
+	LoanScheduleResponse,
+	LoanScheduleWhatIfPayload,
+} from "@/entities/loan/types";
 import { LoanRepaymentDialog } from "@/entities/loan/components/LoanRepaymentDialog";
 
 export function LoanDetailContent({
@@ -214,13 +218,13 @@ export function LoanDetailContent({
 		const suffix = whatIfSchedule ? "what-if" : "original";
 		downloadBlob(
 			new Blob([csv], { type: "text/csv;charset=utf-8;" }),
-			`loan-schedule-${loan.id}-${suffix}.csv`
+			`loan-schedule-${loan.id}-${suffix}.csv`,
 		);
 	};
 	const showOverview = !showTabs || activeTab === "overview";
 	const missedPaymentDates = loan.missed_payment_dates?.filter(Boolean) ?? [];
 	const missedPaymentDatesLabel = formatList(
-		missedPaymentDates.map((date) => formatDate(date))
+		missedPaymentDates.map((date) => formatDate(date)),
 	);
 
 	return (
@@ -849,7 +853,7 @@ export function LoanDetailContent({
 										label: "Record repayment",
 										onClick: () => setRepaymentDialogOpen(true),
 									},
-							  }
+								}
 							: undefined
 					}
 					className="min-h-[360px] h-[calc(100dvh-320px)]"
@@ -910,11 +914,10 @@ export function LoanDetailContent({
 						scheduleQuery.data?.as_of_date ??
 						loan.as_of_date ??
 						new Date().toISOString().slice(0, 10),
-					repayment_method:
-						whatIfSchedule?.repayment_method ??
-						(scheduleQuery.data?.repayment_method ??
-							loan.repayment_method ??
-							"PRINCIPAL_AND_INTEREST"),
+					repayment_method: (whatIfSchedule?.repayment_method ??
+						scheduleQuery.data?.repayment_method ??
+						loan.repayment_method ??
+						"PRINCIPAL_AND_INTEREST") as LoanScheduleWhatIfPayload["repayment_method"],
 					term_months:
 						whatIfSchedule?.term_months ??
 						scheduleQuery.data?.term_months ??
@@ -931,7 +934,9 @@ export function LoanDetailContent({
 						loan.loan_principal ??
 						"",
 				}}
-				onSubmit={(payload) => whatIfMutation.mutateAsync(payload)}
+				onSubmit={async (payload) => {
+					await whatIfMutation.mutateAsync(payload);
+				}}
 			/>
 			<LoanRepaymentDialog
 				open={repaymentDialogOpen}

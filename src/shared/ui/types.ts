@@ -92,7 +92,7 @@ export interface TabButtonProps<T extends string> {
 	className?: string;
 }
 
-export interface ToasterToast extends ToastProps {
+export interface ToasterToast extends Omit<ToastProps, "title"> {
 	id: string;
 	title?: ReactNode;
 	description?: ReactNode;

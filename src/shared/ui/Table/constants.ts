@@ -101,7 +101,7 @@ export function isEmptyValue(value: unknown) {
 
 export function isFilterActive(filter: ColumnFilterState) {
 	const option = filterOperatorOptions.find(
-		(item) => item.value === filter.operator
+		(item) => item.value === filter.operator,
 	);
 	if (!option) return false;
 	if (!option.requiresValue) return true;
@@ -126,7 +126,7 @@ function parseNumberValue(value: unknown): number | null {
 export function applyFilterOperator(
 	operator: FilterOperator,
 	cellValue: unknown,
-	filterValue: string
+	filterValue: string,
 ): boolean {
 	if (operator === "is_null") return isNullish(cellValue);
 	if (operator === "is_not_null") return !isNullish(cellValue);
@@ -140,7 +140,9 @@ export function applyFilterOperator(
 	const numericCell = parseNumberValue(cellValue);
 	const numericFilter = parseNumberValue(filterValue);
 	const hasNumericValues =
-		numericCell !== null && numericFilter !== null && Number.isFinite(numericCell);
+		numericCell !== null &&
+		numericFilter !== null &&
+		Number.isFinite(numericCell);
 
 	const normalizedCell = normalizeFilterValue(cellValue);
 	const normalizedFilter = normalizeFilterValue(filterValue.trim());
@@ -202,7 +204,9 @@ export function escapeCsvValue(value: string): string {
 	return `"${escaped}"`;
 }
 
-export function isColumnFilterState(value: unknown): value is ColumnFilterState {
+export function isColumnFilterState(
+	value: unknown,
+): value is ColumnFilterState {
 	if (!value || typeof value !== "object") return false;
 	const operator = (value as ColumnFilterState).operator;
 	return filterOperatorOptions.some((option) => option.value === operator);
@@ -212,7 +216,7 @@ export function getAccessorValueFromConfig<T>(
 	row: T,
 	config?: ColumnDefinition<T>,
 	columnId?: string,
-	tableRow?: Row<T>
+	tableRow?: Row<T>,
 ): unknown {
 	if (!config) return tableRow?.getValue(columnId ?? "");
 	const accessor = config.accessor;
@@ -225,13 +229,13 @@ export function getAccessorValueFromConfig<T>(
 export function normalizeColumnOrder(
 	order: string[] | undefined,
 	columnIds: string[],
-	enableRowSelection: boolean
+	enableRowSelection: boolean,
 ) {
 	if (!order || order.length === 0) return [];
 	const cleaned = order.filter(
 		(id) =>
 			columnIds.includes(id) ||
-			(enableRowSelection && id === selectionColumnId)
+			(enableRowSelection && id === selectionColumnId),
 	);
 	const missing = columnIds.filter((id) => !cleaned.includes(id));
 	const nextOrder = [...cleaned, ...missing];
@@ -255,7 +259,7 @@ function resolveDataTableStorage(config?: DataTablePreferencesConfig) {
 }
 
 export function resolveDataTablePreferencesKey(
-	config: DataTablePreferencesConfig
+	config: DataTablePreferencesConfig,
 ) {
 	if (config.storageKey) return config.storageKey;
 	const scope = config.scope ?? "user";
@@ -275,7 +279,7 @@ export function resolveDataTablePreferencesKey(
 }
 
 export function loadDataTablePreferences(
-	config?: DataTablePreferencesConfig
+	config?: DataTablePreferencesConfig,
 ): DataTablePreferencesState | null {
 	if (!config) return null;
 	const storage = resolveDataTableStorage(config);
@@ -297,7 +301,7 @@ export function loadDataTablePreferences(
 
 export function saveDataTablePreferences(
 	config: DataTablePreferencesConfig,
-	state: DataTablePreferencesState
+	state: DataTablePreferencesState,
 ) {
 	const storage = resolveDataTableStorage(config);
 	if (!storage) return;

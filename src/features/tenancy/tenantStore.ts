@@ -78,36 +78,6 @@ export function TenantProvider({ children }: PropsWithChildren) {
 		queryKey: tenancyKeys.tenants(),
 		queryFn: listTenants,
 		enabled: Boolean(tokens?.access_token && resolvedOrgId),
-		onSuccess: (data) => {
-			if (!data) return;
-
-			if (orgs.length > 1) {
-				const resolvedOrg = data[0];
-				if (resolvedOrg) {
-					setOrgs((prev) => {
-						const hasOrg = prev.some((org) => org.id === resolvedOrg.id);
-						if (hasOrg) {
-							return prev.map((org) =>
-								org.id === resolvedOrg.id ? { ...org, ...resolvedOrg } : org,
-							);
-						}
-						return [...prev, resolvedOrg];
-					});
-				}
-				if (!currentOrgId && resolvedOrg) {
-					setCurrentOrgId(resolvedOrg.id);
-				}
-				return;
-			}
-
-			setOrgs(data);
-			if (data.length > 0) {
-				const hasCurrent = data.some((org) => org.id === currentOrgId);
-				if (!currentOrgId || !hasCurrent) {
-					setCurrentOrgId(data[0].id);
-				}
-			}
-		},
 	});
 
 	useLayoutEffect(() => {
@@ -129,8 +99,41 @@ export function TenantProvider({ children }: PropsWithChildren) {
 		}
 
 		lastOrgIdRef.current = resolvedOrgId ?? null;
-		queryClient.invalidateQueries({ refetchType: "active" });
+		void queryClient.invalidateQueries({ refetchType: "active" });
 	}, [resolvedOrgId]);
+
+	useEffect(() => {
+		const data = tenantsQuery.data;
+		if (!data) return;
+
+		if (orgs.length > 1) {
+			const resolvedOrg = data[0];
+			if (resolvedOrg) {
+				// eslint-disable-next-line react-hooks/set-state-in-effect
+				setOrgs((prev) => {
+					const hasOrg = prev.some((org) => org.id === resolvedOrg.id);
+					if (hasOrg) {
+						return prev.map((org) =>
+							org.id === resolvedOrg.id ? { ...org, ...resolvedOrg } : org,
+						);
+					}
+					return [...prev, resolvedOrg];
+				});
+			}
+			if (!currentOrgId && resolvedOrg) {
+				setCurrentOrgId(resolvedOrg.id);
+			}
+			return;
+		}
+
+		setOrgs(data);
+		if (data.length > 0) {
+			const hasCurrent = data.some((org) => org.id === currentOrgId);
+			if (!currentOrgId || !hasCurrent) {
+				setCurrentOrgId(data[0].id);
+			}
+		}
+	}, [tenantsQuery.data, currentOrgId, orgs.length]);
 
 	const switchOrg = useCallback(
 		(orgId: string) => {

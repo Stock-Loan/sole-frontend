@@ -37,9 +37,7 @@ export function WorkflowStagePanel({
 }: WorkflowStagePanelProps) {
 	const { toast } = useToast();
 	const stageDocuments = useMemo(() => {
-		const group = documentGroups.find(
-			(item) => item.stage_type === stageType
-		);
+		const group = documentGroups.find((item) => item.stage_type === stageType);
 		return group?.documents ?? [];
 	}, [documentGroups, stageType]);
 
@@ -47,27 +45,26 @@ export function WorkflowStagePanel({
 		return new Set(
 			stageDocuments
 				.map((doc) => doc.document_type)
-				.filter((value): value is string => Boolean(value))
+				.filter((value): value is string => Boolean(value)),
 		);
 	}, [stageDocuments]);
 
 	const missingRequired = useMemo(
-		() =>
-			requiredDocumentTypes.filter((type) => !existingTypes.has(type)),
-		[requiredDocumentTypes, existingTypes]
+		() => requiredDocumentTypes.filter((type) => !existingTypes.has(type)),
+		[requiredDocumentTypes, existingTypes],
 	);
 	const canComplete = missingRequired.length === 0;
 	const hasDocumentOptions = documentTypeOptions.length > 0;
 	const optionalDocumentOptions = useMemo(
 		() =>
 			documentTypeOptions.filter(
-				(option) => !requiredDocumentTypes.includes(option.value)
+				(option) => !requiredDocumentTypes.includes(option.value),
 			),
-		[documentTypeOptions, requiredDocumentTypes]
+		[documentTypeOptions, requiredDocumentTypes],
 	);
 
 	const [documentType, setDocumentType] = useState(
-		documentTypeOptions[0]?.value ?? ""
+		documentTypeOptions[0]?.value ?? "",
 	);
 	const [selectedFile, setSelectedFile] = useState<File | null>(null);
 	const [docError, setDocError] = useState<string | null>(null);
@@ -129,7 +126,9 @@ export function WorkflowStagePanel({
 					) : null}
 				</CardHeader>
 				<CardContent className="space-y-3 text-sm text-muted-foreground">
-					<p className="text-sm font-medium text-foreground">Required documents</p>
+					<p className="text-sm font-medium text-foreground">
+						Required documents
+					</p>
 					{requiredDocumentTypes.length === 0 ? (
 						<p>No required documents for this stage.</p>
 					) : (
@@ -137,10 +136,7 @@ export function WorkflowStagePanel({
 							{requiredDocumentTypes.map((docType) => {
 								const hasDoc = existingTypes.has(docType);
 								return (
-									<li
-										key={docType}
-										className="flex items-center gap-2 text-sm"
-									>
+									<li key={docType} className="flex items-center gap-2 text-sm">
 										{hasDoc ? (
 											<CheckCircle2 className="h-4 w-4 text-emerald-500" />
 										) : (
@@ -224,9 +220,7 @@ export function WorkflowStagePanel({
 						variant="outline"
 						onClick={handleRegister}
 						disabled={
-							disableDocumentForm ||
-							isRegistering ||
-							!hasDocumentOptions
+							disableDocumentForm || isRegistering || !hasDocumentOptions
 						}
 					>
 						{isRegistering ? "Saving..." : "Register document"}
@@ -256,7 +250,12 @@ export function WorkflowStagePanel({
 					<div className="grid gap-3 md:grid-cols-2">
 						<div className="space-y-1">
 							<Label className="text-xs text-muted-foreground">Status</Label>
-							<Select value={status} onValueChange={setStatus}>
+							<Select
+								value={status}
+								onValueChange={(value) =>
+									setStatus(value as (typeof STAGE_STATUS_OPTIONS)[number])
+								}
+							>
 								<SelectTrigger className="h-9 w-[200px]">
 									<SelectValue placeholder="Select status" />
 								</SelectTrigger>

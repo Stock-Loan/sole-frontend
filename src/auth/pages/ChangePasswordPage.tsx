@@ -76,10 +76,10 @@ export function ChangePasswordPage() {
 				onError: (error) => {
 					apiErrorToast(
 						error,
-						"Unable to change password. Please check your current password."
+						"Unable to change password. Please check your current password.",
 					);
 				},
-			}
+			},
 		);
 	};
 
@@ -111,9 +111,7 @@ export function ChangePasswordPage() {
 											<div className="relative">
 												<Input
 													{...field}
-													type={
-														showCurrentPassword ? "text" : "password"
-													}
+													type={showCurrentPassword ? "text" : "password"}
 													autoComplete="current-password"
 													placeholder="Enter your current password"
 													disabled={changePasswordMutation.isPending}
@@ -167,13 +165,9 @@ export function ChangePasswordPage() {
 													variant="ghost"
 													size="icon"
 													className="absolute right-1 top-1/2 h-9 w-9 -translate-y-1/2"
-													onClick={() =>
-														setShowNewPassword((prev) => !prev)
-													}
+													onClick={() => setShowNewPassword((prev) => !prev)}
 													aria-label={
-														showNewPassword
-															? "Hide password"
-															: "Show password"
+														showNewPassword ? "Hide password" : "Show password"
 													}
 													disabled={changePasswordMutation.isPending}
 												>
@@ -199,9 +193,7 @@ export function ChangePasswordPage() {
 											<div className="relative">
 												<Input
 													{...field}
-													type={
-														showConfirmPassword ? "text" : "password"
-													}
+													type={showConfirmPassword ? "text" : "password"}
 													autoComplete="new-password"
 													placeholder="Re-enter your new password"
 													disabled={changePasswordMutation.isPending}

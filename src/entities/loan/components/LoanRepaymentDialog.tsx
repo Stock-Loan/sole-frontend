@@ -1,7 +1,14 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
-import { Dialog, DialogBody, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/shared/ui/Dialog/dialog";
+import {
+	Dialog,
+	DialogBody,
+	DialogContent,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@/shared/ui/Dialog/dialog";
 import { Button } from "@/shared/ui/Button";
 import { Input } from "@/shared/ui/input";
 import { PickDocument } from "@/shared/ui/PickDocument";
@@ -54,10 +61,8 @@ export function LoanRepaymentDialog({
 		const scheduledAmount = toNumber(nextPaymentAmount);
 		const scheduledPrincipal = toNumber(nextPrincipalDue);
 		const scheduledInterest = toNumber(nextInterestDue);
-		const base =
-			scheduledAmount || scheduledPrincipal + scheduledInterest || 0;
-		const extraTotal =
-			toNumber(extraPrincipal) + toNumber(extraInterest);
+		const base = scheduledAmount || scheduledPrincipal + scheduledInterest || 0;
+		const extraTotal = toNumber(extraPrincipal) + toNumber(extraInterest);
 		return formatCurrency(base + extraTotal);
 	})();
 
@@ -81,9 +86,7 @@ export function LoanRepaymentDialog({
 								control={form.control}
 								label="Payment date"
 							>
-								{({ field }) => (
-									<Input type="date" {...field} />
-								)}
+								{({ field }) => <Input type="date" {...field} />}
 							</FormFieldWrapper>
 							<div className="rounded-md border border-border/60 bg-muted/30 px-3 py-3 text-xs text-muted-foreground">
 								<p className="font-semibold text-foreground">
@@ -139,18 +142,14 @@ export function LoanRepaymentDialog({
 								control={form.control}
 								label="Extra principal amount"
 							>
-								{({ field }) => (
-									<Input placeholder="0.00" {...field} />
-								)}
+								{({ field }) => <Input placeholder="0.00" {...field} />}
 							</FormFieldWrapper>
 							<FormFieldWrapper
 								name="extra_interest_amount"
 								control={form.control}
 								label="Extra interest amount"
 							>
-								{({ field }) => (
-									<Input placeholder="0.00" {...field} />
-								)}
+								{({ field }) => <Input placeholder="0.00" {...field} />}
 							</FormFieldWrapper>
 							<div className="flex items-center justify-between rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
 								<div>
@@ -185,27 +184,21 @@ export function LoanRepaymentDialog({
 										control={form.control}
 										label="Amount (override)"
 									>
-										{({ field }) => (
-											<Input placeholder="500.00" {...field} />
-										)}
+										{({ field }) => <Input placeholder="500.00" {...field} />}
 									</FormFieldWrapper>
 									<FormFieldWrapper
 										name="principal_amount"
 										control={form.control}
 										label="Principal amount (override)"
 									>
-										{({ field }) => (
-											<Input placeholder="420.00" {...field} />
-										)}
+										{({ field }) => <Input placeholder="420.00" {...field} />}
 									</FormFieldWrapper>
 									<FormFieldWrapper
 										name="interest_amount"
 										control={form.control}
 										label="Interest amount (override)"
 									>
-										{({ field }) => (
-											<Input placeholder="80.00" {...field} />
-										)}
+										{({ field }) => <Input placeholder="80.00" {...field} />}
 									</FormFieldWrapper>
 								</>
 							) : null}
@@ -216,8 +209,10 @@ export function LoanRepaymentDialog({
 							>
 								{({ field }) => (
 									<PickDocument
-										file={field.value ?? null}
-										onFileChange={(file) => field.onChange(file)}
+										file={(field.value as File | null) ?? null}
+										onFileChange={(file) =>
+											(field.onChange as (value: File | null) => void)(file)
+										}
 										accept=".pdf,image/*"
 										label="Attach evidence (optional)"
 										helperText="PDF or image files only."

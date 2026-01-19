@@ -41,7 +41,11 @@ import type {
 	LoanDetailSummaryCardProps,
 	LoanSelfDetailContentProps,
 } from "@/entities/loan/components/types";
-import type { LoanDocument, LoanScheduleResponse } from "@/entities/loan/types";
+import type {
+	LoanDocument,
+	LoanScheduleResponse,
+	LoanScheduleWhatIfPayload,
+} from "@/entities/loan/types";
 import {
 	formatDetailBoolean,
 	formatDetailValue,
@@ -84,8 +88,7 @@ export function LoanSelfDetailContent({
 		},
 	});
 	const isActiveLoan = loan?.status === "ACTIVE";
-	const show83bAction =
-		isActiveLoan && !loan?.has_83b_election && canUpload83b;
+	const show83bAction = isActiveLoan && !loan?.has_83b_election && canUpload83b;
 	const register83bMutation = useRegisterMyLoan83bDocument();
 	const availableTabs = useMemo<LoanDetailTabOption[]>(() => {
 		const options: LoanDetailTabOption[] = [
@@ -189,7 +192,7 @@ export function LoanSelfDetailContent({
 		const suffix = whatIfSchedule ? "what-if" : "original";
 		downloadBlob(
 			new Blob([csv], { type: "text/csv;charset=utf-8;" }),
-			`loan-schedule-${loan.id}-${suffix}.csv`
+			`loan-schedule-${loan.id}-${suffix}.csv`,
 		);
 	};
 	const showOverview = !showTabs || activeTab === "overview";
@@ -505,11 +508,7 @@ export function LoanSelfDetailContent({
 								</Button>
 							) : null}
 							{canExportLoan ? (
-								<Button
-									variant="outline"
-									size="sm"
-									onClick={handleExportLoan}
-								>
+								<Button variant="outline" size="sm" onClick={handleExportLoan}>
 									Download schedule
 								</Button>
 							) : null}
@@ -539,11 +538,10 @@ export function LoanSelfDetailContent({
 						scheduleQuery.data?.as_of_date ??
 						loan?.as_of_date ??
 						new Date().toISOString().slice(0, 10),
-					repayment_method:
-						whatIfSchedule?.repayment_method ??
-						(scheduleQuery.data?.repayment_method ??
-							loan?.repayment_method ??
-							"PRINCIPAL_AND_INTEREST"),
+					repayment_method: (whatIfSchedule?.repayment_method ??
+						scheduleQuery.data?.repayment_method ??
+						loan.repayment_method ??
+						"PRINCIPAL_AND_INTEREST") as LoanScheduleWhatIfPayload["repayment_method"],
 					term_months:
 						whatIfSchedule?.term_months ??
 						scheduleQuery.data?.term_months ??
@@ -560,7 +558,9 @@ export function LoanSelfDetailContent({
 						loan?.loan_principal ??
 						"",
 				}}
-				onSubmit={(payload) => whatIfMutation.mutateAsync(payload)}
+				onSubmit={async (payload) => {
+					await whatIfMutation.mutateAsync(payload);
+				}}
 			/>
 		</div>
 	);

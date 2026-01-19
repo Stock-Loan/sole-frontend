@@ -1,4 +1,4 @@
-import { flexRender } from "@tanstack/react-table";
+import { flexRender, type Cell } from "@tanstack/react-table";
 import { TableBody, TableCell, TableRow } from "@/shared/ui/Table/table";
 import { cn } from "@/shared/lib/utils";
 import type { DataTableBodyProps } from "./types";
@@ -47,14 +47,10 @@ export function DataTableBody<T>({
 					key={row.id}
 					data-selected={rowSelection[row.id] ? "true" : undefined}
 					onClick={() => onRowClick?.(row.original)}
-					className={cn(
-						onRowClick && "cursor-pointer hover:bg-muted/40"
-					)}
+					className={cn(onRowClick && "cursor-pointer hover:bg-muted/40")}
 				>
 					{visibleColumns.map((column) => {
-						let cell = row
-							.getAllCells()
-							.find((c) => c.column.id === column.id);
+						let cell = row.getAllCells().find((c) => c.column.id === column.id);
 
 						if (!cell) {
 							cell = {
@@ -72,15 +68,12 @@ export function DataTableBody<T>({
 									getValue: () => row.getValue(column.id),
 									renderValue: () => row.getValue(column.id),
 								}),
-							} as unknown as any;  
+							} as unknown as Cell<T, unknown>;
 						}
 
 						const config = columnConfigById.get(column.id);
 						return (
-							<TableCell
-								key={cell.id}
-								className={config?.cellClassName}
-							>
+							<TableCell key={cell.id} className={config?.cellClassName}>
 								{flexRender(cell.column.columnDef.cell, {
 									...cell.getContext(),
 									table,

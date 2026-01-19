@@ -28,7 +28,7 @@ export function useDepartmentsList(
 	options: Omit<
 		UseQueryOptions<DepartmentListResponse>,
 		"queryKey" | "queryFn"
-	> = {}
+	> = {},
 ) {
 	return useQuery({
 		queryKey: departmentKeys.list(params),
@@ -42,18 +42,18 @@ export function useCreateDepartment(
 	options: Omit<
 		UseMutationOptions<Department, unknown, DepartmentInput>,
 		"mutationFn"
-	> = {}
+	> = {},
 ) {
 	const queryClient = useQueryClient();
 
 	return useMutation({
 		mutationFn: createDepartment,
-		onSuccess: (data, variables, context) => {
-			queryClient.invalidateQueries({ queryKey: departmentKeys.list() });
-			options.onSuccess?.(data, variables, context);
+		onSuccess: (data, variables, onMutateResult, context) => {
+			void queryClient.invalidateQueries({ queryKey: departmentKeys.list() });
+			options.onSuccess?.(data, variables, onMutateResult, context);
 		},
-		onError: (error, variables, context) => {
-			options.onError?.(error, variables, context);
+		onError: (error, variables, onMutateResult, context) => {
+			options.onError?.(error, variables, onMutateResult, context);
 		},
 		...options,
 	});
@@ -61,22 +61,28 @@ export function useCreateDepartment(
 
 export function useUpdateDepartment(
 	options: Omit<
-		UseMutationOptions<Department, unknown, { id: string; payload: DepartmentInput }>,
+		UseMutationOptions<
+			Department,
+			unknown,
+			{ id: string; payload: DepartmentInput }
+		>,
 		"mutationFn"
-	> = {}
+	> = {},
 ) {
 	const queryClient = useQueryClient();
 
 	return useMutation({
 		mutationFn: ({ id, payload }) => updateDepartment(id, payload),
-		onSuccess: (data, variables, context) => {
-			queryClient.invalidateQueries({ queryKey: departmentKeys.list() });
-			queryClient.invalidateQueries({ queryKey: departmentKeys.detail(data.id) });
-			queryClient.invalidateQueries({ queryKey: userKeys.list() });
-			options.onSuccess?.(data, variables, context);
+		onSuccess: (data, variables, onMutateResult, context) => {
+			void queryClient.invalidateQueries({ queryKey: departmentKeys.list() });
+			void queryClient.invalidateQueries({
+				queryKey: departmentKeys.detail(data.id),
+			});
+			void queryClient.invalidateQueries({ queryKey: userKeys.list() });
+			options.onSuccess?.(data, variables, onMutateResult, context);
 		},
-		onError: (error, variables, context) => {
-			options.onError?.(error, variables, context);
+		onError: (error, variables, onMutateResult, context) => {
+			options.onError?.(error, variables, onMutateResult, context);
 		},
 		...options,
 	});
@@ -86,18 +92,18 @@ export function useArchiveDepartment(
 	options: Omit<
 		UseMutationOptions<Department, unknown, string>,
 		"mutationFn"
-	> = {}
+	> = {},
 ) {
 	const queryClient = useQueryClient();
 
 	return useMutation({
 		mutationFn: (departmentId) => archiveDepartment(departmentId),
-		onSuccess: (data, variables, context) => {
-			queryClient.invalidateQueries({ queryKey: departmentKeys.list() });
-			options.onSuccess?.(data, variables, context);
+		onSuccess: (data, variables, onMutateResult, context) => {
+			void queryClient.invalidateQueries({ queryKey: departmentKeys.list() });
+			options.onSuccess?.(data, variables, onMutateResult, context);
 		},
-		onError: (error, variables, context) => {
-			options.onError?.(error, variables, context);
+		onError: (error, variables, onMutateResult, context) => {
+			options.onError?.(error, variables, onMutateResult, context);
 		},
 		...options,
 	});
@@ -108,19 +114,19 @@ export function useAssignDepartmentToUsers(
 	options: Omit<
 		UseMutationOptions<DepartmentAssignResponse, unknown, string[]>,
 		"mutationFn"
-	> = {}
+	> = {},
 ) {
 	const queryClient = useQueryClient();
 
 	return useMutation({
 		mutationFn: (membershipIds) =>
 			assignDepartmentToUsers(departmentId, membershipIds),
-		onSuccess: (data, variables, context) => {
-			queryClient.invalidateQueries({ queryKey: departmentKeys.list() });
-			options.onSuccess?.(data, variables, context);
+		onSuccess: (data, variables, onMutateResult, context) => {
+			void queryClient.invalidateQueries({ queryKey: departmentKeys.list() });
+			options.onSuccess?.(data, variables, onMutateResult, context);
 		},
-		onError: (error, variables, context) => {
-			options.onError?.(error, variables, context);
+		onError: (error, variables, onMutateResult, context) => {
+			options.onError?.(error, variables, onMutateResult, context);
 		},
 		...options,
 	});
@@ -134,41 +140,38 @@ export function useAssignUsersToDepartment(
 			{ departmentId: string; membershipIds: string[] }
 		>,
 		"mutationFn"
-	> = {}
+	> = {},
 ) {
 	const queryClient = useQueryClient();
 
 	return useMutation({
 		mutationFn: ({ departmentId, membershipIds }) =>
 			assignDepartmentToUsers(departmentId, membershipIds),
-		onSuccess: (data, variables, context) => {
-			queryClient.invalidateQueries({ queryKey: userKeys.list() });
-			queryClient.invalidateQueries({ queryKey: departmentKeys.list() });
-			options.onSuccess?.(data, variables, context);
+		onSuccess: (data, variables, onMutateResult, context) => {
+			void queryClient.invalidateQueries({ queryKey: userKeys.list() });
+			void queryClient.invalidateQueries({ queryKey: departmentKeys.list() });
+			options.onSuccess?.(data, variables, onMutateResult, context);
 		},
-		onError: (error, variables, context) => {
-			options.onError?.(error, variables, context);
+		onError: (error, variables, onMutateResult, context) => {
+			options.onError?.(error, variables, onMutateResult, context);
 		},
 		...options,
 	});
 }
 
 export function useUnassignDepartments(
-	options: Omit<
-		UseMutationOptions<void, unknown, string[]>,
-		"mutationFn"
-	> = {}
+	options: Omit<UseMutationOptions<void, unknown, string[]>, "mutationFn"> = {},
 ) {
 	const queryClient = useQueryClient();
 
 	return useMutation({
 		mutationFn: (membershipIds) => unassignDepartments(membershipIds),
-		onSuccess: (data, variables, context) => {
-			queryClient.invalidateQueries({ queryKey: departmentKeys.list() });
-			options.onSuccess?.(data, variables, context);
+		onSuccess: (data, variables, onMutateResult, context) => {
+			void queryClient.invalidateQueries({ queryKey: departmentKeys.list() });
+			options.onSuccess?.(data, variables, onMutateResult, context);
 		},
-		onError: (error, variables, context) => {
-			options.onError?.(error, variables, context);
+		onError: (error, variables, onMutateResult, context) => {
+			options.onError?.(error, variables, onMutateResult, context);
 		},
 		...options,
 	});
@@ -179,7 +182,7 @@ export function useUpdateUserDepartment(
 	options: Omit<
 		UseMutationOptions<DepartmentAssignResponse | void, unknown, string | null>,
 		"mutationFn"
-	> = {}
+	> = {},
 ) {
 	const queryClient = useQueryClient();
 
@@ -190,13 +193,15 @@ export function useUpdateUserDepartment(
 			}
 			return unassignDepartments([membershipId]);
 		},
-		onSuccess: (data, variables, context) => {
-			queryClient.invalidateQueries({ queryKey: departmentKeys.list() });
-			queryClient.invalidateQueries({ queryKey: userKeys.detail(membershipId) });
-			options.onSuccess?.(data, variables, context);
+		onSuccess: (data, variables, onMutateResult, context) => {
+			void queryClient.invalidateQueries({ queryKey: departmentKeys.list() });
+			void queryClient.invalidateQueries({
+				queryKey: userKeys.detail(membershipId),
+			});
+			options.onSuccess?.(data, variables, onMutateResult, context);
 		},
-		onError: (error, variables, context) => {
-			options.onError?.(error, variables, context);
+		onError: (error, variables, onMutateResult, context) => {
+			options.onError?.(error, variables, onMutateResult, context);
 		},
 		...options,
 	});
