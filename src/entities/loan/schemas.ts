@@ -28,4 +28,8 @@ export const loanRepaymentSchema = z.object({
 	principal_amount: nonEmptyString,
 	interest_amount: nonEmptyString,
 	payment_date: nonEmptyString,
+	evidence_file: z
+		.instanceof(File)
+		.optional()
+		.nullable(),
 });

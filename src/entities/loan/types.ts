@@ -89,6 +89,10 @@ export interface LoanRepayment {
 	interest_amount: string;
 	payment_date: string;
 	recorded_by_user_id?: string | null;
+	recorded_by_name?: string | null;
+	evidence_file_name?: string | null;
+	evidence_storage_path_or_url?: string | null;
+	evidence_content_type?: string | null;
 	created_at?: string | null;
 }
 
@@ -103,6 +107,7 @@ export interface LoanRepaymentCreatePayload {
 	principal_amount: string;
 	interest_amount: string;
 	payment_date: string;
+	evidence_file?: File | null;
 }
 
 export interface LoanScheduleEntry {
@@ -216,6 +221,16 @@ export interface LoanApplication extends LoanApplicationSummary {
 	estimated_monthly_payment?: string | null;
 	total_payable_amount?: string | null;
 	total_interest_amount?: string | null;
+	next_payment_date?: string | null;
+	next_payment_amount?: string | null;
+	next_principal_due?: string | null;
+	next_interest_due?: string | null;
+	principal_remaining?: string | null;
+	interest_remaining?: string | null;
+	total_remaining?: string | null;
+	missed_payment_count?: number | null;
+	missed_payment_amount_total?: string | null;
+	missed_payment_dates?: string[];
 	policy_version_snapshot?: number | null;
 	allocation_strategy?: string | null;
 	allocation_snapshot?: LoanAllocationItem[];

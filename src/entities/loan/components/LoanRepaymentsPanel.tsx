@@ -18,38 +18,62 @@ export function LoanRepaymentsPanel({
 			{
 				id: "payment_date",
 				header: "Payment date",
-				accessorKey: "payment_date",
-				cell: ({ row }) => formatDate(row.original.payment_date),
+				accessor: "payment_date",
+				cell: (row) => formatDate(row.payment_date),
 			},
 			{
 				id: "amount",
 				header: "Amount",
-				accessorKey: "amount",
-				cell: ({ row }) => formatCurrency(row.original.amount),
+				accessor: "amount",
+				cell: (row) => formatCurrency(row.amount),
 			},
 			{
 				id: "principal_amount",
 				header: "Principal",
-				accessorKey: "principal_amount",
-				cell: ({ row }) => formatCurrency(row.original.principal_amount),
+				accessor: "principal_amount",
+				cell: (row) => formatCurrency(row.principal_amount),
 			},
 			{
 				id: "interest_amount",
 				header: "Interest",
-				accessorKey: "interest_amount",
-				cell: ({ row }) => formatCurrency(row.original.interest_amount),
+				accessor: "interest_amount",
+				cell: (row) => formatCurrency(row.interest_amount),
 			},
 			{
 				id: "recorded_by",
 				header: "Recorded by",
-				accessorKey: "recorded_by_user_id",
-				cell: ({ row }) => row.original.recorded_by_user_id ?? "—",
+				accessor: "recorded_by_name",
+				cell: (row) =>
+					row.recorded_by_name ??
+					row.recorded_by_user_id ??
+					"—",
+			},
+			{
+				id: "evidence",
+				header: "Evidence",
+				accessor: "evidence_file_name",
+				cell: (row) => {
+					const name = row.evidence_file_name;
+					const url = row.evidence_storage_path_or_url;
+					if (!name) return "—";
+					if (!url) return name;
+					return (
+						<a
+							href={url}
+							target="_blank"
+							rel="noreferrer"
+							className="text-primary underline"
+						>
+							{name}
+						</a>
+					);
+				},
 			},
 			{
 				id: "created_at",
 				header: "Created",
-				accessorKey: "created_at",
-				cell: ({ row }) => formatDate(row.original.created_at),
+				accessor: "created_at",
+				cell: (row) => formatDate(row.created_at),
 			},
 		],
 		[]

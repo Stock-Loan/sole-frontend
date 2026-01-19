@@ -84,6 +84,27 @@ export function MyStockPage() {
 		});
 	}
 
+	const missedPaymentCount = loanSummary?.missed_payment_count ?? 0;
+	if (missedPaymentCount > 0) {
+		const missedAmountLabel = formatCurrency(
+			loanSummary?.missed_payment_amount_total ?? null
+		);
+		const missedDates = loanSummary?.missed_payment_dates ?? [];
+		const lastMissedDate =
+			missedDates.length > 0 ? missedDates[missedDates.length - 1] : null;
+		const missedSubLabelParts = [
+			`Missed ${missedPaymentCount} payment${missedPaymentCount === 1 ? "" : "s"}`,
+			missedAmountLabel !== "—" ? missedAmountLabel : null,
+			lastMissedDate ? `Last on ${formatDate(lastMissedDate)}` : null,
+		].filter(Boolean);
+		attentionItems.push({
+			action_type: "MISSED_PAYMENT",
+			label: "Missed payment alert",
+			sublabel: missedSubLabelParts.join(" • "),
+			related_id: loanSummary?.active_loan_id ?? undefined,
+		});
+	}
+
 	const attentionPendingCount = attentionItems.length;
 	const unreadAnnouncementsCount = attention?.unread_announcements_count ?? 0;
 	const showAttentionCard = Boolean(attention || attentionItems.length > 0);
@@ -130,6 +151,24 @@ export function MyStockPage() {
 				{
 					label: "Total loan balance",
 					value: formatCurrency(loanSummary?.remaining_balance ?? null),
+					meta:
+						loanSummary?.principal_remaining ||
+						loanSummary?.interest_remaining
+							? [
+									{
+										label: "Principal",
+										value: formatCurrency(
+											loanSummary?.principal_remaining ?? null
+										),
+									},
+									{
+										label: "Interest",
+										value: formatCurrency(
+											loanSummary?.interest_remaining ?? null
+										),
+									},
+							  ]
+							: undefined,
 				},
 				{
 					label: "Next payment",
@@ -270,12 +309,26 @@ export function MyStockPage() {
 									) : null}
 								</CardHeader>
 								<CardContent>
-									<p
-										className="text-2xl font-semibold"
-										style={metricValueStyle}
-									>
-										{metric.value}
-									</p>
+									<div className="flex items-start justify-between gap-3">
+										<p
+											className="text-2xl font-semibold"
+											style={metricValueStyle}
+										>
+											{metric.value}
+										</p>
+										{metric.meta ? (
+											<div className="space-y-1 text-right text-xs text-slate-500">
+												{metric.meta.map((item) => (
+													<div key={item.label}>
+														<span className="uppercase">{item.label}</span>
+														<span className="ml-2 font-semibold text-slate-700">
+															{item.value}
+														</span>
+													</div>
+												))}
+											</div>
+										) : null}
+									</div>
 								</CardContent>
 							</Card>
 						))}

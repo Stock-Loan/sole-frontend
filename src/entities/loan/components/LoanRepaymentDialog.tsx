@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { Dialog, DialogBody, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/shared/ui/Dialog/dialog";
 import { Button } from "@/shared/ui/Button";
 import { Input } from "@/shared/ui/input";
+import { PickDocument } from "@/shared/ui/PickDocument";
 import { Form } from "@/shared/ui/Form/form";
 import { FormFieldWrapper } from "@/shared/ui/Form/FormField";
 import { loanRepaymentSchema } from "@/entities/loan/schemas";
@@ -22,6 +23,7 @@ export function LoanRepaymentDialog({
 			principal_amount: "",
 			interest_amount: "",
 			payment_date: "",
+			evidence_file: null,
 		},
 	});
 
@@ -74,6 +76,21 @@ export function LoanRepaymentDialog({
 							>
 								{({ field }) => (
 									<Input type="date" {...field} />
+								)}
+							</FormFieldWrapper>
+							<FormFieldWrapper
+								name="evidence_file"
+								control={form.control}
+								label="Evidence file (optional)"
+							>
+								{({ field }) => (
+									<PickDocument
+										file={field.value ?? null}
+										onFileChange={(file) => field.onChange(file)}
+										accept=".pdf,image/*"
+										label="Attach evidence (optional)"
+										helperText="PDF or image files only."
+									/>
 								)}
 							</FormFieldWrapper>
 						</DialogBody>

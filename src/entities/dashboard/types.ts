@@ -117,6 +117,12 @@ export interface DashboardLoanSummary {
 	remaining_balance?: DecimalValue;
 	next_payment_date?: string | null;
 	next_payment_amount?: DecimalValue;
+	principal_remaining?: DecimalValue;
+	interest_remaining?: DecimalValue;
+	total_remaining?: DecimalValue;
+	missed_payment_count?: number | null;
+	missed_payment_amount_total?: DecimalValue;
+	missed_payment_dates?: string[];
 	current_stage_type?: string | null;
 	current_stage_status?: LoanWorkflowStageStatus | null;
 	has_share_certificate?: boolean;

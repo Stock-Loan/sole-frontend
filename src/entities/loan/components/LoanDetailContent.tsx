@@ -122,6 +122,7 @@ export function LoanDetailContent({
 	const createRepaymentMutation = useCreateOrgLoanRepayment(loan?.id ?? "", {
 		onSuccess: () => {
 			toast({ title: "Repayment recorded" });
+			repaymentsQuery.refetch();
 			setRepaymentDialogOpen(false);
 		},
 		onError: (error) => {
@@ -197,6 +198,10 @@ export function LoanDetailContent({
 		downloadBlob(blob, `loan-schedule-${loan.id}.csv`);
 	};
 	const showOverview = !showTabs || activeTab === "overview";
+	const missedPaymentDates = loan.missed_payment_dates?.filter(Boolean) ?? [];
+	const missedPaymentDatesLabel = formatList(
+		missedPaymentDates.map((date) => formatDate(date))
+	);
 
 	return (
 		<div className="space-y-6">
@@ -421,6 +426,68 @@ export function LoanDetailContent({
 								<DetailRow
 									label="Total payable"
 									value={formatCurrency(loan.total_payable_amount)}
+								/>
+							</CardContent>
+						</Card>
+					</div>
+
+					<div className="grid gap-4 lg:grid-cols-2">
+						<Card>
+							<CardHeader className="pb-2">
+								<CardTitle className="text-sm font-semibold">
+									Next payment
+								</CardTitle>
+							</CardHeader>
+							<CardContent className="space-y-2 text-sm text-muted-foreground">
+								<DetailRow
+									label="Payment date"
+									value={formatDate(loan.next_payment_date)}
+								/>
+								<DetailRow
+									label="Payment amount"
+									value={formatCurrency(loan.next_payment_amount)}
+								/>
+								<DetailRow
+									label="Principal due"
+									value={formatCurrency(loan.next_principal_due)}
+								/>
+								<DetailRow
+									label="Interest due"
+									value={formatCurrency(loan.next_interest_due)}
+								/>
+								<DetailRow
+									label="Missed payment count"
+									value={loan.missed_payment_count ?? "—"}
+								/>
+								<DetailRow
+									label="Missed amount total"
+									value={formatCurrency(loan.missed_payment_amount_total)}
+								/>
+								<DetailRow
+									label="Missed payment dates"
+									value={missedPaymentDatesLabel}
+								/>
+							</CardContent>
+						</Card>
+
+						<Card>
+							<CardHeader className="pb-2">
+								<CardTitle className="text-sm font-semibold">
+									Balance snapshot
+								</CardTitle>
+							</CardHeader>
+							<CardContent className="space-y-2 text-sm text-muted-foreground">
+								<DetailRow
+									label="Principal remaining"
+									value={formatCurrency(loan.principal_remaining)}
+								/>
+								<DetailRow
+									label="Interest remaining"
+									value={formatCurrency(loan.interest_remaining)}
+								/>
+								<DetailRow
+									label="Total remaining"
+									value={formatCurrency(loan.total_remaining)}
 								/>
 							</CardContent>
 						</Card>

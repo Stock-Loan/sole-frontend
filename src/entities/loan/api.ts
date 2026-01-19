@@ -165,9 +165,18 @@ export async function createOrgLoanRepayment(
 	id: string,
 	payload: LoanRepaymentCreatePayload
 ): Promise<LoanRepayment> {
+	const formData = new FormData();
+	formData.append("amount", payload.amount);
+	formData.append("principal_amount", payload.principal_amount);
+	formData.append("interest_amount", payload.interest_amount);
+	formData.append("payment_date", payload.payment_date);
+	if (payload.evidence_file) {
+		formData.append("evidence_file", payload.evidence_file);
+	}
 	const { data } = await apiClient.post<LoanRepayment>(
 		`/org/loans/${id}/repayments`,
-		payload
+		formData,
+		{ headers: { "Content-Type": "multipart/form-data" } }
 	);
 	return unwrapApiResponse<LoanRepayment>(data);
 }
