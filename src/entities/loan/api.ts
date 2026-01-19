@@ -15,6 +15,7 @@ import type {
 	LoanRepaymentRecordResponse,
 	LoanRepaymentsResponse,
 	LoanScheduleResponse,
+	LoanScheduleWhatIfPayload,
 	LoanDocument,
 	LoanDocumentCreatePayload,
 	LoanDocumentUploadPayload,
@@ -194,6 +195,28 @@ export async function getOrgLoanSchedule(
 ): Promise<LoanScheduleResponse> {
 	const { data } = await apiClient.get<LoanScheduleResponse>(
 		`/org/loans/${id}/schedule`
+	);
+	return unwrapApiResponse<LoanScheduleResponse>(data);
+}
+
+export async function runOrgLoanScheduleWhatIf(
+	id: string,
+	payload: LoanScheduleWhatIfPayload
+): Promise<LoanScheduleResponse> {
+	const { data } = await apiClient.post<LoanScheduleResponse>(
+		`/org/loans/${id}/schedule/what-if`,
+		payload
+	);
+	return unwrapApiResponse<LoanScheduleResponse>(data);
+}
+
+export async function runMyLoanScheduleWhatIf(
+	id: string,
+	payload: LoanScheduleWhatIfPayload
+): Promise<LoanScheduleResponse> {
+	const { data } = await apiClient.post<LoanScheduleResponse>(
+		`/me/loans/${id}/schedule/what-if`,
+		payload
 	);
 	return unwrapApiResponse<LoanScheduleResponse>(data);
 }

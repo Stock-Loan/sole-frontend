@@ -143,6 +143,14 @@ export interface LoanScheduleResponse {
 	entries: LoanScheduleEntry[];
 }
 
+export interface LoanScheduleWhatIfPayload {
+	as_of_date: string;
+	repayment_method: LoanRepaymentMethod;
+	term_months: number;
+	annual_rate_percent: string;
+	principal?: string;
+}
+
 export interface LoanDashboardSummaryParams {
 	as_of?: string;
 }

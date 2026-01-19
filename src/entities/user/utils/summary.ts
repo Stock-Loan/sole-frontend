@@ -1,6 +1,6 @@
 import { normalizeDisplay } from "@/shared/lib/utils";
 import { colorPalette } from "@/app/styles/color-palette";
-import type { UserDashboardSummary, UserSummaryCount } from "@/entities/user/types";
+import type { UserDashboardSummary } from "@/entities/user/types";
 import type {
 	UserSummaryMetric,
 	UserSummaryPieItem,
@@ -19,32 +19,6 @@ const employmentOrder = [
 
 const formatCount = (value?: number | null) =>
 	value === null || value === undefined ? "—" : value.toLocaleString();
-
-function buildTopItems(
-	items: UserSummaryCount[],
-	labelKey: "department_name" | "role_name",
-	top = 5
-): UserSummaryPieItem[] {
-	const sorted = [...items].sort((a, b) => b.count - a.count);
-	const topItems = sorted.slice(0, top);
-	const rest = sorted.slice(top);
-	const restCount = rest.reduce((sum, item) => sum + item.count, 0);
-
-	const result = topItems.map((item, index) => ({
-		label: item[labelKey] ?? "Unknown",
-		value: item.count,
-		color: Object.values(colorPalette.chart)[index % 6],
-	}));
-
-	if (restCount > 0) {
-		result.push({
-			label: "Other",
-			value: restCount,
-			color: colorPalette.slate[300],
-		});
-	}
-	return result;
-}
 
 export function buildUserSummaryMetrics(
 	summary?: UserDashboardSummary | null

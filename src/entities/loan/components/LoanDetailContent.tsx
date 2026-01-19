@@ -30,17 +30,19 @@ import { LoanDocumentList } from "@/entities/loan/components/LoanDocumentList";
 import { LoanRepaymentsPanel } from "@/entities/loan/components/LoanRepaymentsPanel";
 import { LoanSchedulePanel } from "@/entities/loan/components/LoanSchedulePanel";
 import { LoanTimeline } from "@/entities/loan/components/LoanTimeline";
+import { LoanScheduleWhatIfDialog } from "@/entities/loan/components/LoanScheduleWhatIfDialog";
 import {
 	useDownloadOrgLoanDocument,
 	useCreateOrgLoanRepayment,
-	useExportOrgLoanSchedule,
 	useOrgLoanDocuments,
 	useOrgLoanRepayments,
 	useOrgLoanSchedule,
+	useOrgLoanScheduleWhatIf,
 } from "@/entities/loan/hooks";
 import { useToast } from "@/shared/ui/use-toast";
 import { parseApiError } from "@/shared/api/errors";
 import { downloadBlob } from "@/shared/lib/download";
+import { buildScheduleCsv } from "@/entities/loan/utils/schedule";
 import { usePermissions } from "@/auth/hooks";
 import type {
 	LoanDetailTab,
@@ -50,7 +52,7 @@ import type {
 	LoanDetailRowProps,
 	LoanDetailSummaryCardProps,
 } from "@/entities/loan/components/types";
-import type { LoanDocument } from "@/entities/loan/types";
+import type { LoanDocument, LoanScheduleResponse } from "@/entities/loan/types";
 import { LoanRepaymentDialog } from "@/entities/loan/components/LoanRepaymentDialog";
 
 export function LoanDetailContent({
@@ -78,6 +80,7 @@ export function LoanDetailContent({
 	const canRecordRepayment = can("loan.payment.record");
 	const canViewSchedule = can("loan.schedule.view");
 	const canExportSchedule = can("loan.export.schedule");
+	const canRunWhatIf = can("loan.what_if.simulate");
 	const downloadMutation = useDownloadOrgLoanDocument({
 		onError: (error) => {
 			toast({
@@ -118,25 +121,33 @@ export function LoanDetailContent({
 			canViewSchedule &&
 			activeTab === "schedule",
 	});
-	const [repaymentDialogOpen, setRepaymentDialogOpen] = useState(false);
-	const createRepaymentMutation = useCreateOrgLoanRepayment(loan?.id ?? "", {
-		onSuccess: () => {
-			toast({ title: "Repayment recorded" });
-			repaymentsQuery.refetch();
-			setRepaymentDialogOpen(false);
+	const [whatIfDialogOpen, setWhatIfDialogOpen] = useState(false);
+	const [whatIfSchedule, setWhatIfSchedule] =
+		useState<LoanScheduleResponse | null>(null);
+	const whatIfMutation = useOrgLoanScheduleWhatIf(loan?.id ?? "", {
+		onSuccess: (schedule) => {
+			setWhatIfSchedule(schedule);
+			setWhatIfDialogOpen(false);
 		},
 		onError: (error) => {
 			toast({
-				title: "Unable to record repayment",
+				title: "Unable to run what-if",
 				description: parseApiError(error).message,
 				variant: "destructive",
 			});
 		},
 	});
-	const exportScheduleMutation = useExportOrgLoanSchedule({
+	const [repaymentDialogOpen, setRepaymentDialogOpen] = useState(false);
+	const createRepaymentMutation = useCreateOrgLoanRepayment(loan?.id ?? "", {
+		onSuccess: () => {
+			toast({ title: "Repayment recorded" });
+			repaymentsQuery.refetch();
+			scheduleQuery.refetch();
+			setRepaymentDialogOpen(false);
+		},
 		onError: (error) => {
 			toast({
-				title: "Export failed",
+				title: "Unable to record repayment",
 				description: parseApiError(error).message,
 				variant: "destructive",
 			});
@@ -153,6 +164,10 @@ export function LoanDetailContent({
 			setActiveTab("overview");
 		}
 	}, [activeTab, availableTabs, showTabs]);
+
+	useEffect(() => {
+		setWhatIfSchedule(null);
+	}, [loan?.id]);
 
 	if (isLoading) {
 		return <LoanDetailSkeleton />;
@@ -192,10 +207,15 @@ export function LoanDetailContent({
 			setDownloadingDocumentId(null);
 		}
 	};
-	const handleExportSchedule = async () => {
-		if (!loan.id) return;
-		const blob = await exportScheduleMutation.mutateAsync(loan.id);
-		downloadBlob(blob, `loan-schedule-${loan.id}.csv`);
+	const handleExportSchedule = () => {
+		const schedule = whatIfSchedule ?? scheduleQuery.data;
+		if (!loan.id || !schedule) return;
+		const csv = buildScheduleCsv(schedule);
+		const suffix = whatIfSchedule ? "what-if" : "original";
+		downloadBlob(
+			new Blob([csv], { type: "text/csv;charset=utf-8;" }),
+			`loan-schedule-${loan.id}-${suffix}.csv`
+		);
 	};
 	const showOverview = !showTabs || activeTab === "overview";
 	const missedPaymentDates = loan.missed_payment_dates?.filter(Boolean) ?? [];
@@ -838,30 +858,88 @@ export function LoanDetailContent({
 
 			{activeTab === "schedule" ? (
 				<LoanSchedulePanel
-					schedule={scheduleQuery.data ?? null}
-					isLoading={scheduleQuery.isLoading}
-					isError={scheduleQuery.isError}
+					schedule={whatIfSchedule ?? scheduleQuery.data ?? null}
+					isLoading={scheduleQuery.isLoading && !whatIfSchedule}
+					isError={scheduleQuery.isError && !whatIfSchedule}
 					onRetry={() => scheduleQuery.refetch()}
 					actions={
-						canExportSchedule ? (
-							<Button
-								variant="outline"
-								size="sm"
-								onClick={handleExportSchedule}
-								disabled={exportScheduleMutation.isPending}
-							>
-								{exportScheduleMutation.isPending
-									? "Exporting..."
-									: "Export schedule"}
-							</Button>
-						) : null
+						<div className="flex items-center gap-2">
+							{whatIfSchedule ? (
+								<span className="rounded-full bg-amber-100 px-2 py-1 text-[11px] font-semibold text-amber-800">
+									What-if
+								</span>
+							) : null}
+							{whatIfSchedule ? (
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={() => setWhatIfSchedule(null)}
+								>
+									Clear
+								</Button>
+							) : null}
+							{canRunWhatIf ? (
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={() => setWhatIfDialogOpen(true)}
+								>
+									Run what-if
+								</Button>
+							) : null}
+							{canExportSchedule ? (
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={handleExportSchedule}
+								>
+									Download schedule
+								</Button>
+							) : null}
+						</div>
 					}
 				/>
 			) : null}
+			<LoanScheduleWhatIfDialog
+				open={whatIfDialogOpen}
+				onOpenChange={setWhatIfDialogOpen}
+				isSubmitting={whatIfMutation.isPending}
+				initialValues={{
+					as_of_date:
+						whatIfSchedule?.as_of_date ??
+						scheduleQuery.data?.as_of_date ??
+						loan.as_of_date ??
+						new Date().toISOString().slice(0, 10),
+					repayment_method:
+						whatIfSchedule?.repayment_method ??
+						(scheduleQuery.data?.repayment_method ??
+							loan.repayment_method ??
+							"PRINCIPAL_AND_INTEREST"),
+					term_months:
+						whatIfSchedule?.term_months ??
+						scheduleQuery.data?.term_months ??
+						loan.term_months ??
+						12,
+					annual_rate_percent:
+						whatIfSchedule?.annual_rate_percent ??
+						scheduleQuery.data?.annual_rate_percent ??
+						loan.nominal_annual_rate_percent ??
+						"",
+					principal:
+						whatIfSchedule?.principal ??
+						scheduleQuery.data?.principal ??
+						loan.loan_principal ??
+						"",
+				}}
+				onSubmit={(payload) => whatIfMutation.mutateAsync(payload)}
+			/>
 			<LoanRepaymentDialog
 				open={repaymentDialogOpen}
 				onOpenChange={setRepaymentDialogOpen}
 				isSubmitting={createRepaymentMutation.isPending}
+				nextPaymentAmount={loan.next_payment_amount}
+				nextPrincipalDue={loan.next_principal_due}
+				nextInterestDue={loan.next_interest_due}
 				onSubmit={async (values) => {
 					if (!loan.id) return;
 					await createRepaymentMutation.mutateAsync(values);

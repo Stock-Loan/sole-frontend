@@ -30,6 +30,8 @@ import {
 	listOrgLoanRepayments,
 	createOrgLoanRepayment,
 	getOrgLoanSchedule,
+	runOrgLoanScheduleWhatIf,
+	runMyLoanScheduleWhatIf,
 	exportOrgLoanSchedule,
 	listMyLoanApplications,
 	listMyLoanDocuments,
@@ -72,6 +74,7 @@ import type {
 	LoanRepaymentRecordResponse,
 	LoanRepaymentsResponse,
 	LoanScheduleResponse,
+	LoanScheduleWhatIfPayload,
 	LoanWorkflowAssignPayload,
 	LoanQueueListParams,
 	LoanQueueListResponse,
@@ -161,6 +164,19 @@ export function useMyLoanSchedule(
 	});
 }
 
+export function useMyLoanScheduleWhatIf(
+	id: string,
+	options: Omit<
+		UseMutationOptions<LoanScheduleResponse, unknown, LoanScheduleWhatIfPayload>,
+		"mutationFn"
+	> = {}
+) {
+	return useMutation({
+		mutationFn: (payload) => runMyLoanScheduleWhatIf(id, payload),
+		...options,
+	});
+}
+
 export function useMyLoanDocuments(
 	id: string,
 	options: Omit<
@@ -220,6 +236,7 @@ export function useCreateOrgLoanRepayment(
 		onSuccess: (data, variables, onMutateResult, context) => {
 			queryClient.invalidateQueries({ queryKey: orgKeys.loans.repayments(id) });
 			queryClient.invalidateQueries({ queryKey: orgKeys.loans.detail(id) });
+			queryClient.invalidateQueries({ queryKey: orgKeys.loans.schedule(id) });
 			options.onSuccess?.(data, variables, onMutateResult, context);
 		},
 		onError: (error, variables, onMutateResult, context) => {
@@ -241,6 +258,19 @@ export function useOrgLoanSchedule(
 		queryFn: () => getOrgLoanSchedule(id),
 		enabled: Boolean(id) && (options.enabled ?? true),
 		placeholderData: (previous) => previous,
+		...options,
+	});
+}
+
+export function useOrgLoanScheduleWhatIf(
+	id: string,
+	options: Omit<
+		UseMutationOptions<LoanScheduleResponse, unknown, LoanScheduleWhatIfPayload>,
+		"mutationFn"
+	> = {}
+) {
+	return useMutation({
+		mutationFn: (payload) => runOrgLoanScheduleWhatIf(id, payload),
 		...options,
 	});
 }

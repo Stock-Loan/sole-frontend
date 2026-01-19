@@ -35,3 +35,15 @@ export const loanRepaymentSchema = z.object({
 		.optional()
 		.nullable(),
 });
+
+export const loanScheduleWhatIfSchema = z.object({
+	as_of_date: nonEmptyString,
+	repayment_method: z.enum([
+		"INTEREST_ONLY",
+		"BALLOON",
+		"PRINCIPAL_AND_INTEREST",
+	]),
+	term_months: z.coerce.number().int().positive("Enter a valid term"),
+	annual_rate_percent: nonEmptyString,
+	principal: z.string().trim().optional().or(z.literal("")),
+});

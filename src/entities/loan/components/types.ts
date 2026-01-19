@@ -11,6 +11,7 @@ import type {
 	LoanRepaymentCreatePayload,
 	LoanRepayment,
 	LoanScheduleResponse,
+	LoanScheduleWhatIfPayload,
 	LoanSelectionMode,
 	LoanWorkflowStage,
 	LoanWorkflowStageStatus,
@@ -171,6 +172,17 @@ export interface LoanRepaymentDialogProps {
 	onOpenChange: (open: boolean) => void;
 	onSubmit: (values: LoanRepaymentCreatePayload) => Promise<void> | void;
 	isSubmitting?: boolean;
+	nextPaymentAmount?: string | null;
+	nextPrincipalDue?: string | null;
+	nextInterestDue?: string | null;
+}
+
+export interface LoanScheduleWhatIfDialogProps {
+	open: boolean;
+	onOpenChange: (open: boolean) => void;
+	onSubmit: (values: LoanScheduleWhatIfPayload) => Promise<void> | void;
+	isSubmitting?: boolean;
+	initialValues?: Partial<LoanScheduleWhatIfPayload>;
 }
 
 export interface WorkflowStagePanelProps {

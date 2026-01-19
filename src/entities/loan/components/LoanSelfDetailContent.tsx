@@ -20,11 +20,13 @@ import { LoanRepaymentsPanel } from "@/entities/loan/components/LoanRepaymentsPa
 import { LoanSchedulePanel } from "@/entities/loan/components/LoanSchedulePanel";
 import { LoanTimeline } from "@/entities/loan/components/LoanTimeline";
 import { Loan83bPanel } from "@/entities/loan/components/Loan83bPanel";
+import { LoanScheduleWhatIfDialog } from "@/entities/loan/components/LoanScheduleWhatIfDialog";
+import { buildScheduleCsv } from "@/entities/loan/utils/schedule";
 import {
 	useDownloadMyLoanDocument,
-	useExportMyLoanCsv,
 	useMyLoanRepayments,
 	useMyLoanSchedule,
+	useMyLoanScheduleWhatIf,
 	useRegisterMyLoan83bDocument,
 } from "@/entities/loan/hooks";
 import { useToast } from "@/shared/ui/use-toast";
@@ -39,7 +41,7 @@ import type {
 	LoanDetailSummaryCardProps,
 	LoanSelfDetailContentProps,
 } from "@/entities/loan/components/types";
-import type { LoanDocument } from "@/entities/loan/types";
+import type { LoanDocument, LoanScheduleResponse } from "@/entities/loan/types";
 import {
 	formatDetailBoolean,
 	formatDetailValue,
@@ -71,6 +73,7 @@ export function LoanSelfDetailContent({
 	const canViewSchedule = can("loan.schedule.self.view");
 	const canExportLoan = can("loan.export.self");
 	const canUpload83b = can("loan.document.self_upload_83b");
+	const canRunWhatIf = can("loan.what_if.self.simulate");
 	const downloadMutation = useDownloadMyLoanDocument({
 		onError: (error) => {
 			toast({
@@ -114,10 +117,17 @@ export function LoanSelfDetailContent({
 			canViewSchedule &&
 			activeTab === "schedule",
 	});
-	const exportLoanMutation = useExportMyLoanCsv({
+	const [whatIfDialogOpen, setWhatIfDialogOpen] = useState(false);
+	const [whatIfSchedule, setWhatIfSchedule] =
+		useState<LoanScheduleResponse | null>(null);
+	const whatIfMutation = useMyLoanScheduleWhatIf(loan?.id ?? "", {
+		onSuccess: (schedule) => {
+			setWhatIfSchedule(schedule);
+			setWhatIfDialogOpen(false);
+		},
 		onError: (error) => {
 			toast({
-				title: "Export failed",
+				title: "Unable to run what-if",
 				description: parseApiError(error).message,
 				variant: "destructive",
 			});
@@ -134,6 +144,10 @@ export function LoanSelfDetailContent({
 			setActiveTab("overview");
 		}
 	}, [activeTab, availableTabs, showTabs]);
+
+	useEffect(() => {
+		setWhatIfSchedule(null);
+	}, [loan?.id]);
 
 	if (isLoading) {
 		return <LoanSelfDetailSkeleton />;
@@ -169,9 +183,14 @@ export function LoanSelfDetailContent({
 		}
 	};
 	const handleExportLoan = async () => {
-		if (!loan.id) return;
-		const blob = await exportLoanMutation.mutateAsync(loan.id);
-		downloadBlob(blob, `loan-${loan.id}.csv`);
+		const schedule = whatIfSchedule ?? scheduleQuery.data;
+		if (!loan.id || !schedule) return;
+		const csv = buildScheduleCsv(schedule);
+		const suffix = whatIfSchedule ? "what-if" : "original";
+		downloadBlob(
+			new Blob([csv], { type: "text/csv;charset=utf-8;" }),
+			`loan-schedule-${loan.id}-${suffix}.csv`
+		);
 	};
 	const showOverview = !showTabs || activeTab === "overview";
 
@@ -456,23 +475,45 @@ export function LoanSelfDetailContent({
 
 			{activeTab === "schedule" ? (
 				<LoanSchedulePanel
-					schedule={scheduleQuery.data ?? null}
-					isLoading={scheduleQuery.isLoading}
-					isError={scheduleQuery.isError}
+					schedule={whatIfSchedule ?? scheduleQuery.data ?? null}
+					isLoading={scheduleQuery.isLoading && !whatIfSchedule}
+					isError={scheduleQuery.isError && !whatIfSchedule}
 					onRetry={() => scheduleQuery.refetch()}
 					actions={
-						canExportLoan ? (
-							<Button
-								variant="outline"
-								size="sm"
-								onClick={handleExportLoan}
-								disabled={exportLoanMutation.isPending}
-							>
-								{exportLoanMutation.isPending
-									? "Exporting..."
-									: "Export loan CSV"}
-							</Button>
-						) : null
+						<div className="flex items-center gap-2">
+							{whatIfSchedule ? (
+								<span className="rounded-full bg-amber-100 px-2 py-1 text-[11px] font-semibold text-amber-800">
+									What-if
+								</span>
+							) : null}
+							{whatIfSchedule ? (
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={() => setWhatIfSchedule(null)}
+								>
+									Clear
+								</Button>
+							) : null}
+							{canRunWhatIf ? (
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={() => setWhatIfDialogOpen(true)}
+								>
+									Run what-if
+								</Button>
+							) : null}
+							{canExportLoan ? (
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={handleExportLoan}
+								>
+									Download schedule
+								</Button>
+							) : null}
+						</div>
 					}
 				/>
 			) : null}
@@ -488,6 +529,39 @@ export function LoanSelfDetailContent({
 					isRegistering={register83bMutation.isPending}
 				/>
 			) : null}
+			<LoanScheduleWhatIfDialog
+				open={whatIfDialogOpen}
+				onOpenChange={setWhatIfDialogOpen}
+				isSubmitting={whatIfMutation.isPending}
+				initialValues={{
+					as_of_date:
+						whatIfSchedule?.as_of_date ??
+						scheduleQuery.data?.as_of_date ??
+						loan?.as_of_date ??
+						new Date().toISOString().slice(0, 10),
+					repayment_method:
+						whatIfSchedule?.repayment_method ??
+						(scheduleQuery.data?.repayment_method ??
+							loan?.repayment_method ??
+							"PRINCIPAL_AND_INTEREST"),
+					term_months:
+						whatIfSchedule?.term_months ??
+						scheduleQuery.data?.term_months ??
+						loan?.term_months ??
+						12,
+					annual_rate_percent:
+						whatIfSchedule?.annual_rate_percent ??
+						scheduleQuery.data?.annual_rate_percent ??
+						loan?.nominal_annual_rate_percent ??
+						"",
+					principal:
+						whatIfSchedule?.principal ??
+						scheduleQuery.data?.principal ??
+						loan?.loan_principal ??
+						"",
+				}}
+				onSubmit={(payload) => whatIfMutation.mutateAsync(payload)}
+			/>
 		</div>
 	);
 }

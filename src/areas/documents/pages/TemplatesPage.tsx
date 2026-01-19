@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { PageContainer } from "@/shared/ui/PageContainer";
 import { PageHeader } from "@/shared/ui/PageHeader";
 import { EmptyState } from "@/shared/ui/EmptyState";
@@ -51,28 +51,32 @@ export function TemplatesPage() {
 		useState<OrgDocumentTemplate | null>(null);
 
 	const foldersQuery = useOrgDocumentFolders(canView);
-	const folders = foldersQuery.data?.items ?? [];
-
-	const templatesQuery = useOrgDocumentTemplates(
-		{ folder_id: selectedFolderId ?? undefined },
-		{ enabled: canView }
+	const folders = useMemo(
+		() => foldersQuery.data?.items ?? [],
+		[foldersQuery.data]
 	);
-	const templates = templatesQuery.data?.items ?? [];
 
-	useEffect(() => {
-		if (!selectedFolderId) return;
-		const exists = folders.some((folder) => folder.id === selectedFolderId);
-		if (!exists) {
-			setSelectedFolderId(null);
-		}
+	const activeFolderId = useMemo(() => {
+		if (!selectedFolderId) return null;
+		return folders.some((folder) => folder.id === selectedFolderId)
+			? selectedFolderId
+			: null;
 	}, [folders, selectedFolderId]);
 
-	useEffect(() => {
-		if (!selectedTemplate) return;
-		const exists = templates.some((template) => template.id === selectedTemplate.id);
-		if (!exists) {
-			setSelectedTemplate(null);
-		}
+	const templatesQuery = useOrgDocumentTemplates(
+		{ folder_id: activeFolderId ?? undefined },
+		{ enabled: canView }
+	);
+	const templates = useMemo(
+		() => templatesQuery.data?.items ?? [],
+		[templatesQuery.data]
+	);
+
+	const activeTemplate = useMemo(() => {
+		if (!selectedTemplate) return null;
+		return templates.some((template) => template.id === selectedTemplate.id)
+			? selectedTemplate
+			: null;
 	}, [selectedTemplate, templates]);
 
 	const folderNameById = useMemo(() => {
@@ -187,9 +191,9 @@ export function TemplatesPage() {
 						<div className="flex flex-wrap items-center justify-between gap-3">
 							<div>
 								<p className="text-sm font-semibold text-foreground">
-									{selectedFolderId
-										? folderNameById[selectedFolderId] ?? "Folder"
-										: "All templates"}
+										{activeFolderId
+											? folderNameById[activeFolderId] ?? "Folder"
+											: "All templates"}
 								</p>
 								<p className="text-xs text-muted-foreground">
 									{templates.length} template{templates.length === 1 ? "" : "s"}
@@ -206,13 +210,13 @@ export function TemplatesPage() {
 							) : null}
 						</div>
 
-						<OrgDocumentFileGrid
-							templates={templates}
-							selectedTemplateId={selectedTemplate?.id ?? null}
-							onSelect={(template) => setSelectedTemplate(template)}
-							isLoading={templatesQuery.isLoading}
-							isError={templatesQuery.isError}
-							onRetry={() => templatesQuery.refetch()}
+							<OrgDocumentFileGrid
+								templates={templates}
+								selectedTemplateId={activeTemplate?.id ?? null}
+								onSelect={(template) => setSelectedTemplate(template)}
+								isLoading={templatesQuery.isLoading}
+								isError={templatesQuery.isError}
+								onRetry={() => templatesQuery.refetch()}
 							onDownload={handleDownloadTemplate}
 							onDelete={handleDeleteTemplate}
 							folderNameById={folderNameById}
@@ -251,7 +255,7 @@ export function TemplatesPage() {
 				open={uploadDialogOpen}
 				onOpenChange={setUploadDialogOpen}
 				folders={folders}
-				defaultFolderId={selectedFolderId}
+				defaultFolderId={activeFolderId}
 				isSubmitting={uploadTemplateMutation.isPending}
 				onSubmit={async (values) => {
 					if (!values.file) return;
@@ -320,15 +324,15 @@ export function TemplatesPage() {
 				</p>
 			</AppDialog>
 
-			{selectedTemplate ? (
+			{activeTemplate ? (
 				<OrgDocumentTemplateInfoDialog
-					open={Boolean(selectedTemplate)}
+					open={Boolean(activeTemplate)}
 					onOpenChange={(open) => {
 						if (!open) setSelectedTemplate(null);
 					}}
-					template={selectedTemplate}
+					template={activeTemplate}
 					folderName={
-						folderNameById[selectedTemplate.folder_id ?? ""] ?? "General"
+						folderNameById[activeTemplate.folder_id ?? ""] ?? "General"
 					}
 				/>
 			) : null}
