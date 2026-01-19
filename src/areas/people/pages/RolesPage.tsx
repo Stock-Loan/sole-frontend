@@ -8,8 +8,11 @@ import { useApiErrorToast } from "@/shared/api/useApiErrorToast";
 import { DataTable } from "@/shared/ui/Table/DataTable";
 import type { ColumnDefinition } from "@/shared/ui/Table/types";
 import type { PaginationState, VisibilityState } from "@tanstack/react-table";
+import { useQueryClient } from "@tanstack/react-query";
 import { usePermissions } from "@/auth/hooks";
 import { useAuth } from "@/auth/hooks";
+import { authKeys } from "@/auth/keys";
+import { useTenant } from "@/features/tenancy/hooks";
 import {
 	useCreateRole,
 	useInvalidateOrgPermissions,
@@ -44,6 +47,8 @@ export function RolesPage() {
 	const { toast } = useToast();
 	const { can } = usePermissions();
 	const { user } = useAuth();
+	const { currentOrgId } = useTenant();
+	const queryClient = useQueryClient();
 	const [searchParams, setSearchParams] = useSearchParams();
 	const preferencesConfig = useMemo(
 		() => ({
@@ -166,6 +171,9 @@ export function RolesPage() {
 	});
 	const invalidatePermissionsMutation = useInvalidateOrgPermissions({
 		onSuccess: (data) => {
+			queryClient.invalidateQueries({
+				queryKey: authKeys.selfContext(currentOrgId ?? undefined),
+			});
 			toast({
 				title: "Permissions cache cleared",
 				description: `${data.cleared} users refreshed.`,
