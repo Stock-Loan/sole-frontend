@@ -1,4 +1,4 @@
-import { getSelfContext } from "@/auth/api";
+import { discoverOrg, getSelfContext } from "@/auth/api";
 import type { OrgSummary } from "./types";
 
 export async function listTenants(): Promise<OrgSummary[]> {
@@ -14,4 +14,8 @@ export async function listTenants(): Promise<OrgSummary[]> {
 			status: status as OrgSummary["status"],
 		},
 	];
+}
+
+export async function discoverTenants(email: string): Promise<OrgSummary[]> {
+	return discoverOrg({ email });
 }

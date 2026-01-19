@@ -5,7 +5,7 @@ import type { TokenResolver, TokenUpdater, VoidHandler } from "@/shared/api/type
 
 let accessTokenResolver: TokenResolver = () => null;
 let refreshTokenResolver: TokenResolver = () => null;
-let tenantResolver: TokenResolver = () => null;
+let orgResolver: TokenResolver = () => null;
 let tokenUpdater: TokenUpdater | null = null;
 let unauthorizedHandler: VoidHandler | null = null;
 
@@ -28,8 +28,8 @@ export function setTokenUpdater(updater: TokenUpdater) {
 	tokenUpdater = updater;
 }
 
-export function setTenantResolver(resolver: TokenResolver) {
-	tenantResolver = resolver;
+export function setOrgResolver(resolver: TokenResolver) {
+	orgResolver = resolver;
 }
 
 export function setUnauthorizedHandler(handler: VoidHandler | null) {
@@ -38,7 +38,7 @@ export function setUnauthorizedHandler(handler: VoidHandler | null) {
 
 apiClient.interceptors.request.use((config) => {
 	const token = accessTokenResolver();
-	const tenantId = tenantResolver();
+	const orgId = orgResolver();
 
 	if (
 		!config.headers ||
@@ -50,7 +50,7 @@ apiClient.interceptors.request.use((config) => {
 	const headers = config.headers as AxiosHeaders;
 
 	if (token) headers.set("Authorization", `Bearer ${token}`);
-	if (tenantId) headers.set("X-Tenant-ID", tenantId);
+	if (orgId) headers.set("X-Org-Id", orgId);
 
 	return config;
 });
@@ -103,7 +103,7 @@ apiClient.interceptors.response.use(
 					const { data } = await axios.post(
 						`${baseURL}/auth/refresh`,
 						{ refresh_token: refreshToken },
-						{ headers: { "X-Tenant-ID": tenantResolver() } }
+						{ headers: { "X-Org-Id": orgResolver() } }
 					);
 
 					const tokens = unwrapApiResponse<{

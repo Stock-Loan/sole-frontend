@@ -5,15 +5,17 @@ import {
 	useEffect,
 	useLayoutEffect,
 	useMemo,
+	useRef,
 	useState,
 } from "react";
 import type { PropsWithChildren } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { setTenantResolver } from "@/shared/api/http";
+import { setOrgResolver } from "@/shared/api/http";
+import { queryClient } from "@/shared/api/queryClient";
 import { useAuth } from "@/auth/hooks";
 import { tenancyKeys } from "@/features/tenancy/keys";
 import type { OrgSummary, PersistedTenancy, TenantContextValue } from "./types";
-import { listTenants } from "./tenantApi";
+import { discoverTenants, listTenants } from "./tenantApi";
 
 const STORAGE_KEY = "sole.tenancy";
 
@@ -46,15 +48,6 @@ function persistTenancy(state: PersistedTenancy) {
 	}
 }
 
-function clearTenancy() {
-	if (typeof localStorage === "undefined") return;
-	try {
-		localStorage.removeItem(STORAGE_KEY);
-	} catch (error) {
-		console.warn("Failed to clear tenancy", error);
-	}
-}
-
 const TenantContext = createContext<TenantContextValue | undefined>(undefined);
 
 export function TenantProvider({ children }: PropsWithChildren) {
@@ -76,6 +69,7 @@ export function TenantProvider({ children }: PropsWithChildren) {
 		() => persisted.currentOrgId ?? fallbackOrgId ?? null
 	);
 	const resolvedOrgId = currentOrgId ?? fallbackOrgId;
+	const lastOrgIdRef = useRef<string | null>(resolvedOrgId);
 
 	const tenantsQuery = useQuery({
 		queryKey: tenancyKeys.tenants(),
@@ -91,17 +85,19 @@ export function TenantProvider({ children }: PropsWithChildren) {
 	}, [currentOrgId, fallbackOrgId]);
 
 	useLayoutEffect(() => {
-		setTenantResolver(() => resolvedOrgId);
+		setOrgResolver(() => resolvedOrgId);
 	}, [resolvedOrgId]);
 
 	useEffect(() => {
-		if (!user) {
-			// eslint-disable-next-line react-hooks/set-state-in-effect
-			setOrgs([]);
-			setCurrentOrgId(null);
-			clearTenancy();
-			return;
+		const previous = lastOrgIdRef.current;
+		if (previous && resolvedOrgId && previous !== resolvedOrgId) {
+			queryClient.clear();
 		}
+		lastOrgIdRef.current = resolvedOrgId ?? null;
+	}, [resolvedOrgId]);
+
+	useEffect(() => {
+		if (!user) return;
 
 		if (!currentOrgId && user.org_id) {
 			setCurrentOrgId(user.org_id);
@@ -109,24 +105,64 @@ export function TenantProvider({ children }: PropsWithChildren) {
 	}, [user, currentOrgId]);
 
 	useEffect(() => {
-		if (tenantsQuery.data) {
-			// eslint-disable-next-line react-hooks/set-state-in-effect
-			setOrgs(tenantsQuery.data);
-			if (tenantsQuery.data.length > 0) {
-				const hasCurrent = tenantsQuery.data.some(
-					(org) => org.id === currentOrgId
-				);
-				if (!currentOrgId || !hasCurrent) {
-					setCurrentOrgId(tenantsQuery.data[0].id);
+		if (!user?.is_superuser || !user.email) return;
+		if (orgs.length > 1) return;
+
+		let isActive = true;
+		discoverTenants(user.email)
+			.then((found) => {
+				if (!isActive || found.length === 0) return;
+				setOrgs(found);
+				if (!currentOrgId) {
+					setCurrentOrgId(found[0].id);
 				}
-			}
-		}
-	}, [tenantsQuery.data, currentOrgId]);
+			})
+			.catch((error) => {
+				console.warn("Failed to discover orgs for super admin", error);
+			});
+
+		return () => {
+			isActive = false;
+		};
+	}, [user?.is_superuser, user?.email, orgs.length, currentOrgId]);
 
 	useEffect(() => {
-		if (!user) return;
+		if (!tenantsQuery.data) return;
+
+		if (user?.is_superuser && orgs.length > 0) {
+			const resolvedOrg = tenantsQuery.data[0];
+			if (resolvedOrg) {
+				setOrgs((prev) => {
+					const hasOrg = prev.some((org) => org.id === resolvedOrg.id);
+					if (hasOrg) {
+						return prev.map((org) =>
+							org.id === resolvedOrg.id ? { ...org, ...resolvedOrg } : org
+						);
+					}
+					return [...prev, resolvedOrg];
+				});
+			}
+			if (!currentOrgId && resolvedOrg) {
+				setCurrentOrgId(resolvedOrg.id);
+			}
+			return;
+		}
+
+		// eslint-disable-next-line react-hooks/set-state-in-effect
+		setOrgs(tenantsQuery.data);
+		if (tenantsQuery.data.length > 0) {
+			const hasCurrent = tenantsQuery.data.some(
+				(org) => org.id === currentOrgId
+			);
+			if (!currentOrgId || !hasCurrent) {
+				setCurrentOrgId(tenantsQuery.data[0].id);
+			}
+		}
+	}, [tenantsQuery.data, currentOrgId, user?.is_superuser, orgs.length]);
+
+	useEffect(() => {
 		persistTenancy({ orgs, currentOrgId });
-	}, [orgs, currentOrgId, user]);
+	}, [orgs, currentOrgId]);
 
 	const value = useMemo<TenantContextValue>(
 		() => ({

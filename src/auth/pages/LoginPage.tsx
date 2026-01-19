@@ -38,7 +38,12 @@ import { Input } from "@/shared/ui/input";
 import { useToast } from "@/shared/ui/use-toast";
 import { useApiErrorToast } from "@/shared/api/useApiErrorToast";
 import { routes } from "@/shared/lib/routes";
-import { useAuth, useCompleteLogin, useStartLogin } from "@/auth/hooks";
+import {
+	useAuth,
+	useCompleteLogin,
+	useOrgDiscovery,
+	useStartLogin,
+} from "@/auth/hooks";
 import { getMeWithToken } from "@/auth/api";
 import { emailSchema, passwordSchema } from "@/auth/schemas";
 import type {
@@ -46,6 +51,16 @@ import type {
 	LoginEmailFormValues,
 	LoginPasswordFormValues,
 } from "@/auth/types";
+import { useTenant } from "@/features/tenancy/hooks";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/shared/ui/select";
+import type { OrgSummary } from "@/entities/org/types";
+import { Label } from "@/shared/ui/label";
 
 const PENDING_EMAIL_KEY = "sole.pending-login-email";
 
@@ -55,11 +70,13 @@ export function LoginPage() {
 	const { toast } = useToast();
 	const apiErrorToast = useApiErrorToast();
 	const { setSession } = useAuth();
+	const { setOrgs, currentOrgId, setCurrentOrgId } = useTenant();
 
-	const [step, setStep] = useState<"email" | "password">("email");
+	const [step, setStep] = useState<"email" | "org" | "password">("email");
 	const [challengeToken, setChallengeToken] = useState<string | null>(null);
 	const [email, setEmail] = useState<string>("");
 	const [showPassword, setShowPassword] = useState(false);
+	const [availableOrgs, setAvailableOrgs] = useState<OrgSummary[]>([]);
 
 	const emailForm = useForm<LoginEmailFormValues>({
 		resolver: zodResolver(emailSchema),
@@ -73,16 +90,17 @@ export function LoginPage() {
 
 	const startLoginMutation = useStartLogin();
 	const completeLoginMutation = useCompleteLogin();
+	const orgDiscoveryMutation = useOrgDiscovery();
 
-	const handleEmailSubmit = (values: LoginEmailFormValues) => {
+	const startLoginForOrg = (emailAddress: string, orgId: string) => {
 		startLoginMutation.mutate(
-			{ email: values.email },
+			{ payload: { email: emailAddress }, orgId },
 			{
 				onSuccess: (data, variables) => {
 					setChallengeToken(data.challenge_token);
-					setEmail(variables.email);
+					setEmail(variables.payload.email);
 					if (typeof localStorage !== "undefined") {
-						localStorage.setItem(PENDING_EMAIL_KEY, variables.email);
+						localStorage.setItem(PENDING_EMAIL_KEY, variables.payload.email);
 					}
 					setStep("password");
 					toast({
@@ -97,6 +115,55 @@ export function LoginPage() {
 		);
 	};
 
+	const handleEmailSubmit = (values: LoginEmailFormValues) => {
+		orgDiscoveryMutation.mutate(
+			{ email: values.email },
+			{
+				onSuccess: (orgs) => {
+					if (!orgs.length) {
+						toast({
+							variant: "destructive",
+							title: "No organization found",
+							description:
+								"We couldn't find an organization for that email.",
+						});
+						return;
+					}
+					setEmail(values.email);
+					setAvailableOrgs(orgs);
+					setOrgs(orgs);
+					const defaultOrgId = orgs[0]?.id ?? null;
+					setCurrentOrgId(defaultOrgId);
+
+					if (orgs.length === 1 && defaultOrgId) {
+						startLoginForOrg(values.email, defaultOrgId);
+						return;
+					}
+
+					setStep("org");
+				},
+				onError: (error) => {
+					apiErrorToast(
+						error,
+						"Unable to find an organization for that email.",
+					);
+				},
+			},
+		);
+	};
+
+	const handleOrgSubmit = () => {
+		if (!currentOrgId) {
+			toast({
+				variant: "destructive",
+				title: "Select an organization",
+				description: "Choose an organization to continue.",
+			});
+			return;
+		}
+		startLoginForOrg(email, currentOrgId);
+	};
+
 	const handlePasswordSubmit = (values: LoginPasswordFormValues) => {
 		if (!challengeToken) {
 			toast({
@@ -107,12 +174,24 @@ export function LoginPage() {
 			setStep("email");
 			return;
 		}
+		if (!currentOrgId) {
+			toast({
+				variant: "destructive",
+				title: "Select an organization",
+				description: "Choose an organization to continue signing in.",
+			});
+			setStep("org");
+			return;
+		}
 		completeLoginMutation.mutate(
-			{ challenge_token: challengeToken, password: values.password },
+			{
+				payload: { challenge_token: challengeToken, password: values.password },
+				orgId: currentOrgId,
+			},
 			{
 				onSuccess: async (tokens) => {
 					try {
-						const user = await getMeWithToken(tokens.access_token);
+						const user = await getMeWithToken(tokens.access_token, currentOrgId);
 						if (user.must_change_password) {
 							setSession(tokens, user);
 							if (typeof localStorage !== "undefined") {
@@ -186,6 +265,9 @@ export function LoginPage() {
 	const resetFlow = () => {
 		setStep("email");
 		setChallengeToken(null);
+		setAvailableOrgs([]);
+		setOrgs([]);
+		setCurrentOrgId(null);
 		if (typeof localStorage !== "undefined") {
 			localStorage.removeItem(PENDING_EMAIL_KEY);
 		}
@@ -193,12 +275,19 @@ export function LoginPage() {
 	};
 
 	const statusMessage = useMemo(() => {
+		if (orgDiscoveryMutation.isPending) return "Finding your organization...";
 		if (startLoginMutation.isPending) return "Verifying email...";
 		if (completeLoginMutation.isPending) return "Signing you in...";
+		if (step === "org") return "Select your organization to continue.";
 		if (step === "password")
 			return "Email verified. Enter your password to continue.";
 		return "Enter your email to get started.";
-	}, [step, startLoginMutation.isPending, completeLoginMutation.isPending]);
+	}, [
+		step,
+		orgDiscoveryMutation.isPending,
+		startLoginMutation.isPending,
+		completeLoginMutation.isPending,
+	]);
 
 	return (
 		<>
@@ -240,7 +329,10 @@ export function LoginPage() {
 														type="email"
 														autoComplete="email"
 														placeholder="you@example.com"
-														disabled={startLoginMutation.isPending}
+														disabled={
+															startLoginMutation.isPending ||
+															orgDiscoveryMutation.isPending
+														}
 														className="h-13"
 													/>
 												</FormControl>
@@ -251,9 +343,13 @@ export function LoginPage() {
 									<Button
 										className="w-full py-3.5 text-md"
 										type="submit"
-										disabled={startLoginMutation.isPending}
+										disabled={
+											startLoginMutation.isPending ||
+											orgDiscoveryMutation.isPending
+										}
 									>
-										{startLoginMutation.isPending ? (
+										{orgDiscoveryMutation.isPending ||
+										startLoginMutation.isPending ? (
 											<>
 												<Loader2 className="mr-2 h-4 w-4 animate-spin" />
 												Verifying email…
@@ -264,6 +360,57 @@ export function LoginPage() {
 									</Button>
 								</form>
 							</Form>
+						) : step === "org" ? (
+							<div className="space-y-4">
+								<div className="rounded-md border bg-muted/30 px-3 py-2 text-sm text-muted-foreground">
+									We found multiple organizations for{" "}
+									<span className="font-semibold text-foreground">
+										{email}
+									</span>
+									. Select the one you want to access.
+								</div>
+								<div className="space-y-2">
+									<Label>Organization</Label>
+									<Select
+										value={currentOrgId ?? undefined}
+										onValueChange={(value) => setCurrentOrgId(value)}
+									>
+										<SelectTrigger className="h-12">
+											<SelectValue placeholder="Select organization" />
+										</SelectTrigger>
+										<SelectContent>
+											{availableOrgs.map((org) => (
+												<SelectItem key={org.id} value={org.id}>
+													{org.name}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
+								</div>
+								<Button
+									className="w-full py-3.5 text-md"
+									type="button"
+									onClick={handleOrgSubmit}
+									disabled={startLoginMutation.isPending || !currentOrgId}
+								>
+									{startLoginMutation.isPending ? (
+										<>
+											<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+											Verifying email…
+										</>
+									) : (
+										"Continue"
+									)}
+								</Button>
+								<button
+									type="button"
+									onClick={resetFlow}
+									className="inline-flex items-center justify-center gap-1 text-xs font-semibold text-primary hover:underline"
+								>
+									<ArrowLeft className="h-3 w-3" />
+									Use a different email
+								</button>
+							</div>
 						) : (
 							<Form {...passwordForm}>
 								<form

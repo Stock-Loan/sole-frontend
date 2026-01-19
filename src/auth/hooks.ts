@@ -6,6 +6,7 @@ import {
 	changePassword,
 	changePasswordWithToken,
 	completeLogin,
+	discoverOrg,
 	getMe,
 	getSelfContext,
 	startLogin,
@@ -17,7 +18,9 @@ import type {
 	LoginCompletePayload,
 	LoginStartPayload,
 	LoginStartResponse,
+	OrgDiscoveryPayload,
 } from "@/auth/types";
+import type { OrgSummary } from "@/entities/org/types";
 
 export function useAuth() {
 	return useAuthContext();
@@ -52,14 +55,30 @@ export function useMe(
 }
 
 export function useStartLogin() {
-	return useMutation<LoginStartResponse, unknown, LoginStartPayload>({
-		mutationFn: (payload) => startLogin(payload),
+	return useMutation<
+		LoginStartResponse,
+		unknown,
+		{ payload: LoginStartPayload; orgId?: string }
+	>({
+		mutationFn: ({ payload, orgId }) => startLogin(payload, orgId),
 	});
 }
 
 export function useCompleteLogin() {
 	return useMutation({
-		mutationFn: (payload: LoginCompletePayload) => completeLogin(payload),
+		mutationFn: ({
+			payload,
+			orgId,
+		}: {
+			payload: LoginCompletePayload;
+			orgId?: string;
+		}) => completeLogin(payload, orgId),
+	});
+}
+
+export function useOrgDiscovery() {
+	return useMutation<OrgSummary[], unknown, OrgDiscoveryPayload>({
+		mutationFn: (payload) => discoverOrg(payload),
 	});
 }
 

@@ -35,6 +35,20 @@ export interface LoginStartPayload {
 	email: string;
 }
 
+export interface OrgDiscoveryPayload {
+	email: string;
+}
+
+export interface OrgDiscoveryOrg {
+	org_id: string;
+	name: string;
+	slug?: string;
+}
+
+export interface OrgDiscoveryResponse {
+	orgs: OrgDiscoveryOrg[];
+}
+
 export interface LoginEmailFormValues {
 	email: string;
 }
