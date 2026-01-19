@@ -281,16 +281,16 @@ export function MyStockPage() {
 						))}
 					</div>
 
-					<div className="space-y-4">
-						<div
-							className={cn(
-								"grid gap-4",
-								showAttentionCard ? "md:grid-cols-2" : ""
-							)}
-						>
+					<div
+						className={cn(
+							"grid gap-4",
+							showAttentionCard ? "md:grid-cols-2" : ""
+						)}
+					>
+						<div className="flex flex-col gap-4">
 							<Card
 								style={summaryCardStyle}
-								className="border shadow-sm max-w-[380px]"
+								className="border shadow-sm max-w-[420px]"
 							>
 								<CardHeader className="pb-2">
 									<CardTitle
@@ -318,123 +318,123 @@ export function MyStockPage() {
 								</CardContent>
 							</Card>
 
-							{showAttentionCard ? (
-								<Card className="relative overflow-hidden border border-amber-200 bg-gradient-to-br from-amber-50 via-amber-50 to-amber-100 shadow-lg ring-1 ring-amber-200/80">
-									<div className="absolute left-0 top-0 h-full w-1.5 bg-amber-500" />
-									<span className="absolute right-4 top-4 inline-flex items-center gap-2 rounded-full bg-amber-600/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-amber-900">
-										<span className="h-2 w-2 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.8)]" />
-										Needs attention
-									</span>
-									<CardHeader className="pb-2">
-										<CardTitle className="flex items-center gap-2 text-sm font-semibold text-amber-900">
-											<span className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-100 text-amber-600">
-												<Bell className="h-4 w-4" />
-											</span>
-											Attention
-										</CardTitle>
-									</CardHeader>
-									<CardContent className="space-y-3 text-sm text-amber-900/80">
-										<div className="flex flex-wrap items-center gap-4">
-											<div>
-												<p className="text-xs uppercase text-amber-700">
-													Unread announcements
-												</p>
-												<p className="text-lg font-semibold text-amber-950">
-													{unreadAnnouncementsCount.toLocaleString()}
-												</p>
-											</div>
-											<div>
-												<p className="text-xs uppercase text-amber-700">
-													Pending actions
-												</p>
-												<p className="text-lg font-semibold text-amber-950">
-													{attentionPendingCount.toLocaleString()}
-												</p>
-											</div>
-										</div>
-										{attentionItems.length ? (
-											<ul className="grid gap-2 sm:grid-cols-2">
-												{attentionItems.map((action) => (
-													<li
-														key={`${action.action_type}-${action.related_id ?? action.label}`}
-														className="flex h-full flex-col gap-2 rounded-md border border-amber-200 bg-white/80 px-3 py-2"
-													>
-														<div className="flex items-start justify-between gap-3">
-															<div className="space-y-0.5">
-																<p className="text-sm font-semibold text-amber-950">
-																	{action.label}
-																</p>
-																<p className="text-xs text-amber-700">
-																	{action.sublabel ?? action.action_type}
-																</p>
-															</div>
-															<span className="text-xs text-amber-700">
-																{action.due_date
-																	? `Due ${formatDate(action.due_date)}`
-																	: "No due date"}
-															</span>
-														</div>
-													</li>
-												))}
-											</ul>
+							{summary && (
+								<div
+									className={cn("rounded-xl border p-4 shadow-sm")}
+									style={eligibleBannerStyle}
+								>
+									<div className="flex items-start gap-3">
+										{isEligible ? (
+											<CheckCircle2
+												className="mt-0.5 h-5 w-5"
+												style={{ color: eligibleIconColor }}
+											/>
 										) : (
-											<p className="text-xs text-amber-700">
-												No pending actions right now.
-											</p>
+											<AlertTriangle
+												className="mt-0.5 h-5 w-5"
+												style={{ color: eligibleIconColor }}
+											/>
 										)}
-									</CardContent>
-								</Card>
-							) : null}
-						</div>
-
-						{summary && (
-							<div
-								className={cn("rounded-xl border p-4 shadow-sm")}
-								style={eligibleBannerStyle}
-							>
-								<div className="flex items-start gap-3">
-									{isEligible ? (
-										<CheckCircle2
-											className="mt-0.5 h-5 w-5"
-											style={{ color: eligibleIconColor }}
-										/>
-									) : (
-										<AlertTriangle
-											className="mt-0.5 h-5 w-5"
-											style={{ color: eligibleIconColor }}
-										/>
-									)}
-									<div>
-										<p
-											className="text-sm font-semibold"
-											style={{ color: colorPalette.navy[900] }}
-										>
-											{isEligible
-												? "Eligible to exercise"
-												: "Not eligible to exercise"}
-										</p>
-										<p
-											className="text-sm"
-											style={{ color: colorPalette.slate[600] }}
-										>
-											{isEligible
-												? "You currently meet the requirements to exercise your available vested shares."
-												: "You are currently blocked from exercising available vested shares."}
-										</p>
-										{reasons.length ? (
-											<ul
-												className="mt-2 space-y-1 text-sm"
+										<div>
+											<p
+												className="text-sm font-semibold"
+												style={{ color: colorPalette.navy[900] }}
+											>
+												{isEligible
+													? "Eligible to exercise"
+													: "Not eligible to exercise"}
+											</p>
+											<p
+												className="text-sm"
 												style={{ color: colorPalette.slate[600] }}
 											>
-												{reasons.map((reason) => (
-													<li key={reason}>• {reason}</li>
-												))}
-											</ul>
-										) : null}
+												{isEligible
+													? "You currently meet the requirements to exercise your available vested shares."
+													: "You are currently blocked from exercising available vested shares."}
+											</p>
+											{reasons.length ? (
+												<ul
+													className="mt-2 space-y-1 text-sm"
+													style={{ color: colorPalette.slate[600] }}
+												>
+													{reasons.map((reason) => (
+														<li key={reason}>• {reason}</li>
+													))}
+												</ul>
+											) : null}
+										</div>
 									</div>
 								</div>
-							</div>
-						)}
+							)}
+						</div>
+
+						{showAttentionCard ? (
+							<Card className="relative overflow-hidden border border-amber-200 bg-gradient-to-br from-amber-50 via-amber-50 to-amber-100 shadow-lg ring-1 ring-amber-200/80">
+								<div className="absolute left-0 top-0 h-full w-1.5 bg-amber-500" />
+								<span className="absolute right-4 top-4 inline-flex items-center gap-2 rounded-full bg-amber-600/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-amber-900">
+									<span className="h-2 w-2 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.8)]" />
+									Needs attention
+								</span>
+								<CardHeader className="pb-2">
+									<CardTitle className="flex items-center gap-2 text-sm font-semibold text-amber-900">
+										<span className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-100 text-amber-600">
+											<Bell className="h-4 w-4" />
+										</span>
+										Attention
+									</CardTitle>
+								</CardHeader>
+								<CardContent className="space-y-3 text-sm text-amber-900/80">
+									<div className="flex flex-wrap items-center gap-4">
+										<div>
+											<p className="text-xs uppercase text-amber-700">
+												Unread announcements
+											</p>
+											<p className="text-lg font-semibold text-amber-950">
+												{unreadAnnouncementsCount.toLocaleString()}
+											</p>
+										</div>
+										<div>
+											<p className="text-xs uppercase text-amber-700">
+												Pending actions
+											</p>
+											<p className="text-lg font-semibold text-amber-950">
+												{attentionPendingCount.toLocaleString()}
+											</p>
+										</div>
+									</div>
+									{attentionItems.length ? (
+										<ul className="grid gap-2 sm:grid-cols-2">
+											{attentionItems.map((action) => (
+												<li
+													key={`${action.action_type}-${action.related_id ?? action.label}`}
+													className="flex h-full flex-col gap-2 rounded-md border border-amber-200 bg-white/80 px-3 py-2"
+												>
+													<div className="flex items-start justify-between gap-3">
+														<div className="space-y-0.5">
+															<p className="text-sm font-semibold text-amber-950">
+																{action.label}
+															</p>
+															<p className="text-xs text-amber-700">
+																{action.sublabel ?? action.action_type}
+															</p>
+														</div>
+														<span className="text-xs text-amber-700">
+															{action.due_date
+																? `Due ${formatDate(action.due_date)}`
+																: "No due date"}
+														</span>
+													</div>
+												</li>
+											))}
+										</ul>
+									) : (
+										<p className="text-xs text-amber-700">
+											No pending actions right now.
+										</p>
+									)}
+								</CardContent>
+							</Card>
+						) : null}
 					</div>
 
 					<div className="grid gap-4 lg:grid-cols-2">

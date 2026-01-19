@@ -109,6 +109,10 @@ export function NotificationBell() {
 										{item.type.charAt(0) + item.type.slice(1).toLowerCase()}
 									</span>
 								) : null}
+								<span
+									className="ml-auto h-2 w-2 rounded-full bg-primary"
+									aria-label="Unread announcement"
+								/>
 							</div>
 							<p className="text-xs text-muted-foreground line-clamp-2">
 								{item.body}
