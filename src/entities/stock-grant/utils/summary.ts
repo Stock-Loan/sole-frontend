@@ -18,7 +18,7 @@ function formatNumber(value?: number | null) {
 }
 
 export function buildStockSummaryMetrics(
-	summary?: StockDashboardSummary | null
+	summary?: StockDashboardSummary | null,
 ): StockSummaryMetric[] {
 	if (!summary) return [];
 	const totals = summary.totals;
@@ -73,7 +73,7 @@ export function buildStockSummaryMetrics(
 }
 
 export function buildGrantShareStack(
-	summary?: StockDashboardSummary | null
+	summary?: StockDashboardSummary | null,
 ): StockSummaryStackedItem[] {
 	if (!summary) return [];
 	const totals = summary.totals;
@@ -97,7 +97,7 @@ export function buildGrantShareStack(
 }
 
 export function buildReservedShareStack(
-	summary?: StockDashboardSummary | null
+	summary?: StockDashboardSummary | null,
 ): StockSummaryStackedItem[] {
 	if (!summary) return [];
 	const totals = summary.totals;
@@ -116,7 +116,7 @@ export function buildReservedShareStack(
 }
 
 export function buildEligibilityDonutItems(
-	summary?: StockDashboardSummary | null
+	summary?: StockDashboardSummary | null,
 ): StockSummaryDonutItem[] {
 	if (!summary) return [];
 	const eligibility = summary.eligibility;
@@ -145,7 +145,7 @@ export function buildEligibilityDonutItems(
 }
 
 export function buildGrantStatusDonutItems(
-	summary?: StockDashboardSummary | null
+	summary?: StockDashboardSummary | null,
 ): StockSummaryDonutItem[] {
 	if (!summary) return [];
 	const statuses = summary.grant_mix.by_status;
@@ -169,7 +169,7 @@ export function buildGrantStatusDonutItems(
 }
 
 export function buildGrantStrategyDonutItems(
-	summary?: StockDashboardSummary | null
+	summary?: StockDashboardSummary | null,
 ): StockSummaryDonutItem[] {
 	if (!summary) return [];
 	const strategies = summary.grant_mix.by_vesting_strategy;
@@ -188,7 +188,7 @@ export function buildGrantStrategyDonutItems(
 }
 
 export function buildEligibilityGauge(
-	summary?: StockDashboardSummary | null
+	summary?: StockDashboardSummary | null,
 ): StockSummaryGaugeCardProps | null {
 	if (!summary) return null;
 	const eligibility = summary.eligibility;
@@ -197,7 +197,8 @@ export function buildEligibilityGauge(
 		eligibility.not_eligible_due_to_service_count +
 		eligibility.not_eligible_due_to_min_vested_count +
 		eligibility.not_eligible_due_to_other_count;
-	const percent = total > 0 ? (eligibility.eligible_to_exercise_count / total) * 100 : 0;
+	const percent =
+		total > 0 ? (eligibility.eligible_to_exercise_count / total) * 100 : 0;
 	return {
 		title: "Eligibility rate",
 		value: Number(percent.toFixed(1)),
@@ -207,7 +208,7 @@ export function buildEligibilityGauge(
 }
 
 export function buildReservedGauge(
-	summary?: StockDashboardSummary | null
+	summary?: StockDashboardSummary | null,
 ): StockSummaryGaugeCardProps | null {
 	if (!summary) return null;
 	const raw = summary.reservation_pressure.reserved_share_percent_of_vested;
@@ -222,7 +223,7 @@ export function buildReservedGauge(
 }
 
 export function buildVestingTimelineEvents(
-	events: StockDashboardVestingEvent[] = []
+	events: StockDashboardVestingEvent[] = [],
 ): StockSummaryTimelineEvent[] {
 	return [...events]
 		.sort((a, b) => a.vest_date.localeCompare(b.vest_date))

@@ -25,7 +25,7 @@ export function StockSummaryTimelineCard({
 
 	const maxShares = events.reduce(
 		(acc, event) => Math.max(acc, event.shares),
-		0
+		0,
 	);
 
 	return (
@@ -37,7 +37,10 @@ export function StockSummaryTimelineCard({
 				{events.map((event) => {
 					const ratio = maxShares > 0 ? event.shares / maxShares : 0;
 					return (
-						<div key={`${event.vest_date}-${event.shares}`} className="space-y-2">
+						<div
+							key={`${event.vest_date}-${event.shares}`}
+							className="space-y-2"
+						>
 							<div className="flex items-center justify-between text-xs text-muted-foreground">
 								<span>{formatDate(event.vest_date)}</span>
 								<span className="font-semibold text-foreground">

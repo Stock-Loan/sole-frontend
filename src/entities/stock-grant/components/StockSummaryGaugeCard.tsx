@@ -9,7 +9,9 @@ export function StockSummaryGaugeCard({
 	helper,
 	color,
 }: StockSummaryGaugeCardProps) {
-	const normalized = Number.isFinite(value) ? Math.min(Math.max(value, 0), 100) : 0;
+	const normalized = Number.isFinite(value)
+		? Math.min(Math.max(value, 0), 100)
+		: 0;
 	const stroke = color ?? colorPalette.semantic.primary;
 	const gradient = `conic-gradient(${stroke} ${normalized * 3.6}deg, ${colorPalette.slate[100]} ${normalized * 3.6}deg)`;
 

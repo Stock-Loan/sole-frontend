@@ -5,7 +5,7 @@ import type { LoanSummaryPieChartProps } from "@/entities/loan/components/types"
 
 function buildGradient(
 	items: LoanSummaryPieChartProps["items"],
-	total: number
+	total: number,
 ) {
 	let cursor = 0;
 	const segments = items.map((item, index) => {
@@ -13,8 +13,7 @@ function buildGradient(
 		const start = cursor * 360;
 		const end = (cursor + ratio) * 360;
 		cursor += ratio;
-		const color =
-			item.color ?? Object.values(colorPalette.chart)[index % 6];
+		const color = item.color ?? Object.values(colorPalette.chart)[index % 6];
 		return `${color} ${start}deg ${end}deg`;
 	});
 	if (segments.length === 0) {

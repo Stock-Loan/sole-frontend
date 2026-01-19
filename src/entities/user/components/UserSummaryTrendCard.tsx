@@ -39,7 +39,9 @@ export function UserSummaryTrendCard({
 						<div key={`${title}-${item.label}`} className="space-y-2">
 							<div className="flex items-center justify-between text-xs text-muted-foreground">
 								<span className="text-foreground">{item.label}</span>
-								<span className="tabular-nums">{item.value.toLocaleString()}</span>
+								<span className="tabular-nums">
+									{item.value.toLocaleString()}
+								</span>
 							</div>
 							<div className="h-2 w-full rounded-full bg-slate-100">
 								<div

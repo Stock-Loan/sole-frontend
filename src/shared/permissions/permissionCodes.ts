@@ -1,4 +1,7 @@
-import type { PermissionCatalog, PermissionCode } from "@/shared/permissions/types";
+import type {
+	PermissionCatalog,
+	PermissionCode,
+} from "@/shared/permissions/types";
 
 export const ALL_PERMISSION_CODES: PermissionCode[] = [
 	// Core / org

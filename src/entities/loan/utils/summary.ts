@@ -27,7 +27,7 @@ const formatCount = (value?: number | null) =>
 	value === null || value === undefined ? "—" : value.toLocaleString();
 
 export function buildLoanSummaryMetrics(
-	summary?: LoanDashboardSummary | null
+	summary?: LoanDashboardSummary | null,
 ): LoanSummaryMetric[] {
 	if (!summary) return [];
 
@@ -79,7 +79,7 @@ export function buildLoanSummaryMetrics(
 }
 
 export function buildLoanStatusItems(
-	summary?: LoanDashboardSummary | null
+	summary?: LoanDashboardSummary | null,
 ): LoanSummaryBarItem[] {
 	if (!summary) return [];
 	const counts = summary.status_counts ?? {};
@@ -101,7 +101,7 @@ export function buildLoanStatusItems(
 }
 
 export function buildLoanStageItems(
-	summary?: LoanDashboardSummary | null
+	summary?: LoanDashboardSummary | null,
 ): LoanSummaryBarItem[] {
 	if (!summary) return [];
 	const counts = summary.open_stage_counts ?? {};
@@ -119,7 +119,7 @@ export function buildLoanStageItems(
 }
 
 export function buildActiveInterestItems(
-	summary?: LoanDashboardSummary | null
+	summary?: LoanDashboardSummary | null,
 ): LoanSummaryBarItem[] {
 	if (!summary) return [];
 	return [
@@ -137,7 +137,7 @@ export function buildActiveInterestItems(
 }
 
 export function buildActiveRepaymentItems(
-	summary?: LoanDashboardSummary | null
+	summary?: LoanDashboardSummary | null,
 ): LoanSummaryBarItem[] {
 	if (!summary) return [];
 	return [

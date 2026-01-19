@@ -6,7 +6,7 @@ import type { UserSummaryPieChartProps } from "@/entities/user/components/types"
 function buildGradient(
 	items: UserSummaryPieChartProps["items"],
 	total: number,
-	remainderColor: string
+	remainderColor: string,
 ) {
 	let cursor = 0;
 	const segments = items.map((item, index) => {
@@ -14,8 +14,7 @@ function buildGradient(
 		const start = cursor * 360;
 		const end = (cursor + ratio) * 360;
 		cursor += ratio;
-		const color =
-			item.color ?? Object.values(colorPalette.chart)[index % 6];
+		const color = item.color ?? Object.values(colorPalette.chart)[index % 6];
 		return `${color} ${start}deg ${end}deg`;
 	});
 	if (cursor < 1) {

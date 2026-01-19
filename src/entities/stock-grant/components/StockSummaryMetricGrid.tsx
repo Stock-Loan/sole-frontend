@@ -2,7 +2,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { colorPalette } from "@/shared/styles/color-palette";
 import type { StockSummaryMetricGridProps } from "@/entities/stock-grant/components/types";
 
-export function StockSummaryMetricGrid({ metrics }: StockSummaryMetricGridProps) {
+export function StockSummaryMetricGrid({
+	metrics,
+}: StockSummaryMetricGridProps) {
 	const cardStyle = {
 		borderColor: colorPalette.slate[200],
 		backgroundColor: colorPalette.semantic.surface,

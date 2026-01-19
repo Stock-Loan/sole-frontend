@@ -3,15 +3,17 @@ import { EmptyState } from "@/shared/ui/EmptyState";
 import { colorPalette } from "@/shared/styles/color-palette";
 import type { StockSummaryDonutCardProps } from "@/entities/stock-grant/components/types";
 
-function buildGradient(items: StockSummaryDonutCardProps["items"], total: number) {
+function buildGradient(
+	items: StockSummaryDonutCardProps["items"],
+	total: number,
+) {
 	let cursor = 0;
 	const segments = items.map((item, index) => {
 		const ratio = total > 0 ? item.value / total : 0;
 		const start = cursor * 360;
 		const end = (cursor + ratio) * 360;
 		cursor += ratio;
-		const color =
-			item.color ?? Object.values(colorPalette.chart)[index % 6];
+		const color = item.color ?? Object.values(colorPalette.chart)[index % 6];
 		return `${color} ${start}deg ${end}deg`;
 	});
 	if (segments.length === 0) {

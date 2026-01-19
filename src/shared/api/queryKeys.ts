@@ -111,8 +111,7 @@ export const orgKeys = {
 			hr: (id: string) => ["org", "loans", "detail", "hr", id] as const,
 			finance: (id: string) =>
 				["org", "loans", "detail", "finance", id] as const,
-			legal: (id: string) =>
-				["org", "loans", "detail", "legal", id] as const,
+			legal: (id: string) => ["org", "loans", "detail", "legal", id] as const,
 		},
 		documents: {
 			org: (id: string) => ["org", "loans", "documents", id] as const,

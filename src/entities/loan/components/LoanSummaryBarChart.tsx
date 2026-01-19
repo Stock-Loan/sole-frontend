@@ -29,8 +29,7 @@ export function LoanSummaryBarChart({
 								const ratio = base > 0 ? item.value / base : 0;
 								const height = Math.max(4, Math.round(ratio * 100));
 								const color =
-									item.color ??
-									Object.values(colorPalette.chart)[index % 6];
+									item.color ?? Object.values(colorPalette.chart)[index % 6];
 								return (
 									<div
 										key={`${title}-${item.label}`}
@@ -59,10 +58,12 @@ export function LoanSummaryBarChart({
 						<div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
 							{items.map((item, index) => {
 								const color =
-									item.color ??
-									Object.values(colorPalette.chart)[index % 6];
+									item.color ?? Object.values(colorPalette.chart)[index % 6];
 								return (
-									<div key={`${title}-legend-${item.label}`} className="flex items-center gap-2">
+									<div
+										key={`${title}-legend-${item.label}`}
+										className="flex items-center gap-2"
+									>
 										<span
 											className="h-2.5 w-2.5 rounded-full"
 											style={{ backgroundColor: color }}

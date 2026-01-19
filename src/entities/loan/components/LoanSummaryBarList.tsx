@@ -29,8 +29,7 @@ export function LoanSummaryBarList({
 							const ratio = base > 0 ? item.value / base : 0;
 							const width = Math.min(100, Math.max(0, ratio * 100));
 							const color =
-								item.color ??
-								Object.values(colorPalette.chart)[index % 6];
+								item.color ?? Object.values(colorPalette.chart)[index % 6];
 							return (
 								<li key={`${title}-${item.label}`}>
 									<div className="flex items-center justify-between text-xs text-muted-foreground">
@@ -49,7 +48,7 @@ export function LoanSummaryBarList({
 									<div
 										className={cn(
 											"mt-2 h-2 w-full overflow-hidden rounded-full",
-											"bg-slate-100"
+											"bg-slate-100",
 										)}
 									>
 										<div
