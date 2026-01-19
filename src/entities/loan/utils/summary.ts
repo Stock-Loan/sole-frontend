@@ -1,6 +1,6 @@
 import { formatCurrency, formatDate } from "@/shared/lib/format";
 import { normalizeDisplay } from "@/shared/lib/utils";
-import { colorPalette } from "@/app/styles/color-palette";
+import { colorPalette } from "@/shared/styles/color-palette";
 import type { LoanDashboardSummary } from "@/entities/loan/types";
 import type {
 	LoanSummaryBarItem,

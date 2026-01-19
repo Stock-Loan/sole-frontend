@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { EmptyState } from "@/shared/ui/EmptyState";
 import { formatDate } from "@/shared/lib/format";
 import { formatShares } from "@/entities/stock-grant/constants";
-import { colorPalette } from "@/app/styles/color-palette";
+import { colorPalette } from "@/shared/styles/color-palette";
 import type { StockSummaryTimelineCardProps } from "@/entities/stock-grant/components/types";
 
 export function StockSummaryTimelineCard({

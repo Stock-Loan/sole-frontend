@@ -5,12 +5,7 @@ import { Form } from "@/shared/ui/Form/form";
 import { FormFieldWrapper } from "@/shared/ui/Form/FormField";
 import { orgCreateSchema } from "@/entities/org/schemas";
 import type { OrgCreatePayload } from "@/entities/org/types";
-
-export interface OrgCreateFormProps {
-	isSubmitting?: boolean;
-	onSubmit: (values: OrgCreatePayload) => Promise<void> | void;
-	formId?: string;
-}
+import type { OrgCreateFormProps } from "./types";
 
 export function OrgCreateForm({
 	isSubmitting,

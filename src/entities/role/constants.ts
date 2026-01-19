@@ -1,4 +1,4 @@
-import { PERMISSION_CATALOG } from "@/app/permissions/permissionCodes";
+import { PERMISSION_CATALOG } from "@/shared/permissions/permissionCodes";
 
 export const ROLE_TYPE_LABELS = {
 	system: "System role",

@@ -1,4 +1,4 @@
-import type { PermissionCatalog, PermissionCode } from "@/app/permissions/types";
+import type { PermissionCatalog, PermissionCode } from "@/shared/permissions/types";
 import type { OrgUserListItem } from "@/entities/user/types";
 
 export interface Role {

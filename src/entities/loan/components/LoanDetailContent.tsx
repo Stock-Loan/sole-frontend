@@ -14,7 +14,7 @@ import {
 import { formatCurrency, formatDate, formatPercent } from "@/shared/lib/format";
 import { formatShares } from "@/entities/stock-grant/constants";
 import { cn } from "@/shared/lib/utils";
-import { colorPalette } from "@/app/styles/color-palette";
+import { colorPalette } from "@/shared/styles/color-palette";
 import { TabButton } from "@/shared/ui/TabButton";
 import { Button } from "@/shared/ui/Button";
 import {

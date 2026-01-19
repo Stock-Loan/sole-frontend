@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
-import { colorPalette } from "@/app/styles/color-palette";
+import { colorPalette } from "@/shared/styles/color-palette";
 import type { StockSummaryMetricGridProps } from "@/entities/stock-grant/components/types";
 
 export function StockSummaryMetricGrid({ metrics }: StockSummaryMetricGridProps) {

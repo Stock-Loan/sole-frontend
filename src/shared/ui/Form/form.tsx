@@ -4,7 +4,7 @@ import * as React from "react";
 import {
 	Controller,
 	FormProvider,
-	type ControllerProps,
+	ControllerProps,
 	type FieldPath,
 	type FieldValues,
 } from "react-hook-form";

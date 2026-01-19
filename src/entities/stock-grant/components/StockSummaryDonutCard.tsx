@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { EmptyState } from "@/shared/ui/EmptyState";
-import { colorPalette } from "@/app/styles/color-palette";
+import { colorPalette } from "@/shared/styles/color-palette";
 import type { StockSummaryDonutCardProps } from "@/entities/stock-grant/components/types";
 
 function buildGradient(items: StockSummaryDonutCardProps["items"], total: number) {

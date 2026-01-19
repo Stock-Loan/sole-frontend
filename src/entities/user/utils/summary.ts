@@ -1,5 +1,5 @@
 import { normalizeDisplay } from "@/shared/lib/utils";
-import { colorPalette } from "@/app/styles/color-palette";
+import { colorPalette } from "@/shared/styles/color-palette";
 import type { UserDashboardSummary } from "@/entities/user/types";
 import type {
 	UserSummaryMetric,

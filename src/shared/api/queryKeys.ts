@@ -1,11 +1,45 @@
-import type { StockSummaryParams } from "@/entities/stock-grant/types";
-import type { AuditLogListParams } from "@/entities/audit/types";
-import type {
-	LoanApplicationListParams,
-	LoanDashboardSummaryParams,
-	LoanQuoteInput,
-	LoanQueueListParams,
-} from "@/entities/loan/types";
+type StockSummaryParams = {
+	as_of?: string;
+};
+
+type AuditLogListParams = {
+	page?: number;
+	page_size?: number;
+	feature?: string[];
+	action?: string[];
+	resource_type?: string;
+	resource_id?: string;
+	actor_id?: string;
+	created_from?: string;
+	created_to?: string;
+};
+
+type LoanApplicationListParams = {
+	status?: string[] | string;
+	stage_type?: string;
+	limit?: number;
+	offset?: number;
+	created_from?: string;
+	created_to?: string;
+};
+
+type LoanDashboardSummaryParams = {
+	as_of?: string;
+};
+
+type LoanQuoteInput = {
+	selection_mode: string;
+	selection_value: string;
+	as_of_date?: string;
+	desired_interest_type?: string;
+	desired_repayment_method?: string;
+	desired_term_months?: number;
+};
+
+type LoanQueueListParams = {
+	limit?: number;
+	offset?: number;
+};
 
 export const meKeys = {
 	dashboard: {

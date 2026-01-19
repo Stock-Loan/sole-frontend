@@ -1,4 +1,4 @@
-import { colorPalette } from "@/app/styles/color-palette";
+import { colorPalette } from "@/shared/styles/color-palette";
 import { formatCurrency, formatDate, formatPercent } from "@/shared/lib/format";
 import type {
 	StockDashboardSummary,
