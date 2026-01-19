@@ -24,10 +24,12 @@ export const loanDocumentUploadSchema = z.object({
 });
 
 export const loanRepaymentSchema = z.object({
-	amount: nonEmptyString,
-	principal_amount: nonEmptyString,
-	interest_amount: nonEmptyString,
 	payment_date: nonEmptyString,
+	extra_principal_amount: z.string().trim().optional().or(z.literal("")),
+	extra_interest_amount: z.string().trim().optional().or(z.literal("")),
+	amount: z.string().trim().optional().or(z.literal("")),
+	principal_amount: z.string().trim().optional().or(z.literal("")),
+	interest_amount: z.string().trim().optional().or(z.literal("")),
 	evidence_file: z
 		.instanceof(File)
 		.optional()

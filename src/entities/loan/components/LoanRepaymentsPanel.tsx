@@ -3,6 +3,7 @@ import { EmptyState } from "@/shared/ui/EmptyState";
 import { DataTable } from "@/shared/ui/Table/DataTable";
 import type { ColumnDefinition } from "@/shared/ui/Table/types";
 import { formatCurrency, formatDate } from "@/shared/lib/format";
+import { cn } from "@/shared/lib/utils";
 import type { LoanRepaymentsPanelProps } from "@/entities/loan/components/types";
 import type { LoanRepayment } from "@/entities/loan/types";
 
@@ -12,6 +13,7 @@ export function LoanRepaymentsPanel({
 	isError,
 	onRetry,
 	headerActions,
+	className,
 }: LoanRepaymentsPanelProps) {
 	const columns = useMemo<ColumnDefinition<LoanRepayment>[]>(
 		() => [
@@ -98,7 +100,7 @@ export function LoanRepaymentsPanel({
 			isLoading={isLoading}
 			emptyMessage="No repayments yet. Activity will appear once payments are recorded."
 			headerActions={headerActions}
-			className="min-h-[260px]"
+			className={cn("min-h-0 flex-1", className)}
 		/>
 	);
 }

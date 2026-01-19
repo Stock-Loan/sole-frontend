@@ -68,8 +68,8 @@ import type {
 	LoanDocumentUploadPayload,
 	LoanDocumentsGroupedResponse,
 	LoanActivateBacklogResponse,
-	LoanRepayment,
 	LoanRepaymentCreatePayload,
+	LoanRepaymentRecordResponse,
 	LoanRepaymentsResponse,
 	LoanScheduleResponse,
 	LoanWorkflowAssignPayload,
@@ -210,7 +210,7 @@ export function useOrgLoanRepayments(
 export function useCreateOrgLoanRepayment(
 	id: string,
 	options: Omit<
-		UseMutationOptions<LoanRepayment, unknown, LoanRepaymentCreatePayload>,
+		UseMutationOptions<LoanRepaymentRecordResponse, unknown, LoanRepaymentCreatePayload>,
 		"mutationFn"
 	> = {}
 ) {
@@ -219,6 +219,7 @@ export function useCreateOrgLoanRepayment(
 		mutationFn: (payload) => createOrgLoanRepayment(id, payload),
 		onSuccess: (data, variables, onMutateResult, context) => {
 			queryClient.invalidateQueries({ queryKey: orgKeys.loans.repayments(id) });
+			queryClient.invalidateQueries({ queryKey: orgKeys.loans.detail(id) });
 			options.onSuccess?.(data, variables, onMutateResult, context);
 		},
 		onError: (error, variables, onMutateResult, context) => {

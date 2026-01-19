@@ -832,6 +832,7 @@ export function LoanDetailContent({
 							  }
 							: undefined
 					}
+					className="min-h-[360px] h-[calc(100dvh-320px)]"
 				/>
 			) : null}
 

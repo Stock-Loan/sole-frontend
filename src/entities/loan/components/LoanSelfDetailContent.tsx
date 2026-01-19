@@ -19,11 +19,13 @@ import { LoanDocumentList } from "@/entities/loan/components/LoanDocumentList";
 import { LoanRepaymentsPanel } from "@/entities/loan/components/LoanRepaymentsPanel";
 import { LoanSchedulePanel } from "@/entities/loan/components/LoanSchedulePanel";
 import { LoanTimeline } from "@/entities/loan/components/LoanTimeline";
+import { Loan83bPanel } from "@/entities/loan/components/Loan83bPanel";
 import {
 	useDownloadMyLoanDocument,
 	useExportMyLoanCsv,
 	useMyLoanRepayments,
 	useMyLoanSchedule,
+	useRegisterMyLoan83bDocument,
 } from "@/entities/loan/hooks";
 import { useToast } from "@/shared/ui/use-toast";
 import { parseApiError } from "@/shared/api/errors";
@@ -68,6 +70,7 @@ export function LoanSelfDetailContent({
 	const canViewRepayments = can("loan.payment.self.view");
 	const canViewSchedule = can("loan.schedule.self.view");
 	const canExportLoan = can("loan.export.self");
+	const canUpload83b = can("loan.document.self_upload_83b");
 	const downloadMutation = useDownloadMyLoanDocument({
 		onError: (error) => {
 			toast({
@@ -78,6 +81,9 @@ export function LoanSelfDetailContent({
 		},
 	});
 	const isActiveLoan = loan?.status === "ACTIVE";
+	const show83bAction =
+		isActiveLoan && !loan?.has_83b_election && canUpload83b;
+	const register83bMutation = useRegisterMyLoan83bDocument();
 	const availableTabs = useMemo<LoanDetailTabOption[]>(() => {
 		const options: LoanDetailTabOption[] = [
 			{ id: "overview", label: "Overview" },
@@ -88,8 +94,11 @@ export function LoanSelfDetailContent({
 		if (isActiveLoan && canViewSchedule) {
 			options.push({ id: "schedule", label: "Schedule" });
 		}
+		if (show83bAction) {
+			options.push({ id: "83b", label: "83B Election" });
+		}
 		return options;
-	}, [isActiveLoan, canViewRepayments, canViewSchedule]);
+	}, [isActiveLoan, canViewRepayments, canViewSchedule, show83bAction]);
 	const showTabs = isActiveLoan && availableTabs.length > 1;
 	const repaymentsQuery = useMyLoanRepayments(loan?.id ?? "", {
 		enabled:
@@ -441,6 +450,7 @@ export function LoanSelfDetailContent({
 					isLoading={repaymentsQuery.isLoading}
 					isError={repaymentsQuery.isError}
 					onRetry={() => repaymentsQuery.refetch()}
+					className="min-h-[360px] h-[calc(100dvh-320px)]"
 				/>
 			) : null}
 
@@ -464,6 +474,18 @@ export function LoanSelfDetailContent({
 							</Button>
 						) : null
 					}
+				/>
+			) : null}
+
+			{activeTab === "83b" && loan ? (
+				<Loan83bPanel
+					loanId={loan.id}
+					dueDate={loan.election_83b_due_date}
+					daysUntilDue={loan.days_until_83b_due}
+					onRegister={(payload) =>
+						register83bMutation.mutateAsync({ id: loan.id, payload })
+					}
+					isRegistering={register83bMutation.isPending}
 				/>
 			) : null}
 		</div>

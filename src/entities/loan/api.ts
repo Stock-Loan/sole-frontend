@@ -11,9 +11,9 @@ import type {
 	LoanApplicationListResponse,
 	LoanDashboardSummary,
 	LoanDashboardSummaryParams,
-	LoanRepayment,
-	LoanRepaymentsResponse,
 	LoanRepaymentCreatePayload,
+	LoanRepaymentRecordResponse,
+	LoanRepaymentsResponse,
 	LoanScheduleResponse,
 	LoanDocument,
 	LoanDocumentCreatePayload,
@@ -164,21 +164,29 @@ export async function listOrgLoanRepayments(
 export async function createOrgLoanRepayment(
 	id: string,
 	payload: LoanRepaymentCreatePayload
-): Promise<LoanRepayment> {
+): Promise<LoanRepaymentRecordResponse> {
 	const formData = new FormData();
-	formData.append("amount", payload.amount);
-	formData.append("principal_amount", payload.principal_amount);
-	formData.append("interest_amount", payload.interest_amount);
 	formData.append("payment_date", payload.payment_date);
+	const appendIfValue = (key: string, value?: string) => {
+		if (value === undefined || value === null) return;
+		const normalized = String(value).trim();
+		if (!normalized) return;
+		formData.append(key, normalized);
+	};
+	appendIfValue("extra_principal_amount", payload.extra_principal_amount);
+	appendIfValue("extra_interest_amount", payload.extra_interest_amount);
+	appendIfValue("amount", payload.amount);
+	appendIfValue("principal_amount", payload.principal_amount);
+	appendIfValue("interest_amount", payload.interest_amount);
 	if (payload.evidence_file) {
 		formData.append("evidence_file", payload.evidence_file);
 	}
-	const { data } = await apiClient.post<LoanRepayment>(
+	const { data } = await apiClient.post<LoanRepaymentRecordResponse>(
 		`/org/loans/${id}/repayments`,
 		formData,
 		{ headers: { "Content-Type": "multipart/form-data" } }
 	);
-	return unwrapApiResponse<LoanRepayment>(data);
+	return unwrapApiResponse<LoanRepaymentRecordResponse>(data);
 }
 
 export async function getOrgLoanSchedule(

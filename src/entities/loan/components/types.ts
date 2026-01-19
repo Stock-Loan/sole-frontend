@@ -156,9 +156,10 @@ export interface LoanRepaymentsPanelProps {
 	isError?: boolean;
 	onRetry?: () => void;
 	headerActions?: DataTableHeaderActions;
+	className?: string;
 }
 
-export type LoanDetailTab = "overview" | "repayments" | "schedule";
+export type LoanDetailTab = "overview" | "repayments" | "schedule" | "83b";
 
 export interface LoanDetailTabOption {
 	id: LoanDetailTab;

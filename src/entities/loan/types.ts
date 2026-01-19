@@ -103,11 +103,24 @@ export interface LoanRepaymentsResponse {
 }
 
 export interface LoanRepaymentCreatePayload {
-	amount: string;
-	principal_amount: string;
-	interest_amount: string;
 	payment_date: string;
 	evidence_file?: File | null;
+	extra_principal_amount?: string;
+	extra_interest_amount?: string;
+	amount?: string;
+	principal_amount?: string;
+	interest_amount?: string;
+}
+
+export interface LoanRepaymentRecordResponse {
+	repayment: LoanRepayment;
+	next_payment_date?: string | null;
+	next_payment_amount?: string | null;
+	next_principal_due?: string | null;
+	next_interest_due?: string | null;
+	principal_remaining?: string | null;
+	interest_remaining?: string | null;
+	total_remaining?: string | null;
 }
 
 export interface LoanScheduleEntry {

@@ -19,11 +19,13 @@ export function LoanRepaymentDialog({
 	const form = useForm<LoanRepaymentCreatePayload>({
 		resolver: zodResolver(loanRepaymentSchema),
 		defaultValues: {
+			payment_date: "",
+			evidence_file: null,
+			extra_principal_amount: "",
+			extra_interest_amount: "",
 			amount: "",
 			principal_amount: "",
 			interest_amount: "",
-			payment_date: "",
-			evidence_file: null,
 		},
 	});
 
@@ -43,9 +45,52 @@ export function LoanRepaymentDialog({
 					>
 						<DialogBody className="space-y-4">
 							<FormFieldWrapper
+								name="payment_date"
+								control={form.control}
+								label="Payment date"
+							>
+								{({ field }) => (
+									<Input type="date" {...field} />
+								)}
+							</FormFieldWrapper>
+							<div className="rounded-md border border-border/60 bg-muted/30 px-3 py-3 text-xs text-muted-foreground">
+								<p className="font-semibold text-foreground">
+									Optional adjustments
+								</p>
+								<p className="mt-1">
+									Enter extra principal or interest if this payment includes
+									additional amounts. Leave blank to use the scheduled payment.
+								</p>
+							</div>
+							<FormFieldWrapper
+								name="extra_principal_amount"
+								control={form.control}
+								label="Extra principal amount"
+							>
+								{({ field }) => (
+									<Input placeholder="0.00" {...field} />
+								)}
+							</FormFieldWrapper>
+							<FormFieldWrapper
+								name="extra_interest_amount"
+								control={form.control}
+								label="Extra interest amount"
+							>
+								{({ field }) => (
+									<Input placeholder="0.00" {...field} />
+								)}
+							</FormFieldWrapper>
+							<div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-3 text-xs text-amber-900">
+								<p className="font-semibold">Optional overrides</p>
+								<p className="mt-1 text-amber-800">
+									Use these only if you need to override the computed totals.
+									If provided, they must match the calculated amounts.
+								</p>
+							</div>
+							<FormFieldWrapper
 								name="amount"
 								control={form.control}
-								label="Amount"
+								label="Amount (override)"
 							>
 								{({ field }) => (
 									<Input placeholder="500.00" {...field} />
@@ -54,7 +99,7 @@ export function LoanRepaymentDialog({
 							<FormFieldWrapper
 								name="principal_amount"
 								control={form.control}
-								label="Principal amount"
+								label="Principal amount (override)"
 							>
 								{({ field }) => (
 									<Input placeholder="420.00" {...field} />
@@ -63,19 +108,10 @@ export function LoanRepaymentDialog({
 							<FormFieldWrapper
 								name="interest_amount"
 								control={form.control}
-								label="Interest amount"
+								label="Interest amount (override)"
 							>
 								{({ field }) => (
 									<Input placeholder="80.00" {...field} />
-								)}
-							</FormFieldWrapper>
-							<FormFieldWrapper
-								name="payment_date"
-								control={form.control}
-								label="Payment date"
-							>
-								{({ field }) => (
-									<Input type="date" {...field} />
 								)}
 							</FormFieldWrapper>
 							<FormFieldWrapper

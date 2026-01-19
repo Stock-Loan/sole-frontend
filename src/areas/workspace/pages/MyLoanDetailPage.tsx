@@ -8,10 +8,8 @@ import { usePermissions } from "@/auth/hooks";
 import {
 	useMyLoanApplication,
 	useMyLoanDocuments,
-	useRegisterMyLoan83bDocument,
 } from "@/entities/loan/hooks";
 import { LoanSelfDetailContent } from "@/entities/loan/components/LoanSelfDetailContent";
-import { Loan83bPanel } from "@/entities/loan/components/Loan83bPanel";
 
 export function MyLoanDetailPage() {
 	const { id } = useParams();
@@ -25,7 +23,6 @@ export function MyLoanDetailPage() {
 	const documentsQuery = useMyLoanDocuments(id ?? "", {
 		enabled: canViewDocuments && loan?.status === "ACTIVE",
 	});
-	const register83bMutation = useRegisterMyLoan83bDocument();
 
 	if (!canViewLoans) {
 		return (
@@ -76,18 +73,6 @@ export function MyLoanDetailPage() {
 				onDocumentsRetry={() => documentsQuery.refetch()}
 				canViewDocuments={canViewDocuments}
 			/>
-
-			{loan?.status === "ACTIVE" && !loan?.has_83b_election ? (
-				<Loan83bPanel
-					loanId={loan.id}
-					dueDate={loan.election_83b_due_date}
-					daysUntilDue={loan.days_until_83b_due}
-					onRegister={(payload) =>
-						register83bMutation.mutateAsync({ id: loan.id, payload })
-					}
-					isRegistering={register83bMutation.isPending}
-				/>
-			) : null}
 		</PageContainer>
 	);
 }
