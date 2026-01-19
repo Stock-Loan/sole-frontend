@@ -9,9 +9,9 @@ export function LoanSummaryBarChart({
 	items,
 	total,
 	emptyMessage = "No data available.",
-className,
-summary,
-chartHeightClassName,
+	className,
+	summary,
+	chartHeightClassName,
 }: LoanSummaryBarChartProps) {
 	const max = items.reduce((acc, item) => Math.max(acc, item.value), 0);
 	const sum = items.reduce((acc, item) => acc + item.value, 0);

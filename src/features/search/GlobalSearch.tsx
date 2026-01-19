@@ -80,7 +80,7 @@ export function GlobalSearch({
 
 	const triggerClasses = compact
 		? "inline-flex h-10 items-center justify-center rounded border border-border/60 bg-background/80 text-muted-foreground shadow-sm transition hover:-translate-y-[1px] hover:text-foreground hover:shadow-md focus-visible:outline-none focus-visible:ring-0"
-		: "group relative flex items-center justify-center xl:justify-start gap-3 rounded-xl border border-border/60 bg-background/80 px-3 text-left text-sm shadow-sm transition hover:-translate-y-[1px] hover:border-primary/50 hover:shadow-md focus-visible:outline-none focus-visible:ring-0 w-11 xl:w-full xl:max-w-md h-10";
+		: "group relative flex items-center justify-center xl:justify-start gap-3 rounded-xl border border-border/60 bg-background/80 px-3 text-left text-sm shadow-sm transition hover:-translate-y-[1px] hover:border-primary/50 hover:shadow-md focus-visible:outline-none focus-visible:ring-0 w-11 xl:w-full xl:max-w-md h-11";
 
 	return (
 		<Dialog open={open} onOpenChange={handleOpenChange}>
@@ -103,9 +103,9 @@ export function GlobalSearch({
 					) : null}
 				</button>
 			</DialogTrigger>
-			<DialogContent className="h-[70vh] max-h-[70vh]">
-				<DialogBody className="flex h-full flex-col gap-4 p-5 pt-10">
-					<div className="flex items-center gap-3 rounded-xl border border-border/60 bg-muted/30 px-3 py-3 shadow-inner">
+				<DialogContent className="h-[70vh] max-h-[70vh]">
+					<DialogBody className="flex h-full flex-col gap-4 p-5 pt-10">
+						<div className="flex items-center gap-3 rounded-lg border border-border/60 bg-muted/30 px-3 py-2 shadow-inner">
 						<Search className="h-4 w-4 text-muted-foreground" />
 						<Input
 							autoFocus
@@ -113,7 +113,7 @@ export function GlobalSearch({
 							onChange={(event) => setQuery(event.target.value)}
 							type="search"
 							placeholder="Search pages, settings, or actions"
-							className="border-0 bg-transparent shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+								className="h-8 border-0 bg-transparent p-0 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
 						/>
 					</div>
 					<div className="flex-1 min-h-0 space-y-4 overflow-y-auto pr-1">

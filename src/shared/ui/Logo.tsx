@@ -48,9 +48,9 @@ export function Logo({
 			{/* Tagline tuned to blend with the palette */}
 			<span
 				className={cn(
-					"font-medium tracking-wide text-sky-900 dark:text-sky-100/80 overflow-hidden whitespace-nowrap transition-all duration-300 ease-in-out",
+					"font-medium tracking-wide text-sky-900 dark:text-sky-100/80 overflow-hidden whitespace-nowrap transition-opacity duration-150 ease-out",
 					taglineSizeClasses[size],
-					showTagline ? "max-w-[200px] opacity-100 ml-3" : "max-w-0 opacity-0 ml-0"
+					showTagline ? "opacity-100 ml-3" : "opacity-0 ml-0 w-0"
 				)}
 			>
 				Equity Redefined
