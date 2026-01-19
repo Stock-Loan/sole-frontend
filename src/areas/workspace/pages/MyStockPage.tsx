@@ -138,6 +138,22 @@ export function MyStockPage() {
 									>
 										{metric.label}
 									</CardTitle>
+									{metric.label === "Total granted shares" ? (
+										<Link
+											to={routes.workspaceGrants}
+											className="absolute right-4 top-3 text-xs font-semibold text-primary underline"
+										>
+											See grants
+										</Link>
+									) : null}
+									{metric.label === "Next vesting" ? (
+										<Link
+											to={routes.workspaceVestingEvents}
+											className="absolute right-4 top-3 text-xs font-semibold text-primary underline"
+										>
+											View all events
+										</Link>
+									) : null}
 								</CardHeader>
 								<CardContent>
 									<p

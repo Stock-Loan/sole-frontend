@@ -7,6 +7,8 @@ export const routes = {
 	appRoot: "/app",
 	workspace: "/app/workspace",
 	workspaceLoans: "/app/workspace/loans",
+	workspaceGrants: "/app/workspace/grants",
+	workspaceVestingEvents: "/app/workspace/vesting-events",
 	workspaceLoanWizardNew: "/app/workspace/loans/new",
 	workspaceLoanWizardEdit: "/app/workspace/loans/:id/edit",
 	workspaceLoanDetail: "/app/workspace/loans/:id",

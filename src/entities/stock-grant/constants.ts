@@ -1,3 +1,4 @@
+import { formatYearsInText } from "@/shared/lib/format";
 import type { EligibilityReason, EligibilityReasonCode } from "./types";
 
 const eligibilityReasonFallbacks: Record<EligibilityReasonCode, string> = {
@@ -13,5 +14,7 @@ export function formatShares(value?: number | null) {
 }
 
 export function getEligibilityReasonLabel(reason: EligibilityReason) {
-	return reason.message || eligibilityReasonFallbacks[reason.code] || reason.code;
+	const message =
+		reason.message || eligibilityReasonFallbacks[reason.code] || reason.code;
+	return formatYearsInText(message);
 }

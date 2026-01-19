@@ -10,6 +10,20 @@ export const navConfig: NavConfig = {
 			icon: Gauge,
 		},
 		{
+			id: "workspace-grants",
+			label: "My grants",
+			path: "/app/workspace/grants",
+			icon: ClipboardList,
+			permissions: "stock.self.view",
+		},
+		{
+			id: "workspace-vesting-events",
+			label: "My vesting events",
+			path: "/app/workspace/vesting-events",
+			icon: BarChart3,
+			permissions: "stock.self.view",
+		},
+		{
 			id: "workspace-loans",
 			label: "My loans",
 			path: "/app/workspace/loans",

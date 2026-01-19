@@ -72,6 +72,7 @@ export function useUpdateDepartment(
 		onSuccess: (data, variables, context) => {
 			queryClient.invalidateQueries({ queryKey: departmentKeys.list() });
 			queryClient.invalidateQueries({ queryKey: departmentKeys.detail(data.id) });
+			queryClient.invalidateQueries({ queryKey: userKeys.list() });
 			options.onSuccess?.(data, variables, context);
 		},
 		onError: (error, variables, context) => {

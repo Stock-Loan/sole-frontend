@@ -47,3 +47,24 @@ export function formatPercent(value?: number | string | null) {
 
 	return `${rounded}%`;
 }
+
+export function formatYears(value?: number | string | null) {
+	if (value === null || value === undefined) return "—";
+	const raw = String(value).trim();
+	if (!raw) return "—";
+	const numericValue = Number(raw.replace(/,/g, "").trim());
+	if (!Number.isFinite(numericValue)) {
+		return raw;
+	}
+	return Math.abs(numericValue - Math.round(numericValue)) < 1e-9
+		? String(Math.round(numericValue))
+		: numericValue.toFixed(1);
+}
+
+export function formatYearsInText(text: string) {
+	if (!text) return text;
+	return text.replace(
+		/(\d+(?:\.\d+)?)(?=\s*years?\b)/gi,
+		(match) => formatYears(match)
+	);
+}

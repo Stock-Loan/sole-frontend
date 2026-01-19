@@ -1,6 +1,13 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isAxiosError } from "axios";
-import { ArrowLeft, CheckCircle2, Loader2, Shield } from "lucide-react";
+import {
+	ArrowLeft,
+	CheckCircle2,
+	Eye,
+	EyeOff,
+	Loader2,
+	Shield,
+} from "lucide-react";
 import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import {
@@ -52,6 +59,7 @@ export function LoginPage() {
 	const [step, setStep] = useState<"email" | "password">("email");
 	const [challengeToken, setChallengeToken] = useState<string | null>(null);
 	const [email, setEmail] = useState<string>("");
+	const [showPassword, setShowPassword] = useState(false);
 
 	const emailForm = useForm<LoginEmailFormValues>({
 		resolver: zodResolver(emailSchema),
@@ -288,14 +296,37 @@ export function LoginPage() {
 											<FormItem>
 												<FormLabel>Password</FormLabel>
 												<FormControl>
-													<Input
-														{...field}
-														type="password"
-														autoComplete="current-password"
-														placeholder="Enter your password"
-														disabled={completeLoginMutation.isPending}
-														className="h-13"
-													/>
+													<div className="relative">
+														<Input
+															{...field}
+															type={showPassword ? "text" : "password"}
+															autoComplete="current-password"
+															placeholder="Enter your password"
+															disabled={completeLoginMutation.isPending}
+															className="h-13 pr-11"
+														/>
+														<Button
+															type="button"
+															variant="ghost"
+															size="icon"
+															className="absolute right-1 top-1/2 h-9 w-9 -translate-y-1/2"
+															onClick={() =>
+																setShowPassword((prev) => !prev)
+															}
+															aria-label={
+																showPassword
+																	? "Hide password"
+																	: "Show password"
+															}
+															disabled={completeLoginMutation.isPending}
+														>
+															{showPassword ? (
+																<EyeOff className="h-4 w-4" />
+															) : (
+																<Eye className="h-4 w-4" />
+															)}
+														</Button>
+													</div>
 												</FormControl>
 												<FormMessage />
 											</FormItem>

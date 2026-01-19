@@ -112,6 +112,7 @@ export interface StockSummary {
 	total_reserved_shares: number;
 	total_available_vested_shares: number;
 	next_vesting_event?: NextVestingEvent | null;
+	next_vesting_events?: NextVestingEvent[] | null;
 	eligibility_result: EligibilityResult;
 	grants: GrantSummary[];
 }

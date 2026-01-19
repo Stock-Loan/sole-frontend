@@ -193,6 +193,11 @@ export interface UpdateOrgUserProfilePayload {
 	employee_id?: string;
 }
 
+export interface UpdateOrgUserProfileWithStatusPayload {
+	profilePayload?: UpdateOrgUserProfilePayload;
+	statusPayload?: UpdateOrgUserStatusPayload;
+}
+
 export type BulkOnboardingRowStatus = "success" | "failure";
 
 export type OrgUserDetailTabKey = "info" | "grants";

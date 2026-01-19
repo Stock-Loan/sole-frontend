@@ -1,6 +1,6 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ShieldCheck } from "lucide-react";
+import { Eye, EyeOff, ShieldCheck } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { PublicHeader } from "@/shared/ui/PublicHeader";
@@ -27,6 +27,9 @@ export function ChangePasswordPage() {
 	const { toast } = useToast();
 	const apiErrorToast = useApiErrorToast();
 	const navigate = useNavigate();
+	const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+	const [showNewPassword, setShowNewPassword] = useState(false);
+	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
 	// Allow reaching this page on first-login 403 redirect even without a cached token.
 	useEffect(() => {
@@ -46,6 +49,11 @@ export function ChangePasswordPage() {
 	});
 
 	const changePasswordMutation = useChangePasswordWithToken();
+
+	const handleLogout = async () => {
+		await logout();
+		navigate(routes.login, { replace: true });
+	};
 
 	const onSubmit = (values: ChangePasswordFormValues) => {
 		changePasswordMutation.mutate(
@@ -100,13 +108,39 @@ export function ChangePasswordPage() {
 									<FormItem>
 										<FormLabel>Current password</FormLabel>
 										<FormControl>
-											<Input
-												{...field}
-												type="password"
-												autoComplete="current-password"
-												placeholder="Enter your current password"
-												disabled={changePasswordMutation.isPending}
-											/>
+											<div className="relative">
+												<Input
+													{...field}
+													type={
+														showCurrentPassword ? "text" : "password"
+													}
+													autoComplete="current-password"
+													placeholder="Enter your current password"
+													disabled={changePasswordMutation.isPending}
+													className="pr-11"
+												/>
+												<Button
+													type="button"
+													variant="ghost"
+													size="icon"
+													className="absolute right-1 top-1/2 h-9 w-9 -translate-y-1/2"
+													onClick={() =>
+														setShowCurrentPassword((prev) => !prev)
+													}
+													aria-label={
+														showCurrentPassword
+															? "Hide password"
+															: "Show password"
+													}
+													disabled={changePasswordMutation.isPending}
+												>
+													{showCurrentPassword ? (
+														<EyeOff className="h-4 w-4" />
+													) : (
+														<Eye className="h-4 w-4" />
+													)}
+												</Button>
+											</div>
 										</FormControl>
 										<FormMessage />
 									</FormItem>
@@ -119,13 +153,37 @@ export function ChangePasswordPage() {
 									<FormItem>
 										<FormLabel>New password</FormLabel>
 										<FormControl>
-											<Input
-												{...field}
-												type="password"
-												autoComplete="new-password"
-												placeholder="Enter a new password"
-												disabled={changePasswordMutation.isPending}
-											/>
+											<div className="relative">
+												<Input
+													{...field}
+													type={showNewPassword ? "text" : "password"}
+													autoComplete="new-password"
+													placeholder="Enter a new password"
+													disabled={changePasswordMutation.isPending}
+													className="pr-11"
+												/>
+												<Button
+													type="button"
+													variant="ghost"
+													size="icon"
+													className="absolute right-1 top-1/2 h-9 w-9 -translate-y-1/2"
+													onClick={() =>
+														setShowNewPassword((prev) => !prev)
+													}
+													aria-label={
+														showNewPassword
+															? "Hide password"
+															: "Show password"
+													}
+													disabled={changePasswordMutation.isPending}
+												>
+													{showNewPassword ? (
+														<EyeOff className="h-4 w-4" />
+													) : (
+														<Eye className="h-4 w-4" />
+													)}
+												</Button>
+											</div>
 										</FormControl>
 										<FormMessage />
 									</FormItem>
@@ -138,13 +196,39 @@ export function ChangePasswordPage() {
 									<FormItem>
 										<FormLabel>Confirm new password</FormLabel>
 										<FormControl>
-											<Input
-												{...field}
-												type="password"
-												autoComplete="new-password"
-												placeholder="Re-enter your new password"
-												disabled={changePasswordMutation.isPending}
-											/>
+											<div className="relative">
+												<Input
+													{...field}
+													type={
+														showConfirmPassword ? "text" : "password"
+													}
+													autoComplete="new-password"
+													placeholder="Re-enter your new password"
+													disabled={changePasswordMutation.isPending}
+													className="pr-11"
+												/>
+												<Button
+													type="button"
+													variant="ghost"
+													size="icon"
+													className="absolute right-1 top-1/2 h-9 w-9 -translate-y-1/2"
+													onClick={() =>
+														setShowConfirmPassword((prev) => !prev)
+													}
+													aria-label={
+														showConfirmPassword
+															? "Hide password"
+															: "Show password"
+													}
+													disabled={changePasswordMutation.isPending}
+												>
+													{showConfirmPassword ? (
+														<EyeOff className="h-4 w-4" />
+													) : (
+														<Eye className="h-4 w-4" />
+													)}
+												</Button>
+											</div>
 										</FormControl>
 										<FormMessage />
 									</FormItem>
@@ -164,7 +248,7 @@ export function ChangePasswordPage() {
 									variant="outline"
 									className="w-full h-10"
 									type="button"
-									onClick={() => void logout()}
+									onClick={() => void handleLogout()}
 									disabled={changePasswordMutation.isPending}
 								>
 									Log out

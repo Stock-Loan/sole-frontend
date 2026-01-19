@@ -7,6 +7,8 @@ import { MyDocumentsPage } from "./pages/MyDocumentsPage";
 import { LoanWizardPage } from "./pages/LoanWizardPage";
 import { MyLoanDetailPage } from "./pages/MyLoanDetailPage";
 import { MyLoanDocumentsPage } from "./pages/MyLoanDocumentsPage";
+import { MyVestingEventsPage } from "./pages/MyVestingEventsPage";
+import { MyGrantsPage } from "./pages/MyGrantsPage";
 
 export const workspaceRoutes: RouteObject[] = [
 	{
@@ -69,6 +71,28 @@ export const workspaceRoutes: RouteObject[] = [
 				<MyLoanDocumentsPage />
 			</RequirePermission>
 		),
+	},
+	{
+		path: "vesting-events",
+		element: <MyVestingEventsPage />,
+		handle: {
+			search: {
+				title: "My vesting events",
+				description: "Review upcoming vesting dates and share totals.",
+				category: "Stock",
+			},
+		},
+	},
+	{
+		path: "grants",
+		element: <MyGrantsPage />,
+		handle: {
+			search: {
+				title: "My grants",
+				description: "Review your grant details and vesting strategy.",
+				category: "Stock",
+			},
+		},
 	},
 	{
 		path: "settings",

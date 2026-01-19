@@ -131,7 +131,7 @@ export function useCreateStockGrant(
 		mutationFn: (payload) => createStockGrant(membershipId, payload),
 		onSuccess: (data, variables, context) => {
 			queryClient.invalidateQueries({
-				queryKey: stockGrantKeys.grants.list(membershipId),
+				queryKey: ["stock", "grants", "list", membershipId],
 			});
 			queryClient.invalidateQueries({
 				queryKey: stockGrantKeys.grants.all(membershipId),
@@ -167,7 +167,7 @@ export function useUpdateStockGrant(
 		mutationFn: ({ grantId, payload }) => updateStockGrant(grantId, payload),
 		onSuccess: (data, variables, context) => {
 			queryClient.invalidateQueries({
-				queryKey: stockGrantKeys.grants.list(membershipId),
+				queryKey: ["stock", "grants", "list", membershipId],
 			});
 			queryClient.invalidateQueries({
 				queryKey: stockGrantKeys.grants.all(membershipId),

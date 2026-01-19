@@ -14,13 +14,12 @@ import {
 	getOrgUserSummary,
 } from "./api";
 import type {
-	EmploymentStatus,
 	OrgUserListItem,
 	OrgUsersListParams,
 	OrgUsersListResponse,
-	ProfileFormValues,
 	UpdateOrgUserStatusPayload,
 	UpdateOrgUserProfilePayload,
+	UpdateOrgUserProfileWithStatusPayload,
 	BulkOnboardingResult,
 	UserDashboardSummary,
 } from "./types";
@@ -262,21 +261,21 @@ export function useUpdateOrgUserProfileWithStatus(membershipId: string | null) {
 	const { toast } = useToast();
 
 	return useMutation({
-		mutationFn: async (values: ProfileFormValues) => {
+		mutationFn: async (payload: UpdateOrgUserProfileWithStatusPayload) => {
 			if (!membershipId) return;
-			const { employment_status, ...profileValues } = values;
-			const profilePayload: UpdateOrgUserProfilePayload = { ...profileValues };
-			await updateOrgUserProfile(membershipId, profilePayload);
-			if (employment_status) {
-				await updateOrgUserStatus(membershipId, {
-					employment_status: employment_status as EmploymentStatus,
-				});
+			const profilePayload = payload.profilePayload ?? null;
+			const statusPayload = payload.statusPayload ?? null;
+			if (profilePayload && Object.keys(profilePayload).length > 0) {
+				await updateOrgUserProfile(membershipId, profilePayload);
+			}
+			if (statusPayload && Object.keys(statusPayload).length > 0) {
+				await updateOrgUserStatus(membershipId, statusPayload);
 			}
 		},
 		onSuccess: () => {
 			toast({
-				title: "Profile updated",
-				description: "The user's profile has been successfully updated.",
+				title: "User updated",
+				description: "The user's updates have been successfully saved.",
 			});
 			queryClient.invalidateQueries({
 				queryKey: userKeys.detail(membershipId ?? ""),

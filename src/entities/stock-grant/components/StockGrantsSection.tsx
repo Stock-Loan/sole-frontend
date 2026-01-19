@@ -128,6 +128,9 @@ export const StockGrantsSection = forwardRef<
 		onSuccess: () => {
 			toast({ title: "Stock grant created" });
 			setDialogOpen(false);
+			setPaginationState((prev) => ({ ...prev, pageIndex: 0 }));
+			grantsQuery.refetch();
+			summaryQuery.refetch();
 		},
 		onError: (error) => apiErrorToast(error, "Unable to create stock grant."),
 	});

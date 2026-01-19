@@ -122,6 +122,10 @@ export function DepartmentsPage() {
 		onSuccess: () => {
 			toast({ title: "Department created" });
 			setFormOpen(false);
+			const nextParams = new URLSearchParams(searchParams);
+			nextParams.set("page", "1");
+			setSearchParams(nextParams);
+			refetch();
 		},
 		onError: (err) => apiErrorToast(err, "Unable to create department."),
 	});

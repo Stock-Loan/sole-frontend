@@ -221,4 +221,5 @@ export const profileSchema = z.object({
 		"RETIRED",
 		"RESIGNED",
 	]),
+	platform_status: z.enum(["ACTIVE", "INVITED", "SUSPENDED"]),
 });
