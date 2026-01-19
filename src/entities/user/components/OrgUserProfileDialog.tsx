@@ -155,7 +155,7 @@ export function OrgUserProfileDialog({
 		];
 		fields.forEach(([key, currentValue]) => {
 			const nextValue = normalizeValue(
-				(values as UpdateOrgUserProfilePayload)[key] as string | undefined
+				(values as UpdateOrgUserProfilePayload)[key]
 			);
 			const currentNormalized = normalizeValue(currentValue);
 			if (nextValue !== currentNormalized) {

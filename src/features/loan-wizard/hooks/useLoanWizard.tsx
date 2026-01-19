@@ -546,7 +546,7 @@ export function useLoanWizard({ id }: UseLoanWizardArgs): LoanWizardState {
 		return {
 			draftState: "locked",
 			onViewDraft: () =>
-				navigate(routes.workspaceLoanDetail.replace(":id", loanQuery.data!.id)),
+				navigate(routes.workspaceLoanDetail.replace(":id", loanQuery.data.id)),
 		};
 	}
 

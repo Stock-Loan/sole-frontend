@@ -66,7 +66,7 @@ export function ChangePasswordPage() {
 			},
 			{
 				onSuccess: async () => {
-					logout();
+					await logout();
 					toast({
 						title: "Password updated successfully",
 						description: "Please sign in with your new password.",

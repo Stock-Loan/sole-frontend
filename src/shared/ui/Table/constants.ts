@@ -46,13 +46,30 @@ export const defaultFilterState: ColumnFilterState = {
 	value: "",
 };
 
+function safeStringify(value: unknown): string {
+	if (value === null || value === undefined) return "";
+	if (typeof value === "string") return value;
+	if (typeof value === "number" || typeof value === "boolean") {
+		return String(value);
+	}
+	if (value instanceof Date) return value.toISOString();
+	if (typeof value === "object") {
+		try {
+			return JSON.stringify(value);
+		} catch {
+			return Object.prototype.toString.call(value);
+		}
+	}
+	return Object.prototype.toString.call(value);
+}
+
 export function normalizeSortValue(value: unknown): SortValue {
 	if (value === null || value === undefined) return "";
 	if (value instanceof Date) return value.getTime();
 	if (typeof value === "number") return value;
 	if (typeof value === "boolean") return value ? 1 : 0;
 	if (typeof value === "string") return value.toLowerCase();
-	return String(value).toLowerCase();
+	return safeStringify(value).toLowerCase();
 }
 
 export function compareValues(a: SortValue, b: SortValue): number {
@@ -69,7 +86,7 @@ export function normalizeFilterValue(value: unknown): string {
 	if (typeof value === "number" || typeof value === "boolean") {
 		return String(value).toLowerCase();
 	}
-	return String(value).toLowerCase();
+	return safeStringify(value).toLowerCase();
 }
 
 export function isNullish(value: unknown) {
@@ -174,10 +191,10 @@ export function stringifyCsvValue(value: unknown): string {
 		try {
 			return JSON.stringify(value);
 		} catch {
-			return String(value);
+			return Object.prototype.toString.call(value);
 		}
 	}
-	return String(value);
+	return safeStringify(value);
 }
 
 export function escapeCsvValue(value: string): string {

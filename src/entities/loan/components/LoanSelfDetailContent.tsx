@@ -182,7 +182,7 @@ export function LoanSelfDetailContent({
 			setDownloadingDocumentId(null);
 		}
 	};
-	const handleExportLoan = async () => {
+	const handleExportLoan = () => {
 		const schedule = whatIfSchedule ?? scheduleQuery.data;
 		if (!loan.id || !schedule) return;
 		const csv = buildScheduleCsv(schedule);

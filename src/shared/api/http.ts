@@ -107,7 +107,9 @@ apiClient.interceptors.response.use(
 			) {
 				window.location.assign(routes.changePassword);
 			}
-			return Promise.reject(error);
+			return Promise.reject(
+				error instanceof Error ? error : new Error("Request rejected")
+			);
 		}
 
 		if (status === 401 && !originalRequest._retry) {
@@ -145,6 +147,8 @@ apiClient.interceptors.response.use(
 			}
 		}
 
-		return Promise.reject(error);
+		return Promise.reject(
+			error instanceof Error ? error : new Error("Request failed")
+		);
 	},
 );

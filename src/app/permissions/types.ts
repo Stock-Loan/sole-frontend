@@ -1,6 +1,6 @@
 import type { PropsWithChildren, ReactNode } from "react";
 
-export type PermissionCode =
+export type KnownPermissionCode =
 	// Core / org
 	| "system.admin"
 	| "org.dashboard.view"
@@ -71,9 +71,11 @@ export type PermissionCode =
 	// Reporting / exports (org)
 	| "report.stock.export"
 	| "report.loan.export"
-	| "report.audit.export"
-	// Fallback
-	| string;
+	| "report.audit.export";
+
+export type PermissionCode =
+	| KnownPermissionCode
+	| (string & { __permissionCodeBrand?: never });
 
 export interface PermissionCatalog {
 	category: string;

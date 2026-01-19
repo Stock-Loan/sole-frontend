@@ -3,7 +3,7 @@ import { cva } from "class-variance-authority";
 import { X } from "lucide-react";
 import * as React from "react";
 import { cn } from "@/shared/lib/utils";
-import type { ToastProps, ToastActionElement, ToastVariant } from "./toast.types";
+import type { ToastProps, ToastActionElement } from "./toast.types";
 
 const ToastProvider = ToastPrimitives.Provider;
 
@@ -46,7 +46,7 @@ const Toast = React.forwardRef<
 		<ToastPrimitives.Root
 			ref={ref}
 			className={cn(
-				toastVariants({ variant: variant as ToastVariant | undefined }),
+				toastVariants({ variant: variant }),
 				"pointer-events-auto data-[swipe=cancel]:duration-200 data-[swipe=end]:duration-200 data-[state=open]:animate-in data-[state=open]:fade-in data-[state=open]:slide-in-from-bottom-3 data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=closed]:slide-out-to-right-3",
 				className,
 			)}

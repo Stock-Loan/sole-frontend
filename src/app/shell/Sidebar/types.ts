@@ -1,4 +1,4 @@
-import type { NavItem } from "@/app/navigation/nav-config";
+import type { NavItem } from "@/app/navigation/types";
 
 export interface SidebarItemProps {
 	item: NavItem;

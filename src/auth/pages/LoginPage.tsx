@@ -220,7 +220,7 @@ export function LoginPage() {
 							currentOrgId,
 						);
 						if (user.must_change_password) {
-							setSessionForOrg(currentOrgId!, tokens, user);
+							setSessionForOrg(currentOrgId, tokens, user);
 							if (typeof localStorage !== "undefined") {
 								localStorage.removeItem(PENDING_EMAIL_KEY);
 								localStorage.removeItem(PENDING_ORG_SWITCH_KEY);
@@ -233,7 +233,7 @@ export function LoginPage() {
 							navigate(routes.changePassword, { replace: true });
 							return;
 						}
-						setSessionForOrg(currentOrgId!, tokens, user);
+						setSessionForOrg(currentOrgId, tokens, user);
 						if (typeof localStorage !== "undefined") {
 							localStorage.removeItem(PENDING_EMAIL_KEY);
 							localStorage.removeItem(PENDING_ORG_SWITCH_KEY);
@@ -265,7 +265,7 @@ export function LoginPage() {
 									email: email,
 									is_active: true,
 								};
-								setSessionForOrg(currentOrgId!, tokens, placeholderUser);
+								setSessionForOrg(currentOrgId, tokens, placeholderUser);
 								if (typeof localStorage !== "undefined") {
 									localStorage.removeItem(PENDING_EMAIL_KEY);
 									localStorage.removeItem(PENDING_ORG_SWITCH_KEY);

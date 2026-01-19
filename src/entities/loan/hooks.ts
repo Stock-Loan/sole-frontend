@@ -478,11 +478,11 @@ export function useCreateMyLoanDraft(
 		mutationFn: createMyLoanDraft,
 		onSuccess: (data, variables, context) => {
 			queryClient.invalidateQueries({ queryKey: meKeys.loans.list() });
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			 
 			(options.onSuccess as any)?.(data, variables, context);
 		},
 		onError: (error, variables, context) => {
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			 
 			(options.onError as any)?.(error, variables, context);
 		},
 		...options,
@@ -505,11 +505,11 @@ export function useUpdateMyLoanDraft(
 		onSuccess: (data, variables, context) => {
 			queryClient.invalidateQueries({ queryKey: meKeys.loans.list() });
 			queryClient.invalidateQueries({ queryKey: meKeys.loans.detail(variables.id) });
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			 
 			(options.onSuccess as any)?.(data, variables, context);
 		},
 		onError: (error, variables, context) => {
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			 
 			(options.onError as any)?.(error, variables, context);
 		},
 		...options,
@@ -528,11 +528,11 @@ export function useSubmitMyLoanApplication(
 		onSuccess: (data, variables, context) => {
 			queryClient.invalidateQueries({ queryKey: meKeys.loans.list() });
 			queryClient.invalidateQueries({ queryKey: meKeys.loans.detail(variables) });
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			 
 			(options.onSuccess as any)?.(data, variables, context);
 		},
 		onError: (error, variables, context) => {
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			 
 			(options.onError as any)?.(error, variables, context);
 		},
 		...options,
@@ -551,11 +551,11 @@ export function useCancelMyLoanApplication(
 		onSuccess: (data, variables, context) => {
 			queryClient.invalidateQueries({ queryKey: meKeys.loans.list() });
 			queryClient.invalidateQueries({ queryKey: meKeys.loans.detail(variables) });
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			 
 			(options.onSuccess as any)?.(data, variables, context);
 		},
 		onError: (error, variables, context) => {
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			 
 			(options.onError as any)?.(error, variables, context);
 		},
 		...options,
@@ -580,11 +580,11 @@ export function useUpdateHrStage(
 				queryKey: orgKeys.loans.workflowDetail.hr(variables.id),
 			});
 			queryClient.invalidateQueries({ queryKey: ["org", "loans", "queue", "hr"] });
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			 
 			(options.onSuccess as any)?.(data, variables, context);
 		},
 		onError: (error, variables, context) => {
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			 
 			(options.onError as any)?.(error, variables, context);
 		},
 		...options,
@@ -611,11 +611,11 @@ export function useUpdateFinanceStage(
 			queryClient.invalidateQueries({
 				queryKey: ["org", "loans", "queue", "finance"],
 			});
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			 
 			(options.onSuccess as any)?.(data, variables, context);
 		},
 		onError: (error, variables, context) => {
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			 
 			(options.onError as any)?.(error, variables, context);
 		},
 		...options,
@@ -642,11 +642,11 @@ export function useUpdateLegalStage(
 			queryClient.invalidateQueries({
 				queryKey: ["org", "loans", "queue", "legal"],
 			});
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			 
 			(options.onSuccess as any)?.(data, variables, context);
 		},
 		onError: (error, variables, context) => {
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			 
 			(options.onError as any)?.(error, variables, context);
 		},
 		...options,
@@ -673,11 +673,11 @@ export function useRegisterHrDocument(
 			queryClient.invalidateQueries({
 				queryKey: orgKeys.loans.workflowDetail.hr(variables.id),
 			});
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			 
 			(options.onSuccess as any)?.(data, variables, context);
 		},
 		onError: (error, variables, context) => {
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			 
 			(options.onError as any)?.(error, variables, context);
 		},
 		...options,
@@ -704,11 +704,11 @@ export function useUploadHrDocument(
 			queryClient.invalidateQueries({
 				queryKey: orgKeys.loans.workflowDetail.hr(variables.id),
 			});
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			 
 			(options.onSuccess as any)?.(data, variables, context);
 		},
 		onError: (error, variables, context) => {
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			 
 			(options.onError as any)?.(error, variables, context);
 		},
 		...options,
@@ -735,11 +735,11 @@ export function useRegisterFinanceDocument(
 			queryClient.invalidateQueries({
 				queryKey: orgKeys.loans.workflowDetail.finance(variables.id),
 			});
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			 
 			(options.onSuccess as any)?.(data, variables, context);
 		},
 		onError: (error, variables, context) => {
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			 
 			(options.onError as any)?.(error, variables, context);
 		},
 		...options,
@@ -766,11 +766,11 @@ export function useUploadFinanceDocument(
 			queryClient.invalidateQueries({
 				queryKey: orgKeys.loans.workflowDetail.finance(variables.id),
 			});
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			 
 			(options.onSuccess as any)?.(data, variables, context);
 		},
 		onError: (error, variables, context) => {
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			 
 			(options.onError as any)?.(error, variables, context);
 		},
 		...options,
@@ -797,11 +797,11 @@ export function useRegisterLegalDocument(
 			queryClient.invalidateQueries({
 				queryKey: orgKeys.loans.workflowDetail.legal(variables.id),
 			});
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			 
 			(options.onSuccess as any)?.(data, variables, context);
 		},
 		onError: (error, variables, context) => {
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			 
 			(options.onError as any)?.(error, variables, context);
 		},
 		...options,
@@ -828,11 +828,11 @@ export function useUploadLegalDocument(
 			queryClient.invalidateQueries({
 				queryKey: orgKeys.loans.workflowDetail.legal(variables.id),
 			});
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			 
 			(options.onSuccess as any)?.(data, variables, context);
 		},
 		onError: (error, variables, context) => {
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			 
 			(options.onError as any)?.(error, variables, context);
 		},
 		...options,
@@ -859,11 +859,11 @@ export function useRegisterLegalIssuanceDocument(
 			queryClient.invalidateQueries({
 				queryKey: orgKeys.loans.workflowDetail.legal(variables.id),
 			});
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			 
 			(options.onSuccess as any)?.(data, variables, context);
 		},
 		onError: (error, variables, context) => {
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			 
 			(options.onError as any)?.(error, variables, context);
 		},
 		...options,
@@ -890,11 +890,11 @@ export function useUploadLegalIssuanceDocument(
 			queryClient.invalidateQueries({
 				queryKey: orgKeys.loans.workflowDetail.legal(variables.id),
 			});
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			 
 			(options.onSuccess as any)?.(data, variables, context);
 		},
 		onError: (error, variables, context) => {
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			 
 			(options.onError as any)?.(error, variables, context);
 		},
 		...options,
@@ -921,11 +921,11 @@ export function useRegisterMyLoan83bDocument(
 			queryClient.invalidateQueries({
 				queryKey: meKeys.loans.detail(variables.id),
 			});
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			 
 			(options.onSuccess as any)?.(data, variables, context);
 		},
 		onError: (error, variables, context) => {
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			 
 			(options.onError as any)?.(error, variables, context);
 		},
 		...options,
@@ -971,11 +971,11 @@ export function useActivateLoanBacklog(
 		mutationFn: (params) => activateLoanBacklog(params),
 		onSuccess: (data, variables, context) => {
 			queryClient.invalidateQueries({ queryKey: orgKeys.loans.list() });
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			 
 			(options.onSuccess as any)?.(data, variables, context);
 		},
 		onError: (error, variables, context) => {
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			 
 			(options.onError as any)?.(error, variables, context);
 		},
 		...options,
@@ -1014,11 +1014,11 @@ export function useAssignLoanWorkflowStage(
 			queryClient.invalidateQueries({
 				queryKey: orgKeys.loans.documents.org(variables.id),
 			});
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			 
 			(options.onSuccess as any)?.(data, variables, context);
 		},
 		onError: (error, variables, context) => {
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			 
 			(options.onError as any)?.(error, variables, context);
 		},
 		...options,

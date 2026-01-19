@@ -1,6 +1,7 @@
 import {
 	createContext,
 	createElement,
+	useCallback,
 	useContext,
 	useEffect,
 	useLayoutEffect,
@@ -16,7 +17,6 @@ import { useAuth } from "@/auth/hooks";
 import { tenancyKeys } from "@/features/tenancy/keys";
 import type { OrgSummary, PersistedTenancy, TenantContextValue } from "./types";
 import { discoverTenants, listTenants } from "./tenantApi";
-import { useToast } from "@/shared/ui/use-toast";
 import { routes } from "@/shared/lib/routes";
 
 const STORAGE_KEY = "sole.tenancy";
@@ -55,7 +55,6 @@ const TenantContext = createContext<TenantContextValue | undefined>(undefined);
 
 export function TenantProvider({ children }: PropsWithChildren) {
 	const { user, tokens, setSessionForOrg, getTokensForOrg } = useAuth();
-	const { toast } = useToast();
 	const persisted = loadPersistedTenancy();
 	const fallbackOrgId = user?.org_id ?? user?.orgIds?.[0] ?? null;
 
@@ -79,6 +78,36 @@ export function TenantProvider({ children }: PropsWithChildren) {
 		queryKey: tenancyKeys.tenants(),
 		queryFn: listTenants,
 		enabled: Boolean(tokens?.access_token && resolvedOrgId),
+		onSuccess: (data) => {
+			if (!data) return;
+
+			if (orgs.length > 1) {
+				const resolvedOrg = data[0];
+				if (resolvedOrg) {
+					setOrgs((prev) => {
+						const hasOrg = prev.some((org) => org.id === resolvedOrg.id);
+						if (hasOrg) {
+							return prev.map((org) =>
+								org.id === resolvedOrg.id ? { ...org, ...resolvedOrg } : org,
+							);
+						}
+						return [...prev, resolvedOrg];
+					});
+				}
+				if (!currentOrgId && resolvedOrg) {
+					setCurrentOrgId(resolvedOrg.id);
+				}
+				return;
+			}
+
+			setOrgs(data);
+			if (data.length > 0) {
+				const hasCurrent = data.some((org) => org.id === currentOrgId);
+				if (!currentOrgId || !hasCurrent) {
+					setCurrentOrgId(data[0].id);
+				}
+			}
+		},
 	});
 
 	useLayoutEffect(() => {
@@ -103,31 +132,26 @@ export function TenantProvider({ children }: PropsWithChildren) {
 		queryClient.invalidateQueries({ refetchType: "active" });
 	}, [resolvedOrgId]);
 
-	const switchOrg = (orgId: string) => {
-		if (orgId === currentOrgId) return;
-		if (user?.is_superuser) {
-			setCurrentOrgId(orgId);
-			return;
-		}
-		const tokensForOrg = getTokensForOrg(orgId);
-		if (!tokensForOrg || !user) {
-			if (typeof localStorage !== "undefined") {
-				localStorage.setItem(PENDING_ORG_SWITCH_KEY, orgId);
+	const switchOrg = useCallback(
+		(orgId: string) => {
+			if (orgId === currentOrgId) return;
+			if (user?.is_superuser) {
+				setCurrentOrgId(orgId);
+				return;
 			}
-			window.location.assign(routes.login);
-			return;
-		}
-		setSessionForOrg(orgId, tokensForOrg, user);
-		setCurrentOrgId(orgId);
-	};
-
-	useEffect(() => {
-		if (!user) return;
-
-		if (!currentOrgId && user.org_id) {
-			setCurrentOrgId(user.org_id);
-		}
-	}, [user, currentOrgId]);
+			const tokensForOrg = getTokensForOrg(orgId);
+			if (!tokensForOrg || !user) {
+				if (typeof localStorage !== "undefined") {
+					localStorage.setItem(PENDING_ORG_SWITCH_KEY, orgId);
+				}
+				window.location.assign(routes.login);
+				return;
+			}
+			setSessionForOrg(orgId, tokensForOrg, user);
+			setCurrentOrgId(orgId);
+		},
+		[currentOrgId, getTokensForOrg, setSessionForOrg, user],
+	);
 
 	useEffect(() => {
 		if (!user?.email) return;
@@ -150,40 +174,6 @@ export function TenantProvider({ children }: PropsWithChildren) {
 			isActive = false;
 		};
 	}, [user?.email, orgs.length, currentOrgId]);
-
-	useEffect(() => {
-		if (!tenantsQuery.data) return;
-
-		if (orgs.length > 1) {
-			const resolvedOrg = tenantsQuery.data[0];
-			if (resolvedOrg) {
-				setOrgs((prev) => {
-					const hasOrg = prev.some((org) => org.id === resolvedOrg.id);
-					if (hasOrg) {
-						return prev.map((org) =>
-							org.id === resolvedOrg.id ? { ...org, ...resolvedOrg } : org,
-						);
-					}
-					return [...prev, resolvedOrg];
-				});
-			}
-			if (!currentOrgId && resolvedOrg) {
-				setCurrentOrgId(resolvedOrg.id);
-			}
-			return;
-		}
-
-		// eslint-disable-next-line react-hooks/set-state-in-effect
-		setOrgs(tenantsQuery.data);
-		if (tenantsQuery.data.length > 0) {
-			const hasCurrent = tenantsQuery.data.some(
-				(org) => org.id === currentOrgId,
-			);
-			if (!currentOrgId || !hasCurrent) {
-				setCurrentOrgId(tenantsQuery.data[0].id);
-			}
-		}
-	}, [tenantsQuery.data, currentOrgId, user?.is_superuser, orgs.length]);
 
 	useEffect(() => {
 		persistTenancy({ orgs, currentOrgId });

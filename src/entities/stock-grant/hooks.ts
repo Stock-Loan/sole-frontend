@@ -139,11 +139,11 @@ export function useCreateStockGrant(
 			queryClient.invalidateQueries({
 				queryKey: stockGrantKeys.summary(membershipId),
 			});
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			 
 			(options.onSuccess as any)?.(data, variables, context);
 		},
 		onError: (error, variables, context) => {
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			 
 			(options.onError as any)?.(error, variables, context);
 		},
 		...options,
@@ -175,11 +175,11 @@ export function useUpdateStockGrant(
 			queryClient.invalidateQueries({
 				queryKey: stockGrantKeys.summary(membershipId),
 			});
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			 
 			(options.onSuccess as any)?.(data, variables, context);
 		},
 		onError: (error, variables, context) => {
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			 
 			(options.onError as any)?.(error, variables, context);
 		},
 		...options,

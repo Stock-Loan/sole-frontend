@@ -69,7 +69,7 @@ export function createAdvancedTextFilterFn<T>(
 		);
 	};
 	filterFn.autoRemove = (value: unknown) =>
-		!isColumnFilterState(value) || !isFilterActive(value as ColumnFilterState);
+		!isColumnFilterState(value) || !isFilterActive(value);
 
 	return filterFn;
 }
@@ -109,7 +109,7 @@ export function buildDataColumns<T>(
 	return columns.map((column) => {
 		const accessorKey =
 			typeof column.accessor === "string"
-				? (column.accessor as keyof T & string)
+				? (column.accessor)
 				: undefined;
 		const accessorFn =
 			typeof column.accessor === "function" ? column.accessor : undefined;

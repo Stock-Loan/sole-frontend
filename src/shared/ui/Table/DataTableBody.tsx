@@ -72,7 +72,7 @@ export function DataTableBody<T>({
 									getValue: () => row.getValue(column.id),
 									renderValue: () => row.getValue(column.id),
 								}),
-							} as unknown as any; // eslint-disable-line @typescript-eslint/no-explicit-any
+							} as unknown as any;  
 						}
 
 						const config = columnConfigById.get(column.id);

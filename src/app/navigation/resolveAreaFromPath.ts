@@ -1,6 +1,6 @@
 import { areas, getAreaById, getDefaultArea } from "./areas";
 import { navConfig } from "./nav-config";
-import type { AppArea } from "./areas";
+import type { AppArea } from "./types";
 
 function normalizePath(pathname: string) {
 	const [path] = pathname.split(/[?#]/);
@@ -16,7 +16,7 @@ export function resolveAreaFromPath(pathname: string): AppArea {
 	}
 
 	const navMatch = Object.entries(navConfig).find(([, items]) =>
-		items.some((item) => normalized.startsWith(item.path))
+		items.some((item) => normalized.startsWith(item.path)),
 	);
 
 	if (navMatch) {

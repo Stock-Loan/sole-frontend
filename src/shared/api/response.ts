@@ -17,7 +17,7 @@ export function isApiEnvelope<T>(value: unknown): value is ApiEnvelope<T> {
 
 export function unwrapApiResponse<T>(value: unknown): T {
 	if (isApiEnvelope<T>(value)) {
-		return value.data as T;
+		return value.data;
 	}
 	return value as T;
 }

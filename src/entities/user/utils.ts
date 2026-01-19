@@ -8,7 +8,7 @@ export function getMembershipRoleIds(membership?: OrgMembershipDto): string[] {
 		(membership.roles as MembershipRole[]) ?? [];
 	const idsFromRoles = rawRoles
 		.map((role) => (typeof role === "string" ? role : role?.id))
-		.filter(Boolean) as string[];
+		.filter(Boolean);
 	const roleIds = membership.role_ids ?? [];
 	return Array.from(new Set([...idsFromRoles, ...roleIds]));
 }
@@ -55,7 +55,7 @@ export function getSelfContextRoleNames(context?: SelfContextResponse): string[]
 			context.roles
 				.map((role) => role.name || role.id)
 				.filter(Boolean)
-				.map((name) => name!.replace(/\b\w/g, (c) => c.toUpperCase())),
+				.map((name) => name.replace(/\b\w/g, (c) => c.toUpperCase())),
 		),
 	);
 }

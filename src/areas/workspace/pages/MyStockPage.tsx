@@ -10,12 +10,13 @@ import { routes } from "@/shared/lib/routes";
 import { formatCurrency, formatDate, formatPercent } from "@/shared/lib/format";
 import { usePermissions } from "@/auth/hooks";
 import { useMeDashboardSummary } from "@/entities/dashboard/hooks";
-import { formatShares, getEligibilityReasonLabel } from "@/entities/stock-grant/constants";
+import {
+	formatShares,
+	getEligibilityReasonLabel,
+} from "@/entities/stock-grant/constants";
 import { cn } from "@/shared/lib/utils";
 import { colorPalette } from "@/app/styles/color-palette";
-import {
-	StockSummaryDonutCard,
-} from "@/entities/stock-grant/components/StockSummaryDonutCard";
+import { StockSummaryDonutCard } from "@/entities/stock-grant/components/StockSummaryDonutCard";
 import { StockSummaryGaugeCard } from "@/entities/stock-grant/components/StockSummaryGaugeCard";
 import { StockSummaryTimelineCard } from "@/entities/stock-grant/components/StockSummaryTimelineCard";
 import { LoanSummaryBarChart } from "@/entities/loan/components/LoanSummaryBarChart";
@@ -63,13 +64,13 @@ export function MyStockPage() {
 			const baseDate = new Date(summary.as_of_date);
 			if (!Number.isNaN(baseDate.getTime())) {
 				baseDate.setDate(
-					baseDate.getDate() + Number(loanSummary.days_until_83b_due)
+					baseDate.getDate() + Number(loanSummary.days_until_83b_due),
 				);
 				dueDate = baseDate.toISOString().slice(0, 10);
 			}
 		}
 		const loanAmountLabel = formatCurrency(
-			loanSummary?.principal ?? loanSummary?.remaining_balance ?? null
+			loanSummary?.principal ?? loanSummary?.remaining_balance ?? null,
 		);
 		const sublabel =
 			loanAmountLabel && loanAmountLabel !== "—"
@@ -87,7 +88,7 @@ export function MyStockPage() {
 	const missedPaymentCount = loanSummary?.missed_payment_count ?? 0;
 	if (missedPaymentCount > 0) {
 		const missedAmountLabel = formatCurrency(
-			loanSummary?.missed_payment_amount_total ?? null
+			loanSummary?.missed_payment_amount_total ?? null,
 		);
 		const missedDates = loanSummary?.missed_payment_dates ?? [];
 		const lastMissedDate =
@@ -113,14 +114,15 @@ export function MyStockPage() {
 		eligibility?.reasons?.map((reason) => getEligibilityReasonLabel(reason)) ??
 		[];
 
-	const nextPaymentLabel = nextPaymentDate || nextPaymentAmount
-		? [
-				nextPaymentDate ? formatDate(nextPaymentDate) : null,
-				nextPaymentAmount ? formatCurrency(nextPaymentAmount) : null,
-		  ]
-				.filter(Boolean)
-				.join(" • ")
-		: "—";
+	const nextPaymentLabel =
+		nextPaymentDate || nextPaymentAmount
+			? [
+					nextPaymentDate ? formatDate(nextPaymentDate) : null,
+					nextPaymentAmount ? formatCurrency(nextPaymentAmount) : null,
+				]
+					.filter(Boolean)
+					.join(" • ")
+			: "—";
 
 	const metricCards = stockTotals
 		? [
@@ -152,22 +154,21 @@ export function MyStockPage() {
 					label: "Total loan balance",
 					value: formatCurrency(loanSummary?.remaining_balance ?? null),
 					meta:
-						loanSummary?.principal_remaining ||
-						loanSummary?.interest_remaining
+						loanSummary?.principal_remaining || loanSummary?.interest_remaining
 							? [
 									{
 										label: "Principal",
 										value: formatCurrency(
-											loanSummary?.principal_remaining ?? null
+											loanSummary?.principal_remaining ?? null,
 										),
 									},
 									{
 										label: "Interest",
 										value: formatCurrency(
-											loanSummary?.interest_remaining ?? null
+											loanSummary?.interest_remaining ?? null,
 										),
 									},
-							  ]
+								]
 							: undefined,
 				},
 				{
@@ -178,11 +179,11 @@ export function MyStockPage() {
 					label: "Next vesting",
 					value: nextVestingDate
 						? `${formatDate(nextVestingDate)} (${formatShares(
-								nextVestingShares ?? 0
-						  )})`
+								nextVestingShares ?? 0,
+							)})`
 						: "—",
 				},
-		  ]
+			]
 		: [];
 
 	const canStartLoan = Boolean(canApplyLoan && isEligible);
@@ -200,11 +201,11 @@ export function MyStockPage() {
 		? {
 				borderColor: colorPalette.status.success[100],
 				backgroundColor: colorPalette.status.success[50],
-		  }
+			}
 		: {
 				borderColor: colorPalette.status.warning[100],
 				backgroundColor: colorPalette.status.warning[50],
-		  };
+			};
 	const eligibleIconColor = isEligible
 		? colorPalette.status.success[500]
 		: colorPalette.status.warning[500];
@@ -213,19 +214,19 @@ export function MyStockPage() {
 		? Object.entries(grantMix.by_status).map(([label, value]) => ({
 				label,
 				value,
-		  }))
+			}))
 		: [];
 	const grantStrategyItems = grantMix?.by_vesting_strategy
 		? Object.entries(grantMix.by_vesting_strategy).map(([label, value]) => ({
 				label,
 				value,
-		  }))
+			}))
 		: [];
 	const reservedByStatusItems = reservations?.reserved_by_status
 		? Object.entries(reservations.reserved_by_status).map(([label, value]) => ({
 				label,
 				value,
-		  }))
+			}))
 		: [];
 	const reservedPercent = reservations?.reserved_share_percent_of_vested
 		? Number(reservations.reserved_share_percent_of_vested)
@@ -337,7 +338,7 @@ export function MyStockPage() {
 					<div
 						className={cn(
 							"grid gap-4",
-							showAttentionCard ? "md:grid-cols-2" : ""
+							showAttentionCard ? "md:grid-cols-2" : "",
 						)}
 					>
 						<div className="flex flex-col gap-4">
@@ -355,9 +356,7 @@ export function MyStockPage() {
 								</CardHeader>
 								<CardContent className="space-y-3 text-sm">
 									<div className="flex items-center justify-between">
-										<span style={metricLabelStyle}>
-											Average exercise price
-										</span>
+										<span style={metricLabelStyle}>Average exercise price</span>
 										<span className="font-semibold" style={metricValueStyle}>
 											{averageExercisePriceLabel}
 										</span>
@@ -577,7 +576,7 @@ export function MyStockPage() {
 										<Link
 											to={routes.workspaceLoanDetail.replace(
 												":id",
-												loanSummary.active_loan_id
+												loanSummary.active_loan_id,
 											)}
 										>
 											View active loan
@@ -600,10 +599,10 @@ export function MyStockPage() {
 										<span className="font-semibold text-foreground">
 											{repaymentActivity?.last_payment_date
 												? `${formatDate(
-														repaymentActivity.last_payment_date
-												  )} • ${formatCurrency(
-														repaymentActivity.last_payment_amount ?? null
-												  )}`
+														repaymentActivity.last_payment_date,
+													)} • ${formatCurrency(
+														repaymentActivity.last_payment_amount ?? null,
+													)}`
 												: "—"}
 										</span>
 									</div>
