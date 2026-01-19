@@ -82,6 +82,21 @@ export interface OrgSummary {
 	status?: "active" | "inactive" | "suspended";
 }
 
+export interface OrgCreatePayload {
+	org_id: string;
+	name: string;
+	slug: string;
+}
+
+export interface OrgRecord {
+	id: string;
+	name: string;
+	slug: string;
+	status: "ACTIVE" | "INACTIVE" | "SUSPENDED";
+	created_at: string;
+	updated_at: string;
+}
+
 export interface SelfOrgPolicy {
 	org_id: string;
 	allow_user_data_export?: boolean;

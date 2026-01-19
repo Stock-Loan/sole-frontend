@@ -6,8 +6,14 @@ import {
 	type UseQueryOptions,
 } from "@tanstack/react-query";
 import { orgSettingsKeys } from "@/entities/org/keys";
-import { getOrgSettings, getSelfOrgPolicy, updateOrgSettings } from "./api";
-import type { OrgSettings, OrgSettingsUpdatePayload, SelfOrgPolicy } from "./types";
+import { createOrg, getOrgSettings, getSelfOrgPolicy, updateOrgSettings } from "./api";
+import type {
+	OrgCreatePayload,
+	OrgRecord,
+	OrgSettings,
+	OrgSettingsUpdatePayload,
+	SelfOrgPolicy,
+} from "./types";
 
 export function useOrgSettings(
 	options: Omit<UseQueryOptions<OrgSettings>, "queryKey" | "queryFn"> = {}
@@ -46,6 +52,18 @@ export function useSelfOrgPolicy(
 	return useQuery({
 		queryKey: orgSettingsKeys.selfPolicy(),
 		queryFn: getSelfOrgPolicy,
+		...options,
+	});
+}
+
+export function useCreateOrg(
+	options: Omit<
+		UseMutationOptions<OrgRecord, unknown, OrgCreatePayload>,
+		"mutationFn"
+	> = {}
+) {
+	return useMutation({
+		mutationFn: createOrg,
 		...options,
 	});
 }

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { nonEmptyString } from "@/shared/lib/validators";
 
 const repaymentMethodsSchema = z.array(
 	z.enum(["INTEREST_ONLY", "BALLOON", "PRINCIPAL_AND_INTEREST"])
@@ -91,3 +92,9 @@ export const orgSettingsSchema = z
 			}
 		}
 	});
+
+export const orgCreateSchema = z.object({
+	org_id: nonEmptyString,
+	name: nonEmptyString,
+	slug: nonEmptyString,
+});
