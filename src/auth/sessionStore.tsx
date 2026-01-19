@@ -7,7 +7,12 @@ import {
 	setUnauthorizedHandler,
 } from "@/shared/api/http";
 import { logout as logoutApi } from "@/auth/api";
-import type { AuthUser, PersistedSession, RoleCode, TokenPair } from "@/auth/types";
+import type {
+	AuthUser,
+	PersistedSession,
+	RoleCode,
+	TokenPair,
+} from "@/auth/types";
 import { routes } from "@/shared/lib/routes";
 import { AuthContext } from "./context";
 import type { AuthContextValue } from "./context";
@@ -59,21 +64,28 @@ export function AuthProvider({ children }: PropsWithChildren) {
 	const [user, setUser] = useState<AuthUser | null>(persisted.user);
 	const [tokens, setTokens] = useState<TokenPair | null>(persisted.tokens);
 	const [tokensByOrgId, setTokensByOrgId] = useState<Record<string, TokenPair>>(
-		persisted.tokensByOrgId ?? {}
+		persisted.tokensByOrgId ?? {},
 	);
 	const [isAuthenticating, setIsAuthenticating] = useState(false);
 
-	const setSession = useCallback((nextTokens: TokenPair, nextUser: AuthUser) => {
-		setTokens(nextTokens);
-		setUser(nextUser);
-		setTokensByOrgId((prev) => {
-			if (!nextUser?.org_id) return prev;
-			const next = { ...prev, [nextUser.org_id]: nextTokens };
-			persistSession({ tokens: nextTokens, user: nextUser, tokensByOrgId: next });
-			return next;
-		});
-		setIsAuthenticating(false);
-	}, []);
+	const setSession = useCallback(
+		(nextTokens: TokenPair, nextUser: AuthUser) => {
+			setTokens(nextTokens);
+			setUser(nextUser);
+			setTokensByOrgId((prev) => {
+				if (!nextUser?.org_id) return prev;
+				const next = { ...prev, [nextUser.org_id]: nextTokens };
+				persistSession({
+					tokens: nextTokens,
+					user: nextUser,
+					tokensByOrgId: next,
+				});
+				return next;
+			});
+			setIsAuthenticating(false);
+		},
+		[],
+	);
 
 	const setSessionForOrg = useCallback(
 		(orgId: string, nextTokens: TokenPair, nextUser: AuthUser) => {
@@ -81,12 +93,16 @@ export function AuthProvider({ children }: PropsWithChildren) {
 			setUser(nextUser);
 			setTokensByOrgId((prev) => {
 				const next = { ...prev, [orgId]: nextTokens };
-				persistSession({ tokens: nextTokens, user: nextUser, tokensByOrgId: next });
+				persistSession({
+					tokens: nextTokens,
+					user: nextUser,
+					tokensByOrgId: next,
+				});
 				return next;
 			});
 			setIsAuthenticating(false);
 		},
-		[]
+		[],
 	);
 
 	const clearSession = useCallback(() => {
@@ -120,10 +136,10 @@ export function AuthProvider({ children }: PropsWithChildren) {
 			setTokensByOrgId((prev) => {
 				const orgId = user?.org_id;
 				if (!orgId) return prev;
-				const next = { ...prev, [orgId]: { ...(prev[orgId] ?? {}), ...newTokens } } as Record<
-					string,
-					TokenPair
-				>;
+				const next = {
+					...prev,
+					[orgId]: { ...(prev[orgId] ?? {}), ...newTokens },
+				} as Record<string, TokenPair>;
 				persistSession({ tokens, user, tokensByOrgId: next });
 				return next;
 			});
@@ -156,7 +172,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
 			return roles.some((role) => user?.roles?.includes(role));
 		},
-		[user?.roles]
+		[user?.roles],
 	);
 
 	const value = useMemo<AuthContextValue>(
@@ -171,7 +187,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 			logout,
 			hasAnyRole,
 			getTokensForOrg: (orgId?: string | null) =>
-				orgId ? tokensByOrgId[orgId] ?? null : null,
+				orgId ? (tokensByOrgId[orgId] ?? null) : null,
 		}),
 		[
 			user,
@@ -184,7 +200,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 			logout,
 			hasAnyRole,
 			tokensByOrgId,
-		]
+		],
 	);
 
 	return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

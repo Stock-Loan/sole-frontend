@@ -16,10 +16,12 @@ import type { OrgSummary } from "@/entities/org/types";
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
-export async function discoverOrg(payload: OrgDiscoveryPayload): Promise<OrgSummary[]> {
+export async function discoverOrg(
+	payload: OrgDiscoveryPayload,
+): Promise<OrgSummary[]> {
 	const { data } = await apiClient.post<OrgDiscoveryResponse>(
 		"/auth/org-discovery",
-		payload
+		payload,
 	);
 	const response = unwrapApiResponse<OrgDiscoveryResponse>(data);
 	return (response?.orgs ?? []).map((org) => ({
@@ -33,16 +35,19 @@ export async function startLogin(payload: LoginStartPayload, orgId?: string) {
 	const { data } = await apiClient.post<LoginStartResponse>(
 		"/auth/login/start",
 		payload,
-		orgId ? { headers: { "X-Org-Id": orgId } } : undefined
+		orgId ? { headers: { "X-Org-Id": orgId } } : undefined,
 	);
 	return unwrapApiResponse<LoginStartResponse>(data);
 }
 
-export async function completeLogin(payload: LoginCompletePayload, orgId?: string) {
+export async function completeLogin(
+	payload: LoginCompletePayload,
+	orgId?: string,
+) {
 	const { data } = await apiClient.post<TokenPair>(
 		"/auth/login/complete",
 		payload,
-		orgId ? { headers: { "X-Org-Id": orgId } } : undefined
+		orgId ? { headers: { "X-Org-Id": orgId } } : undefined,
 	);
 	return unwrapApiResponse<TokenPair>(data);
 }
@@ -55,19 +60,19 @@ export async function refreshSession(refresh_token: string, orgId?: string) {
 	const { data } = await apiClient.post<TokenPair>(
 		"/auth/refresh",
 		{ refresh_token },
-		orgId ? { headers: { "X-Org-Id": orgId } } : undefined
+		orgId ? { headers: { "X-Org-Id": orgId } } : undefined,
 	);
 	return unwrapApiResponse<TokenPair>(data);
 }
 
 export async function refreshSessionForOrgSwitch(
 	refresh_token: string,
-	orgId: string
+	orgId: string,
 ) {
 	const { data } = await axios.post<TokenPair>(
 		`${baseURL}/auth/refresh`,
 		{ refresh_token },
-		{ headers: { "X-Org-Id": orgId } }
+		{ headers: { "X-Org-Id": orgId } },
 	);
 	return unwrapApiResponse<TokenPair>(data);
 }
@@ -88,13 +93,16 @@ export async function getMeWithToken(accessToken: string, orgId?: string) {
 }
 
 export async function changePassword(payload: ChangePasswordPayload) {
-	const { data } = await apiClient.post<TokenPair>("/auth/change-password", payload);
+	const { data } = await apiClient.post<TokenPair>(
+		"/auth/change-password",
+		payload,
+	);
 	return unwrapApiResponse<TokenPair>(data);
 }
 
 export async function changePasswordWithToken(
 	payload: ChangePasswordPayload,
-	accessToken?: string
+	accessToken?: string,
 ) {
 	const { data } = await apiClient.post<TokenPair>(
 		"/auth/change-password",
@@ -104,8 +112,8 @@ export async function changePasswordWithToken(
 					headers: {
 						Authorization: `Bearer ${accessToken}`,
 					},
-			  }
-			: undefined
+				}
+			: undefined,
 	);
 	return unwrapApiResponse<TokenPair>(data);
 }

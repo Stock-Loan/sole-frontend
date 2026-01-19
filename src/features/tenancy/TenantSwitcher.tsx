@@ -1,7 +1,12 @@
 import { Building2, ChevronDown } from "lucide-react";
 import { useMemo } from "react";
 import { Button } from "@/shared/ui/Button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/shared/ui/dropdown-menu";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@/shared/ui/dropdown-menu";
 import { useTenant } from "@/features/tenancy/hooks";
 import { cn } from "@/shared/lib/utils";
 
@@ -10,7 +15,7 @@ export function TenantSwitcher({ className }: { className?: string }) {
 
 	const currentOrg = useMemo(
 		() => orgs.find((org) => org.id === currentOrgId) ?? orgs[0],
-		[orgs, currentOrgId]
+		[orgs, currentOrgId],
 	);
 
 	const isMultiTenant = orgs.length > 1;
@@ -20,8 +25,16 @@ export function TenantSwitcher({ className }: { className?: string }) {
 
 	if (!isMultiTenant) {
 		return (
-			<div className={cn("inline-flex items-center gap-2 rounded-full bg-muted/50 px-3 py-2 text-sm font-semibold text-foreground", className)}>
-				<Building2 className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+			<div
+				className={cn(
+					"inline-flex items-center gap-2 rounded-full bg-muted/50 px-3 py-2 text-sm font-semibold text-foreground",
+					className,
+				)}
+			>
+				<Building2
+					className="h-4 w-4 text-muted-foreground"
+					aria-hidden="true"
+				/>
 				<span>{label}</span>
 			</div>
 		);
@@ -33,7 +46,10 @@ export function TenantSwitcher({ className }: { className?: string }) {
 				<Button
 					variant="outline"
 					size="sm"
-					className={cn("inline-flex items-center gap-2 rounded-full border-border/70 bg-background/80", className)}
+					className={cn(
+						"inline-flex items-center gap-2 rounded-full border-border/70 bg-background/80",
+						className,
+					)}
 				>
 					<Building2 className="h-4 w-4" aria-hidden="true" />
 					<span className="text-sm font-medium">{label}</span>
@@ -49,7 +65,9 @@ export function TenantSwitcher({ className }: { className?: string }) {
 							<div className="flex flex-col">
 								<span className="text-sm font-semibold">{org.name}</span>
 								{org.slug ? (
-									<span className="text-xs text-muted-foreground">{org.slug}</span>
+									<span className="text-xs text-muted-foreground">
+										{org.slug}
+									</span>
 								) : null}
 							</div>
 						</DropdownMenuItem>
