@@ -63,8 +63,8 @@ export function useCreateAnnouncement(
 	return useMutation({
 		mutationFn: createAnnouncement,
 		onSuccess: (data, variables, context) => {
-			queryClient.invalidateQueries({ queryKey: announcementKeys.adminList() });
-			queryClient.invalidateQueries({ queryKey: announcementKeys.list() });
+			queryClient.invalidateQueries({ queryKey: ["announcements", "admin"] });
+			queryClient.invalidateQueries({ queryKey: ["announcements", "list"] });
 			options.onSuccess?.(data, variables, context);
 		},
 		onError: (error, variables, context) => {
@@ -85,8 +85,8 @@ export function useUpdateAnnouncement(
 	return useMutation({
 		mutationFn: ({ id, payload }) => updateAnnouncement(id, payload),
 		onSuccess: (data, variables, context) => {
-			queryClient.invalidateQueries({ queryKey: announcementKeys.adminList() });
-			queryClient.invalidateQueries({ queryKey: announcementKeys.list() });
+			queryClient.invalidateQueries({ queryKey: ["announcements", "admin"] });
+			queryClient.invalidateQueries({ queryKey: ["announcements", "list"] });
 			queryClient.invalidateQueries({ queryKey: announcementKeys.detail(data.id) });
 			options.onSuccess?.(data, variables, context);
 		},
@@ -108,8 +108,8 @@ export function useChangeAnnouncementStatus(
 	return useMutation({
 		mutationFn: ({ id, status }) => changeAnnouncementStatus(id, status),
 		onSuccess: (data, variables, context) => {
-			queryClient.invalidateQueries({ queryKey: announcementKeys.adminList() });
-			queryClient.invalidateQueries({ queryKey: announcementKeys.list() });
+			queryClient.invalidateQueries({ queryKey: ["announcements", "admin"] });
+			queryClient.invalidateQueries({ queryKey: ["announcements", "list"] });
 			options.onSuccess?.(data, variables, context);
 		},
 		onError: (error, variables, context) => {

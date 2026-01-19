@@ -6,6 +6,7 @@ export function TabButton<T extends string>({
 	value,
 	active,
 	onSelect,
+	className,
 }: TabButtonProps<T>) {
 	return (
 		<button
@@ -15,7 +16,8 @@ export function TabButton<T extends string>({
 				"flex items-center rounded-md px-3 py-2 text-sm font-semibold transition",
 				active
 					? "bg-primary text-primary-foreground shadow-sm"
-					: "text-muted-foreground hover:bg-muted hover:text-foreground"
+					: "text-muted-foreground hover:bg-muted hover:text-foreground",
+				className
 			)}
 		>
 			{label}

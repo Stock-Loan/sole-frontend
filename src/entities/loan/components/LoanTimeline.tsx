@@ -67,6 +67,13 @@ export function LoanTimeline({
 			{timelineSteps.map((step, index) => {
 				const stage = step.stageType ? stageMap.get(step.stageType) : undefined;
 				const isActiveStep = step.key === "active";
+				const activeStatusLabel =
+					loanStatus && normalizeDisplay(loanStatus);
+				const stepLabel = isActiveStep
+					? loanStatus && loanStatus !== "ACTIVE"
+						? "Status"
+						: step.label
+					: step.label;
 				const status = isActiveStep
 					? resolveActiveStatus(loanStatus)
 					: stage?.status ?? "PENDING";
@@ -76,8 +83,8 @@ export function LoanTimeline({
 				const meta =
 					showActivationMeta && activationDate
 						? `Activated ${formatDate(activationDate)}`
-						: showActivationMeta && loanStatus === "ACTIVE"
-							? "Active"
+						: showActivationMeta && activeStatusLabel
+							? activeStatusLabel
 							: showActivationMeta
 								? "Awaiting activation"
 								: show83bMeta && election83bDueDate
@@ -112,7 +119,7 @@ export function LoanTimeline({
 							<div className="flex flex-wrap items-center justify-between gap-2">
 								<div className="space-y-1">
 									<p className="text-sm font-semibold text-foreground">
-										{step.label}
+										{stepLabel}
 									</p>
 									{meta ? (
 										<p className="text-xs text-muted-foreground">{meta}</p>

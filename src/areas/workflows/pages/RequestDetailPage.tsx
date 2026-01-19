@@ -292,6 +292,7 @@ export function RequestDetailPage() {
 							stages={loan.workflow_stages ?? []}
 							activationDate={loan.activation_date}
 							election83bDueDate={loan.election_83b_due_date}
+							loanStatus={loan.status}
 							emptyTitle="No workflow activity yet"
 							emptyMessage="Workflow stages will appear once the request enters review."
 						/>

@@ -89,6 +89,7 @@ export interface TabButtonProps<T extends string> {
 	value: T;
 	active: boolean;
 	onSelect: (value: T) => void;
+	className?: string;
 }
 
 export interface ToasterToast extends ToastProps {

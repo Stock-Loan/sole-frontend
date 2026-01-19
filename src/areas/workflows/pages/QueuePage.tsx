@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import type { VisibilityState } from "@tanstack/react-table";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/shared/ui/PageHeader";
 import { PageContainer } from "@/shared/ui/PageContainer";
 import { EmptyState } from "@/shared/ui/EmptyState";
@@ -241,14 +241,7 @@ export function QueuePage() {
 				header: "Loan ID",
 				accessor: (loan) => loan.id,
 				filterAccessor: (loan) => loan.id,
-				cell: (loan) => (
-					<Link
-						to={routes.workflowsRequestDetail.replace(":requestId", loan.id)}
-						className="font-medium text-primary underline-offset-4 hover:underline"
-					>
-						{loan.id}
-					</Link>
-				),
+				cell: (loan) => loan.id,
 				headerClassName: "min-w-[200px]",
 			},
 			{
@@ -405,6 +398,11 @@ export function QueuePage() {
 				className="flex-1 min-h-0"
 				preferences={preferencesConfig}
 				initialColumnVisibility={initialColumnVisibility}
+				onRowClick={(loan) => {
+					navigate(
+						routes.workflowsRequestDetail.replace(":requestId", loan.id)
+					);
+				}}
 				renderToolbarActions={(selectedLoans) => {
 					const hasSingle = selectedLoans.length === 1;
 					const selectedLoan = hasSingle ? selectedLoans[0] : null;

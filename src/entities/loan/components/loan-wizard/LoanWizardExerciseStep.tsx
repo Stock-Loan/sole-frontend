@@ -81,18 +81,20 @@ export function LoanWizardExerciseStep({
 						</span>
 					</div>
 				</div>
-				<div className="mt-4 inline-flex rounded-full border border-border/70 bg-muted/30 p-1 shadow-sm">
+				<div className="mt-4 inline-flex overflow-hidden rounded-full border border-border/70 bg-muted/30 p-1 shadow-sm">
 					<TabButton
 						label="By shares"
 						value="SHARES"
 						active={selectionMode === "SHARES"}
 						onSelect={() => onSelectionModeChange("SHARES")}
+						className="rounded-full"
 					/>
 					<TabButton
 						label="By percent"
 						value="PERCENT"
 						active={selectionMode === "PERCENT"}
 						onSelect={() => onSelectionModeChange("PERCENT")}
+						className="rounded-full"
 					/>
 				</div>
 				<div className="mt-4 max-w-sm">
