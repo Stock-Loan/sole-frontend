@@ -66,7 +66,7 @@ export interface AnnouncementUnreadResponse {
 }
 
 export interface AnnouncementUnreadCountResponse {
-	count: number;
+	unread: number;
 }
 
 export interface AnnouncementFormValues {

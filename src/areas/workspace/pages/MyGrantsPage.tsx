@@ -4,12 +4,12 @@ import { EmptyState } from "@/shared/ui/EmptyState";
 import { DataTable } from "@/shared/ui/Table/DataTable";
 import type { ColumnDefinition } from "@/shared/ui/Table/types";
 import { usePermissions } from "@/auth/hooks";
-import { useMeStockSummary } from "@/entities/stock-grant/hooks";
+import { useMeDashboardSummary } from "@/entities/dashboard/hooks";
 import { formatCurrency, formatDate } from "@/shared/lib/format";
 import { formatShares } from "@/entities/stock-grant/constants";
-import type { GrantSummary } from "@/entities/stock-grant/types";
+import type { DashboardGrantSummary } from "@/entities/dashboard/types";
 
-const columns: ColumnDefinition<GrantSummary>[] = [
+const columns: ColumnDefinition<DashboardGrantSummary>[] = [
 	{
 		id: "grantDate",
 		header: "Grant date",
@@ -59,12 +59,36 @@ const columns: ColumnDefinition<GrantSummary>[] = [
 		cell: (grant) => formatCurrency(grant.exercise_price),
 		headerClassName: "whitespace-nowrap",
 	},
+	{
+		id: "status",
+		header: "Status",
+		accessor: (grant) => grant.status,
+		headerClassName: "whitespace-nowrap",
+	},
+	{
+		id: "vestingStrategy",
+		header: "Vesting strategy",
+		accessor: (grant) => grant.vesting_strategy,
+		headerClassName: "whitespace-nowrap",
+	},
+	{
+		id: "nextVesting",
+		header: "Next vesting",
+		accessor: (grant) => grant.next_vesting_date ?? "",
+		cell: (grant) =>
+			grant.next_vesting_date
+				? `${formatDate(grant.next_vesting_date)} (${formatShares(
+						grant.next_vesting_shares ?? 0
+				  )})`
+				: "—",
+		headerClassName: "whitespace-nowrap",
+	},
 ];
 
 export function MyGrantsPage() {
 	const { can } = usePermissions();
 	const canViewSelf = can("stock.self.view");
-	const summaryQuery = useMeStockSummary({}, { enabled: canViewSelf });
+	const summaryQuery = useMeDashboardSummary({}, { enabled: canViewSelf });
 	const summary = summaryQuery.data;
 	const grants = summary?.grants ?? [];
 

@@ -4,12 +4,12 @@ import { EmptyState } from "@/shared/ui/EmptyState";
 import { DataTable } from "@/shared/ui/Table/DataTable";
 import type { ColumnDefinition } from "@/shared/ui/Table/types";
 import { usePermissions } from "@/auth/hooks";
-import { useMeStockSummary } from "@/entities/stock-grant/hooks";
+import { useMeDashboardSummary } from "@/entities/dashboard/hooks";
 import { formatDate } from "@/shared/lib/format";
 import { formatShares } from "@/entities/stock-grant/constants";
-import type { NextVestingEvent } from "@/entities/stock-grant/types";
+import type { DashboardVestingEvent } from "@/entities/dashboard/types";
 
-const columns: ColumnDefinition<NextVestingEvent>[] = [
+const columns: ColumnDefinition<DashboardVestingEvent>[] = [
 	{
 		id: "vestDate",
 		header: "Vest date",
@@ -29,9 +29,9 @@ const columns: ColumnDefinition<NextVestingEvent>[] = [
 export function MyVestingEventsPage() {
 	const { can } = usePermissions();
 	const canViewSelf = can("stock.self.view");
-	const summaryQuery = useMeStockSummary({}, { enabled: canViewSelf });
+	const summaryQuery = useMeDashboardSummary({}, { enabled: canViewSelf });
 	const summary = summaryQuery.data;
-	const events = summary?.next_vesting_events ?? [];
+	const events = summary?.vesting_timeline?.upcoming_events ?? [];
 
 	return (
 		<PageContainer className="flex min-h-0 flex-1 flex-col gap-4">

@@ -8,6 +8,10 @@ import type {
 } from "@/entities/loan/types";
 
 export const meKeys = {
+	dashboard: {
+		summary: (params?: { as_of?: string }) =>
+			["me", "dashboard", "summary", params ?? {}] as const,
+	},
 	stock: {
 		summary: (params?: StockSummaryParams) =>
 			["me", "stock", "summary", params ?? {}] as const,

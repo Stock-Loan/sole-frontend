@@ -50,7 +50,7 @@ export function StockSummaryDonutCard({
 				<CardTitle className="text-sm font-semibold">{title}</CardTitle>
 			</CardHeader>
 			<CardContent className="space-y-6">
-				<div className="flex flex-col items-center gap-6 lg:flex-row lg:justify-center">
+				<div className="flex flex-col items-center gap-6 lg:flex-row lg:flex-wrap lg:justify-center">
 					<div
 						className="relative h-48 w-48 shrink-0 rounded-full shadow-lg"
 						style={{ background: gradient }}
@@ -66,7 +66,7 @@ export function StockSummaryDonutCard({
 							</span>
 						</div>
 					</div>
-					<div className="min-w-[220px] space-y-2">
+					<div className="w-full max-w-[280px] space-y-2 lg:w-[260px] lg:max-w-none">
 						{items.map((item, index) => {
 							const ratio = base > 0 ? item.value / base : 0;
 							const color =

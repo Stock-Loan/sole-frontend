@@ -9,7 +9,6 @@ import {
 	DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
 import { Button } from "@/shared/ui/Button";
-import { usePermissions } from "@/auth/hooks";
 import { cn } from "@/shared/lib/utils";
 import { useToast } from "@/shared/ui/use-toast";
 import { formatDate } from "@/shared/lib/format";
@@ -21,13 +20,14 @@ import {
 	useUnreadNotifications,
 } from "../hooks";
 import { notificationToasts } from "../toasts";
+import { useAuth } from "@/auth/hooks";
 
 export function NotificationBell() {
-	const { can } = usePermissions();
-	const canView = can("announcement.view");
+	const { user } = useAuth();
+	const canView = Boolean(user);
 	const { toast } = useToast();
 	const [open, setOpen] = useState(false);
-	const unreadListQuery = useUnreadNotifications(open && canView);
+	const unreadListQuery = useUnreadNotifications(canView);
 	const unreadCountQuery = useUnreadNotificationCount(canView);
 	const recentReadQuery = useRecentNotifications(open && canView);
 	const markReadMutation = useMarkNotificationRead();
@@ -44,7 +44,7 @@ export function NotificationBell() {
 			),
 		[recentReadQuery.data?.items, unreadIds]
 	);
-	const unreadCount = unreadCountQuery.data?.count ?? announcements.length;
+	const unreadCount = unreadCountQuery.data?.unread ?? announcements.length;
 
 	const handleMarkRead = async (id: string) => {
 		try {
@@ -57,7 +57,7 @@ export function NotificationBell() {
 
 	return (
 		<DropdownMenu open={open} onOpenChange={setOpen}>
-			<DropdownMenuTrigger asChild disabled={!canView}>
+			<DropdownMenuTrigger asChild>
 				<Button
 					variant="ghost"
 					size="icon"
@@ -77,7 +77,7 @@ export function NotificationBell() {
 				<DropdownMenuSeparator />
 				{!canView ? (
 					<DropdownMenuItem className="text-muted-foreground" disabled>
-						You don&apos;t have permission to view announcements.
+						Sign in to view announcements.
 					</DropdownMenuItem>
 				) : unreadListQuery.isLoading ? (
 					<DropdownMenuItem className="text-muted-foreground" disabled>

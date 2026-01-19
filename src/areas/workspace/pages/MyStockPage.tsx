@@ -1,4 +1,4 @@
-import { AlertTriangle, CheckCircle2 } from "lucide-react";
+import { AlertTriangle, Bell, CheckCircle2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { PageContainer } from "@/shared/ui/PageContainer";
 import { PageHeader } from "@/shared/ui/PageHeader";
@@ -7,57 +7,139 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { Button } from "@/shared/ui/Button";
 import { Skeleton } from "@/shared/ui/Skeleton";
 import { routes } from "@/shared/lib/routes";
-import { formatCurrency, formatDate } from "@/shared/lib/format";
+import { formatCurrency, formatDate, formatPercent } from "@/shared/lib/format";
 import { usePermissions } from "@/auth/hooks";
-import { useMeStockSummary } from "@/entities/stock-grant/hooks";
+import { useMeDashboardSummary } from "@/entities/dashboard/hooks";
 import { formatShares, getEligibilityReasonLabel } from "@/entities/stock-grant/constants";
-import { getStockValueMetrics } from "@/entities/stock-grant/utils";
 import { cn } from "@/shared/lib/utils";
 import { colorPalette } from "@/app/styles/color-palette";
+import {
+	StockSummaryDonutCard,
+} from "@/entities/stock-grant/components/StockSummaryDonutCard";
+import { StockSummaryGaugeCard } from "@/entities/stock-grant/components/StockSummaryGaugeCard";
+import { StockSummaryTimelineCard } from "@/entities/stock-grant/components/StockSummaryTimelineCard";
+import { LoanSummaryBarChart } from "@/entities/loan/components/LoanSummaryBarChart";
+import { LoanStatusBadge } from "@/entities/loan/components/LoanStatusBadge";
+import { getDashboardStockValueMetrics } from "@/entities/dashboard/utils";
 
 export function MyStockPage() {
 	const { can } = usePermissions();
 	const canViewSelf = can("stock.self.view");
 	const canApplyLoan = can("loan.apply");
-	const summaryQuery = useMeStockSummary({}, { enabled: canViewSelf });
+	const summaryQuery = useMeDashboardSummary({}, { enabled: canViewSelf });
 
 	const summary = summaryQuery.data;
-	const eligibility = summary?.eligibility_result;
+	const attention = summary?.attention;
+	const stockTotals = summary?.stock_totals;
+	const eligibility = summary?.stock_eligibility;
+	const vestingTimeline = summary?.vesting_timeline;
+	const grantMix = summary?.grant_mix;
+	const reservations = summary?.reservations;
+	const loanSummary = summary?.loan_summary;
+	const repaymentActivity = summary?.repayment_activity;
+	const nextPaymentDate = loanSummary?.next_payment_date ?? null;
+	const nextPaymentAmount = loanSummary?.next_payment_amount ?? null;
 	const isEligible = eligibility?.eligible_to_exercise;
-	const nextVesting = summary?.next_vesting_event;
-	const { averageExercisePrice, totalStockValue } = getStockValueMetrics(summary);
+	const nextVestingDate = vestingTimeline?.next_vesting_date ?? null;
+	const nextVestingShares = vestingTimeline?.next_vesting_shares ?? null;
+	const { averageExercisePriceLabel, totalStockValueLabel } =
+		getDashboardStockValueMetrics(summary);
+
+	const attentionItems: Array<{
+		action_type: string;
+		label: string;
+		due_date?: string | null;
+		related_id?: string | null;
+		sublabel?: string;
+	}> = attention?.pending_actions ? [...attention.pending_actions] : [];
+
+	if (
+		loanSummary?.has_83b_election === false &&
+		loanSummary?.days_until_83b_due !== null &&
+		loanSummary?.days_until_83b_due !== undefined
+	) {
+		let dueDate: string | null = null;
+		if (summary?.as_of_date) {
+			const baseDate = new Date(summary.as_of_date);
+			if (!Number.isNaN(baseDate.getTime())) {
+				baseDate.setDate(
+					baseDate.getDate() + Number(loanSummary.days_until_83b_due)
+				);
+				dueDate = baseDate.toISOString().slice(0, 10);
+			}
+		}
+		const loanAmountLabel = formatCurrency(
+			loanSummary?.principal ?? loanSummary?.remaining_balance ?? null
+		);
+		const sublabel =
+			loanAmountLabel && loanAmountLabel !== "—"
+				? `83B election on ${loanAmountLabel} loan`
+				: "83B election on your active loan";
+		attentionItems.push({
+			action_type: "83B_ELECTION",
+			label: "83B election filing pending",
+			sublabel,
+			due_date: dueDate,
+			related_id: loanSummary?.active_loan_id ?? undefined,
+		});
+	}
+
+	const attentionPendingCount = attentionItems.length;
+	const unreadAnnouncementsCount = attention?.unread_announcements_count ?? 0;
+	const showAttentionCard = Boolean(attention || attentionItems.length > 0);
 
 	const reasons =
 		eligibility?.reasons?.map((reason) => getEligibilityReasonLabel(reason)) ??
 		[];
 
-	const metricCards = summary
+	const nextPaymentLabel = nextPaymentDate || nextPaymentAmount
+		? [
+				nextPaymentDate ? formatDate(nextPaymentDate) : null,
+				nextPaymentAmount ? formatCurrency(nextPaymentAmount) : null,
+		  ]
+				.filter(Boolean)
+				.join(" • ")
+		: "—";
+
+	const metricCards = stockTotals
 		? [
 				{
+					label: "Grant count",
+					value: stockTotals.grant_count.toLocaleString(),
+				},
+				{
 					label: "Total granted shares",
-					value: formatShares(summary.total_granted_shares),
+					value: formatShares(stockTotals.total_granted_shares),
 				},
 				{
 					label: "Vested shares",
-					value: formatShares(summary.total_vested_shares),
+					value: formatShares(stockTotals.total_vested_shares),
 				},
 				{
 					label: "Reserved shares",
-					value: formatShares(summary.total_reserved_shares),
+					value: formatShares(stockTotals.total_reserved_shares),
 				},
 				{
 					label: "Available vested shares",
-					value: formatShares(summary.total_available_vested_shares),
+					value: formatShares(stockTotals.total_available_vested_shares),
 				},
 				{
 					label: "Unvested shares",
-					value: formatShares(summary.total_unvested_shares),
+					value: formatShares(stockTotals.total_unvested_shares),
+				},
+				{
+					label: "Total loan balance",
+					value: formatCurrency(loanSummary?.remaining_balance ?? null),
+				},
+				{
+					label: "Next payment",
+					value: nextPaymentLabel,
 				},
 				{
 					label: "Next vesting",
-					value: nextVesting
-						? `${formatDate(nextVesting.vest_date)} (${formatShares(
-								nextVesting.shares
+					value: nextVestingDate
+						? `${formatDate(nextVestingDate)} (${formatShares(
+								nextVestingShares ?? 0
 						  )})`
 						: "—",
 				},
@@ -88,11 +170,43 @@ export function MyStockPage() {
 		? colorPalette.status.success[500]
 		: colorPalette.status.warning[500];
 
+	const grantStatusItems = grantMix?.by_status
+		? Object.entries(grantMix.by_status).map(([label, value]) => ({
+				label,
+				value,
+		  }))
+		: [];
+	const grantStrategyItems = grantMix?.by_vesting_strategy
+		? Object.entries(grantMix.by_vesting_strategy).map(([label, value]) => ({
+				label,
+				value,
+		  }))
+		: [];
+	const reservedByStatusItems = reservations?.reserved_by_status
+		? Object.entries(reservations.reserved_by_status).map(([label, value]) => ({
+				label,
+				value,
+		  }))
+		: [];
+	const reservedPercent = reservations?.reserved_share_percent_of_vested
+		? Number(reservations.reserved_share_percent_of_vested)
+		: 0;
+	const repaymentItems =
+		repaymentActivity?.repayment_history?.map((item) => ({
+			label: formatDate(item.payment_date),
+			value: Number(item.amount ?? 0),
+		})) ?? [];
+	const vestedByMonthItems =
+		vestingTimeline?.vested_by_month?.map((item) => ({
+			label: item.month,
+			value: item.shares ?? 0,
+		})) ?? [];
+
 	return (
 		<PageContainer className="space-y-6">
 			<PageHeader
 				title="Overview"
-				subtitle="Review your stock grants, vesting, and eligibility details."
+				subtitle="Review your dashboard, stock activity, and loan status."
 				actions={
 					canStartLoan ? (
 						<Button asChild size="sm">
@@ -107,14 +221,14 @@ export function MyStockPage() {
 			{!canViewSelf ? (
 				<EmptyState
 					title="Stock summary unavailable"
-					message="You do not have permission to view your stock summary."
+					message="You do not have permission to view your dashboard summary."
 				/>
 			) : summaryQuery.isLoading ? (
 				<MyStockSkeleton />
 			) : summaryQuery.isError ? (
 				<EmptyState
 					title="Unable to load summary"
-					message="We couldn't fetch your stock summary right now."
+					message="We couldn't fetch your dashboard summary right now."
 					actionLabel="Retry"
 					onRetry={() => summaryQuery.refetch()}
 				/>
@@ -168,35 +282,110 @@ export function MyStockPage() {
 					</div>
 
 					<div className="space-y-4">
-						<Card
-							style={summaryCardStyle}
-							className="border shadow-sm max-w-[380px]"
+						<div
+							className={cn(
+								"grid gap-4",
+								showAttentionCard ? "md:grid-cols-2" : ""
+							)}
 						>
-							<CardHeader className="pb-2">
-								<CardTitle
-									className="text-xs font-semibold uppercase tracking-wide"
-									style={metricLabelStyle}
-								>
-									Grant value
-								</CardTitle>
-							</CardHeader>
-							<CardContent className="space-y-3 text-sm">
-								<div className="flex items-center justify-between">
-									<span style={metricLabelStyle}>
-										Average exercise price
+							<Card
+								style={summaryCardStyle}
+								className="border shadow-sm max-w-[380px]"
+							>
+								<CardHeader className="pb-2">
+									<CardTitle
+										className="text-xs font-semibold uppercase tracking-wide"
+										style={metricLabelStyle}
+									>
+										Grant value
+									</CardTitle>
+								</CardHeader>
+								<CardContent className="space-y-3 text-sm">
+									<div className="flex items-center justify-between">
+										<span style={metricLabelStyle}>
+											Average exercise price
+										</span>
+										<span className="font-semibold" style={metricValueStyle}>
+											{averageExercisePriceLabel}
+										</span>
+									</div>
+									<div className="flex items-center justify-between">
+										<span style={metricLabelStyle}>Total stock value</span>
+										<span className="font-semibold" style={metricValueStyle}>
+											{totalStockValueLabel}
+										</span>
+									</div>
+								</CardContent>
+							</Card>
+
+							{showAttentionCard ? (
+								<Card className="relative overflow-hidden border border-amber-200 bg-gradient-to-br from-amber-50 via-amber-50 to-amber-100 shadow-lg ring-1 ring-amber-200/80">
+									<div className="absolute left-0 top-0 h-full w-1.5 bg-amber-500" />
+									<span className="absolute right-4 top-4 inline-flex items-center gap-2 rounded-full bg-amber-600/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-amber-900">
+										<span className="h-2 w-2 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.8)]" />
+										Needs attention
 									</span>
-									<span className="font-semibold" style={metricValueStyle}>
-										{formatCurrency(averageExercisePrice)}
-									</span>
-								</div>
-								<div className="flex items-center justify-between">
-									<span style={metricLabelStyle}>Total stock value</span>
-									<span className="font-semibold" style={metricValueStyle}>
-										{formatCurrency(totalStockValue)}
-									</span>
-								</div>
-							</CardContent>
-						</Card>
+									<CardHeader className="pb-2">
+										<CardTitle className="flex items-center gap-2 text-sm font-semibold text-amber-900">
+											<span className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-100 text-amber-600">
+												<Bell className="h-4 w-4" />
+											</span>
+											Attention
+										</CardTitle>
+									</CardHeader>
+									<CardContent className="space-y-3 text-sm text-amber-900/80">
+										<div className="flex flex-wrap items-center gap-4">
+											<div>
+												<p className="text-xs uppercase text-amber-700">
+													Unread announcements
+												</p>
+												<p className="text-lg font-semibold text-amber-950">
+													{unreadAnnouncementsCount.toLocaleString()}
+												</p>
+											</div>
+											<div>
+												<p className="text-xs uppercase text-amber-700">
+													Pending actions
+												</p>
+												<p className="text-lg font-semibold text-amber-950">
+													{attentionPendingCount.toLocaleString()}
+												</p>
+											</div>
+										</div>
+										{attentionItems.length ? (
+											<ul className="grid gap-2 sm:grid-cols-2">
+												{attentionItems.map((action) => (
+													<li
+														key={`${action.action_type}-${action.related_id ?? action.label}`}
+														className="flex h-full flex-col gap-2 rounded-md border border-amber-200 bg-white/80 px-3 py-2"
+													>
+														<div className="flex items-start justify-between gap-3">
+															<div className="space-y-0.5">
+																<p className="text-sm font-semibold text-amber-950">
+																	{action.label}
+																</p>
+																<p className="text-xs text-amber-700">
+																	{action.sublabel ?? action.action_type}
+																</p>
+															</div>
+															<span className="text-xs text-amber-700">
+																{action.due_date
+																	? `Due ${formatDate(action.due_date)}`
+																	: "No due date"}
+															</span>
+														</div>
+													</li>
+												))}
+											</ul>
+										) : (
+											<p className="text-xs text-amber-700">
+												No pending actions right now.
+											</p>
+										)}
+									</CardContent>
+								</Card>
+							) : null}
+						</div>
 
 						{summary && (
 							<div
@@ -246,6 +435,133 @@ export function MyStockPage() {
 								</div>
 							</div>
 						)}
+					</div>
+
+					<div className="grid gap-4 lg:grid-cols-2">
+						<StockSummaryDonutCard
+							title="Grant status"
+							items={grantStatusItems}
+						/>
+						<StockSummaryDonutCard
+							title="Vesting strategy"
+							items={grantStrategyItems}
+						/>
+					</div>
+
+					<div className="grid gap-4 lg:grid-cols-2">
+						<StockSummaryTimelineCard
+							title="Upcoming vesting"
+							events={vestingTimeline?.upcoming_events ?? []}
+						/>
+						<LoanSummaryBarChart
+							title="Vested by month"
+							items={vestedByMonthItems}
+							emptyMessage="No vesting activity yet."
+						/>
+					</div>
+
+					<div className="grid gap-4 lg:grid-cols-2">
+						<StockSummaryGaugeCard
+							title="Reserved shares of vested"
+							value={Number.isFinite(reservedPercent) ? reservedPercent : 0}
+							helper={
+								reservations?.reserved_share_percent_of_vested
+									? `${formatPercent(reservations.reserved_share_percent_of_vested)} reserved`
+									: "No reservations recorded."
+							}
+						/>
+						<StockSummaryDonutCard
+							title="Reservations by status"
+							items={reservedByStatusItems}
+							emptyMessage="No reservations yet."
+						/>
+					</div>
+
+					<div className="grid gap-4 lg:grid-cols-2">
+						<Card className="h-full">
+							<CardHeader className="pb-2">
+								<CardTitle className="text-sm font-semibold">
+									Loan summary
+								</CardTitle>
+							</CardHeader>
+							<CardContent className="space-y-3 text-sm text-muted-foreground">
+								<div className="flex items-center justify-between">
+									<span>Status</span>
+									<span className="font-semibold text-foreground">
+										{loanSummary?.status ? (
+											<LoanStatusBadge status={loanSummary.status} />
+										) : (
+											"—"
+										)}
+									</span>
+								</div>
+								<div className="flex items-center justify-between">
+									<span>Active loans</span>
+									<span className="font-semibold text-foreground">
+										{loanSummary?.active_loans_count ?? 0}
+									</span>
+								</div>
+								<div className="flex items-center justify-between">
+									<span>Pending loans</span>
+									<span className="font-semibold text-foreground">
+										{loanSummary?.pending_loans_count ?? 0}
+									</span>
+								</div>
+								<div className="flex items-center justify-between">
+									<span>Principal</span>
+									<span className="font-semibold text-foreground">
+										{formatCurrency(loanSummary?.principal ?? null)}
+									</span>
+								</div>
+								<div className="flex items-center justify-between">
+									<span>Remaining balance</span>
+									<span className="font-semibold text-foreground">
+										{formatCurrency(loanSummary?.remaining_balance ?? null)}
+									</span>
+								</div>
+								{loanSummary?.active_loan_id ? (
+									<Button asChild size="sm" className="w-full">
+										<Link
+											to={routes.workspaceLoanDetail.replace(
+												":id",
+												loanSummary.active_loan_id
+											)}
+										>
+											View active loan
+										</Link>
+									</Button>
+								) : null}
+							</CardContent>
+						</Card>
+
+						<div className="space-y-4">
+							<Card>
+								<CardHeader className="pb-2">
+									<CardTitle className="text-sm font-semibold">
+										Repayment activity
+									</CardTitle>
+								</CardHeader>
+								<CardContent className="space-y-3 text-sm text-muted-foreground">
+									<div className="flex items-center justify-between">
+										<span>Last payment</span>
+										<span className="font-semibold text-foreground">
+											{repaymentActivity?.last_payment_date
+												? `${formatDate(
+														repaymentActivity.last_payment_date
+												  )} • ${formatCurrency(
+														repaymentActivity.last_payment_amount ?? null
+												  )}`
+												: "—"}
+										</span>
+									</div>
+								</CardContent>
+							</Card>
+							<LoanSummaryBarChart
+								title="Recent payments"
+								items={repaymentItems}
+								emptyMessage="No repayments recorded."
+							/>
+						</div>
 					</div>
 				</div>
 			)}
