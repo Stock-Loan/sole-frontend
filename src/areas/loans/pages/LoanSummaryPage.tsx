@@ -14,48 +14,36 @@ import {
 	buildLoanStatusItems,
 	buildLoanSummaryMetrics,
 } from "@/entities/loan/utils/summary";
-import { LoanSummaryMetricGrid } from "@/entities/loan/components/LoanSummaryMetricGrid";
-import { LoanSummaryPieChart } from "@/entities/loan/components/LoanSummaryPieChart";
+import { LoanSummaryMetricGrid } from "@/entities/loan/components/loan-pages/LoanSummaryMetricGrid";
+import { LoanSummaryPieChart } from "@/entities/loan/components/loan-pages/LoanSummaryPieChart";
 
 const CHART_LAYOUT = "grid gap-4 lg:grid-cols-2";
 
 export function LoanSummaryPage() {
 	const { can } = usePermissions();
 	const canViewSummary = can("loan.dashboard.view");
-	const summaryQuery = useLoanDashboardSummary(
-		{},
-		{ enabled: canViewSummary }
-	);
+	const summaryQuery = useLoanDashboardSummary({}, { enabled: canViewSummary });
 
 	const summary = summaryQuery.data;
-	const metrics = useMemo(
-		() => buildLoanSummaryMetrics(summary),
-		[summary]
-	);
-	const statusItems = useMemo(
-		() => buildLoanStatusItems(summary),
-		[summary]
-	);
-	const stageItems = useMemo(
-		() => buildLoanStageItems(summary),
-		[summary]
-	);
+	const metrics = useMemo(() => buildLoanSummaryMetrics(summary), [summary]);
+	const statusItems = useMemo(() => buildLoanStatusItems(summary), [summary]);
+	const stageItems = useMemo(() => buildLoanStageItems(summary), [summary]);
 	const interestItems = useMemo(
 		() => buildActiveInterestItems(summary),
-		[summary]
+		[summary],
 	);
 	const repaymentItems = useMemo(
 		() => buildActiveRepaymentItems(summary),
-		[summary]
+		[summary],
 	);
 	const openStageTotal = stageItems.reduce((sum, item) => sum + item.value, 0);
 	const activeInterestTotal = interestItems.reduce(
 		(sum, item) => sum + item.value,
-		0
+		0,
 	);
 	const activeRepaymentTotal = repaymentItems.reduce(
 		(sum, item) => sum + item.value,
-		0
+		0,
 	);
 
 	if (!canViewSummary) {
@@ -151,7 +139,10 @@ function LoanSummarySkeleton() {
 						</CardHeader>
 						<CardContent className="space-y-3">
 							{Array.from({ length: 4 }).map((__, rowIndex) => (
-								<div key={`loan-summary-chart-row-${rowIndex}`} className="space-y-2">
+								<div
+									key={`loan-summary-chart-row-${rowIndex}`}
+									className="space-y-2"
+								>
 									<Skeleton className="h-3 w-32" />
 									<Skeleton className="h-2 w-full" />
 								</div>

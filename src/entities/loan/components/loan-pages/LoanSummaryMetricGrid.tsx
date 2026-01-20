@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { colorPalette } from "@/shared/styles/color-palette";
-import type { LoanSummaryMetricGridProps } from "@/entities/loan/components/types";
+import type { LoanSummaryMetricGridProps } from "@/entities/loan/types";
 
 export function LoanSummaryMetricGrid({ metrics }: LoanSummaryMetricGridProps) {
 	const cardStyle = {

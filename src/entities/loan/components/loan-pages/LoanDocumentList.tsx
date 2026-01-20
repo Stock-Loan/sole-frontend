@@ -4,7 +4,7 @@ import { LoadingState } from "@/shared/ui/LoadingState";
 import { Button } from "@/shared/ui/Button";
 import { formatDate } from "@/shared/lib/format";
 import { normalizeDisplay } from "@/shared/lib/utils";
-import type { LoanDocumentListProps } from "@/entities/loan/components/types";
+import type { LoanDocumentListProps } from "@/entities/loan/types";
 
 export function LoanDocumentList({
 	groups,

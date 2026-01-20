@@ -16,7 +16,7 @@ import { useToast } from "@/shared/ui/use-toast";
 import { parseApiError } from "@/shared/api/errors";
 import { normalizeDisplay } from "@/shared/lib/utils";
 import { formatDate } from "@/shared/lib/format";
-import type { WorkflowStagePanelProps } from "@/entities/loan/components/types";
+import type { WorkflowStagePanelProps } from "@/entities/loan/types";
 
 const STAGE_STATUS_OPTIONS = ["PENDING", "IN_PROGRESS", "COMPLETED"] as const;
 

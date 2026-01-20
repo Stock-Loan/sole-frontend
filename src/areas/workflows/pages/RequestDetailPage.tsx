@@ -11,8 +11,8 @@ import { useToast } from "@/shared/ui/use-toast";
 import { parseApiError } from "@/shared/api/errors";
 import { downloadBlob } from "@/shared/lib/download";
 import { getOrgUserDisplayName } from "@/entities/user/constants";
-import { LoanTimeline } from "@/entities/loan/components/LoanTimeline";
-import { LoanDocumentList } from "@/entities/loan/components/LoanDocumentList";
+import { LoanTimeline } from "@/entities/loan/components/loan-pages/LoanTimeline";
+import { LoanDocumentList } from "@/entities/loan/components/loan-pages/LoanDocumentList";
 import { LoanWorkflowSummary } from "@/entities/loan/components/workflow/LoanWorkflowSummary";
 import { PostIssuancePanel } from "@/entities/loan/components/workflow/PostIssuancePanel";
 import { WorkflowStagePanel } from "@/entities/loan/components/workflow/WorkflowStagePanel";
@@ -31,7 +31,7 @@ import {
 	useUpdateLegalStage,
 } from "@/entities/loan/hooks";
 import { useRolesList, useRoleMemberLookup } from "@/entities/role/hooks";
-import type { LoanDocumentTypeOption } from "@/entities/loan/components/types";
+import type { LoanDocumentTypeOption } from "@/entities/loan/types";
 import type { LoanDocument } from "@/entities/loan/types";
 
 function getRoleNameForStage(stageType?: string | null) {
@@ -113,7 +113,7 @@ export function RequestDetailPage() {
 				{ id: "finance", label: "Finance", canView: canViewFinance },
 				{ id: "legal", label: "Legal", canView: canViewLegal },
 			].filter((tab) => tab.canView),
-		[canViewFinance, canViewHr, canViewLegal]
+		[canViewFinance, canViewHr, canViewLegal],
 	);
 	const roleTabs = useMemo(
 		() =>
@@ -122,7 +122,7 @@ export function RequestDetailPage() {
 				{ id: "finance", label: "Finance", canManage: canManageFinance },
 				{ id: "legal", label: "Legal", canManage: canManageLegal },
 			].filter((tab) => tab.canManage),
-		[canManageFinance, canManageHr, canManageLegal]
+		[canManageFinance, canManageHr, canManageLegal],
 	);
 	const [selectedTab, setSelectedTab] = useState("");
 	const activeViewTab =
@@ -145,20 +145,23 @@ export function RequestDetailPage() {
 		activeViewTab === "finance"
 			? financeDetailQuery
 			: activeViewTab === "legal"
-			? legalDetailQuery
-			: hrDetailQuery;
+				? legalDetailQuery
+				: hrDetailQuery;
 
 	const loan = activeDetailQuery.data?.loan_application ?? null;
 	const activeStage =
 		activeViewTab === "finance"
 			? financeDetailQuery.data?.finance_stage
 			: activeViewTab === "legal"
-			? legalDetailQuery.data?.legal_stage
-			: hrDetailQuery.data?.hr_stage;
+				? legalDetailQuery.data?.legal_stage
+				: hrDetailQuery.data?.hr_stage;
 	const stockSummary = hrDetailQuery.data?.stock_summary ?? null;
-	const rolesQuery = useRolesList({}, {
-		enabled: Boolean(activeStage) && canViewRoleMembers,
-	});
+	const rolesQuery = useRolesList(
+		{},
+		{
+			enabled: Boolean(activeStage) && canViewRoleMembers,
+		},
+	);
 	const roleIdsByName = useMemo(() => {
 		const map = new Map<string, string>();
 		(rolesQuery.data?.items ?? []).forEach((role) => {
@@ -179,8 +182,9 @@ export function RequestDetailPage() {
 		stageRoleId,
 		activeStage?.assigned_to_user_id ?? null,
 		{
-			enabled: Boolean(stageRoleId) && canViewRoleMembers && !fallbackAssigneeName,
-		}
+			enabled:
+				Boolean(stageRoleId) && canViewRoleMembers && !fallbackAssigneeName,
+		},
 	);
 	const assigneeName = useMemo(() => {
 		if (!activeStage?.assigned_to_user_id) return "Unassigned";
@@ -407,7 +411,7 @@ export function RequestDetailPage() {
 									stage={
 										loan.workflow_stages?.find(
 											(stageItem) =>
-												stageItem.stage_type === "LEGAL_POST_ISSUANCE"
+												stageItem.stage_type === "LEGAL_POST_ISSUANCE",
 										) ?? null
 									}
 									documentGroups={documentGroups}
@@ -433,7 +437,7 @@ export function RequestDetailPage() {
 							assigneeName={assigneeName}
 							documentGroups={documentGroups}
 							requiredDocumentTypes={HR_DOCUMENT_OPTIONS.map(
-								(doc) => doc.value
+								(doc) => doc.value,
 							)}
 							documentTypeOptions={HR_DOCUMENT_OPTIONS}
 							onUploadDocument={(payload) =>

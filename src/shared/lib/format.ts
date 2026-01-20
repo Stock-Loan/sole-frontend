@@ -9,13 +9,11 @@ export function formatDate(value?: string | null) {
 
 export function formatCurrency(
 	value?: number | string | null,
-	options: FormatCurrencyOptions = {}
+	options: FormatCurrencyOptions = {},
 ) {
 	if (value === null || value === undefined) return "—";
 	const numericValue =
-		typeof value === "string"
-			? Number(value.replace(/,/g, "").trim())
-			: value;
+		typeof value === "string" ? Number(value.replace(/,/g, "").trim()) : value;
 	if (!Number.isFinite(numericValue)) {
 		return typeof value === "string" ? value : String(value);
 	}
@@ -63,8 +61,23 @@ export function formatYears(value?: number | string | null) {
 
 export function formatYearsInText(text: string) {
 	if (!text) return text;
-	return text.replace(
-		/(\d+(?:\.\d+)?)(?=\s*years?\b)/gi,
-		(match) => formatYears(match)
+	return text.replace(/(\d+(?:\.\d+)?)(?=\s*years?\b)/gi, (match) =>
+		formatYears(match),
 	);
+}
+
+export function formatRate(
+	value: string | number | null | undefined,
+	decimals: number,
+) {
+	if (value === null || value === undefined) return "—";
+	const numeric = Number(String(value).replace(/%/g, "").trim());
+	if (!Number.isFinite(numeric)) return String(value);
+	return `${numeric.toFixed(decimals)}%`;
+}
+
+export function parseNumber(value: number | string | null | undefined) {
+	if (value === null || value === undefined || value === "") return null;
+	const numeric = typeof value === "number" ? value : Number(value);
+	return Number.isFinite(numeric) ? numeric : null;
 }

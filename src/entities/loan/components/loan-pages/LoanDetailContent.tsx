@@ -25,12 +25,12 @@ import {
 	formatLoanSelectionValue,
 	formatYears,
 	groupDocumentsByStage,
-} from "@/entities/loan/components/detail-utils";
-import { LoanDocumentList } from "@/entities/loan/components/LoanDocumentList";
-import { LoanRepaymentsPanel } from "@/entities/loan/components/LoanRepaymentsPanel";
-import { LoanSchedulePanel } from "@/entities/loan/components/LoanSchedulePanel";
-import { LoanTimeline } from "@/entities/loan/components/LoanTimeline";
-import { LoanScheduleWhatIfDialog } from "@/entities/loan/components/LoanScheduleWhatIfDialog";
+} from "@/entities/loan/utils/detail-utils";
+import { LoanDocumentList } from "./LoanDocumentList";
+import { LoanRepaymentsPanel } from "./LoanRepaymentsPanel";
+import { LoanSchedulePanel } from "./LoanSchedulePanel";
+import { LoanTimeline } from "./LoanTimeline";
+import { LoanScheduleWhatIfDialog } from "./LoanScheduleWhatIfDialog";
 import {
 	useDownloadOrgLoanDocument,
 	useCreateOrgLoanRepayment,
@@ -51,13 +51,13 @@ import type {
 	LoanDetailContentProps,
 	LoanDetailRowProps,
 	LoanDetailSummaryCardProps,
-} from "@/entities/loan/components/types";
+} from "@/entities/loan/types";
 import type {
 	LoanDocument,
 	LoanScheduleResponse,
 	LoanScheduleWhatIfPayload,
 } from "@/entities/loan/types";
-import { LoanRepaymentDialog } from "@/entities/loan/components/LoanRepaymentDialog";
+import { LoanRepaymentDialog } from "./LoanRepaymentDialog";
 
 export function LoanDetailContent({
 	loan,

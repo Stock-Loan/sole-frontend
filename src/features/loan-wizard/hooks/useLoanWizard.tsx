@@ -24,11 +24,14 @@ import type {
 } from "@/entities/loan/types";
 import type { LoanWizardState } from "@/entities/loan/types";
 import { loanSpouseInfoSchema } from "@/entities/loan/schemas";
-import type { LoanInterestType, LoanRepaymentMethod } from "@/entities/org/types";
+import type {
+	LoanInterestType,
+	LoanRepaymentMethod,
+} from "@/entities/org/types";
 import { useSelfOrgPolicy } from "@/entities/org/hooks";
-import { loanWizardSteps } from "@/entities/loan/components/loan-wizard/constants";
+import { loanWizardSteps } from "@/entities/loan/constants";
 import { LoanWizardSpouseForm } from "@/entities/loan/components/loan-wizard/LoanWizardSpouseForm";
-import { extractSubmitError } from "@/entities/loan/components/loan-wizard/utils";
+import { extractSubmitError } from "@/entities/loan/utils/utils";
 import { formatShares } from "@/entities/stock-grant/constants";
 import { useUserSettings } from "@/features/user-settings/hooks";
 import { LoanWizardStepContent } from "../components/LoanWizardStepContent";
@@ -49,7 +52,7 @@ export function useLoanWizard({ id }: UseLoanWizardArgs): LoanWizardState {
 		LoanSelectionMode | undefined
 	>(undefined);
 	const [selectionValue, setSelectionValue] = useState<string | undefined>(
-		undefined
+		undefined,
 	);
 	const [selectionError, setSelectionError] = useState<string | null>(null);
 	const [desiredInterestType, setDesiredInterestType] = useState<
@@ -184,7 +187,7 @@ export function useLoanWizard({ id }: UseLoanWizardArgs): LoanWizardState {
 			draft?.spouse_email,
 			draft?.spouse_phone,
 			draft?.spouse_address,
-		]
+		],
 	);
 
 	const blocker = useBlocker(hasUnsavedChanges);
@@ -264,7 +267,7 @@ export function useLoanWizard({ id }: UseLoanWizardArgs): LoanWizardState {
 	};
 
 	const handleSaveDraft = async (
-		overrides?: Partial<LoanApplicationDraftUpdate>
+		overrides?: Partial<LoanApplicationDraftUpdate>,
 	) => {
 		if (!quoteInput || !selectionValueValid || !selectionWithinLimit) {
 			setTermsError("Complete Step 1 selections before saving.");
@@ -272,7 +275,7 @@ export function useLoanWizard({ id }: UseLoanWizardArgs): LoanWizardState {
 		}
 		if (!interestTypeValid || !repaymentMethodValid || !termValid) {
 			setTermsError(
-				"Select interest type, repayment method, and a valid term."
+				"Select interest type, repayment method, and a valid term.",
 			);
 			return false;
 		}
@@ -323,7 +326,7 @@ export function useLoanWizard({ id }: UseLoanWizardArgs): LoanWizardState {
 				setSelectionError(
 					resolvedSelectionMode === "PERCENT"
 						? "Enter a valid percentage."
-						: "Enter a valid number of shares."
+						: "Enter a valid number of shares.",
 				);
 				return;
 			}
@@ -338,8 +341,8 @@ export function useLoanWizard({ id }: UseLoanWizardArgs): LoanWizardState {
 					totalAvailableVestedShares ?? totalExercisableShares;
 				setSelectionError(
 					`You entered ${formatShares(Math.floor(numericValue))} shares, but only ${formatShares(
-						availableShares
-					)} are available to exercise.`
+						availableShares,
+					)} are available to exercise.`,
 				);
 				return;
 			}
@@ -360,7 +363,7 @@ export function useLoanWizard({ id }: UseLoanWizardArgs): LoanWizardState {
 				const isValid = await spouseForm.trigger();
 				if (!isValid) {
 					setMaritalError(
-						"Please complete all required spouse/partner details."
+						"Please complete all required spouse/partner details.",
 					);
 					return;
 				}
@@ -393,7 +396,7 @@ export function useLoanWizard({ id }: UseLoanWizardArgs): LoanWizardState {
 	const handleSubmitApplication = async () => {
 		if (!effectiveDraftId) {
 			setSubmitError(
-				"We couldn't find a saved draft to submit. Please save your draft and try again."
+				"We couldn't find a saved draft to submit. Please save your draft and try again.",
 			);
 			setSubmitErrorSection("terms");
 			return;
@@ -454,7 +457,8 @@ export function useLoanWizard({ id }: UseLoanWizardArgs): LoanWizardState {
 		quoteQuery,
 	});
 
-	const isSaving = createDraftMutation.isPending || updateDraftMutation.isPending;
+	const isSaving =
+		createDraftMutation.isPending || updateDraftMutation.isPending;
 	const maritalPropsBase = buildMaritalStepProps({
 		profileQuery,
 		hrMaritalStatus,
@@ -517,8 +521,8 @@ export function useLoanWizard({ id }: UseLoanWizardArgs): LoanWizardState {
 	const nextLabel = isReviewStep
 		? "Submit application"
 		: isLastStep
-		? "Done"
-		: "Next";
+			? "Done"
+			: "Next";
 	const nextDisabled =
 		(isReviewStep && !canSubmit) ||
 		(!isReviewStep &&
@@ -578,13 +582,13 @@ export function useLoanWizard({ id }: UseLoanWizardArgs): LoanWizardState {
 
 function mergeDraftOverrides(
 	base: LoanApplicationDraftCreate,
-	overrides?: Partial<LoanApplicationDraftUpdate>
+	overrides?: Partial<LoanApplicationDraftUpdate>,
 ): LoanApplicationDraftCreate {
 	if (!overrides) return base;
 	const merged: LoanApplicationDraftCreate = { ...base };
 	const setIfDefined = <K extends keyof LoanApplicationDraftCreate>(
 		key: K,
-		value: LoanApplicationDraftCreate[K] | undefined
+		value: LoanApplicationDraftCreate[K] | undefined,
 	) => {
 		if (value !== undefined) {
 			merged[key] = value;

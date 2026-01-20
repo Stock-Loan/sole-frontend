@@ -9,7 +9,7 @@ import {
 	useMyLoanApplication,
 	useMyLoanDocuments,
 } from "@/entities/loan/hooks";
-import { LoanSelfDetailContent } from "@/entities/loan/components/LoanSelfDetailContent";
+import { LoanSelfDetailContent } from "@/entities/loan/components/loan-pages/LoanSelfDetailContent";
 
 export function MyLoanDetailPage() {
 	const { id } = useParams();

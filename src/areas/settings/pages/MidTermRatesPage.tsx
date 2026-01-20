@@ -12,31 +12,8 @@ import { useApiErrorToast } from "@/shared/api/useApiErrorToast";
 import { loadDataTablePreferences } from "@/shared/ui/Table/constants";
 import { usePbgcRates, useRefreshPbgcRates } from "@/entities/org/hooks";
 import type { PbgcMidTermRate } from "@/entities/org/types";
-
-const MONTH_LABELS = [
-	"January",
-	"February",
-	"March",
-	"April",
-	"May",
-	"June",
-	"July",
-	"August",
-	"September",
-	"October",
-	"November",
-	"December",
-] as const;
-
-function formatRate(
-	value: string | number | null | undefined,
-	decimals: number,
-) {
-	if (value === null || value === undefined) return "—";
-	const numeric = Number(String(value).replace(/%/g, "").trim());
-	if (!Number.isFinite(numeric)) return String(value);
-	return `${numeric.toFixed(decimals)}%`;
-}
+import { formatRate } from "@/shared/lib/format";
+import { MONTH_LABELS } from "@/entities/org/constants";
 
 export function MidTermRatesPage() {
 	const { can } = usePermissions();

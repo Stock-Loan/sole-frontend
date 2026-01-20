@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { EmptyState } from "@/shared/ui/EmptyState";
 import { cn } from "@/shared/lib/utils";
 import { colorPalette } from "@/shared/styles/color-palette";
-import type { LoanSummaryBarChartProps } from "@/entities/loan/components/types";
+import type { LoanSummaryBarChartProps } from "@/entities/loan/types";
 
 export function LoanSummaryBarChart({
 	title,

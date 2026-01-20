@@ -6,7 +6,7 @@ import { PickDocument } from "@/shared/ui/PickDocument";
 import { formatDate } from "@/shared/lib/format";
 import { useToast } from "@/shared/ui/use-toast";
 import { parseApiError } from "@/shared/api/errors";
-import type { Loan83bPanelProps } from "@/entities/loan/components/types";
+import type { Loan83bPanelProps } from "@/entities/loan/types";
 
 export function Loan83bPanel({
 	loanId,
@@ -59,9 +59,7 @@ export function Loan83bPanel({
 	return (
 		<Card className={panelClassName}>
 			<CardHeader>
-				<CardTitle className="text-sm font-semibold">
-					83(b) Election
-				</CardTitle>
+				<CardTitle className="text-sm font-semibold">83(b) Election</CardTitle>
 				<p className="text-sm text-muted-foreground">
 					File your 83(b) election after your loan activates.
 				</p>
@@ -87,10 +85,7 @@ export function Loan83bPanel({
 					</span>
 				</div>
 
-				<PickDocument
-					file={selectedFile}
-					onFileChange={setSelectedFile}
-				/>
+				<PickDocument file={selectedFile} onFileChange={setSelectedFile} />
 
 				{errorMessage ? (
 					<p className="text-sm text-destructive">{errorMessage}</p>

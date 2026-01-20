@@ -10,7 +10,7 @@ import type { EligibilityReason } from "@/entities/stock-grant/types";
 import type {
 	LoanDetailValue,
 	LoanSelectionValue,
-} from "@/entities/loan/components/types";
+} from "@/entities/loan//types";
 
 export function formatDetailValue(value?: LoanDetailValue) {
 	if (value === null || value === undefined) return "—";
@@ -25,7 +25,7 @@ export function formatDetailBoolean(value?: boolean | null) {
 
 export function formatLoanSelectionValue(
 	mode?: LoanSelectionMode | null,
-	value?: LoanSelectionValue
+	value?: LoanSelectionValue,
 ) {
 	if (value === null || value === undefined || value.trim() === "") return "—";
 	if (mode === "PERCENT") {
@@ -34,9 +34,7 @@ export function formatLoanSelectionValue(
 	return value;
 }
 
-export function formatEligibilityReasons(
-	reasons?: EligibilityReason[] | null
-) {
+export function formatEligibilityReasons(reasons?: EligibilityReason[] | null) {
 	if (!reasons || reasons.length === 0) return "None";
 	return reasons.map((reason) => reason.message || reason.code).join(", ");
 }
@@ -62,7 +60,7 @@ const workflowStageOrder: LoanWorkflowStageType[] = [
 ];
 
 export function groupDocumentsByStage(
-	documents?: LoanDocument[] | null
+	documents?: LoanDocument[] | null,
 ): LoanDocumentGroup[] {
 	if (!documents || documents.length === 0) return [];
 	const grouped = new Map<LoanWorkflowStageType, LoanDocument[]>();

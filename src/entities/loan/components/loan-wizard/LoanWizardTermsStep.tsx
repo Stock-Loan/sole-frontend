@@ -8,7 +8,7 @@ import type { LoanWizardTermsStepProps } from "@/entities/loan/types";
 import {
 	loanWizardInterestTypeOptions,
 	loanWizardRepaymentMethodOptions,
-} from "./constants";
+} from "../../constants";
 
 export function LoanWizardTermsStep({
 	policy,
@@ -65,7 +65,7 @@ export function LoanWizardTermsStep({
 					<div className="mt-3 grid gap-3">
 						{loanWizardInterestTypeOptions
 							.filter((option) =>
-								policy.allowed_interest_types.includes(option.value)
+								policy.allowed_interest_types.includes(option.value),
 							)
 							.map((option) => {
 								const isActive = interestType === option.value;
@@ -78,7 +78,7 @@ export function LoanWizardTermsStep({
 											"flex w-full items-start gap-3 rounded-xl border px-4 py-3 text-left text-sm transition",
 											isActive
 												? "border-primary bg-primary/10 shadow-sm"
-												: "border-border/70 bg-background hover:border-primary/50 hover:bg-muted/40"
+												: "border-border/70 bg-background hover:border-primary/50 hover:bg-muted/40",
 										)}
 									>
 										<span
@@ -86,7 +86,7 @@ export function LoanWizardTermsStep({
 												"mt-1 h-2.5 w-2.5 rounded-full border",
 												isActive
 													? "border-primary bg-primary"
-													: "border-muted-foreground/40"
+													: "border-muted-foreground/40",
 											)}
 										/>
 										<div>
@@ -110,7 +110,7 @@ export function LoanWizardTermsStep({
 					<div className="mt-3 grid gap-3">
 						{loanWizardRepaymentMethodOptions
 							.filter((option) =>
-								policy.allowed_repayment_methods.includes(option.value)
+								policy.allowed_repayment_methods.includes(option.value),
 							)
 							.map((option) => {
 								const isActive = repaymentMethod === option.value;
@@ -123,7 +123,7 @@ export function LoanWizardTermsStep({
 											"flex w-full items-start gap-3 rounded-xl border px-4 py-3 text-left text-sm transition",
 											isActive
 												? "border-primary bg-primary/10 shadow-sm"
-												: "border-border/70 bg-background hover:border-primary/50 hover:bg-muted/40"
+												: "border-border/70 bg-background hover:border-primary/50 hover:bg-muted/40",
 										)}
 									>
 										<span
@@ -131,7 +131,7 @@ export function LoanWizardTermsStep({
 												"mt-1 h-2.5 w-2.5 rounded-full border",
 												isActive
 													? "border-primary bg-primary"
-													: "border-muted-foreground/40"
+													: "border-muted-foreground/40",
 											)}
 										/>
 										<div>
@@ -168,7 +168,8 @@ export function LoanWizardTermsStep({
 						}}
 					/>
 					<p className="mt-2 text-xs text-muted-foreground">
-						Allowed range: {policy.min_loan_term_months}–{policy.max_loan_term_months} months
+						Allowed range: {policy.min_loan_term_months}–
+						{policy.max_loan_term_months} months
 					</p>
 				</div>
 				<div className="rounded-xl border border-border/60 bg-card/70 p-5 shadow-sm">
@@ -213,17 +214,19 @@ export function LoanWizardTermsStep({
 													"rounded-xl border px-4 py-3 text-left text-sm transition",
 													isActive
 														? "border-primary bg-primary/10 shadow-sm"
-														: "border-border/70 bg-background hover:border-primary/50 hover:bg-muted/40"
+														: "border-border/70 bg-background hover:border-primary/50 hover:bg-muted/40",
 												)}
 											>
 												<p className="font-medium text-foreground">
 													{option.interest_type} • {option.repayment_method}
 												</p>
 												<p className="text-xs text-muted-foreground">
-													{option.term_months} months · {formatPercent(option.nominal_annual_rate)} APR
+													{option.term_months} months ·{" "}
+													{formatPercent(option.nominal_annual_rate)} APR
 												</p>
 												<p className="mt-2 text-sm text-foreground">
-													{formatCurrency(option.estimated_monthly_payment)} / month
+													{formatCurrency(option.estimated_monthly_payment)} /
+													month
 												</p>
 											</button>
 										);
@@ -262,7 +265,8 @@ export function LoanWizardTermsStep({
 											<span>Estimated monthly payment</span>
 											<span className="text-foreground">
 												{formatCurrency(
-													quoteOptions[selectedQuoteIndex].estimated_monthly_payment
+													quoteOptions[selectedQuoteIndex]
+														.estimated_monthly_payment,
 												)}
 											</span>
 										</div>
@@ -270,7 +274,7 @@ export function LoanWizardTermsStep({
 											<span>Total interest</span>
 											<span className="text-foreground">
 												{formatCurrency(
-													quoteOptions[selectedQuoteIndex].total_interest
+													quoteOptions[selectedQuoteIndex].total_interest,
 												)}
 											</span>
 										</div>
@@ -278,7 +282,7 @@ export function LoanWizardTermsStep({
 											<span>Total payable</span>
 											<span className="text-foreground">
 												{formatCurrency(
-													quoteOptions[selectedQuoteIndex].total_payable
+													quoteOptions[selectedQuoteIndex].total_payable,
 												)}
 											</span>
 										</div>

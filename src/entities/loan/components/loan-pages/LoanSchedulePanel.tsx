@@ -11,7 +11,7 @@ import {
 } from "@/shared/ui/Table/table";
 import { formatCurrency, formatDate, formatPercent } from "@/shared/lib/format";
 import { normalizeDisplay } from "@/shared/lib/utils";
-import type { LoanSchedulePanelProps } from "@/entities/loan/components/types";
+import type { LoanSchedulePanelProps } from "@/entities/loan/types";
 
 export function LoanSchedulePanel({
 	schedule,
@@ -48,7 +48,9 @@ export function LoanSchedulePanel({
 		<Card>
 			<CardHeader className="flex flex-row items-start justify-between gap-2 pb-2">
 				<CardTitle className="text-sm font-semibold">Schedule</CardTitle>
-				{actions ? <div className="flex items-center gap-2">{actions}</div> : null}
+				{actions ? (
+					<div className="flex items-center gap-2">{actions}</div>
+				) : null}
 			</CardHeader>
 			<CardContent className="space-y-4 text-sm text-muted-foreground">
 				<div className="grid gap-3 md:grid-cols-3">
@@ -109,9 +111,7 @@ export function LoanSchedulePanel({
 								<TableCell>{formatCurrency(entry.payment)}</TableCell>
 								<TableCell>{formatCurrency(entry.principal)}</TableCell>
 								<TableCell>{formatCurrency(entry.interest)}</TableCell>
-								<TableCell>
-									{formatCurrency(entry.remaining_balance)}
-								</TableCell>
+								<TableCell>{formatCurrency(entry.remaining_balance)}</TableCell>
 							</TableRow>
 						))}
 					</TableBody>

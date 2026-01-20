@@ -27,8 +27,8 @@ import {
 	useCancelMyLoanApplication,
 	useMyLoanApplications,
 } from "@/entities/loan/hooks";
-import { LoanStatusBadge } from "@/entities/loan/components/LoanStatusBadge";
-import { StageStatusBadge } from "@/entities/loan/components/StageStatusBadge";
+import { LoanStatusBadge } from "@/entities/loan/components/loan-pages/LoanStatusBadge";
+import { StageStatusBadge } from "@/entities/loan/components/loan-pages/StageStatusBadge";
 import type { LoanApplicationSummary } from "@/entities/loan/types";
 
 const PAGE_SIZE_OPTIONS = [5, 10, 20, 30];
@@ -54,7 +54,7 @@ export function MyLoansPage() {
 			limit: paginationState.pageSize,
 			offset: paginationState.pageIndex * paginationState.pageSize,
 		}),
-		[paginationState.pageIndex, paginationState.pageSize]
+		[paginationState.pageIndex, paginationState.pageSize],
 	);
 
 	const loansQuery = useMyLoanApplications(listParams, {
@@ -75,7 +75,7 @@ export function MyLoansPage() {
 	const totalRows = loansQuery.data?.total ?? loans.length;
 	const totalPages = Math.max(
 		1,
-		Math.ceil(totalRows / paginationState.pageSize)
+		Math.ceil(totalRows / paginationState.pageSize),
 	);
 
 	const columns: ColumnDefinition<LoanApplicationSummary>[] = [
@@ -234,7 +234,10 @@ export function MyLoansPage() {
 									onClick={() => {
 										if (!selectedLoan) return;
 										navigate(
-											routes.workspaceLoanDetail.replace(":id", selectedLoan.id)
+											routes.workspaceLoanDetail.replace(
+												":id",
+												selectedLoan.id,
+											),
 										);
 									}}
 								>
@@ -260,8 +263,8 @@ export function MyLoansPage() {
 										navigate(
 											routes.workspaceLoanWizardEdit.replace(
 												":id",
-												selectedLoan.id
-											)
+												selectedLoan.id,
+											),
 										);
 									}}
 								>
@@ -292,8 +295,8 @@ export function MyLoansPage() {
 					<DialogHeader>
 						<DialogTitle>Cancel draft application?</DialogTitle>
 						<DialogDescription>
-							This will cancel your draft loan application and remove it
-							from your list.
+							This will cancel your draft loan application and remove it from
+							your list.
 						</DialogDescription>
 					</DialogHeader>
 					<DialogBody>

@@ -9,15 +9,16 @@ import { routes } from "@/shared/lib/routes";
 import { formatDate } from "@/shared/lib/format";
 import { usePermissions } from "@/auth/hooks";
 import { useMyLoanApplications } from "@/entities/loan/hooks";
-import { LoanStatusBadge } from "@/entities/loan/components/LoanStatusBadge";
+import { LoanStatusBadge } from "@/entities/loan/components/loan-pages/LoanStatusBadge";
 
 export function MyDocumentsPage() {
 	const { can } = usePermissions();
-	const canViewDocuments = can("loan.document.self_view") || can("loan.view_own");
+	const canViewDocuments =
+		can("loan.document.self_view") || can("loan.view_own");
 
 	const loansQuery = useMyLoanApplications(
 		{ limit: 50, offset: 0 },
-		{ enabled: canViewDocuments }
+		{ enabled: canViewDocuments },
 	);
 	const loans = loansQuery.data?.items ?? [];
 

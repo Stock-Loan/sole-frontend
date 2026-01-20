@@ -6,8 +6,8 @@ import { PickDocument } from "@/shared/ui/PickDocument";
 import { useToast } from "@/shared/ui/use-toast";
 import { parseApiError } from "@/shared/api/errors";
 import { normalizeDisplay } from "@/shared/lib/utils";
-import { StageStatusBadge } from "@/entities/loan/components/StageStatusBadge";
-import type { PostIssuancePanelProps } from "@/entities/loan/components/types";
+import { StageStatusBadge } from "@/entities/loan/components/loan-pages/StageStatusBadge";
+import type { PostIssuancePanelProps } from "@/entities/loan/types";
 
 const SHARE_CERTIFICATE_TYPE = "SHARE_CERTIFICATE";
 
@@ -21,16 +21,16 @@ export function PostIssuancePanel({
 	const { toast } = useToast();
 	const stageDocuments = useMemo(() => {
 		const group = documentGroups.find(
-			(item) => item.stage_type === "LEGAL_POST_ISSUANCE"
+			(item) => item.stage_type === "LEGAL_POST_ISSUANCE",
 		);
 		return group?.documents ?? [];
 	}, [documentGroups]);
 	const hasShareCertificate = useMemo(
 		() =>
 			stageDocuments.some(
-				(doc) => doc.document_type === SHARE_CERTIFICATE_TYPE
+				(doc) => doc.document_type === SHARE_CERTIFICATE_TYPE,
 			),
-		[stageDocuments]
+		[stageDocuments],
 	);
 
 	const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -77,9 +77,7 @@ export function PostIssuancePanel({
 					) : (
 						<AlertCircle className="h-4 w-4 text-amber-500" />
 					)}
-					{stage?.status ? (
-						<StageStatusBadge status={stage.status} />
-					) : null}
+					{stage?.status ? <StageStatusBadge status={stage.status} /> : null}
 				</div>
 
 				{disableDocumentForm ? (

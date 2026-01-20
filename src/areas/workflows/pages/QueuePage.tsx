@@ -28,65 +28,18 @@ import {
 	useMyHrLoanQueue,
 	useMyLegalLoanQueue,
 	useAssignLoanWorkflowStage,
+	getManagePermission,
+	getRoleNameForStage,
+	getUserDisplayName,
 } from "@/entities/loan/hooks";
-import { LoanStatusBadge } from "@/entities/loan/components/LoanStatusBadge";
-import { StageStatusBadge } from "@/entities/loan/components/StageStatusBadge";
-import type {
-	LoanApplicationSummary,
-	LoanWorkflowStageType,
-} from "@/entities/loan/types";
+import { LoanStatusBadge } from "@/entities/loan/components/loan-pages/LoanStatusBadge";
+import { StageStatusBadge } from "@/entities/loan/components/loan-pages/StageStatusBadge";
+import type { LoanApplicationSummary } from "@/entities/loan/types";
 import { useRolesList, useRoleMembersSearch } from "@/entities/role/hooks";
-import type { OrgUserListItem } from "@/entities/user/types";
+import { QUEUE_SCOPE_OPTIONS, QUEUE_TABS } from "@/entities/loan/constants";
 
 const PAGE_SIZE_OPTIONS = [10, 20, 30, 40, 50];
 const DEFAULT_PAGE_SIZE = 20;
-const QUEUE_SCOPE_OPTIONS = [
-	{ id: "all", label: "All Queue" },
-	{ id: "mine", label: "My Queue" },
-] as const;
-const QUEUE_TABS = [
-	{
-		id: "hr",
-		label: "HR Queue",
-		permission: "loan.queue.hr.view",
-		description: "Review employee eligibility and policy compliance.",
-	},
-	{
-		id: "finance",
-		label: "Finance Queue",
-		permission: "loan.queue.finance.view",
-		description: "Validate repayment terms and funding readiness.",
-	},
-	{
-		id: "legal",
-		label: "Legal Queue",
-		permission: "loan.queue.legal.view",
-		description: "Confirm document requirements and legal checkpoints.",
-	},
-] as const;
-
-function getManagePermission(stageType?: LoanWorkflowStageType | null) {
-	if (!stageType) return null;
-	if (stageType === "HR_REVIEW") return "loan.workflow.hr.manage";
-	if (stageType === "FINANCE_PROCESSING") return "loan.workflow.finance.manage";
-	if (stageType === "LEGAL_EXECUTION") return "loan.workflow.legal.manage";
-	return null;
-}
-
-function getRoleNameForStage(stageType?: LoanWorkflowStageType | null) {
-	if (stageType === "HR_REVIEW") return "HR";
-	if (stageType === "FINANCE_PROCESSING") return "FINANCE";
-	if (stageType === "LEGAL_EXECUTION") return "LEGAL";
-	return null;
-}
-
-function getUserDisplayName(user: OrgUserListItem["user"]) {
-	return (
-		user.full_name ||
-		[user.first_name, user.last_name].filter(Boolean).join(" ").trim() ||
-		user.email
-	);
-}
 
 export function QueuePage() {
 	const navigate = useNavigate();
@@ -96,7 +49,7 @@ export function QueuePage() {
 
 	const visibleTabs = useMemo(
 		() => QUEUE_TABS.filter((tab) => can(tab.permission)),
-		[can]
+		[can],
 	);
 	const [selectedTab, setSelectedTab] = useState<string>("");
 	const [queueScope, setQueueScope] = useState<string>("all");
@@ -111,7 +64,7 @@ export function QueuePage() {
 			limit: 200,
 			offset: 0,
 		}),
-		[]
+		[],
 	);
 
 	const hrQuery = useHrLoanQueue(queueParams, {
@@ -152,17 +105,17 @@ export function QueuePage() {
 			? activeTab === "finance"
 				? myFinanceQuery
 				: activeTab === "legal"
-				? myLegalQuery
-				: myHrQuery
+					? myLegalQuery
+					: myHrQuery
 			: activeTab === "finance"
-			? financeQuery
-			: activeTab === "legal"
-			? legalQuery
-			: hrQuery;
+				? financeQuery
+				: activeTab === "legal"
+					? legalQuery
+					: hrQuery;
 
 	const loans = useMemo(
 		() => activeQuery.data?.items ?? [],
-		[activeQuery.data]
+		[activeQuery.data],
 	);
 
 	const preferencesConfig = useMemo<DataTablePreferencesConfig>(
@@ -172,11 +125,11 @@ export function QueuePage() {
 			userKey: user?.id ?? null,
 			orgKey: user?.org_id ?? null,
 		}),
-		[activeTab, user?.id, user?.org_id]
+		[activeTab, user?.id, user?.org_id],
 	);
 	const persistedPreferences = useMemo(
 		() => loadDataTablePreferences(preferencesConfig),
-		[preferencesConfig]
+		[preferencesConfig],
 	);
 	const preferredPageSize =
 		typeof persistedPreferences?.pagination?.pageSize === "number"
@@ -214,11 +167,11 @@ export function QueuePage() {
 				assignDialogOpen &&
 				userSearchTerm.trim().length > 0 &&
 				Boolean(stageRoleId),
-		}
+		},
 	);
 	const assigneeOptions = useMemo(
 		() => usersQuery.data?.items ?? [],
-		[usersQuery.data]
+		[usersQuery.data],
 	);
 	const sortedAssignees = useMemo(() => {
 		const items = [...assigneeOptions];
@@ -228,7 +181,7 @@ export function QueuePage() {
 			if (aIsMe && !bIsMe) return -1;
 			if (!aIsMe && bIsMe) return 1;
 			return getUserDisplayName(a.user).localeCompare(
-				getUserDisplayName(b.user)
+				getUserDisplayName(b.user),
 			);
 		});
 		return items;
@@ -324,7 +277,7 @@ export function QueuePage() {
 				cell: (loan) => formatDate(loan.updated_at),
 			},
 		],
-		[]
+		[],
 	);
 
 	const initialColumnVisibility: VisibilityState = {
@@ -400,7 +353,7 @@ export function QueuePage() {
 				initialColumnVisibility={initialColumnVisibility}
 				onRowClick={(loan) => {
 					navigate(
-						routes.workflowsRequestDetail.replace(":requestId", loan.id)
+						routes.workflowsRequestDetail.replace(":requestId", loan.id),
 					);
 				}}
 				renderToolbarActions={(selectedLoans) => {
@@ -422,8 +375,8 @@ export function QueuePage() {
 									navigate(
 										routes.workflowsRequestDetail.replace(
 											":requestId",
-											selectedLoan.id
-										)
+											selectedLoan.id,
+										),
 									);
 								}}
 							>
@@ -543,7 +496,7 @@ export function QueuePage() {
 									{formatCurrency(
 										assignmentTarget?.loan_principal ??
 											assignmentTarget?.purchase_price ??
-											null
+											null,
 									)}
 								</p>
 							</div>
@@ -554,7 +507,9 @@ export function QueuePage() {
 								</p>
 							</div>
 							<div>
-								<p className="text-xs text-muted-foreground">Current assignee</p>
+								<p className="text-xs text-muted-foreground">
+									Current assignee
+								</p>
 								<p className="font-semibold text-foreground">
 									{assignmentTarget?.current_stage_assignee?.full_name ??
 										assignmentTarget?.current_stage_assignee?.email ??

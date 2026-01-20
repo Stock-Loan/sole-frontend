@@ -84,6 +84,7 @@ import type {
 	LoanWorkflowStageType,
 	LoanWorkflowStageUpdatePayload,
 } from "./types";
+import type { OrgUserListItem } from "../user/types";
 
 export function useMyLoanQuote(
 	input: LoanQuoteInput | null,
@@ -1012,4 +1013,24 @@ export function useAssignLoanWorkflowStage(
 		},
 		...options,
 	});
+}
+export function getManagePermission(stageType?: LoanWorkflowStageType | null) {
+	if (!stageType) return null;
+	if (stageType === "HR_REVIEW") return "loan.workflow.hr.manage";
+	if (stageType === "FINANCE_PROCESSING") return "loan.workflow.finance.manage";
+	if (stageType === "LEGAL_EXECUTION") return "loan.workflow.legal.manage";
+	return null;
+}
+export function getRoleNameForStage(stageType?: LoanWorkflowStageType | null) {
+	if (stageType === "HR_REVIEW") return "HR";
+	if (stageType === "FINANCE_PROCESSING") return "FINANCE";
+	if (stageType === "LEGAL_EXECUTION") return "LEGAL";
+	return null;
+}
+export function getUserDisplayName(user: OrgUserListItem["user"]) {
+	return (
+		user.full_name ||
+		[user.first_name, user.last_name].filter(Boolean).join(" ").trim() ||
+		user.email
+	);
 }

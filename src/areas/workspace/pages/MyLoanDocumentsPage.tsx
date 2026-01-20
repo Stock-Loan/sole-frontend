@@ -4,8 +4,11 @@ import { PageContainer } from "@/shared/ui/PageContainer";
 import { PageHeader } from "@/shared/ui/PageHeader";
 import { EmptyState } from "@/shared/ui/EmptyState";
 import { Button } from "@/shared/ui/Button";
-import { LoanDocumentList } from "@/entities/loan/components/LoanDocumentList";
-import { useMyLoanDocuments, useDownloadMyLoanDocument } from "@/entities/loan/hooks";
+import { LoanDocumentList } from "@/entities/loan/components/loan-pages/LoanDocumentList";
+import {
+	useMyLoanDocuments,
+	useDownloadMyLoanDocument,
+} from "@/entities/loan/hooks";
 import { useToast } from "@/shared/ui/use-toast";
 import { parseApiError } from "@/shared/api/errors";
 import { downloadBlob } from "@/shared/lib/download";

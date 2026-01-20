@@ -28,8 +28,11 @@ import { formatCurrency, formatDate } from "@/shared/lib/format";
 import { formatShares } from "@/entities/stock-grant/constants";
 import { normalizeDisplay } from "@/shared/lib/utils";
 import { useAuth, usePermissions } from "@/auth/hooks";
-import { useActivateLoanBacklog, useOrgLoanApplications } from "@/entities/loan/hooks";
-import { LoanStatusBadge } from "@/entities/loan/components/LoanStatusBadge";
+import {
+	useActivateLoanBacklog,
+	useOrgLoanApplications,
+} from "@/entities/loan/hooks";
+import { LoanStatusBadge } from "@/entities/loan/components/loan-pages/LoanStatusBadge";
 import type { LoanApplicationSummary } from "@/entities/loan/types";
 
 const PAGE_SIZE_OPTIONS = [5, 10, 20, 30, 50];
@@ -51,11 +54,11 @@ export function LoanApplicationsPage() {
 			userKey: user?.id ?? null,
 			orgKey: user?.org_id ?? null,
 		}),
-		[user?.id, user?.org_id]
+		[user?.id, user?.org_id],
 	);
 	const persistedPreferences = useMemo(
 		() => loadDataTablePreferences(preferencesConfig),
-		[preferencesConfig]
+		[preferencesConfig],
 	);
 	const preferredPageSize =
 		typeof persistedPreferences?.pagination?.pageSize === "number"
@@ -71,7 +74,7 @@ export function LoanApplicationsPage() {
 			limit: paginationState.pageSize,
 			offset: paginationState.pageIndex * paginationState.pageSize,
 		}),
-		[paginationState.pageIndex, paginationState.pageSize]
+		[paginationState.pageIndex, paginationState.pageSize],
 	);
 
 	const loansQuery = useOrgLoanApplications(listParams, {
@@ -99,7 +102,7 @@ export function LoanApplicationsPage() {
 	const totalRows = loansQuery.data?.total ?? loans.length;
 	const totalPages = Math.max(
 		1,
-		Math.ceil(totalRows / paginationState.pageSize)
+		Math.ceil(totalRows / paginationState.pageSize),
 	);
 
 	const columns: ColumnDefinition<LoanApplicationSummary>[] = [
@@ -204,8 +207,7 @@ export function LoanApplicationsPage() {
 			id: "total_exercisable_shares_snapshot",
 			header: "Total exercisable",
 			accessor: (loan) => loan.total_exercisable_shares_snapshot ?? 0,
-			cell: (loan) =>
-				formatShares(loan.total_exercisable_shares_snapshot),
+			cell: (loan) => formatShares(loan.total_exercisable_shares_snapshot),
 		},
 		{
 			id: "shares_to_exercise",
@@ -281,7 +283,7 @@ export function LoanApplicationsPage() {
 			interest_type: false,
 			repayment_method: false,
 		}),
-		[]
+		[],
 	);
 
 	return (
@@ -331,10 +333,7 @@ export function LoanApplicationsPage() {
 									onClick={() => {
 										if (!selectedLoan) return;
 										navigate(
-											routes.loansDetail.replace(
-												":loanId",
-												selectedLoan.id
-											)
+											routes.loansDetail.replace(":loanId", selectedLoan.id),
 										);
 									}}
 								>
@@ -348,7 +347,7 @@ export function LoanApplicationsPage() {
 										onClick={() => {
 											const selectedIndices = selectedLoans
 												.map((loan) =>
-													loans.findIndex((item) => item.id === loan.id)
+													loans.findIndex((item) => item.id === loan.id),
 												)
 												.filter((index) => index >= 0)
 												.sort((a, b) => a - b);
@@ -357,8 +356,7 @@ export function LoanApplicationsPage() {
 											const maxIndex =
 												selectedIndices[selectedIndices.length - 1];
 											const offset =
-												paginationState.pageIndex *
-													paginationState.pageSize +
+												paginationState.pageIndex * paginationState.pageSize +
 												minIndex;
 											const limit = maxIndex - minIndex + 1;
 											setActivateSelectionCount(selectedLoans.length);

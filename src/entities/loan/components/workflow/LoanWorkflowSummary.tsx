@@ -2,8 +2,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { formatCurrency, formatDate } from "@/shared/lib/format";
 import { normalizeDisplay } from "@/shared/lib/utils";
 import { formatShares } from "@/entities/stock-grant/constants";
-import { LoanStatusBadge } from "@/entities/loan/components/LoanStatusBadge";
-import type { LoanWorkflowSummaryProps } from "@/entities/loan/components/types";
+import { LoanStatusBadge } from "@/entities/loan/components/loan-pages/LoanStatusBadge";
+import type { LoanWorkflowSummaryProps } from "@/entities/loan/types";
 
 export function LoanWorkflowSummary({
 	loan,
@@ -28,7 +28,10 @@ export function LoanWorkflowSummary({
 			label: "Status",
 			value: <LoanStatusBadge status={loan.status} />,
 		},
-		{ label: "Shares to exercise", value: formatShares(loan.shares_to_exercise) },
+		{
+			label: "Shares to exercise",
+			value: formatShares(loan.shares_to_exercise),
+		},
 		{ label: "Purchase price", value: formatCurrency(loan.purchase_price) },
 		{ label: "Loan principal", value: formatCurrency(loan.loan_principal) },
 		{
@@ -61,7 +64,7 @@ export function LoanWorkflowSummary({
 					label: "Total unvested shares",
 					value: formatShares(stockSummary.total_unvested_shares),
 				},
-		  ]
+			]
 		: [];
 
 	return (
@@ -102,9 +105,7 @@ export function LoanWorkflowSummary({
 
 			<Card>
 				<CardHeader className="pb-2">
-					<CardTitle className="text-sm font-semibold">
-						Stock summary
-					</CardTitle>
+					<CardTitle className="text-sm font-semibold">Stock summary</CardTitle>
 				</CardHeader>
 				<CardContent className="space-y-2 text-sm text-muted-foreground">
 					{stockRows.length === 0 ? (

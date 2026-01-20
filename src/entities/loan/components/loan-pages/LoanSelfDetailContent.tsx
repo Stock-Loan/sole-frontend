@@ -15,12 +15,12 @@ import { formatShares } from "@/entities/stock-grant/constants";
 import { cn, normalizeDisplay } from "@/shared/lib/utils";
 import { TabButton } from "@/shared/ui/TabButton";
 import { Button } from "@/shared/ui/Button";
-import { LoanDocumentList } from "@/entities/loan/components/LoanDocumentList";
-import { LoanRepaymentsPanel } from "@/entities/loan/components/LoanRepaymentsPanel";
-import { LoanSchedulePanel } from "@/entities/loan/components/LoanSchedulePanel";
-import { LoanTimeline } from "@/entities/loan/components/LoanTimeline";
-import { Loan83bPanel } from "@/entities/loan/components/Loan83bPanel";
-import { LoanScheduleWhatIfDialog } from "@/entities/loan/components/LoanScheduleWhatIfDialog";
+import { LoanDocumentList } from "./LoanDocumentList";
+import { LoanRepaymentsPanel } from "./LoanRepaymentsPanel";
+import { LoanSchedulePanel } from "./LoanSchedulePanel";
+import { LoanTimeline } from "./LoanTimeline";
+import { Loan83bPanel } from "./Loan83bPanel";
+import { LoanScheduleWhatIfDialog } from "./LoanScheduleWhatIfDialog";
 import { buildScheduleCsv } from "@/entities/loan/utils/schedule";
 import {
 	useDownloadMyLoanDocument,
@@ -40,7 +40,7 @@ import type {
 	LoanDetailRowProps,
 	LoanDetailSummaryCardProps,
 	LoanSelfDetailContentProps,
-} from "@/entities/loan/components/types";
+} from "@/entities/loan/types";
 import type {
 	LoanDocument,
 	LoanScheduleResponse,
@@ -52,7 +52,7 @@ import {
 	formatEligibilityReasons,
 	formatLoanSelectionValue,
 	groupDocumentsByStage,
-} from "@/entities/loan/components/detail-utils";
+} from "@/entities/loan/utils/detail-utils";
 
 export function LoanSelfDetailContent({
 	loan,
@@ -558,7 +558,7 @@ export function LoanSelfDetailContent({
 						loan?.loan_principal ??
 						"",
 				}}
-				onSubmit={async (payload) => {
+				onSubmit={async (payload: LoanScheduleWhatIfPayload) => {
 					await whatIfMutation.mutateAsync(payload);
 				}}
 			/>

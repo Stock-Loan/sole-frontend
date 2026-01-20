@@ -3,37 +3,14 @@ import { EmptyState } from "@/shared/ui/EmptyState";
 import { LoadingState } from "@/shared/ui/LoadingState";
 import { cn, normalizeDisplay } from "@/shared/lib/utils";
 import { formatDate } from "@/shared/lib/format";
-import { LoanStatusBadge } from "@/entities/loan/components/LoanStatusBadge";
-import { StageStatusBadge } from "@/entities/loan/components/StageStatusBadge";
-import type { LoanTimelineProps } from "@/entities/loan/components/types";
+import { LoanStatusBadge } from "./LoanStatusBadge";
+import { StageStatusBadge } from "./StageStatusBadge";
 import type {
+	LoanTimelineProps,
 	LoanApplicationStatus,
-	LoanWorkflowStageType,
 	LoanWorkflowStageStatus,
 } from "@/entities/loan/types";
-
-type TimelineStep = {
-	key: string;
-	label: string;
-	stageType?: LoanWorkflowStageType;
-};
-
-const timelineSteps: TimelineStep[] = [
-	{ key: "hr", label: "HR review", stageType: "HR_REVIEW" },
-	{
-		key: "finance",
-		label: "Finance processing",
-		stageType: "FINANCE_PROCESSING",
-	},
-	{ key: "legal", label: "Legal execution", stageType: "LEGAL_EXECUTION" },
-	{ key: "active", label: "Active" },
-	{ key: "post", label: "Post-issuance", stageType: "LEGAL_POST_ISSUANCE" },
-	{
-		key: "election",
-		label: "83(b) election",
-		stageType: "BORROWER_83B_ELECTION",
-	},
-];
+import { timelineSteps } from "@/entities/loan/constants";
 
 export function LoanTimeline({
 	stages = [],

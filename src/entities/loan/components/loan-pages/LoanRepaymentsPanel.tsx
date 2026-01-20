@@ -4,7 +4,7 @@ import { DataTable } from "@/shared/ui/Table/DataTable";
 import type { ColumnDefinition } from "@/shared/ui/Table/types";
 import { formatCurrency, formatDate } from "@/shared/lib/format";
 import { cn } from "@/shared/lib/utils";
-import type { LoanRepaymentsPanelProps } from "@/entities/loan/components/types";
+import type { LoanRepaymentsPanelProps } from "@/entities/loan/types";
 import type { LoanRepayment } from "@/entities/loan/types";
 
 export function LoanRepaymentsPanel({
@@ -45,10 +45,7 @@ export function LoanRepaymentsPanel({
 				id: "recorded_by",
 				header: "Recorded by",
 				accessor: "recorded_by_name",
-				cell: (row) =>
-					row.recorded_by_name ??
-					row.recorded_by_user_id ??
-					"—",
+				cell: (row) => row.recorded_by_name ?? row.recorded_by_user_id ?? "—",
 			},
 			{
 				id: "evidence",
@@ -78,7 +75,7 @@ export function LoanRepaymentsPanel({
 				cell: (row) => formatDate(row.created_at),
 			},
 		],
-		[]
+		[],
 	);
 
 	if (isError) {

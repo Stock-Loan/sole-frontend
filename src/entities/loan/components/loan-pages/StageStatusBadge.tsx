@@ -1,6 +1,6 @@
 import { Badge } from "@/shared/ui/badge";
 import { cn, normalizeDisplay } from "@/shared/lib/utils";
-import type { StageStatusBadgeProps } from "@/entities/loan/components/types";
+import type { StageStatusBadgeProps } from "@/entities/loan//types";
 
 export function StageStatusBadge({ status, className }: StageStatusBadgeProps) {
 	const variant =

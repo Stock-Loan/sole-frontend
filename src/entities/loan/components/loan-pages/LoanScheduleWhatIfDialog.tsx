@@ -23,8 +23,8 @@ import {
 } from "@/shared/ui/select";
 import { normalizeDisplay } from "@/shared/lib/utils";
 import { loanScheduleWhatIfSchema } from "@/entities/loan/schemas";
-import { loanWizardRepaymentMethodOptions } from "@/entities/loan/components/loan-wizard/constants";
-import type { LoanScheduleWhatIfDialogProps } from "@/entities/loan/components/types";
+import { loanWizardRepaymentMethodOptions } from "@/entities/loan/constants";
+import type { LoanScheduleWhatIfDialogProps } from "@/entities/loan/types";
 import type { LoanScheduleWhatIfPayload } from "@/entities/loan/types";
 
 export function LoanScheduleWhatIfDialog({

@@ -5,7 +5,7 @@ import type { LoanDashboardSummary } from "@/entities/loan/types";
 import type {
 	LoanSummaryBarItem,
 	LoanSummaryMetric,
-} from "@/entities/loan/components/types";
+} from "@/entities/loan//types";
 
 const statusOrder = [
 	"SUBMITTED",

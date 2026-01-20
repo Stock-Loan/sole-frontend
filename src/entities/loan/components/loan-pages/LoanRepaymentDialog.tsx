@@ -17,7 +17,7 @@ import { FormFieldWrapper } from "@/shared/ui/Form/FormField";
 import { formatCurrency } from "@/shared/lib/format";
 import { loanRepaymentSchema } from "@/entities/loan/schemas";
 import type { LoanRepaymentCreatePayload } from "@/entities/loan/types";
-import type { LoanRepaymentDialogProps } from "@/entities/loan/components/types";
+import type { LoanRepaymentDialogProps } from "@/entities/loan/types";
 
 export function LoanRepaymentDialog({
 	open,

@@ -20,8 +20,8 @@ import { colorPalette } from "@/app/styles/color-palette";
 import { StockSummaryDonutCard } from "@/entities/stock-grant/components/StockSummaryDonutCard";
 import { StockSummaryGaugeCard } from "@/entities/stock-grant/components/StockSummaryGaugeCard";
 import { StockSummaryTimelineCard } from "@/entities/stock-grant/components/StockSummaryTimelineCard";
-import { LoanSummaryBarChart } from "@/entities/loan/components/LoanSummaryBarChart";
-import { LoanStatusBadge } from "@/entities/loan/components/LoanStatusBadge";
+import { LoanSummaryBarChart } from "@/entities/loan/components/loan-pages/LoanSummaryBarChart";
+import { LoanStatusBadge } from "@/entities/loan/components/loan-pages/LoanStatusBadge";
 import { getDashboardStockValueMetrics } from "@/entities/dashboard/utils";
 
 export function MyStockPage() {
