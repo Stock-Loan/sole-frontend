@@ -19,10 +19,7 @@ export function Topbar() {
 
 			<div className="flex flex-1 items-center justify-center gap-4 px-4">
 				<div className="hidden lg:block xl:w-full xl:max-w-md">
-					<GlobalSearch
-						items={searchItems}
-						className="xl:w-full"
-					/>
+					<GlobalSearch items={searchItems} className="xl:w-full" />
 				</div>
 				<div className="hidden md:block shrink-0">
 					<TenantSwitcher className="h-10 px-4" />

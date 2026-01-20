@@ -1,4 +1,16 @@
-import { BarChart3, ClipboardList, Cog, FileText, FolderOpen, Gauge, Megaphone, Settings, Shield, Users } from "lucide-react";
+import {
+	BarChart3,
+	ClipboardList,
+	Cog,
+	FileText,
+	Flag,
+	FolderOpen,
+	Gauge,
+	Megaphone,
+	Settings,
+	Shield,
+	Users,
+} from "lucide-react";
 import type { AreaId, NavConfig } from "@/app/navigation/types";
 
 export const navConfig: NavConfig = {
@@ -80,10 +92,7 @@ export const navConfig: NavConfig = {
 			label: "Administration",
 			path: "/app/stock/manage",
 			icon: Users,
-			permissions: [
-				"stock.vesting.view",
-				"stock.eligibility.view",
-			],
+			permissions: ["stock.vesting.view", "stock.eligibility.view"],
 		},
 		{
 			id: "stock-grants",
@@ -176,7 +185,7 @@ export const navConfig: NavConfig = {
 			id: "admin-flags",
 			label: "Feature flags",
 			path: "/app/admin/feature-flags",
-			icon: Shield,
+			icon: Flag,
 			permissions: "system.admin",
 		},
 	],

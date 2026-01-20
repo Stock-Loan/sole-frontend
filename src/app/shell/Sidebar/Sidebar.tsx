@@ -14,7 +14,7 @@ import type { SidebarProps } from "./types";
 
 function canSeeItem(
 	can: (needed: string | string[]) => boolean,
-	permission?: string | string[]
+	permission?: string | string[],
 ) {
 	if (!permission) return true;
 	const required = Array.isArray(permission) ? permission : [permission];
@@ -31,7 +31,7 @@ export function Sidebar({
 	const { can } = usePermissions();
 	const [storedCollapsed, setStoredCollapsed] = useLocalStorage(
 		"sole.sidebar.collapsed",
-		false
+		false,
 	);
 	const collapsed = collapsedProp ?? storedCollapsed;
 
@@ -44,7 +44,7 @@ export function Sidebar({
 	const navItems = useMemo(() => getNavItems(activeArea.id), [activeArea.id]);
 	const visibleItems = useMemo(
 		() => navItems.filter((item) => canSeeItem(can, item.permissions)),
-		[navItems, can]
+		[navItems, can],
 	);
 
 	const activeItemId = useMemo(() => {
@@ -54,14 +54,14 @@ export function Sidebar({
 		const isLoanDetail = /^\/app\/loans\/[^/]+$/.test(location.pathname);
 		if (isLoanDetail) {
 			const applicationsItem = visibleItems.find(
-				(item) => item.id === "loans-applications"
+				(item) => item.id === "loans-applications",
 			);
 			if (applicationsItem) {
 				return applicationsItem.id;
 			}
 		}
 		const isPeopleUserDetail = /^\/app\/people\/users\/[^/]+$/.test(
-			location.pathname
+			location.pathname,
 		);
 		if (isPeopleUserDetail) {
 			const usersItem = visibleItems.find((item) => item.id === "people-users");
@@ -90,7 +90,7 @@ export function Sidebar({
 		<aside
 			className={cn(
 				"relative z-50 flex h-full flex-col rounded-3xl border border-border/60 bg-background/80 shadow-sm backdrop-blur transition-[width] duration-300",
-				collapsed ? "w-24" : "w-50"
+				collapsed ? "w-24" : "w-50",
 			)}
 		>
 			<Button
@@ -103,7 +103,7 @@ export function Sidebar({
 				<ChevronLeft
 					className={cn(
 						"h-3 w-3 transition-transform",
-						collapsed && "rotate-180"
+						collapsed && "rotate-180",
 					)}
 				/>
 			</Button>
@@ -111,38 +111,33 @@ export function Sidebar({
 			<div
 				className={cn(
 					"flex items-center px-6 py-5 overflow-hidden",
-					collapsed && "px-2 justify-center"
+					collapsed && "px-2 justify-center",
 				)}
 			>
 				<Logo showTagline={!collapsed} size="sm" />
 			</div>
 
-						<div className={cn("px-6 pb-2 transition-all duration-300", collapsed ? "px-0 text-center" : "px-6")}>
+			<div
+				className={cn(
+					"px-6 pb-2 transition-all duration-300",
+					collapsed ? "px-0 text-center" : "px-6",
+				)}
+			>
+				<p
+					className={cn(
+						"text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground whitespace-nowrap transition-all duration-300 ease-in-out",
 
-							<p
-
-								className={cn(
-
-									"text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground whitespace-nowrap transition-all duration-300 ease-in-out",
-
-									collapsed ? "opacity-50" : "opacity-100"
-
-								)}
-
-							>
-
-								{collapsed ? "..." : activeArea.label}
-
-							</p>
-
-						</div>
-
-			
+						collapsed ? "opacity-50" : "opacity-100",
+					)}
+				>
+					{collapsed ? "..." : activeArea.label}
+				</p>
+			</div>
 
 			<nav
 				className={cn(
 					"flex-1 space-y-1 mt-6 transition-all duration-300",
-					collapsed ? "px-2" : "pl-6 pr-3"
+					collapsed ? "px-2" : "pl-6 pr-3",
 				)}
 			>
 				{" "}
@@ -150,7 +145,7 @@ export function Sidebar({
 					<div
 						className={cn(
 							"rounded-lg border border-dashed border-border/60 px-3 py-3 text-xs text-muted-foreground",
-							collapsed && "px-2 text-center"
+							collapsed && "px-2 text-center",
 						)}
 					>
 						{collapsed ? "—" : "No visible sections"}

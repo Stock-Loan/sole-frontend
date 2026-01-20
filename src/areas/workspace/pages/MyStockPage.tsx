@@ -299,16 +299,16 @@ export function MyStockPage() {
 											to={routes.workspaceGrants}
 											className="absolute right-3 top-3 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary"
 										>
-										See grants
-									</Link>
+											See grants
+										</Link>
 									) : null}
 									{metric.label === "Next vesting" ? (
 										<Link
 											to={routes.workspaceVestingEvents}
 											className="absolute right-3 top-3 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary"
 										>
-										View all events
-									</Link>
+											View all events
+										</Link>
 									) : null}
 								</CardHeader>
 								<CardContent>
@@ -374,7 +374,9 @@ export function MyStockPage() {
 
 							{summary && (
 								<div
-									className={cn("rounded-2xl border border-border/60 p-4 shadow-sm")}
+									className={cn(
+										"rounded-2xl border border-border/60 p-4 shadow-sm",
+									)}
 									style={eligibleBannerStyle}
 								>
 									<div className="flex items-start gap-3">

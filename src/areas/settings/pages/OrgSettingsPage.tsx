@@ -23,7 +23,10 @@ import { useToast } from "@/shared/ui/use-toast";
 import { EmptyState } from "@/shared/ui/EmptyState";
 import { LoadingState } from "@/shared/ui/LoadingState";
 import { useOrgSettings, useUpdateOrgSettings } from "@/entities/org/hooks";
-import type { OrgSettingsFormValues, OrgSettingsTabKey } from "@/entities/org/types";
+import type {
+	OrgSettingsFormValues,
+	OrgSettingsTabKey,
+} from "@/entities/org/types";
 import { orgSettingsSchema } from "@/entities/org/schemas";
 
 const repaymentMethodOptions = [
@@ -63,7 +66,11 @@ function parseNumber(value: number | string | null | undefined) {
 	return Number.isFinite(numeric) ? numeric : null;
 }
 
-function toggleValue<T extends string>(current: T[], value: T, checked: boolean) {
+function toggleValue<T extends string>(
+	current: T[],
+	value: T,
+	checked: boolean,
+) {
 	if (checked) {
 		return current.includes(value) ? current : [...current, value];
 	}
@@ -76,8 +83,8 @@ const SETTINGS_TAB_MAP: Partial<
 	allow_user_data_export: "general",
 	allow_profile_edit: "general",
 	require_two_factor: "general",
-	audit_log_retention_days: "retention",
-	inactive_user_retention_days: "retention",
+	audit_log_retention_days: "general",
+	inactive_user_retention_days: "general",
 	enforce_service_duration_rule: "stock",
 	min_service_duration_years: "stock",
 	enforce_min_vested_to_exercise: "stock",
@@ -136,13 +143,13 @@ export function OrgSettingsPage() {
 				audit_log_retention_days: data.audit_log_retention_days ?? 180,
 				inactive_user_retention_days: data.inactive_user_retention_days ?? 180,
 				enforce_service_duration_rule: Boolean(
-					data.enforce_service_duration_rule
+					data.enforce_service_duration_rule,
 				),
 				min_service_duration_years: parseNumber(
-					data.min_service_duration_years
+					data.min_service_duration_years,
 				),
 				enforce_min_vested_to_exercise: Boolean(
-					data.enforce_min_vested_to_exercise
+					data.enforce_min_vested_to_exercise,
 				),
 				min_vested_shares_to_exercise:
 					data.min_vested_shares_to_exercise ?? null,
@@ -151,13 +158,13 @@ export function OrgSettingsPage() {
 				min_loan_term_months: data.min_loan_term_months ?? 6,
 				max_loan_term_months: data.max_loan_term_months ?? 60,
 				fixed_interest_rate_annual_percent: parseNumber(
-					data.fixed_interest_rate_annual_percent
+					data.fixed_interest_rate_annual_percent,
 				),
 				variable_base_rate_annual_percent: parseNumber(
-					data.variable_base_rate_annual_percent
+					data.variable_base_rate_annual_percent,
 				),
 				variable_margin_annual_percent: parseNumber(
-					data.variable_margin_annual_percent
+					data.variable_margin_annual_percent,
 				),
 				require_down_payment: Boolean(data.require_down_payment),
 				down_payment_percent: parseNumber(data.down_payment_percent),
@@ -175,13 +182,13 @@ export function OrgSettingsPage() {
 				audit_log_retention_days: updated.audit_log_retention_days,
 				inactive_user_retention_days: updated.inactive_user_retention_days,
 				enforce_service_duration_rule: Boolean(
-					updated.enforce_service_duration_rule
+					updated.enforce_service_duration_rule,
 				),
 				min_service_duration_years: parseNumber(
-					updated.min_service_duration_years
+					updated.min_service_duration_years,
 				),
 				enforce_min_vested_to_exercise: Boolean(
-					updated.enforce_min_vested_to_exercise
+					updated.enforce_min_vested_to_exercise,
 				),
 				min_vested_shares_to_exercise:
 					updated.min_vested_shares_to_exercise ?? null,
@@ -190,13 +197,13 @@ export function OrgSettingsPage() {
 				min_loan_term_months: updated.min_loan_term_months ?? 6,
 				max_loan_term_months: updated.max_loan_term_months ?? 60,
 				fixed_interest_rate_annual_percent: parseNumber(
-					updated.fixed_interest_rate_annual_percent
+					updated.fixed_interest_rate_annual_percent,
 				),
 				variable_base_rate_annual_percent: parseNumber(
-					updated.variable_base_rate_annual_percent
+					updated.variable_base_rate_annual_percent,
 				),
 				variable_margin_annual_percent: parseNumber(
-					updated.variable_margin_annual_percent
+					updated.variable_margin_annual_percent,
 				),
 				require_down_payment: Boolean(updated.require_down_payment),
 				down_payment_percent: parseNumber(updated.down_payment_percent),
@@ -314,7 +321,7 @@ export function OrgSettingsPage() {
 				/>
 			</div>
 
-			<div className="flex min-h-0 flex-1 flex-col rounded-lg border bg-card shadow-sm">
+			<div className="flex min-h-0 flex-1 flex-col">
 				<Form {...form}>
 					<form
 						onSubmit={form.handleSubmit(onSubmit, onInvalid)}
@@ -538,7 +545,7 @@ export function OrgSettingsPage() {
 																				null,
 																				{
 																					shouldDirty: true,
-																				}
+																				},
 																			);
 																		}
 																	}}
@@ -576,12 +583,11 @@ export function OrgSettingsPage() {
 																				field.onChange(
 																					Number.isNaN(nextValue)
 																						? null
-																						: nextValue
+																						: nextValue,
 																				);
 																			}}
 																			disabled={
-																				!canManage ||
-																				updateMutation.isPending
+																				!canManage || updateMutation.isPending
 																			}
 																		/>
 																	</FormControl>
@@ -604,8 +610,8 @@ export function OrgSettingsPage() {
 																	Require minimum vested shares
 																</FormLabel>
 																<div className="text-sm text-muted-foreground">
-																	Require a minimum cumulative vested share count
-																	before exercising.
+																	Require a minimum cumulative vested share
+																	count before exercising.
 																</div>
 															</div>
 															<FormControl>
@@ -618,7 +624,7 @@ export function OrgSettingsPage() {
 																			form.setValue(
 																				"min_vested_shares_to_exercise",
 																				null,
-																				{ shouldDirty: true }
+																				{ shouldDirty: true },
 																			);
 																		}
 																	}}
@@ -655,12 +661,11 @@ export function OrgSettingsPage() {
 																				field.onChange(
 																					Number.isNaN(nextValue)
 																						? null
-																						: nextValue
+																						: nextValue,
 																				);
 																			}}
 																			disabled={
-																				!canManage ||
-																				updateMutation.isPending
+																				!canManage || updateMutation.isPending
 																			}
 																		/>
 																	</FormControl>
@@ -673,6 +678,16 @@ export function OrgSettingsPage() {
 											</div>
 										</div>
 									</div>
+									<div className="flex justify-end border-t border-border/70 px-6 py-4">
+										<Button
+											type="submit"
+											disabled={!canManage || updateMutation.isPending}
+										>
+											{updateMutation.isPending
+												? "Saving..."
+												: "Save stock settings"}
+										</Button>
+									</div>
 								</div>
 								<div className="flex min-h-0 flex-1 flex-col">
 									<div className="border-b border-border/70 px-6 py-4">
@@ -683,7 +698,8 @@ export function OrgSettingsPage() {
 											<div>
 												<h2 className="text-lg font-semibold">Loan settings</h2>
 												<p className="text-sm text-muted-foreground">
-													Define repayment, interest, and policy defaults for employee loans.
+													Define repayment, interest, and policy defaults for
+													employee loans.
 												</p>
 											</div>
 										</div>
@@ -698,7 +714,9 @@ export function OrgSettingsPage() {
 														<FormLabel>Repayment methods</FormLabel>
 														<div className="mt-2 grid gap-3 md:grid-cols-2">
 															{repaymentMethodOptions.map((option) => {
-																const checked = field.value?.includes(option.value);
+																const checked = field.value?.includes(
+																	option.value,
+																);
 																return (
 																	<label
 																		key={option.value}
@@ -711,11 +729,13 @@ export function OrgSettingsPage() {
 																					toggleValue(
 																						field.value ?? [],
 																						option.value,
-																						Boolean(value)
-																					)
+																						Boolean(value),
+																					),
 																				)
 																			}
-																			disabled={!canManage || updateMutation.isPending}
+																			disabled={
+																				!canManage || updateMutation.isPending
+																			}
 																		/>
 																		<div>
 																			<p className="font-medium text-foreground">
@@ -742,7 +762,9 @@ export function OrgSettingsPage() {
 														<FormLabel>Interest types</FormLabel>
 														<div className="mt-2 grid gap-3 md:grid-cols-2">
 															{interestTypeOptions.map((option) => {
-																const checked = field.value?.includes(option.value);
+																const checked = field.value?.includes(
+																	option.value,
+																);
 																return (
 																	<label
 																		key={option.value}
@@ -755,11 +777,13 @@ export function OrgSettingsPage() {
 																					toggleValue(
 																						field.value ?? [],
 																						option.value,
-																						Boolean(value)
-																					)
+																						Boolean(value),
+																					),
 																				)
 																			}
-																			disabled={!canManage || updateMutation.isPending}
+																			disabled={
+																				!canManage || updateMutation.isPending
+																			}
 																		/>
 																		<div>
 																			<p className="font-medium text-foreground">
@@ -797,7 +821,9 @@ export function OrgSettingsPage() {
 																	onChange={(event) =>
 																		field.onChange(event.target.valueAsNumber)
 																	}
-																	disabled={!canManage || updateMutation.isPending}
+																	disabled={
+																		!canManage || updateMutation.isPending
+																	}
 																/>
 															</FormControl>
 															<FormMessage />
@@ -822,7 +848,9 @@ export function OrgSettingsPage() {
 																	onChange={(event) =>
 																		field.onChange(event.target.valueAsNumber)
 																	}
-																	disabled={!canManage || updateMutation.isPending}
+																	disabled={
+																		!canManage || updateMutation.isPending
+																	}
 																/>
 															</FormControl>
 															<FormMessage />
@@ -840,7 +868,7 @@ export function OrgSettingsPage() {
 														control={form.control}
 														name="fixed_interest_rate_annual_percent"
 														render={({ field }) => (
-															<FormItem>
+															<FormItem className="max-w-xs">
 																<FormLabel>Fixed annual rate (%)</FormLabel>
 																<FormControl>
 																	<Input
@@ -851,14 +879,14 @@ export function OrgSettingsPage() {
 																		value={field.value ?? ""}
 																		onChange={(event) =>
 																			field.onChange(
-																				Number.isNaN(
-																					event.target.valueAsNumber
-																				)
+																				Number.isNaN(event.target.valueAsNumber)
 																					? null
-																					: event.target.valueAsNumber
+																					: event.target.valueAsNumber,
 																			)
 																		}
-																		disabled={!canManage || updateMutation.isPending}
+																		disabled={
+																			!canManage || updateMutation.isPending
+																		}
 																	/>
 																</FormControl>
 																<FormMessage />
@@ -873,9 +901,7 @@ export function OrgSettingsPage() {
 															name="variable_base_rate_annual_percent"
 															render={({ field }) => (
 																<FormItem>
-																	<FormLabel>
-																		Variable base rate (%)
-																	</FormLabel>
+																	<FormLabel>Variable base rate (%)</FormLabel>
 																	<FormControl>
 																		<Input
 																			type="number"
@@ -886,15 +912,14 @@ export function OrgSettingsPage() {
 																			onChange={(event) =>
 																				field.onChange(
 																					Number.isNaN(
-																						event.target.valueAsNumber
+																						event.target.valueAsNumber,
 																					)
 																						? null
-																						: event.target.valueAsNumber
+																						: event.target.valueAsNumber,
 																				)
 																			}
 																			disabled={
-																				!canManage ||
-																				updateMutation.isPending
+																				!canManage || updateMutation.isPending
 																			}
 																		/>
 																	</FormControl>
@@ -907,9 +932,7 @@ export function OrgSettingsPage() {
 															name="variable_margin_annual_percent"
 															render={({ field }) => (
 																<FormItem>
-																	<FormLabel>
-																		Variable margin (%)
-																	</FormLabel>
+																	<FormLabel>Variable margin (%)</FormLabel>
 																	<FormControl>
 																		<Input
 																			type="number"
@@ -920,15 +943,14 @@ export function OrgSettingsPage() {
 																			onChange={(event) =>
 																				field.onChange(
 																					Number.isNaN(
-																						event.target.valueAsNumber
+																						event.target.valueAsNumber,
 																					)
 																						? null
-																						: event.target.valueAsNumber
+																						: event.target.valueAsNumber,
 																				)
 																			}
 																			disabled={
-																				!canManage ||
-																				updateMutation.isPending
+																				!canManage || updateMutation.isPending
 																			}
 																		/>
 																	</FormControl>
@@ -967,7 +989,7 @@ export function OrgSettingsPage() {
 																				null,
 																				{
 																					shouldDirty: true,
-																				}
+																				},
 																			);
 																		}
 																	}}
@@ -995,16 +1017,13 @@ export function OrgSettingsPage() {
 																		value={field.value ?? ""}
 																		onChange={(event) =>
 																			field.onChange(
-																				Number.isNaN(
-																					event.target.valueAsNumber
-																				)
+																				Number.isNaN(event.target.valueAsNumber)
 																					? null
-																					: event.target.valueAsNumber
+																					: event.target.valueAsNumber,
 																			)
 																		}
 																		disabled={
-																			!canManage ||
-																			updateMutation.isPending
+																			!canManage || updateMutation.isPending
 																		}
 																	/>
 																</FormControl>
@@ -1016,18 +1035,30 @@ export function OrgSettingsPage() {
 											</div>
 										</div>
 									</div>
+									<div className="flex justify-end border-t border-border/70 px-6 py-4">
+										<Button
+											type="submit"
+											disabled={!canManage || updateMutation.isPending}
+										>
+											{updateMutation.isPending
+												? "Saving..."
+												: "Save loan settings"}
+										</Button>
+									</div>
 								</div>
 							</div>
 						)}
 
-						<div className="flex justify-end border-t border-border/70 p-4">
-							<Button
-								type="submit"
-								disabled={!canManage || updateMutation.isPending}
-							>
-								{updateMutation.isPending ? "Saving..." : "Save settings"}
-							</Button>
-						</div>
+						{tab !== "stock" ? (
+							<div className="flex justify-end border-t border-border/70 p-4">
+								<Button
+									type="submit"
+									disabled={!canManage || updateMutation.isPending}
+								>
+									{updateMutation.isPending ? "Saving..." : "Save settings"}
+								</Button>
+							</div>
+						) : null}
 					</form>
 				</Form>
 			</div>

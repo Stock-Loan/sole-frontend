@@ -44,7 +44,7 @@ export function GlobalSearch({
 			(item) =>
 				item.title.toLowerCase().includes(term) ||
 				item.description.toLowerCase().includes(term) ||
-				item.category.toLowerCase().includes(term)
+				item.category.toLowerCase().includes(term),
 		);
 	}, [query, items]);
 
@@ -61,7 +61,7 @@ export function GlobalSearch({
 			.map((category) => [category, groups.get(category) ?? []] as const);
 
 		const extras = Array.from(groups.entries()).filter(
-			([category]) => !orderedCategories.includes(category)
+			([category]) => !orderedCategories.includes(category),
 		);
 
 		return [...sorted, ...extras];
@@ -103,9 +103,9 @@ export function GlobalSearch({
 					) : null}
 				</button>
 			</DialogTrigger>
-				<DialogContent className="h-[70vh] max-h-[70vh]">
-					<DialogBody className="flex h-full flex-col gap-4 p-5 pt-10">
-						<div className="flex items-center gap-3 rounded-lg border border-border/60 bg-muted/30 px-3 py-2 shadow-inner">
+			<DialogContent className="h-[70vh] max-h-[70vh]">
+				<DialogBody className="flex h-full flex-col gap-4 p-5 pt-10">
+					<div className="flex items-center gap-3 rounded-lg border border-border/60 bg-muted/30 px-3 py-2 shadow-inner">
 						<Search className="h-4 w-4 text-muted-foreground" />
 						<Input
 							autoFocus
@@ -113,7 +113,7 @@ export function GlobalSearch({
 							onChange={(event) => setQuery(event.target.value)}
 							type="search"
 							placeholder="Search pages, settings, or actions"
-								className="h-8 border-0 bg-transparent p-0 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+							className="h-8 border-0 bg-transparent p-0 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
 						/>
 					</div>
 					<div className="flex-1 min-h-0 space-y-4 overflow-y-auto pr-1">
