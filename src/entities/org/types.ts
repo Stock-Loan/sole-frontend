@@ -1,3 +1,5 @@
+import type { UseFormReturn } from "react-hook-form";
+
 export interface OrgSettings {
 	org_id: string;
 	allow_user_data_export: boolean;
@@ -64,7 +66,7 @@ export interface OrgSettingsFormValues {
 	down_payment_percent: number | null;
 }
 
-export type OrgSettingsTabKey = "general" | "retention" | "stock";
+export type OrgSettingsTabKey = "general" | "stock";
 
 export type LoanRepaymentMethod =
 	| "INTEREST_ONLY"
@@ -115,4 +117,22 @@ export interface SelfOrgPolicy {
 	variable_margin_annual_percent: DecimalValue;
 	require_down_payment: boolean;
 	down_payment_percent: DecimalValue;
+}
+
+export interface OrgSettingsGeneralRetentionTabProps {
+	form: UseFormReturn<OrgSettingsFormValues>;
+	canManage: boolean;
+	isSubmitting: boolean;
+}
+
+export interface OrgSettingsStockLoanTabProps {
+	form: UseFormReturn<OrgSettingsFormValues>;
+	canManage: boolean;
+	isSubmitting: boolean;
+}
+
+export interface OrgCreateFormProps {
+	isSubmitting?: boolean;
+	onSubmit: (values: OrgCreatePayload) => Promise<void> | void;
+	formId?: string;
 }
