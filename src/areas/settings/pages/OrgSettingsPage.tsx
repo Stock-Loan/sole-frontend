@@ -37,6 +37,7 @@ export function OrgSettingsPage() {
 			allow_user_data_export: true,
 			allow_profile_edit: true,
 			require_two_factor: false,
+			remember_device_days: 30,
 			audit_log_retention_days: 180,
 			inactive_user_retention_days: 180,
 			enforce_service_duration_rule: false,
@@ -62,6 +63,7 @@ export function OrgSettingsPage() {
 				allow_user_data_export: Boolean(data.allow_user_data_export),
 				allow_profile_edit: Boolean(data.allow_profile_edit),
 				require_two_factor: Boolean(data.require_two_factor),
+				remember_device_days: data.remember_device_days ?? 30,
 				audit_log_retention_days: data.audit_log_retention_days ?? 180,
 				inactive_user_retention_days: data.inactive_user_retention_days ?? 180,
 				enforce_service_duration_rule: Boolean(
@@ -101,6 +103,7 @@ export function OrgSettingsPage() {
 				allow_user_data_export: updated.allow_user_data_export,
 				allow_profile_edit: updated.allow_profile_edit,
 				require_two_factor: updated.require_two_factor,
+				remember_device_days: updated.remember_device_days ?? 30,
 				audit_log_retention_days: updated.audit_log_retention_days,
 				inactive_user_retention_days: updated.inactive_user_retention_days,
 				enforce_service_duration_rule: Boolean(

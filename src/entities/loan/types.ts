@@ -12,7 +12,6 @@ import type {
 	EligibilityResult,
 	StockSummary,
 } from "@/entities/stock-grant/types";
-
 import { loanScheduleWhatIfSchema } from "@/entities/loan/schemas";
 import type { DataTableHeaderActions } from "@/shared/ui/Table/types";
 

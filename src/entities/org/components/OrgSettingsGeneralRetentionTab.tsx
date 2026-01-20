@@ -102,6 +102,33 @@ export function OrgSettingsGeneralRetentionTab({
 								</FormItem>
 							)}
 						/>
+						<FormField
+							control={form.control}
+							name="remember_device_days"
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>Remember device (days)</FormLabel>
+									<div className="mb-2 text-sm text-muted-foreground">
+										Number of days to skip MFA on trusted devices. Set to 0 to
+										disable.
+									</div>
+									<FormControl>
+										<Input
+											type="number"
+											min={0}
+											max={3650}
+											{...field}
+											value={Number.isNaN(field.value) ? "" : field.value}
+											onChange={(event) =>
+												field.onChange(event.target.valueAsNumber)
+											}
+											disabled={!canManage || isSubmitting}
+										/>
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
 					</div>
 				</div>
 			</div>

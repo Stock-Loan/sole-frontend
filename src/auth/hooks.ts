@@ -1,4 +1,8 @@
-import { useMutation, useQuery, type UseQueryOptions } from "@tanstack/react-query";
+import {
+	useMutation,
+	useQuery,
+	type UseQueryOptions,
+} from "@tanstack/react-query";
 import { canPermissions } from "@/app/permissions/can";
 import { authKeys } from "@/auth/keys";
 import { useTenant } from "@/features/tenancy/hooks";
@@ -9,6 +13,11 @@ import {
 	discoverOrg,
 	getMe,
 	getSelfContext,
+	loginMfa,
+	loginMfaSetupStart,
+	loginMfaSetupVerify,
+	mfaSetupStart,
+	mfaSetupVerify,
 	startLogin,
 } from "@/auth/api";
 import { useAuthContext } from "@/auth/context";
@@ -16,11 +25,19 @@ import type {
 	AuthUser,
 	ChangePasswordPayload,
 	LoginCompletePayload,
+	LoginMfaPayload,
+	LoginMfaResponse,
+	LoginMfaSetupStartPayload,
+	LoginMfaSetupVerifyPayload,
 	LoginStartPayload,
 	LoginStartResponse,
+	MfaSetupStartResponse,
+	MfaSetupVerifyPayload,
 	OrgDiscoveryPayload,
 } from "@/auth/types";
 import type { OrgSummary } from "@/entities/org/types";
+import { REMEMBER_DEVICE_KEY } from "./pages/LoginPage";
+import type { RememberDeviceMap } from "./types";
 
 export function useAuth() {
 	return useAuthContext();
@@ -41,7 +58,7 @@ export function useSelfContext() {
 }
 
 export function useMe(
-	options: Omit<UseQueryOptions<AuthUser>, "queryKey" | "queryFn"> = {}
+	options: Omit<UseQueryOptions<AuthUser>, "queryKey" | "queryFn"> = {},
 ) {
 	const { tokens, user } = useAuth();
 
@@ -76,6 +93,36 @@ export function useCompleteLogin() {
 	});
 }
 
+export function useLoginMfa() {
+	return useMutation<
+		LoginMfaResponse,
+		unknown,
+		{ payload: LoginMfaPayload; orgId?: string }
+	>({
+		mutationFn: ({ payload, orgId }) => loginMfa(payload, orgId),
+	});
+}
+
+export function useLoginMfaSetupStart() {
+	return useMutation<
+		MfaSetupStartResponse,
+		unknown,
+		{ payload: LoginMfaSetupStartPayload; orgId?: string }
+	>({
+		mutationFn: ({ payload, orgId }) => loginMfaSetupStart(payload, orgId),
+	});
+}
+
+export function useLoginMfaSetupVerify() {
+	return useMutation<
+		LoginMfaResponse,
+		unknown,
+		{ payload: LoginMfaSetupVerifyPayload; orgId?: string }
+	>({
+		mutationFn: ({ payload, orgId }) => loginMfaSetupVerify(payload, orgId),
+	});
+}
+
 export function useOrgDiscovery() {
 	return useMutation<OrgSummary[], unknown, OrgDiscoveryPayload>({
 		mutationFn: (payload) => discoverOrg(payload),
@@ -100,6 +147,18 @@ export function useChangePasswordWithToken() {
 	});
 }
 
+export function useMfaSetupStart() {
+	return useMutation<MfaSetupStartResponse, unknown, void>({
+		mutationFn: () => mfaSetupStart(),
+	});
+}
+
+export function useMfaSetupVerify() {
+	return useMutation<LoginMfaResponse, unknown, MfaSetupVerifyPayload>({
+		mutationFn: (payload) => mfaSetupVerify(payload),
+	});
+}
+
 export function usePermissions() {
 	const { user } = useAuth();
 	const { data: selfContext } = useSelfContext();
@@ -107,7 +166,9 @@ export function usePermissions() {
 	const permissions = selfContext?.permissions ?? user?.permissions ?? [];
 	const isSuperuser = user?.is_superuser;
 	const roles =
-		selfContext?.roles?.map((role) => role.name ?? role.id) ?? user?.roles ?? [];
+		selfContext?.roles?.map((role) => role.name ?? role.id) ??
+		user?.roles ??
+		[];
 
 	return {
 		permissions,
@@ -115,4 +176,34 @@ export function usePermissions() {
 		can: (needed: string | string[]) =>
 			Boolean(isSuperuser) || canPermissions(permissions, needed),
 	};
+}
+export function loadRememberDeviceToken(orgId?: string | null) {
+	if (!orgId || typeof localStorage === "undefined") return null;
+	try {
+		const raw = localStorage.getItem(REMEMBER_DEVICE_KEY);
+		if (!raw) return null;
+		const parsed = JSON.parse(raw) as RememberDeviceMap;
+		return parsed?.[orgId] ?? null;
+	} catch {
+		return null;
+	}
+}
+export function storeRememberDeviceToken(
+	orgId: string,
+	token: string | null | undefined,
+) {
+	if (typeof localStorage === "undefined") return;
+	try {
+		const raw = localStorage.getItem(REMEMBER_DEVICE_KEY);
+		const parsed = raw ? (JSON.parse(raw) as RememberDeviceMap) : {};
+		const next = { ...parsed };
+		if (token) {
+			next[orgId] = token;
+		} else {
+			delete next[orgId];
+		}
+		localStorage.setItem(REMEMBER_DEVICE_KEY, JSON.stringify(next));
+	} catch {
+		// ignore storage errors
+	}
 }

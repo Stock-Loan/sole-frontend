@@ -62,10 +62,58 @@ export interface LoginStartResponse {
 export interface LoginCompletePayload {
 	challenge_token: string;
 	password: string;
+	remember_device_token?: string | null;
+}
+
+export interface LoginCompleteResponse {
+	access_token?: string;
+	refresh_token?: string;
+	token_type?: "bearer";
+	mfa_required?: boolean;
+	mfa_setup_required?: boolean;
+	mfa_token?: string | null;
+	setup_token?: string | null;
+}
+
+export interface LoginMfaPayload {
+	mfa_token: string;
+	code: string;
+	remember_device?: boolean;
+}
+
+export interface LoginMfaResponse extends TokenPair {
+	remember_device_token?: string | null;
+}
+
+export interface LoginMfaSetupStartPayload {
+	setup_token: string;
+}
+
+export interface LoginMfaSetupVerifyPayload {
+	setup_token: string;
+	code: string;
+	remember_device?: boolean;
+}
+
+export interface MfaSetupStartResponse {
+	secret: string;
+	otpauth_url: string;
+	issuer: string;
+	account: string;
+}
+
+export interface MfaSetupVerifyPayload {
+	code: string;
+	remember_device?: boolean;
 }
 
 export interface LoginPasswordFormValues {
 	password: string;
+}
+
+export interface LoginMfaFormValues {
+	code: string;
+	remember_device?: boolean;
 }
 
 export interface LoginResponse {
@@ -105,3 +153,4 @@ export interface ChangePasswordFormValues {
 	new_password: string;
 	confirm_password: string;
 }
+export type RememberDeviceMap = Record<string, string>;

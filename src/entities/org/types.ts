@@ -5,6 +5,7 @@ export interface OrgSettings {
 	allow_user_data_export: boolean;
 	allow_profile_edit: boolean;
 	require_two_factor: boolean;
+	remember_device_days: number;
 	audit_log_retention_days: number;
 	inactive_user_retention_days: number;
 	enforce_service_duration_rule: boolean;
@@ -28,6 +29,7 @@ export interface OrgSettingsUpdatePayload {
 	allow_user_data_export?: boolean;
 	allow_profile_edit?: boolean;
 	require_two_factor?: boolean;
+	remember_device_days?: number;
 	audit_log_retention_days?: number;
 	inactive_user_retention_days?: number;
 	enforce_service_duration_rule?: boolean;
@@ -49,6 +51,7 @@ export interface OrgSettingsFormValues {
 	allow_user_data_export: boolean;
 	allow_profile_edit: boolean;
 	require_two_factor: boolean;
+	remember_device_days: number;
 	audit_log_retention_days: number;
 	inactive_user_retention_days: number;
 	enforce_service_duration_rule: boolean;
@@ -104,6 +107,7 @@ export interface SelfOrgPolicy {
 	allow_user_data_export?: boolean;
 	allow_profile_edit?: boolean;
 	require_two_factor?: boolean;
+	remember_device_days?: number;
 	enforce_service_duration_rule?: boolean;
 	min_service_duration_years?: number | null;
 	enforce_min_vested_to_exercise?: boolean;

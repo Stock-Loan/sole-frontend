@@ -2,7 +2,7 @@ import { z } from "zod";
 import { nonEmptyString } from "@/shared/lib/validators";
 
 const repaymentMethodsSchema = z.array(
-	z.enum(["INTEREST_ONLY", "BALLOON", "PRINCIPAL_AND_INTEREST"])
+	z.enum(["INTEREST_ONLY", "BALLOON", "PRINCIPAL_AND_INTEREST"]),
 );
 const interestTypesSchema = z.array(z.enum(["FIXED", "VARIABLE"]));
 
@@ -11,6 +11,10 @@ export const orgSettingsSchema = z
 		allow_user_data_export: z.boolean(),
 		allow_profile_edit: z.boolean(),
 		require_two_factor: z.boolean(),
+		remember_device_days: z
+			.number()
+			.min(0, "Minimum 0 days")
+			.max(3650, "Maximum 3650 days"),
 		audit_log_retention_days: z
 			.number()
 			.min(30, "Minimum 30 days")
@@ -33,11 +37,11 @@ export const orgSettingsSchema = z
 			.nullable(),
 		allowed_repayment_methods: repaymentMethodsSchema.min(
 			1,
-			"Select at least one repayment method."
+			"Select at least one repayment method.",
 		),
 		allowed_interest_types: interestTypesSchema.min(
 			1,
-			"Select at least one interest type."
+			"Select at least one interest type.",
 		),
 		min_loan_term_months: z
 			.number()

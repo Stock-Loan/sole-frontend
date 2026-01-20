@@ -49,6 +49,7 @@ export const SETTINGS_TAB_MAP: Partial<
 	allow_user_data_export: "general",
 	allow_profile_edit: "general",
 	require_two_factor: "general",
+	remember_device_days: "general",
 	audit_log_retention_days: "general",
 	inactive_user_retention_days: "general",
 	enforce_service_duration_rule: "stock",

@@ -5,8 +5,15 @@ import type {
 	AuthUser,
 	ChangePasswordPayload,
 	LoginCompletePayload,
+	LoginCompleteResponse,
+	LoginMfaPayload,
+	LoginMfaResponse,
+	LoginMfaSetupStartPayload,
+	LoginMfaSetupVerifyPayload,
 	LoginStartPayload,
 	LoginStartResponse,
+	MfaSetupStartResponse,
+	MfaSetupVerifyPayload,
 	OrgDiscoveryPayload,
 	OrgDiscoveryResponse,
 	SelfContextResponse,
@@ -44,12 +51,45 @@ export async function completeLogin(
 	payload: LoginCompletePayload,
 	orgId?: string,
 ) {
-	const { data } = await apiClient.post<TokenPair>(
+	const { data } = await apiClient.post<LoginCompleteResponse>(
 		"/auth/login/complete",
 		payload,
 		orgId ? { headers: { "X-Org-Id": orgId } } : undefined,
 	);
-	return unwrapApiResponse<TokenPair>(data);
+	return unwrapApiResponse<LoginCompleteResponse>(data);
+}
+
+export async function loginMfa(payload: LoginMfaPayload, orgId?: string) {
+	const { data } = await apiClient.post<LoginMfaResponse>(
+		"/auth/login/mfa",
+		payload,
+		orgId ? { headers: { "X-Org-Id": orgId } } : undefined,
+	);
+	return unwrapApiResponse<LoginMfaResponse>(data);
+}
+
+export async function loginMfaSetupStart(
+	payload: LoginMfaSetupStartPayload,
+	orgId?: string,
+) {
+	const { data } = await apiClient.post<MfaSetupStartResponse>(
+		"/auth/login/mfa/setup/start",
+		payload,
+		orgId ? { headers: { "X-Org-Id": orgId } } : undefined,
+	);
+	return unwrapApiResponse<MfaSetupStartResponse>(data);
+}
+
+export async function loginMfaSetupVerify(
+	payload: LoginMfaSetupVerifyPayload,
+	orgId?: string,
+) {
+	const { data } = await apiClient.post<LoginMfaResponse>(
+		"/auth/login/mfa/setup/verify",
+		payload,
+		orgId ? { headers: { "X-Org-Id": orgId } } : undefined,
+	);
+	return unwrapApiResponse<LoginMfaResponse>(data);
 }
 
 export async function logout(): Promise<void> {
@@ -98,6 +138,21 @@ export async function changePassword(payload: ChangePasswordPayload) {
 		payload,
 	);
 	return unwrapApiResponse<TokenPair>(data);
+}
+
+export async function mfaSetupStart() {
+	const { data } = await apiClient.post<MfaSetupStartResponse>(
+		"/auth/mfa/setup/start",
+	);
+	return unwrapApiResponse<MfaSetupStartResponse>(data);
+}
+
+export async function mfaSetupVerify(payload: MfaSetupVerifyPayload) {
+	const { data } = await apiClient.post<LoginMfaResponse>(
+		"/auth/mfa/setup/verify",
+		payload,
+	);
+	return unwrapApiResponse<LoginMfaResponse>(data);
 }
 
 export async function changePasswordWithToken(

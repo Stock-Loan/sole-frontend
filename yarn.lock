@@ -3859,6 +3859,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"qrcode.react@npm:^3.1.0":
+  version: 3.2.0
+  resolution: "qrcode.react@npm:3.2.0"
+  peerDependencies:
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0
+  checksum: 10c0/86479ce19c7711baccf4a4d84ffddf008823e080f5209fc38c84b9d47435bc0568a81972e021eb147ee9dc3090638731f4169ec07a1e243185e5a548d75a18cc
+  languageName: node
+  linkType: hard
+
 "queue-microtask@npm:^1.2.2":
   version: 1.2.3
   resolution: "queue-microtask@npm:1.2.3"
@@ -4252,6 +4261,7 @@ __metadata:
     globals: "npm:^16.5.0"
     lucide-react: "npm:^0.560.0"
     postcss: "npm:^8.5.6"
+    qrcode.react: "npm:^3.1.0"
     react: "npm:^19.2.0"
     react-dom: "npm:^19.2.0"
     react-hook-form: "npm:^7.68.0"
