@@ -13,7 +13,7 @@ export const mfaCodeSchema = z.object({
 	code: z
 		.string()
 		.regex(/^\d{6}$/, "Enter the 6-digit code from your authenticator"),
-	remember_device: z.boolean().default(true),
+	remember_device: z.boolean().default(false),
 });
 
 export const changePasswordSchema = z

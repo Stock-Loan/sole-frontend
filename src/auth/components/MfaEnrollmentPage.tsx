@@ -89,17 +89,55 @@ export function MfaEnrollmentPage({
 											name="remember_device"
 											render={({ field }) => (
 												<FormItem className="flex items-center gap-2 space-y-0">
-													<FormControl>
-														<Checkbox
-															checked={field.value}
-															onCheckedChange={(checked) =>
-																field.onChange(Boolean(checked))
+													<Checkbox
+														checked={Boolean(field.value)}
+														onCheckedChange={(checked) =>
+															form.setValue(
+																"remember_device",
+																Boolean(checked),
+																{
+																	shouldDirty: true,
+																	shouldTouch: true,
+																}
+															)
+														}
+														onClick={(event) => event.stopPropagation()}
+														onPointerDown={(event) => event.stopPropagation()}
+														aria-label="Remember this device"
+													/>
+													<span
+														role="button"
+														tabIndex={0}
+														onClick={() =>
+															form.setValue(
+																"remember_device",
+																!field.value,
+																{
+																	shouldDirty: true,
+																	shouldTouch: true,
+																}
+															)
+														}
+														onKeyDown={(event) => {
+															if (
+																event.key === " " ||
+																event.key === "Enter"
+															) {
+																event.preventDefault();
+																form.setValue(
+																	"remember_device",
+																	!field.value,
+																	{
+																		shouldDirty: true,
+																		shouldTouch: true,
+																	}
+																);
 															}
-														/>
-													</FormControl>
-													<FormLabel className="text-sm font-normal">
+														}}
+														className="cursor-pointer text-sm font-normal"
+													>
 														Remember this device
-													</FormLabel>
+													</span>
 												</FormItem>
 											)}
 										/>
