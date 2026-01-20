@@ -597,7 +597,7 @@ export function MyStockPage() {
 							className="h-full rounded-2xl border border-border/60 bg-card/70 shadow-sm"
 							chartHeightClassName="h-24"
 							summary={
-								<div className="flex items-center justify-between">
+								<div className="flex items-center justify-between mb-3">
 									<span>Last payment</span>
 									<span className="font-semibold text-foreground">
 										{repaymentActivity?.last_payment_date
