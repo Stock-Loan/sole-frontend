@@ -37,6 +37,7 @@ export const routes = {
 	announcements: "/app/announcements",
 	settingsOrg: "/app/settings/org",
 	settingsAudit: "/app/settings/audit",
+	settingsMidTermRates: "/app/settings/mid-term-rates",
 	adminTenancy: "/app/admin/tenancy",
 	adminFeatureFlags: "/app/admin/feature-flags",
 	auth: {

@@ -412,9 +412,14 @@ export function OrgSettingsStockLoanTab({
 																	: event.target.valueAsNumber,
 															)
 														}
-														disabled={!canManage || isSubmitting}
+														disabled
+														readOnly
 													/>
 												</FormControl>
+												<p className="text-xs text-muted-foreground">
+													Fetched from Internal Revenue Service Applicable
+													federal mid-term rates.
+												</p>
 												<FormMessage />
 											</FormItem>
 										)}

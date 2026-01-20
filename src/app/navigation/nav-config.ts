@@ -166,6 +166,13 @@ export const navConfig: NavConfig = {
 			permissions: "org.settings.view",
 		},
 		{
+			id: "settings-mid-term-rates",
+			label: "Mid-term rates",
+			path: "/app/settings/mid-term-rates",
+			icon: BarChart3,
+			permissions: "org.settings.view",
+		},
+		{
 			id: "settings-audit",
 			label: "Audit logs",
 			path: "/app/settings/audit",

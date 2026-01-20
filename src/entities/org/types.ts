@@ -119,6 +119,20 @@ export interface SelfOrgPolicy {
 	down_payment_percent: DecimalValue;
 }
 
+export interface PbgcMidTermRate {
+	year: number;
+	month: number;
+	annual_rate_percent: DecimalValue;
+	monthly_rate_percent: DecimalValue;
+	source_url: string;
+	fetched_at: string;
+}
+
+export interface PbgcRateRefreshResponse {
+	updated_rows: number;
+	fetched_at: string;
+}
+
 export interface OrgSettingsGeneralRetentionTabProps {
 	form: UseFormReturn<OrgSettingsFormValues>;
 	canManage: boolean;

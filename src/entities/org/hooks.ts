@@ -10,6 +10,8 @@ import {
 	createOrg,
 	getOrgSettings,
 	getSelfOrgPolicy,
+	getPbgcRates,
+	refreshPbgcRates,
 	updateOrgSettings,
 } from "./api";
 import type {
@@ -17,6 +19,8 @@ import type {
 	OrgRecord,
 	OrgSettings,
 	OrgSettingsUpdatePayload,
+	PbgcMidTermRate,
+	PbgcRateRefreshResponse,
 	SelfOrgPolicy,
 } from "./types";
 
@@ -69,6 +73,42 @@ export function useCreateOrg(
 ) {
 	return useMutation({
 		mutationFn: createOrg,
+		...options,
+	});
+}
+
+export function usePbgcRates(
+	year?: number | null,
+	options: Omit<
+		UseQueryOptions<PbgcMidTermRate[]>,
+		"queryKey" | "queryFn"
+	> = {},
+) {
+	return useQuery({
+		queryKey: orgSettingsKeys.pbgcRates(year ?? null),
+		queryFn: () => getPbgcRates(year ?? null),
+		...options,
+	});
+}
+
+export function useRefreshPbgcRates(
+	options: Omit<
+		UseMutationOptions<PbgcRateRefreshResponse, unknown, void>,
+		"mutationFn"
+	> = {},
+) {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: refreshPbgcRates,
+		onSuccess: (data, variables, onMutateResult, context) => {
+			void queryClient.invalidateQueries({
+				queryKey: orgSettingsKeys.pbgcRates(null),
+			});
+			options.onSuccess?.(data, variables, onMutateResult, context);
+		},
+		onError: (error, variables, onMutateResult, context) => {
+			options.onError?.(error, variables, onMutateResult, context);
+		},
 		...options,
 	});
 }
