@@ -23,6 +23,7 @@ export interface MfaEnrollmentPageProps {
 	account?: string | null;
 	secret?: string | null;
 	otpauthUrl?: string | null;
+	showRememberDevice?: boolean;
 	isSubmitting: boolean;
 	onSubmit: (values: LoginMfaFormValues) => void;
 	onReset: () => void;
@@ -34,6 +35,7 @@ export function MfaEnrollmentPage({
 	account,
 	secret,
 	otpauthUrl,
+	showRememberDevice = true,
 	isSubmitting,
 	onSubmit,
 	onReset,
@@ -94,25 +96,27 @@ export function MfaEnrollmentPage({
 											</FormItem>
 										)}
 									/>
-									<FormField
-										control={form.control}
-										name="remember_device"
-										render={({ field }) => (
-											<FormItem className="flex items-center gap-2 space-y-0">
-												<FormControl>
-													<Checkbox
-														checked={field.value}
-														onCheckedChange={(checked) =>
-															field.onChange(Boolean(checked))
-														}
-													/>
-												</FormControl>
-												<FormLabel className="text-sm font-normal">
-													Remember this device
-												</FormLabel>
-											</FormItem>
-										)}
-									/>
+									{showRememberDevice ? (
+										<FormField
+											control={form.control}
+											name="remember_device"
+											render={({ field }) => (
+												<FormItem className="flex items-center gap-2 space-y-0">
+													<FormControl>
+														<Checkbox
+															checked={field.value}
+															onCheckedChange={(checked) =>
+																field.onChange(Boolean(checked))
+															}
+														/>
+													</FormControl>
+													<FormLabel className="text-sm font-normal">
+														Remember this device
+													</FormLabel>
+												</FormItem>
+											)}
+										/>
+									) : null}
 									<div className="flex flex-col gap-2 sm:flex-row sm:items-center">
 										<Button
 											className="w-full py-3.5 text-md"

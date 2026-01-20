@@ -99,6 +99,26 @@ export function OrgSettingsPage() {
 	const updateMutation = useUpdateOrgSettings({
 		onSuccess: (updated) => {
 			toast({ title: "Settings saved" });
+			if (
+				updated.remember_device_days === 0 &&
+				typeof localStorage !== "undefined"
+			) {
+				try {
+					const raw = localStorage.getItem("sole.mfa.remember-device");
+					if (raw) {
+						const parsed = JSON.parse(raw) as Record<string, string>;
+						if (parsed?.[updated.org_id]) {
+							delete parsed[updated.org_id];
+							localStorage.setItem(
+								"sole.mfa.remember-device",
+								JSON.stringify(parsed),
+							);
+						}
+					}
+				} catch {
+					// ignore storage errors
+				}
+			}
 			form.reset({
 				allow_user_data_export: updated.allow_user_data_export,
 				allow_profile_edit: updated.allow_profile_edit,

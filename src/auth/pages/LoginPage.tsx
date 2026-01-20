@@ -101,6 +101,9 @@ export function LoginPage() {
 	const [mfaIssuer, setMfaIssuer] = useState<string | null>(null);
 	const [mfaAccount, setMfaAccount] = useState<string | null>(null);
 	const [mfaOtpAuthUrl, setMfaOtpAuthUrl] = useState<string | null>(null);
+	const [rememberDeviceDays, setRememberDeviceDays] = useState<number | null>(
+		null,
+	);
 
 	const emailForm = useForm<LoginEmailFormValues>({
 		resolver: zodResolver(emailSchema),
@@ -114,7 +117,7 @@ export function LoginPage() {
 
 	const mfaForm = useForm<LoginMfaFormValues>({
 		resolver: zodResolver(mfaCodeSchema),
-		defaultValues: { code: "", remember_device: true },
+		defaultValues: { code: "", remember_device: false },
 	});
 
 	const startLoginMutation = useStartLogin();
@@ -249,6 +252,7 @@ export function LoginPage() {
 			},
 			{
 				onSuccess: async (response) => {
+					setRememberDeviceDays(response.remember_device_days ?? null);
 					if (response.mfa_setup_required) {
 						const setup = response.setup_token;
 						if (!setup) {
@@ -338,7 +342,8 @@ export function LoginPage() {
 									setMfaIssuer(setupData.issuer);
 									setMfaAccount(setupData.account);
 									setMfaOtpAuthUrl(setupData.otpauth_url);
-									mfaForm.reset({ code: "", remember_device: true });
+									setRememberDeviceDays(setupData.remember_device_days ?? null);
+									mfaForm.reset({ code: "", remember_device: false });
 									toast({
 										title: "Set up MFA",
 										description:
@@ -366,7 +371,7 @@ export function LoginPage() {
 						}
 						setMfaToken(response.mfa_token);
 						setStep("mfa");
-						mfaForm.reset({ code: "", remember_device: true });
+						mfaForm.reset({ code: "", remember_device: false });
 						toast({
 							title: "MFA required",
 							description: "Enter the code from your authenticator app.",
@@ -479,7 +484,8 @@ export function LoginPage() {
 				payload: {
 					mfa_token: mfaToken,
 					code: values.code,
-					remember_device: Boolean(values.remember_device),
+					remember_device:
+						rememberDeviceAllowed && Boolean(values.remember_device),
 				},
 				orgId: currentOrgId,
 			},
@@ -586,7 +592,8 @@ export function LoginPage() {
 				payload: {
 					setup_token: setupToken,
 					code: values.code,
-					remember_device: Boolean(values.remember_device),
+					remember_device:
+						rememberDeviceAllowed && Boolean(values.remember_device),
 				},
 				orgId: currentOrgId,
 			},
@@ -687,6 +694,7 @@ export function LoginPage() {
 		setMfaIssuer(null);
 		setMfaAccount(null);
 		setMfaOtpAuthUrl(null);
+		setRememberDeviceDays(null);
 		setAvailableOrgs([]);
 		setOrgs([]);
 		setCurrentOrgId(null);
@@ -695,8 +703,10 @@ export function LoginPage() {
 			localStorage.removeItem(PENDING_ORG_SWITCH_KEY);
 		}
 		passwordForm.reset();
-		mfaForm.reset({ code: "", remember_device: true });
+		mfaForm.reset({ code: "", remember_device: false });
 	};
+
+	const rememberDeviceAllowed = (rememberDeviceDays ?? 1) > 0;
 
 	const statusMessage = useMemo(() => {
 		if (orgDiscoveryMutation.isPending) return "Finding your organization...";
@@ -938,25 +948,27 @@ export function LoginPage() {
 							</FormItem>
 						)}
 					/>
-					<FormField
-						control={mfaForm.control}
-						name="remember_device"
-						render={({ field }) => (
-							<FormItem className="flex items-center gap-2 space-y-0">
-								<FormControl>
-									<Checkbox
-										checked={field.value}
-										onCheckedChange={(checked) =>
-											field.onChange(Boolean(checked))
-										}
-									/>
-								</FormControl>
-								<FormLabel className="text-sm font-normal">
-									Remember this device
-								</FormLabel>
-							</FormItem>
-						)}
-					/>
+					{rememberDeviceAllowed ? (
+						<FormField
+							control={mfaForm.control}
+							name="remember_device"
+							render={({ field }) => (
+								<FormItem className="flex items-center gap-2 space-y-0">
+									<FormControl>
+										<Checkbox
+											checked={field.value}
+											onCheckedChange={(checked) =>
+												field.onChange(Boolean(checked))
+											}
+										/>
+									</FormControl>
+									<FormLabel className="text-sm font-normal">
+										Remember this device
+									</FormLabel>
+								</FormItem>
+							)}
+						/>
+					) : null}
 					<Button
 						className="w-full py-3.5 text-md"
 						type="submit"
@@ -995,6 +1007,7 @@ export function LoginPage() {
 				isSubmitting={loginMfaSetupVerifyMutation.isPending}
 				onSubmit={handleMfaSetupSubmit}
 				onReset={resetFlow}
+				showRememberDevice={rememberDeviceAllowed}
 			/>
 		);
 	}

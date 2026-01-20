@@ -73,6 +73,7 @@ export interface LoginCompleteResponse {
 	mfa_setup_required?: boolean;
 	mfa_token?: string | null;
 	setup_token?: string | null;
+	remember_device_days?: number | null;
 }
 
 export interface LoginMfaPayload {
@@ -100,6 +101,7 @@ export interface MfaSetupStartResponse {
 	otpauth_url: string;
 	issuer: string;
 	account: string;
+	remember_device_days?: number | null;
 }
 
 export interface MfaSetupVerifyPayload {
