@@ -1,3 +1,5 @@
+import type { UseFormReturn } from "react-hook-form";
+
 export type RoleCode = string;
 
 export interface TokenPair {
@@ -156,3 +158,14 @@ export interface ChangePasswordFormValues {
 	confirm_password: string;
 }
 export type RememberDeviceMap = Record<string, string>;
+export interface MfaEnrollmentPageProps {
+	form: UseFormReturn<LoginMfaFormValues>;
+	issuer?: string | null;
+	account?: string | null;
+	secret?: string | null;
+	otpauthUrl?: string | null;
+	showRememberDevice?: boolean;
+	isSubmitting: boolean;
+	onSubmit: (values: LoginMfaFormValues) => void;
+	onReset: () => void;
+}

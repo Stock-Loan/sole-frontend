@@ -85,11 +85,10 @@ export function OrgSettingsGeneralRetentionTab({
 							render={({ field }) => (
 								<FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 shadow-sm">
 									<div className="space-y-0.5">
-										<FormLabel className="text-base">
-											Require 2FA (reserved)
-										</FormLabel>
+										<FormLabel className="text-base">Require MFA</FormLabel>
 										<div className="text-sm text-muted-foreground">
-											Future enforcement policy for multi-factor authentication.
+											Enable Multi-factor authentication to be required for all
+											users
 										</div>
 									</div>
 									<FormControl>

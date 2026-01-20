@@ -1,5 +1,4 @@
 import { ArrowLeft, Loader2 } from "lucide-react";
-import type { UseFormReturn } from "react-hook-form";
 import { QRCodeCanvas } from "qrcode.react";
 import { PublicHeader } from "@/shared/ui/PublicHeader";
 import { PageContainer } from "@/shared/ui/PageContainer";
@@ -15,19 +14,7 @@ import {
 import { Input } from "@/shared/ui/input";
 import { Checkbox } from "@/shared/ui/checkbox";
 import { Label } from "@/shared/ui/label";
-import type { LoginMfaFormValues } from "@/auth/types";
-
-export interface MfaEnrollmentPageProps {
-	form: UseFormReturn<LoginMfaFormValues>;
-	issuer?: string | null;
-	account?: string | null;
-	secret?: string | null;
-	otpauthUrl?: string | null;
-	showRememberDevice?: boolean;
-	isSubmitting: boolean;
-	onSubmit: (values: LoginMfaFormValues) => void;
-	onReset: () => void;
-}
+import type { MfaEnrollmentPageProps } from "@/auth/types";
 
 export function MfaEnrollmentPage({
 	form,
