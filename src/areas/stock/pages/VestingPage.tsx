@@ -35,11 +35,11 @@ export function VestingPage() {
 					status: grant.status,
 					vestDate: event.vest_date,
 					shares: event.shares,
-				}))
+				})),
 			)
 			.sort(
 				(a, b) =>
-					new Date(a.vestDate).getTime() - new Date(b.vestDate).getTime()
+					new Date(a.vestDate).getTime() - new Date(b.vestDate).getTime(),
 			);
 	}, [allGrantsQuery.data]);
 
@@ -77,14 +77,12 @@ export function VestingPage() {
 				header: "Grant ID",
 				accessor: (event) => event.grantId,
 				cell: (event) => (
-					<span className="text-xs text-muted-foreground">
-						{event.grantId}
-					</span>
+					<span className="text-xs text-muted-foreground">{event.grantId}</span>
 				),
 				headerClassName: "whitespace-nowrap",
 			},
 		],
-		[]
+		[],
 	);
 
 	return (
@@ -96,48 +94,36 @@ export function VestingPage() {
 			/>
 
 			{selectedUser ? (
-				<div className="flex min-h-0 flex-1 flex-col rounded-lg border bg-card shadow-sm">
-					<div className="border-b border-border/70 px-6 py-4">
-						<div className="space-y-1">
-							<h2 className="text-md font-semibold text-foreground">
-								Vesting events
-							</h2>
-							<p className="text-sm text-muted-foreground">
-								All scheduled vesting events across this employee's grants.
-							</p>
+				<div className="flex min-h-0 flex-1 flex-col">
+					{!canViewGrants ? (
+						<p className="text-sm text-muted-foreground">
+							You do not have access to view vesting events.
+						</p>
+					) : allGrantsQuery.isError ? (
+						<div className="flex flex-wrap items-center gap-3 text-sm text-destructive">
+							<span>Unable to load vesting events.</span>
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={() => allGrantsQuery.refetch()}
+							>
+								Retry
+							</Button>
 						</div>
-					</div>
-					<div className="min-h-0 flex-1 px-6 pb-6 pt-4">
-						{!canViewGrants ? (
-							<p className="text-sm text-muted-foreground">
-								You do not have access to view vesting events.
-							</p>
-						) : allGrantsQuery.isError ? (
-							<div className="flex flex-wrap items-center gap-3 text-sm text-destructive">
-								<span>Unable to load vesting events.</span>
-								<Button
-									variant="outline"
-									size="sm"
-									onClick={() => allGrantsQuery.refetch()}
-								>
-									Retry
-								</Button>
-							</div>
-						) : (
-							<DataTable
-								data={vestingEvents}
-								columns={columns}
-								getRowId={(event) => event.id}
-								isLoading={allGrantsQuery.isLoading}
-								emptyMessage="No vesting events found."
-								enableRowSelection={false}
-								enableExport
-								exportFileName="vesting-events.csv"
-								className="min-h-0 flex-1"
-								pagination={{ enabled: false }}
-							/>
-						)}
-					</div>
+					) : (
+						<DataTable
+							data={vestingEvents}
+							columns={columns}
+							getRowId={(event) => event.id}
+							isLoading={allGrantsQuery.isLoading}
+							emptyMessage="No vesting events found."
+							enableRowSelection={false}
+							enableExport
+							exportFileName="vesting-events.csv"
+							className="min-h-0 flex-1"
+							pagination={{ enabled: false }}
+						/>
+					)}
 				</div>
 			) : (
 				<EmptyState

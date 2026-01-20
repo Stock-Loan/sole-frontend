@@ -107,7 +107,7 @@ export function StockGrantDialog({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent size="lg">
+			<DialogContent size="md">
 				<DialogHeader>
 					<DialogTitle>
 						{mode === "edit" ? "Edit stock grant" : "New stock grant"}

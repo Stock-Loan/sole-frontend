@@ -35,30 +35,20 @@ export function GrantsPage() {
 			/>
 
 			{selectedUser ? (
-				<div className="flex min-h-0 flex-1 flex-col rounded-lg border bg-card shadow-sm">
-					<div className="border-b border-border/70 px-6 py-4">
-						<div className="space-y-1">
-							<h2 className="text-md font-semibold">Stock Grants</h2>
-							<p className="text-sm text-muted-foreground">
-								Manage grant schedules for this employee.
-							</p>
-						</div>
-					</div>
-					<div className="flex min-h-0 flex-1 flex-col px-6 py-4">
-						{canViewGrants ? (
-							<StockGrantsSection
-								key={membershipId}
-								ref={grantsRef}
-								membershipId={membershipId}
-								canManage={canManageGrants}
-								isGrantActionBlocked={isGrantActionBlocked}
-							/>
-						) : (
-							<p className="text-sm text-muted-foreground">
-								You do not have access to view stock grants.
-							</p>
-						)}
-					</div>
+				<div className="flex min-h-0 flex-1 flex-col">
+					{canViewGrants ? (
+						<StockGrantsSection
+							key={membershipId}
+							ref={grantsRef}
+							membershipId={membershipId}
+							canManage={canManageGrants}
+							isGrantActionBlocked={isGrantActionBlocked}
+						/>
+					) : (
+						<p className="text-sm text-muted-foreground">
+							You do not have access to view stock grants.
+						</p>
+					)}
 				</div>
 			) : (
 				<EmptyState

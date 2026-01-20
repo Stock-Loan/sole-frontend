@@ -10,7 +10,7 @@ export function PageContainer({
 }: PropsWithChildren<PageContainerProps>) {
 	return (
 		<div
-			className={cn("mx-auto w-full pb-2", className, {
+			className={cn("mx-auto w-full", className, {
 				"min-h-[70vh]": fullHeight,
 			})}
 			{...props}

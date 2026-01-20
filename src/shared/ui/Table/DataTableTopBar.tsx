@@ -18,7 +18,7 @@ export function DataTableTopBar({
 
 	const renderAction = (
 		action: DataTableHeaderAction,
-		defaultVariant: "default" | "outline"
+		defaultVariant: "default" | "outline",
 	) => {
 		const Icon = action.icon;
 		return (
@@ -42,9 +42,7 @@ export function DataTableTopBar({
 				{hasActions ? (
 					<div className="flex flex-wrap items-center gap-2">
 						{primaryAction ? renderAction(primaryAction, "default") : null}
-						{secondaryActions.map((action) =>
-							renderAction(action, "outline")
-						)}
+						{secondaryActions.map((action) => renderAction(action, "outline"))}
 					</div>
 				) : null}
 				{headerFilters ? (

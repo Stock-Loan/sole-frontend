@@ -78,8 +78,8 @@ const columns: ColumnDefinition<DashboardGrantSummary>[] = [
 		cell: (grant) =>
 			grant.next_vesting_date
 				? `${formatDate(grant.next_vesting_date)} (${formatShares(
-						grant.next_vesting_shares ?? 0
-				  )})`
+						grant.next_vesting_shares ?? 0,
+					)})`
 				: "—",
 		headerClassName: "whitespace-nowrap",
 	},
@@ -114,29 +114,17 @@ export function MyGrantsPage() {
 					onRetry={() => summaryQuery.refetch()}
 				/>
 			) : (
-				<div className="flex min-h-0 flex-1 flex-col rounded-lg border bg-card shadow-sm">
-					<div className="border-b border-border/70 px-6 py-4">
-						<div className="space-y-1">
-							<h2 className="text-md font-semibold text-foreground">Grants</h2>
-							<p className="text-sm text-muted-foreground">
-								All grants associated with your account.
-							</p>
-						</div>
-					</div>
-					<div className="min-h-0 flex-1 px-6 pb-6 pt-4">
-						<DataTable
-							data={grants}
-							columns={columns}
-							getRowId={(grant) => grant.grant_id}
-							isLoading={summaryQuery.isFetching}
-							emptyMessage="No grants found."
-							enableRowSelection={false}
-							enableExport={false}
-							className="min-h-0 flex-1"
-							pagination={{ enabled: false }}
-						/>
-					</div>
-				</div>
+				<DataTable
+					data={grants}
+					columns={columns}
+					getRowId={(grant) => grant.grant_id}
+					isLoading={summaryQuery.isFetching}
+					emptyMessage="No grants found."
+					enableRowSelection={false}
+					enableExport={false}
+					className="min-h-0 flex-1"
+					pagination={{ enabled: false }}
+				/>
 			)}
 		</PageContainer>
 	);
