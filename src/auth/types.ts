@@ -199,7 +199,10 @@ export interface StepUpVerifyResponse {
 }
 
 // Re-export shared types for convenience
-export type { PendingStepUpRequest, StepUpChallengeData } from "@/shared/api/types";
+export type {
+	PendingStepUpRequest,
+	StepUpChallengeData,
+} from "@/shared/api/types";
 
 export interface StepUpMfaContextValue {
 	isStepUpRequired: boolean;

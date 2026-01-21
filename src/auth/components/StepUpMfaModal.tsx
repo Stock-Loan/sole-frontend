@@ -52,7 +52,10 @@ export function StepUpMfaModal() {
 			setCode(value);
 			// Auto-submit when 6 digits are entered
 			if (value.length === 6 && ctx && !ctx.isVerifying) {
-				ctx.verifyStepUp(value).then(() => setCode("")).catch(() => {});
+				ctx
+					.verifyStepUp(value)
+					.then(() => setCode(""))
+					.catch(() => {});
 			}
 		},
 		[ctx],
@@ -63,7 +66,10 @@ export function StepUpMfaModal() {
 	const { isStepUpRequired, challenge, isVerifying, error } = ctx;
 
 	return (
-		<Dialog open={isStepUpRequired} onOpenChange={(open) => !open && handleCancel()}>
+		<Dialog
+			open={isStepUpRequired}
+			onOpenChange={(open) => !open && handleCancel()}
+		>
 			<DialogContent size="sm">
 				<DialogHeader>
 					<DialogTitle className="flex items-center gap-2">

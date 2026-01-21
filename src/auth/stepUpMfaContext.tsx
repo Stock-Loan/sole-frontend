@@ -10,7 +10,10 @@ import {
 } from "react";
 import { verifyStepUpMfa } from "./api";
 import type { StepUpChallengeResponse, StepUpMfaContextValue } from "./types";
-import type { PendingStepUpRequest, StepUpChallengeData } from "@/shared/api/types";
+import type {
+	PendingStepUpRequest,
+	StepUpChallengeData,
+} from "@/shared/api/types";
 import { apiClient, setStepUpHandler } from "@/shared/api/http";
 
 const StepUpMfaContext = createContext<StepUpMfaContextValue | undefined>(
@@ -37,19 +40,18 @@ export function StepUpMfaProvider({ children }: StepUpMfaProviderProps) {
 	const [challenge, setChallenge] = useState<StepUpChallengeResponse | null>(
 		null,
 	);
-	const [pendingRequest, setPendingRequest] = useState<PendingStepUpRequest | null>(
-		null,
-	);
+	const [pendingRequest, setPendingRequest] =
+		useState<PendingStepUpRequest | null>(null);
 	const [isVerifying, setIsVerifying] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
-	const requestStepUpRef = useRef<((challenge: StepUpChallengeData, request: PendingStepUpRequest) => void) | null>(null);
+	const requestStepUpRef = useRef<
+		| ((challenge: StepUpChallengeData, request: PendingStepUpRequest) => void)
+		| null
+	>(null);
 
 	const requestStepUp = useCallback(
-		(
-			challengeData: StepUpChallengeData,
-			request: PendingStepUpRequest,
-		) => {
+		(challengeData: StepUpChallengeData, request: PendingStepUpRequest) => {
 			setChallenge(challengeData);
 			setPendingRequest(request);
 			setError(null);
@@ -86,7 +88,10 @@ export function StepUpMfaProvider({ children }: StepUpMfaProviderProps) {
 				});
 
 				// Retry the original request with the step-up token
-				const existingHeaders = (pendingRequest.config.headers ?? {}) as Record<string, string>;
+				const existingHeaders = (pendingRequest.config.headers ?? {}) as Record<
+					string,
+					string
+				>;
 				const newConfig = {
 					...pendingRequest.config,
 					headers: {
