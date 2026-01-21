@@ -20,7 +20,7 @@ import {
 	useUnreadNotifications,
 } from "../hooks";
 import { notificationToasts } from "../toasts";
-import { useAuth } from "@/auth/hooks";
+import { useAuth } from "@/auth/hooks/hooks";
 
 export function NotificationBell() {
 	const { user } = useAuth();
@@ -34,15 +34,18 @@ export function NotificationBell() {
 
 	const announcements = useMemo(
 		() => unreadListQuery.data?.items ?? [],
-		[unreadListQuery.data?.items]
+		[unreadListQuery.data?.items],
 	);
-	const unreadIds = useMemo(() => new Set(announcements.map((item) => item.id)), [announcements]);
+	const unreadIds = useMemo(
+		() => new Set(announcements.map((item) => item.id)),
+		[announcements],
+	);
 	const recentRead = useMemo(
 		() =>
 			(recentReadQuery.data?.items ?? []).filter(
-				(item) => !unreadIds.has(item.id)
+				(item) => !unreadIds.has(item.id),
 			),
-		[recentReadQuery.data?.items, unreadIds]
+		[recentReadQuery.data?.items, unreadIds],
 	);
 	const unreadCount = unreadCountQuery.data?.unread ?? announcements.length;
 
@@ -96,9 +99,7 @@ export function NotificationBell() {
 							onSelect={() => handleMarkRead(item.id)}
 						>
 							<div className="flex w-full items-center gap-2">
-								<div className={cn("text-sm font-semibold")}>
-									{item.title}
-								</div>
+								<div className={cn("text-sm font-semibold")}>{item.title}</div>
 								{item.type ? (
 									<span
 										className={`inline-flex w-fit items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold ${

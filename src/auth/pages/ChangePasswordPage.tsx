@@ -18,7 +18,7 @@ import { Input } from "@/shared/ui/input";
 import { useToast } from "@/shared/ui/use-toast";
 import { useApiErrorToast } from "@/shared/api/useApiErrorToast";
 import { routes } from "@/shared/lib/routes";
-import { useAuth, useChangePasswordWithToken } from "@/auth/hooks";
+import { useAuth, useChangePasswordWithToken } from "@/auth/hooks/hooks";
 import { changePasswordSchema } from "@/auth/schemas";
 import type { ChangePasswordFormValues } from "@/auth/types";
 

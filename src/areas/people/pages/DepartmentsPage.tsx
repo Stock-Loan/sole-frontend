@@ -9,7 +9,7 @@ import type { ColumnDefinition } from "@/shared/ui/Table/types";
 import { Button } from "@/shared/ui/Button";
 import { useToast } from "@/shared/ui/use-toast";
 import { ToolbarButton } from "@/shared/ui/toolbar";
-import { useAuth } from "@/auth/hooks";
+import { useAuth } from "@/auth/hooks/hooks";
 import {
 	Dialog,
 	DialogBody,
@@ -18,7 +18,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/shared/ui/Dialog/dialog";
-import { usePermissions } from "@/auth/hooks";
+import { usePermissions } from "@/auth/hooks/hooks";
 import { useApiErrorToast } from "@/shared/api/useApiErrorToast";
 import { formatDate } from "@/shared/lib/format";
 import { loadDataTablePreferences } from "@/shared/ui/Table/constants";
@@ -56,11 +56,11 @@ export function DepartmentsPage() {
 			userKey: user?.id ?? null,
 			orgKey: user?.org_id ?? null,
 		}),
-		[user?.id, user?.org_id]
+		[user?.id, user?.org_id],
 	);
 	const persistedPreferences = useMemo(
 		() => loadDataTablePreferences(preferencesConfig),
-		[preferencesConfig]
+		[preferencesConfig],
 	);
 	const preferredPageSize =
 		typeof persistedPreferences?.pagination?.pageSize === "number"
@@ -83,7 +83,7 @@ export function DepartmentsPage() {
 	const page = parsePositiveInt(searchParams.get("page"), DEFAULT_PAGE);
 	const pageSize = parsePositiveInt(
 		searchParams.get("page_size"),
-		preferredPageSize
+		preferredPageSize,
 	);
 
 	useEffect(() => {
@@ -111,7 +111,7 @@ export function DepartmentsPage() {
 			page_size: pageSize,
 			include_archived: includeArchived,
 		}),
-		[includeArchived, page, pageSize]
+		[includeArchived, page, pageSize],
 	);
 
 	const { data, isLoading, isError, refetch } = useDepartmentsList(listParams);
@@ -160,11 +160,11 @@ export function DepartmentsPage() {
 
 	const paginationState = useMemo<PaginationState>(
 		() => ({ pageIndex: Math.max(0, page - 1), pageSize }),
-		[page, pageSize]
+		[page, pageSize],
 	);
 
 	const handlePaginationChange = (
-		updater: PaginationState | ((previous: PaginationState) => PaginationState)
+		updater: PaginationState | ((previous: PaginationState) => PaginationState),
 	) => {
 		const nextState =
 			typeof updater === "function" ? updater(paginationState) : updater;
@@ -206,7 +206,7 @@ export function DepartmentsPage() {
 
 	const handleSubmit = async (
 		values: { name: string; code: string },
-		id?: string
+		id?: string,
 	) => {
 		if (formMode === "edit" && id) {
 			await updateMutation.mutateAsync({ id, payload: values });
@@ -282,7 +282,7 @@ export function DepartmentsPage() {
 				cell: (dept) => formatDate(dept.updated_at),
 			},
 		],
-		[]
+		[],
 	);
 
 	const initialColumnVisibility = useMemo<VisibilityState>(
@@ -290,7 +290,7 @@ export function DepartmentsPage() {
 			id: false,
 			orgId: false,
 		}),
-		[]
+		[],
 	);
 	const handleToggleArchived = () => {
 		const nextValue = !includeArchived;
@@ -402,7 +402,7 @@ export function DepartmentsPage() {
 									label: "New department",
 									onClick: openCreate,
 									icon: PlusCircle,
-							  }
+								}
 							: undefined,
 						secondaryActions: [
 							{

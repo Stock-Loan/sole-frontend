@@ -9,8 +9,8 @@ import { DataTable } from "@/shared/ui/Table/DataTable";
 import type { ColumnDefinition } from "@/shared/ui/Table/types";
 import type { PaginationState, VisibilityState } from "@tanstack/react-table";
 import { useQueryClient } from "@tanstack/react-query";
-import { usePermissions } from "@/auth/hooks";
-import { useAuth } from "@/auth/hooks";
+import { usePermissions } from "@/auth/hooks/hooks";
+import { useAuth } from "@/auth/hooks/hooks";
 import { authKeys } from "@/auth/keys";
 import { useTenant } from "@/features/tenancy/hooks";
 import {

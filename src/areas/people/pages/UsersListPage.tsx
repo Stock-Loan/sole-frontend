@@ -25,7 +25,7 @@ import { useApiErrorToast } from "@/shared/api/useApiErrorToast";
 import { routes } from "@/shared/lib/routes";
 import { normalizeDisplay } from "@/shared/lib/utils";
 import { formatDate } from "@/shared/lib/format";
-import { useAuth, usePermissions } from "@/auth/hooks";
+import { useAuth, usePermissions } from "@/auth/hooks/hooks";
 import { AddUserDialog } from "@/entities/user/components/AddUserDialog";
 import {
 	useBulkDeleteOrgUsers,
@@ -73,7 +73,9 @@ function getRoleLabels(roles: OrgUserListItem["roles"]) {
 	if (!roles || roles.length === 0) return "—";
 	return roles
 		.map((role) =>
-			normalizeDisplay(typeof role === "string" ? role : role.name ?? role.id)
+			normalizeDisplay(
+				typeof role === "string" ? role : (role.name ?? role.id),
+			),
 		)
 		.filter(Boolean)
 		.join(", ");
@@ -309,7 +311,9 @@ export function UsersListPage() {
 	const [assignDialogOpen, setAssignDialogOpen] = useState(false);
 	const [pendingAssign, setPendingAssign] = useState<OrgUserListItem[]>([]);
 	const [manageRolesOpen, setManageRolesOpen] = useState(false);
-	const [userForRoles, setUserForRoles] = useState<OrgUserListItem | null>(null);
+	const [userForRoles, setUserForRoles] = useState<OrgUserListItem | null>(
+		null,
+	);
 	const [addUserOpen, setAddUserOpen] = useState(false);
 
 	const onboardUserMutation = useOnboardUser();
@@ -321,11 +325,11 @@ export function UsersListPage() {
 			userKey: user?.id ?? null,
 			orgKey: user?.org_id ?? null,
 		}),
-		[user?.id, user?.org_id]
+		[user?.id, user?.org_id],
 	);
 	const persistedPreferences = useMemo(
 		() => loadDataTablePreferences(preferencesConfig),
-		[preferencesConfig]
+		[preferencesConfig],
 	);
 	const preferredPageSize =
 		typeof persistedPreferences?.pagination?.pageSize === "number"
@@ -357,13 +361,13 @@ export function UsersListPage() {
 			membershipId: false,
 			orgId: false,
 		}),
-		[]
+		[],
 	);
 
 	const page = parsePositiveInt(searchParams.get("page"), DEFAULT_PAGE);
 	const pageSize = parsePositiveInt(
 		searchParams.get("page_size"),
-		preferredPageSize
+		preferredPageSize,
 	);
 
 	useEffect(() => {
@@ -390,10 +394,11 @@ export function UsersListPage() {
 			page,
 			page_size: pageSize,
 		}),
-		[page, pageSize]
+		[page, pageSize],
 	);
 
-	const { data, isLoading, isError, error, refetch } = useOrgUsersList(listParams);
+	const { data, isLoading, isError, error, refetch } =
+		useOrgUsersList(listParams);
 
 	const totalRows = data?.total ?? data?.items.length ?? 0;
 	const totalPages = Math.max(1, Math.ceil(totalRows / pageSize));
@@ -412,11 +417,11 @@ export function UsersListPage() {
 
 	const paginationState = useMemo<PaginationState>(
 		() => ({ pageIndex: Math.max(0, page - 1), pageSize }),
-		[page, pageSize]
+		[page, pageSize],
 	);
 
 	const handlePaginationChange = (
-		updater: PaginationState | ((previous: PaginationState) => PaginationState)
+		updater: PaginationState | ((previous: PaginationState) => PaginationState),
 	) => {
 		const nextState =
 			typeof updater === "function" ? updater(paginationState) : updater;
@@ -463,7 +468,7 @@ export function UsersListPage() {
 	const handleConfirmDelete = () => {
 		if (!pendingDelete.length) return;
 		const membershipIds = Array.from(
-			new Set(pendingDelete.map((row) => row.membership.id))
+			new Set(pendingDelete.map((row) => row.membership.id)),
 		);
 		const closeDialog = () => {
 			setDeleteDialogOpen(false);
@@ -485,7 +490,8 @@ export function UsersListPage() {
 			can("role.manage") &&
 			can("user.manage") &&
 			selectedRows.length === 1 &&
-			selectedRows[0].membership.employment_status?.toUpperCase() === "ACTIVE" &&
+			selectedRows[0].membership.employment_status?.toUpperCase() ===
+				"ACTIVE" &&
 			selectedRows[0].membership.platform_status?.toUpperCase() === "ACTIVE";
 
 		const canAssignDepartment = can("department.manage") && can("user.manage");
@@ -570,8 +576,8 @@ export function UsersListPage() {
 						navigate(
 							routes.peopleUserDetail.replace(
 								":membershipId",
-								row.membership.id
-							)
+								row.membership.id,
+							),
 						)
 					}
 					headerActions={
@@ -581,7 +587,7 @@ export function UsersListPage() {
 										label: "Add user",
 										onClick: () => setAddUserOpen(true),
 									},
-							  }
+								}
 							: undefined
 					}
 					renderToolbarActions={renderToolbarActions}

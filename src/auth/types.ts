@@ -217,3 +217,7 @@ export interface StepUpMfaContextValue {
 	isVerifying: boolean;
 	error: string | null;
 }
+
+export interface StepUpMfaProviderProps {
+	children: import("react").ReactNode;
+}

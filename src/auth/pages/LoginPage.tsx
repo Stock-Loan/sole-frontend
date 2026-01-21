@@ -48,7 +48,7 @@ import {
 	useLoginMfaSetupVerify,
 	useOrgDiscovery,
 	useStartLogin,
-} from "@/auth/hooks";
+} from "@/auth/hooks/hooks";
 import { getMeWithToken } from "@/auth/api";
 import { emailSchema, mfaCodeSchema, passwordSchema } from "@/auth/schemas";
 import type {

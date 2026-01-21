@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import { cn } from "@/shared/lib/utils";
 import type { OtpInputProps } from "../types";
-import { normalize } from "../hooks";
+import { normalize } from "../hooks/hooks";
 
 const DIGIT_RE = /\d/;
 

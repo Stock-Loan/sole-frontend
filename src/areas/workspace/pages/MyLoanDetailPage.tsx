@@ -4,7 +4,7 @@ import { PageHeader } from "@/shared/ui/PageHeader";
 import { EmptyState } from "@/shared/ui/EmptyState";
 import { Button } from "@/shared/ui/Button";
 import { routes } from "@/shared/lib/routes";
-import { usePermissions } from "@/auth/hooks";
+import { usePermissions } from "@/auth/hooks/hooks";
 import {
 	useMyLoanApplication,
 	useMyLoanDocuments,

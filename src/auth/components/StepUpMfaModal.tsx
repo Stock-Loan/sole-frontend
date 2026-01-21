@@ -10,7 +10,7 @@ import {
 } from "@/shared/ui/Dialog/dialog";
 import { Button } from "@/shared/ui/Button";
 import { OtpInput } from "./OtpInput";
-import { useStepUpMfaOptional } from "../stepUpMfaContext";
+import { useStepUpMfaOptional } from "../hooks/useStepUpMfa";
 import { Loader2, ShieldCheck } from "lucide-react";
 
 const ACTION_LABELS: Record<string, string> = {

@@ -10,7 +10,7 @@ import {
 } from "@/shared/ui/dropdown-menu";
 import { ChevronDown } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/shared/ui/avatar";
-import { useAuth, useMe } from "@/auth/hooks";
+import { useAuth, useMe } from "@/auth/hooks/hooks";
 import { routes } from "@/shared/lib/routes";
 import { useUserSettings } from "@/features/user-settings/hooks";
 import type { UserDropdownProps } from "./types";

@@ -7,7 +7,7 @@ import { Button } from "@/shared/ui/Button";
 import { EmptyState } from "@/shared/ui/EmptyState";
 import { Skeleton } from "@/shared/ui/Skeleton";
 import { routes } from "@/shared/lib/routes";
-import { usePermissions } from "@/auth/hooks";
+import { usePermissions } from "@/auth/hooks/hooks";
 import { useOrgStockDashboardSummary } from "@/entities/stock-grant/hooks";
 import { StockSummaryMetricGrid } from "@/entities/stock-grant/components/StockSummaryMetricGrid";
 import { StockSummaryStackedBarCard } from "@/entities/stock-grant/components/StockSummaryStackedBarCard";
@@ -29,44 +29,42 @@ import {
 export function StockOverviewPage() {
 	const { can } = usePermissions();
 	const canViewStock = can("stock.dashboard.view");
-	const summaryQuery = useOrgStockDashboardSummary({}, { enabled: canViewStock });
+	const summaryQuery = useOrgStockDashboardSummary(
+		{},
+		{ enabled: canViewStock },
+	);
 
 	const summary = summaryQuery.data;
-	const metrics = useMemo(
-		() => buildStockSummaryMetrics(summary),
-		[summary]
-	);
+	const metrics = useMemo(() => buildStockSummaryMetrics(summary), [summary]);
 	const grantShareStack = useMemo(
 		() => buildGrantShareStack(summary),
-		[summary]
+		[summary],
 	);
 	const reservedShareStack = useMemo(
 		() => buildReservedShareStack(summary),
-		[summary]
+		[summary],
 	);
 	const eligibilityItems = useMemo(
 		() => buildEligibilityDonutItems(summary),
-		[summary]
+		[summary],
 	);
 	const grantStatusItems = useMemo(
 		() => buildGrantStatusDonutItems(summary),
-		[summary]
+		[summary],
 	);
 	const grantStrategyItems = useMemo(
 		() => buildGrantStrategyDonutItems(summary),
-		[summary]
+		[summary],
 	);
 	const eligibilityGauge = useMemo(
 		() => buildEligibilityGauge(summary),
-		[summary]
+		[summary],
 	);
-	const reservedGauge = useMemo(
-		() => buildReservedGauge(summary),
-		[summary]
-	);
+	const reservedGauge = useMemo(() => buildReservedGauge(summary), [summary]);
 	const timelineEvents = useMemo(
-		() => buildVestingTimelineEvents(summary?.vesting_timeline?.upcoming_events),
-		[summary]
+		() =>
+			buildVestingTimelineEvents(summary?.vesting_timeline?.upcoming_events),
+		[summary],
 	);
 
 	return (

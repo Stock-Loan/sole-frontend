@@ -9,11 +9,11 @@ import type {
 	OrgUserInfoRowProps,
 	OrgUserSidePanelProps,
 } from "../types";
-import { usePermissions } from "@/auth/hooks";
+import { usePermissions } from "@/auth/hooks/hooks";
 import { normalizeDisplay } from "@/shared/lib/utils";
 import { getSelfContextRoleNames } from "../utils";
-import { useSelfContext } from "@/auth/hooks";
-import { useAuth } from "@/auth/hooks";
+import { useSelfContext } from "@/auth/hooks/hooks";
+import { useAuth } from "@/auth/hooks/hooks";
 import { useOrgUserDetail } from "@/entities/user/hooks";
 
 export function OrgUserSidePanel({
@@ -50,8 +50,8 @@ export function OrgUserSidePanel({
 		const isSelf = authUser?.id === user.user.id;
 		const combined = isSelf
 			? Array.from(
-					new Set([...baseNames, ...getSelfContextRoleNames(selfContext)])
-			  )
+					new Set([...baseNames, ...getSelfContextRoleNames(selfContext)]),
+				)
 			: baseNames;
 		return combined.sort().join(", ") || "—";
 	}, [user, authUser?.id, selfContext]);
@@ -113,7 +113,7 @@ export function OrgUserSidePanel({
 						label: "Roles",
 						value: userRolesForDisplay,
 					},
-			  ]
+				]
 			: [];
 
 	return (
@@ -131,7 +131,7 @@ export function OrgUserSidePanel({
 									onClick: () => setIsProfileDialogOpen(true),
 									variant: "outline",
 								},
-						  ]
+							]
 						: []
 				}
 			>

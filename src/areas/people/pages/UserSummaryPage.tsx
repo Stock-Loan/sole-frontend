@@ -4,7 +4,7 @@ import { PageHeader } from "@/shared/ui/PageHeader";
 import { EmptyState } from "@/shared/ui/EmptyState";
 import { Card, CardContent, CardHeader } from "@/shared/ui/card";
 import { Skeleton } from "@/shared/ui/Skeleton";
-import { usePermissions } from "@/auth/hooks";
+import { usePermissions } from "@/auth/hooks/hooks";
 import { useOrgUserSummary } from "@/entities/user/hooks";
 import {
 	buildDepartmentItems,
@@ -28,30 +28,27 @@ export function UserSummaryPage() {
 	const summaryQuery = useOrgUserSummary(canViewUsers);
 	const summary = summaryQuery.data;
 
-	const metrics = useMemo(
-		() => buildUserSummaryMetrics(summary),
-		[summary]
-	);
+	const metrics = useMemo(() => buildUserSummaryMetrics(summary), [summary]);
 	const platformItems = useMemo(
 		() => buildPlatformStatusItems(summary),
-		[summary]
+		[summary],
 	);
 	const invitationItems = useMemo(
 		() => buildInvitationStatusItems(summary),
-		[summary]
+		[summary],
 	);
 	const employmentItems = useMemo(
 		() => buildEmploymentStatusItems(summary),
-		[summary]
+		[summary],
 	);
 	const mfaItems = useMemo(() => buildMfaItems(summary), [summary]);
 	const engagementItems = useMemo(
 		() => buildEngagementTrendItems(summary),
-		[summary]
+		[summary],
 	);
 	const departmentItems = useMemo(
 		() => buildDepartmentItems(summary),
-		[summary]
+		[summary],
 	);
 	const roleItems = useMemo(() => buildRoleItems(summary), [summary]);
 
@@ -125,7 +122,9 @@ export function UserSummaryPage() {
 						/>
 						<Card className="h-full">
 							<CardHeader className="pb-2">
-								<h3 className="text-sm font-semibold">Roles with zero members</h3>
+								<h3 className="text-sm font-semibold">
+									Roles with zero members
+								</h3>
 							</CardHeader>
 							<CardContent className="space-y-2 text-sm text-muted-foreground">
 								{summary?.roles_with_zero_members?.length ? (

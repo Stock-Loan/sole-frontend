@@ -9,8 +9,8 @@ import type {
 	DataTablePreferencesConfig,
 } from "@/shared/ui/Table/types";
 import { loadDataTablePreferences } from "@/shared/ui/Table/constants";
-import { usePermissions } from "@/auth/hooks";
-import { useAuth } from "@/auth/hooks";
+import { usePermissions } from "@/auth/hooks/hooks";
+import { useAuth } from "@/auth/hooks/hooks";
 import { useOrgAuditLogs } from "@/entities/audit/hooks";
 import type { AuditLog } from "@/entities/audit/types";
 import { formatAuditValue, stringifyAuditValue } from "@/entities/audit/utils";
@@ -39,11 +39,11 @@ export function AuditLogsPage() {
 			orgKey: user?.org_id ?? null,
 			version: 1,
 		}),
-		[user?.id, user?.org_id]
+		[user?.id, user?.org_id],
 	);
 	const persistedPreferences = useMemo(
 		() => loadDataTablePreferences(preferencesConfig),
-		[preferencesConfig]
+		[preferencesConfig],
 	);
 
 	const defaultPageSize =
@@ -59,7 +59,7 @@ export function AuditLogsPage() {
 	const handleResourceTypeChange = (value: string) => {
 		setResourceType(value);
 		setPaginationState((prev) =>
-			prev.pageIndex === 0 ? prev : { ...prev, pageIndex: 0 }
+			prev.pageIndex === 0 ? prev : { ...prev, pageIndex: 0 },
 		);
 	};
 
@@ -69,7 +69,7 @@ export function AuditLogsPage() {
 			page_size: paginationState.pageSize,
 			resource_type: resourceType === "all" ? undefined : resourceType,
 		}),
-		[paginationState.pageIndex, paginationState.pageSize, resourceType]
+		[paginationState.pageIndex, paginationState.pageSize, resourceType],
 	);
 
 	const auditLogsQuery = useOrgAuditLogs(listParams, {
@@ -80,19 +80,19 @@ export function AuditLogsPage() {
 		if (auditLogsQuery.isError) {
 			apiErrorToast(
 				auditLogsQuery.error,
-				"Unable to load audit logs. Please try again."
+				"Unable to load audit logs. Please try again.",
 			);
 		}
 	}, [apiErrorToast, auditLogsQuery.error, auditLogsQuery.isError]);
 
 	const auditLogs = useMemo(
 		() => auditLogsQuery.data?.items ?? [],
-		[auditLogsQuery.data?.items]
+		[auditLogsQuery.data?.items],
 	);
 	const totalRows = auditLogsQuery.data?.total ?? auditLogs.length;
 	const totalPages = Math.max(
 		1,
-		Math.ceil(totalRows / paginationState.pageSize)
+		Math.ceil(totalRows / paginationState.pageSize),
 	);
 
 	const resourceTypeOptions = useMemo(() => {
@@ -189,7 +189,7 @@ export function AuditLogsPage() {
 				headerClassName: "min-w-[200px] whitespace-nowrap",
 			},
 		],
-		[]
+		[],
 	);
 
 	return (
@@ -244,9 +244,7 @@ export function AuditLogsPage() {
 											<SelectValue placeholder="All resource types" />
 										</SelectTrigger>
 										<SelectContent className="max-h-64">
-											<SelectItem value="all">
-												All resource types
-											</SelectItem>
+											<SelectItem value="all">All resource types</SelectItem>
 											{resourceTypeOptions.map((type) => (
 												<SelectItem key={type} value={type}>
 													{type}

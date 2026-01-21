@@ -8,7 +8,7 @@ import { Button } from "@/shared/ui/Button";
 import { Badge } from "@/shared/ui/badge";
 import { Skeleton } from "@/shared/ui/Skeleton";
 import { getOrgUserDisplayName } from "@/entities/user/constants";
-import { usePermissions } from "@/auth/hooks";
+import { usePermissions } from "@/auth/hooks/hooks";
 import { formatCurrency, formatDate } from "@/shared/lib/format";
 import { cn } from "@/shared/lib/utils";
 import { routes } from "@/shared/lib/routes";
@@ -36,7 +36,7 @@ export function StockAdminPage() {
 		{},
 		{
 			enabled: Boolean(membershipId) && canViewSummary,
-		}
+		},
 	);
 
 	const summaryMetrics = useMemo<StockSummaryMetric[]>(() => {
@@ -72,8 +72,8 @@ export function StockAdminPage() {
 	const userDetailPath = selectedUser
 		? routes.peopleUserDetail.replace(
 				":membershipId",
-				selectedUser.membership.id
-		  )
+				selectedUser.membership.id,
+			)
 		: "";
 	const userInitials = useMemo(() => {
 		if (!selectedUser) return "U";
@@ -102,9 +102,9 @@ export function StockAdminPage() {
 					? {
 							label: "Invitation",
 							value: selectedUser.membership.invitation_status,
-					  }
+						}
 					: null,
-		  ].filter(Boolean) as { label: string; value?: string | null }[])
+			].filter(Boolean) as { label: string; value?: string | null }[])
 		: [];
 
 	const metaItems = selectedUser
@@ -124,7 +124,7 @@ export function StockAdminPage() {
 					label: "Membership created",
 					value: formatDate(selectedUser.membership.created_at) || "—",
 				},
-		  ]
+			]
 		: [];
 
 	const renderSummaryContent = () => {
@@ -161,13 +161,12 @@ export function StockAdminPage() {
 		const reasons =
 			eligibility.reasons?.map((reason) => getEligibilityReasonLabel(reason)) ??
 			[];
-		const { averageExercisePrice, totalStockValue } = getStockValueMetrics(
-			summary
-		);
+		const { averageExercisePrice, totalStockValue } =
+			getStockValueMetrics(summary);
 		const nextVestingLabel = summary.next_vesting_event
 			? `${formatDate(summary.next_vesting_event.vest_date)} • ${formatShares(
-					summary.next_vesting_event.shares
-			  )} shares`
+					summary.next_vesting_event.shares,
+				)} shares`
 			: "—";
 		const metricCardStyle = {
 			borderColor: colorPalette.slate[200],
@@ -199,7 +198,10 @@ export function StockAdminPage() {
 							>
 								{metric.label}
 							</p>
-							<p className="mt-2 text-lg font-semibold" style={metricValueStyle}>
+							<p
+								className="mt-2 text-lg font-semibold"
+								style={metricValueStyle}
+							>
 								{metric.value}
 							</p>
 						</div>
@@ -212,13 +214,19 @@ export function StockAdminPage() {
 							Grant value
 						</p>
 						<div className="mt-3 space-y-2 text-sm">
-							<div className="flex items-center justify-between" style={metricLabelStyle}>
+							<div
+								className="flex items-center justify-between"
+								style={metricLabelStyle}
+							>
 								<span>Average exercise price</span>
 								<span className="font-semibold" style={metricValueStyle}>
 									{formatCurrency(averageExercisePrice)}
 								</span>
 							</div>
-							<div className="flex items-center justify-between" style={metricLabelStyle}>
+							<div
+								className="flex items-center justify-between"
+								style={metricLabelStyle}
+							>
 								<span>Total stock value</span>
 								<span className="font-semibold" style={metricValueStyle}>
 									{formatCurrency(totalStockValue)}
@@ -233,7 +241,7 @@ export function StockAdminPage() {
 						"rounded-lg border p-4",
 						isEligible
 							? "border-emerald-200 bg-emerald-50/60"
-							: "border-amber-200 bg-amber-50/60"
+							: "border-amber-200 bg-amber-50/60",
 					)}
 				>
 					<div className="flex items-start gap-3">

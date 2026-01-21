@@ -1,5 +1,5 @@
 import { Navigate } from "react-router-dom";
-import { usePermissions } from "@/auth/hooks";
+import { usePermissions } from "@/auth/hooks/hooks";
 import { routes } from "@/shared/lib/routes";
 import type { PermissionGateProps } from "./types";
 
@@ -12,7 +12,11 @@ export function PermissionGate({
 }: PermissionGateProps) {
 	const { can } = usePermissions();
 
-	const required = Array.isArray(permission) ? permission : permission ? [permission] : [];
+	const required = Array.isArray(permission)
+		? permission
+		: permission
+			? [permission]
+			: [];
 	const allowed =
 		required.length === 0
 			? true

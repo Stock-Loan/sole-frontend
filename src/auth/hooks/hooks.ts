@@ -36,8 +36,8 @@ import type {
 	OrgDiscoveryPayload,
 } from "@/auth/types";
 import type { OrgSummary } from "@/entities/org/types";
-import { REMEMBER_DEVICE_KEY } from "./pages/LoginPage";
-import type { RememberDeviceMap } from "./types";
+import { REMEMBER_DEVICE_KEY } from "../pages/LoginPage";
+import type { RememberDeviceMap } from "../types";
 
 export function useAuth() {
 	return useAuthContext();

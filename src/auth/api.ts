@@ -189,3 +189,22 @@ export async function verifyStepUpMfa(
 	);
 	return unwrapApiResponse<StepUpVerifyResponse>(data) as StepUpVerifyResponse;
 }
+
+export async function retryRequestWithStepUpToken<T>(
+	originalConfig: Record<string, unknown>,
+	stepUpToken: string,
+): Promise<T> {
+	const existingHeaders = (originalConfig.headers ?? {}) as Record<
+		string,
+		string
+	>;
+	const newConfig = {
+		...originalConfig,
+		headers: {
+			...existingHeaders,
+			"X-Step-Up-Token": stepUpToken,
+		},
+	};
+	const response = await apiClient.request<T>(newConfig);
+	return response.data;
+}

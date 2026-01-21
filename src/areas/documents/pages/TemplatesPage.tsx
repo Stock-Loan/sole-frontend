@@ -6,7 +6,7 @@ import { Button } from "@/shared/ui/Button";
 import { useToast } from "@/shared/ui/use-toast";
 import { useApiErrorToast } from "@/shared/api/useApiErrorToast";
 import { downloadBlob } from "@/shared/lib/download";
-import { usePermissions } from "@/auth/hooks";
+import { usePermissions } from "@/auth/hooks/hooks";
 import { AppDialog } from "@/shared/ui/Dialog/dialog";
 import {
 	useCreateOrgDocumentFolder,
@@ -23,7 +23,10 @@ import { OrgDocumentFileGrid } from "@/entities/document/components/OrgDocumentF
 import { OrgDocumentTemplateInfoDialog } from "@/entities/document/components/OrgDocumentTemplateInfoDialog";
 import { OrgDocumentFolderDialog } from "@/entities/document/components/OrgDocumentFolderDialog";
 import { OrgDocumentTemplateUploadDialog } from "@/entities/document/components/OrgDocumentTemplateUploadDialog";
-import type { OrgDocumentFolder, OrgDocumentTemplate } from "@/entities/document/types";
+import type {
+	OrgDocumentFolder,
+	OrgDocumentTemplate,
+} from "@/entities/document/types";
 
 export function TemplatesPage() {
 	const { can } = usePermissions();
@@ -35,17 +38,15 @@ export function TemplatesPage() {
 	const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
 	const [folderDialogOpen, setFolderDialogOpen] = useState(false);
 	const [folderDialogMode, setFolderDialogMode] = useState<"create" | "rename">(
-		"create"
+		"create",
 	);
 	const [folderToEdit, setFolderToEdit] = useState<OrgDocumentFolder | null>(
-		null
+		null,
 	);
-	const [folderToDelete, setFolderToDelete] = useState<OrgDocumentFolder | null>(
-		null
-	);
-	const [templateToDelete, setTemplateToDelete] = useState<OrgDocumentTemplate | null>(
-		null
-	);
+	const [folderToDelete, setFolderToDelete] =
+		useState<OrgDocumentFolder | null>(null);
+	const [templateToDelete, setTemplateToDelete] =
+		useState<OrgDocumentTemplate | null>(null);
 	const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
 	const [selectedTemplate, setSelectedTemplate] =
 		useState<OrgDocumentTemplate | null>(null);
@@ -53,7 +54,7 @@ export function TemplatesPage() {
 	const foldersQuery = useOrgDocumentFolders(canView);
 	const folders = useMemo(
 		() => foldersQuery.data?.items ?? [],
-		[foldersQuery.data]
+		[foldersQuery.data],
 	);
 
 	const activeFolderId = useMemo(() => {
@@ -65,11 +66,11 @@ export function TemplatesPage() {
 
 	const templatesQuery = useOrgDocumentTemplates(
 		{ folder_id: activeFolderId ?? undefined },
-		{ enabled: canView }
+		{ enabled: canView },
 	);
 	const templates = useMemo(
 		() => templatesQuery.data?.items ?? [],
-		[templatesQuery.data]
+		[templatesQuery.data],
 	);
 
 	const activeTemplate = useMemo(() => {
@@ -191,9 +192,9 @@ export function TemplatesPage() {
 						<div className="flex flex-wrap items-center justify-between gap-3">
 							<div>
 								<p className="text-sm font-semibold text-foreground">
-										{activeFolderId
-											? folderNameById[activeFolderId] ?? "Folder"
-											: "All templates"}
+									{activeFolderId
+										? (folderNameById[activeFolderId] ?? "Folder")
+										: "All templates"}
 								</p>
 								<p className="text-xs text-muted-foreground">
 									{templates.length} template{templates.length === 1 ? "" : "s"}
@@ -210,13 +211,13 @@ export function TemplatesPage() {
 							) : null}
 						</div>
 
-							<OrgDocumentFileGrid
-								templates={templates}
-								selectedTemplateId={activeTemplate?.id ?? null}
-								onSelect={(template) => setSelectedTemplate(template)}
-								isLoading={templatesQuery.isLoading}
-								isError={templatesQuery.isError}
-								onRetry={() => templatesQuery.refetch()}
+						<OrgDocumentFileGrid
+							templates={templates}
+							selectedTemplateId={activeTemplate?.id ?? null}
+							onSelect={(template) => setSelectedTemplate(template)}
+							isLoading={templatesQuery.isLoading}
+							isError={templatesQuery.isError}
+							onRetry={() => templatesQuery.refetch()}
 							onDownload={handleDownloadTemplate}
 							onDelete={handleDeleteTemplate}
 							folderNameById={folderNameById}

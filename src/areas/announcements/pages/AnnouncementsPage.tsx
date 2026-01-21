@@ -17,8 +17,8 @@ import {
 	DialogTitle,
 } from "@/shared/ui/Dialog/dialog";
 import { useToast } from "@/shared/ui/use-toast";
-import { usePermissions } from "@/auth/hooks";
-import { useAuth } from "@/auth/hooks";
+import { usePermissions } from "@/auth/hooks/hooks";
+import { useAuth } from "@/auth/hooks/hooks";
 import { useApiErrorToast } from "@/shared/api/useApiErrorToast";
 import { formatDate } from "@/shared/lib/format";
 import { loadDataTablePreferences } from "@/shared/ui/Table/constants";
@@ -73,11 +73,11 @@ export function AnnouncementsPage() {
 			orgKey: user?.org_id ?? null,
 			version: 2,
 		}),
-		[user?.id, user?.org_id]
+		[user?.id, user?.org_id],
 	);
 	const persistedPreferences = useMemo(
 		() => loadDataTablePreferences(preferencesConfig),
-		[preferencesConfig]
+		[preferencesConfig],
 	);
 	const preferredPageSize =
 		typeof persistedPreferences?.pagination?.pageSize === "number"
@@ -87,7 +87,7 @@ export function AnnouncementsPage() {
 	const page = parsePositiveInt(searchParams.get("page"), DEFAULT_PAGE);
 	const pageSize = parsePositiveInt(
 		searchParams.get("page_size"),
-		preferredPageSize
+		preferredPageSize,
 	);
 
 	useEffect(() => {
@@ -115,7 +115,7 @@ export function AnnouncementsPage() {
 			page,
 			page_size: pageSize,
 		}),
-		[canManage, page, pageSize]
+		[canManage, page, pageSize],
 	);
 
 	const adminAnnouncementsQuery = useAdminAnnouncementsList(listParams, {
@@ -188,7 +188,7 @@ export function AnnouncementsPage() {
 
 	const requestStatusChange = (
 		announcement: Announcement,
-		nextStatus: AnnouncementStatus
+		nextStatus: AnnouncementStatus,
 	) => {
 		setStatusDialog({ target: announcement, nextStatus });
 	};
@@ -214,11 +214,11 @@ export function AnnouncementsPage() {
 
 	const paginationState = useMemo<PaginationState>(
 		() => ({ pageIndex: Math.max(0, page - 1), pageSize }),
-		[page, pageSize]
+		[page, pageSize],
 	);
 
 	const handlePaginationChange = (
-		updater: PaginationState | ((previous: PaginationState) => PaginationState)
+		updater: PaginationState | ((previous: PaginationState) => PaginationState),
 	) => {
 		const nextState =
 			typeof updater === "function" ? updater(paginationState) : updater;
@@ -341,7 +341,7 @@ export function AnnouncementsPage() {
 				enableFiltering: false,
 			},
 		],
-		[]
+		[],
 	);
 
 	const initialColumnVisibility = useMemo<VisibilityState>(
@@ -351,7 +351,7 @@ export function AnnouncementsPage() {
 			body: false,
 			updatedAt: false,
 		}),
-		[]
+		[],
 	);
 
 	return (
@@ -478,7 +478,7 @@ export function AnnouncementsPage() {
 										onClick: openCreate,
 										icon: Plus,
 									},
-							  }
+								}
 							: undefined
 					}
 				/>

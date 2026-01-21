@@ -3,7 +3,7 @@ import { PageHeader } from "@/shared/ui/PageHeader";
 import { EmptyState } from "@/shared/ui/EmptyState";
 import { DataTable } from "@/shared/ui/Table/DataTable";
 import type { ColumnDefinition } from "@/shared/ui/Table/types";
-import { usePermissions } from "@/auth/hooks";
+import { usePermissions } from "@/auth/hooks/hooks";
 import { useMeDashboardSummary } from "@/entities/dashboard/hooks";
 import { formatDate } from "@/shared/lib/format";
 import { formatShares } from "@/entities/stock-grant/constants";

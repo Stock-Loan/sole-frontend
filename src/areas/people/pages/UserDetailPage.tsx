@@ -13,13 +13,16 @@ import { formatDate } from "@/shared/lib/format";
 import type { OrgUserInfoRowProps } from "@/entities/user/types";
 import { Badge } from "@/shared/ui/badge";
 import { normalizeDisplay } from "@/shared/lib/utils";
-import { useSelfContext } from "@/auth/hooks";
-import { useAuth } from "@/auth/hooks";
+import { useSelfContext } from "@/auth/hooks/hooks";
+import { useAuth } from "@/auth/hooks/hooks";
 import { useToast } from "@/shared/ui/use-toast";
 import { useApiErrorToast } from "@/shared/api/useApiErrorToast";
-import { usePermissions } from "@/auth/hooks";
+import { usePermissions } from "@/auth/hooks/hooks";
 import { useOrgUserDetail } from "@/entities/user/hooks";
-import { useDepartmentsList, useUpdateUserDepartment } from "@/entities/department/hooks";
+import {
+	useDepartmentsList,
+	useUpdateUserDepartment,
+} from "@/entities/department/hooks";
 import {
 	Select,
 	SelectContent,
@@ -46,7 +49,7 @@ export function UserDetailPage() {
 	const { data: departmentsData, isLoading: isDepartmentsLoading } =
 		useDepartmentsList(
 			{ page: 1, page_size: 100 },
-			{ staleTime: 5 * 60 * 1000 }
+			{ staleTime: 5 * 60 * 1000 },
 		);
 
 	const assignedRoles = useMemo(() => data?.roles ?? [], [data?.roles]);
@@ -62,20 +65,23 @@ export function UserDetailPage() {
 	}, [assignedRoles, authUser?.id, data?.user.id, selfContext]);
 	const departmentOptions = useMemo(
 		() => (departmentsData?.items ?? []).filter((dept) => !dept.is_archived),
-		[departmentsData?.items]
+		[departmentsData?.items],
 	);
 
-	const departmentMutation = useUpdateUserDepartment(data?.membership.id ?? "", {
-		onSuccess: () => {
-			toast({
-				title: "Department updated",
-				description: "User department assignment saved.",
-			});
-			refetch();
+	const departmentMutation = useUpdateUserDepartment(
+		data?.membership.id ?? "",
+		{
+			onSuccess: () => {
+				toast({
+					title: "Department updated",
+					description: "User department assignment saved.",
+				});
+				refetch();
+			},
+			onError: (err) =>
+				apiErrorToast(err, "Unable to update department. Please try again."),
 		},
-		onError: (err) =>
-			apiErrorToast(err, "Unable to update department. Please try again."),
-	});
+	);
 
 	const infoItems = useMemo(() => {
 		if (!data) return [];

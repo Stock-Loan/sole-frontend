@@ -13,9 +13,9 @@ import type { ColumnDefinition } from "@/shared/ui/Table/types";
 import { useToast } from "@/shared/ui/use-toast";
 import { useApiErrorToast } from "@/shared/api/useApiErrorToast";
 import { formatCurrency, formatDate } from "@/shared/lib/format";
-import { usePermissions } from "@/auth/hooks";
+import { usePermissions } from "@/auth/hooks/hooks";
 import { formatShares } from "@/entities/stock-grant/constants";
-import { useAuth } from "@/auth/hooks";
+import { useAuth } from "@/auth/hooks/hooks";
 import {
 	useCreateStockGrant,
 	useStockGrantsList,
@@ -35,7 +35,7 @@ import type {
 
 function getGrantSummary(
 	grant: StockGrant,
-	summaryMap: Map<string, GrantSummary>
+	summaryMap: Map<string, GrantSummary>,
 ) {
 	const summary = summaryMap.get(grant.id);
 	if (summary) {
@@ -59,7 +59,7 @@ export const StockGrantsSection = forwardRef<
 	StockGrantsSectionProps
 >(function StockGrantsSection(
 	{ membershipId, canManage, isGrantActionBlocked = false },
-	ref
+	ref,
 ) {
 	const { toast } = useToast();
 	const apiErrorToast = useApiErrorToast();
@@ -83,7 +83,7 @@ export const StockGrantsSection = forwardRef<
 			orgKey: user?.org_id ?? null,
 			version: 1,
 		}),
-		[membershipId, user?.id, user?.org_id]
+		[membershipId, user?.id, user?.org_id],
 	);
 
 	const listParams = useMemo(
@@ -91,30 +91,26 @@ export const StockGrantsSection = forwardRef<
 			page: paginationState.pageIndex + 1,
 			page_size: paginationState.pageSize,
 		}),
-		[paginationState.pageIndex, paginationState.pageSize]
+		[paginationState.pageIndex, paginationState.pageSize],
 	);
 
-	const grantsQuery = useStockGrantsList(
-		membershipId,
-		listParams,
-		{
-			enabled: Boolean(membershipId),
-		}
-	);
+	const grantsQuery = useStockGrantsList(membershipId, listParams, {
+		enabled: Boolean(membershipId),
+	});
 
 	const summaryQuery = useStockSummary(
 		membershipId,
 		{},
 		{
 			enabled: Boolean(membershipId) && canViewSummary,
-		}
+		},
 	);
 
 	const grants = grantsQuery.data?.items ?? [];
 	const totalRows = grantsQuery.data?.total ?? grants.length;
 	const totalPages = Math.max(
 		1,
-		Math.ceil(totalRows / paginationState.pageSize)
+		Math.ceil(totalRows / paginationState.pageSize),
 	);
 	const summaryMap = useMemo(() => {
 		const map = new Map<string, GrantSummary>();
@@ -169,7 +165,7 @@ export const StockGrantsSection = forwardRef<
 				? values.vesting_events.map((event) => ({
 						vest_date: event.vest_date,
 						shares: event.shares,
-				  }))
+					}))
 				: undefined;
 
 		return {
@@ -191,7 +187,7 @@ export const StockGrantsSection = forwardRef<
 						? values.vesting_events.map((event) => ({
 								vest_date: event.vest_date,
 								shares: event.shares,
-						  }))
+							}))
 						: undefined,
 			});
 			return;
@@ -215,7 +211,7 @@ export const StockGrantsSection = forwardRef<
 		() => ({
 			openCreate: handleOpenCreate,
 		}),
-		[handleOpenCreate]
+		[handleOpenCreate],
 	);
 
 	const columns = useMemo<ColumnDefinition<StockGrant>[]>(() => {
@@ -225,7 +221,7 @@ export const StockGrantsSection = forwardRef<
 				return "—";
 			}
 			return `${formatShares(summary.vested)} vested / ${formatShares(
-				summary.unvested
+				summary.unvested,
 			)} unvested`;
 		};
 
@@ -425,7 +421,7 @@ export const StockGrantsSection = forwardRef<
 			nextVestingSummary: false,
 			notes: false,
 		}),
-		[]
+		[],
 	);
 
 	if (grantsQuery.isError) {
@@ -475,7 +471,7 @@ export const StockGrantsSection = forwardRef<
 										? "User must have active employment and platform status to receive grants."
 										: undefined,
 								},
-						  }
+							}
 						: undefined
 				}
 				renderToolbarActions={(selectedGrants) => {
@@ -484,7 +480,7 @@ export const StockGrantsSection = forwardRef<
 					const selectedGrant = hasSingle ? selectedGrants[0] : null;
 					const isLocked = selectedGrant
 						? selectedGrant.status === "CANCELLED" ||
-						  selectedGrant.status === "EXERCISED_OUT"
+							selectedGrant.status === "EXERCISED_OUT"
 						: false;
 					return (
 						<Button

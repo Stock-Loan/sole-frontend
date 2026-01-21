@@ -22,7 +22,7 @@ import {
 import { routes } from "@/shared/lib/routes";
 import { formatDate, formatCurrency } from "@/shared/lib/format";
 import { normalizeDisplay } from "@/shared/lib/utils";
-import { usePermissions } from "@/auth/hooks";
+import { usePermissions } from "@/auth/hooks/hooks";
 import {
 	useCancelMyLoanApplication,
 	useMyLoanApplications,

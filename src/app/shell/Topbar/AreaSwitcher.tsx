@@ -10,13 +10,13 @@ import {
 } from "@/shared/ui/dropdown-menu";
 import { areas } from "@/app/navigation/areas";
 import { navConfig } from "@/app/navigation/nav-config";
-import { usePermissions } from "@/auth/hooks";
+import { usePermissions } from "@/auth/hooks/hooks";
 import { useActiveArea } from "@/app/navigation/useActiveArea";
 import { cn } from "@/shared/lib/utils";
 
 function canSeeArea(
 	areaId: keyof typeof navConfig,
-	can: (permission: string | string[]) => boolean
+	can: (permission: string | string[]) => boolean,
 ) {
 	const items = navConfig[areaId] ?? [];
 	return items.some((item) => {
@@ -35,7 +35,7 @@ export function AreaSwitcher() {
 
 	const visibleAreas = useMemo(
 		() => areas.filter((area) => canSeeArea(area.id, can)),
-		[can]
+		[can],
 	);
 
 	const currentArea =
@@ -82,7 +82,7 @@ export function AreaSwitcher() {
 							onClick={() => navigate(area.path)}
 							className={cn(
 								"flex items-start gap-3",
-								area.id === currentArea.id && "bg-muted/40"
+								area.id === currentArea.id && "bg-muted/40",
 							)}
 						>
 							<AreaIcon className="mt-0.5 h-4 w-4 text-muted-foreground" />

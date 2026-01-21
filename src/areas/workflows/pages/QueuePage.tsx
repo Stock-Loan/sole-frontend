@@ -19,7 +19,7 @@ import { normalizeDisplay } from "@/shared/lib/utils";
 import { useToast } from "@/shared/ui/use-toast";
 import { parseApiError } from "@/shared/api/errors";
 import { routes } from "@/shared/lib/routes";
-import { useAuth, usePermissions } from "@/auth/hooks";
+import { useAuth, usePermissions } from "@/auth/hooks/hooks";
 import {
 	useFinanceLoanQueue,
 	useHrLoanQueue,
