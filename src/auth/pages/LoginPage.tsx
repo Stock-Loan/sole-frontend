@@ -70,7 +70,7 @@ import {
 import type { OrgSummary } from "@/entities/org/types";
 import { Label } from "@/shared/ui/label";
 import { Checkbox } from "@/shared/ui/checkbox";
-import { MfaEnrollmentPage } from "@/auth/components/MfaEnrollmentPage";
+import { MfaEnrollmentPage } from "@/auth/pages/MfaEnrollmentPage";
 import { OtpInput } from "@/auth/components/OtpInput";
 import { RecoveryCodesDisplay } from "@/auth/components/RecoveryCodesDisplay";
 
