@@ -51,6 +51,7 @@ export const SETTINGS_TAB_MAP: Partial<
 	require_two_factor: "general",
 	mfa_required_actions: "general",
 	remember_device_days: "general",
+	session_timeout_minutes: "general",
 	audit_log_retention_days: "general",
 	inactive_user_retention_days: "general",
 	enforce_service_duration_rule: "stock",

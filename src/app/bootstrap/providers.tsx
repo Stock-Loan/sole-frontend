@@ -5,6 +5,8 @@ import { Toaster } from "@/shared/ui/toaster";
 import { AuthProvider } from "@/auth/sessionStore";
 import { StepUpMfaProvider } from "@/auth/stepUpMfaContext";
 import { StepUpMfaModal } from "@/auth/components/StepUpMfaModal";
+import { InactivityProvider } from "@/auth/inactivityContext";
+import { InactivityWarningBanner } from "@/auth/components/InactivityWarningBanner";
 import { TenantProvider } from "@/features/tenancy/tenantStore";
 import { queryClient } from "@/shared/api/queryClient";
 
@@ -13,11 +15,14 @@ export function AppProviders({ children }: PropsWithChildren) {
 		<QueryClientProvider client={queryClient}>
 			<AuthProvider>
 				<TenantProvider>
-					<StepUpMfaProvider>
-						{children}
-						<StepUpMfaModal />
-						<Toaster />
-					</StepUpMfaProvider>
+					<InactivityProvider>
+						<StepUpMfaProvider>
+							{children}
+							<InactivityWarningBanner />
+							<StepUpMfaModal />
+							<Toaster />
+						</StepUpMfaProvider>
+					</InactivityProvider>
 				</TenantProvider>
 			</AuthProvider>
 			{import.meta.env.DEV ? (

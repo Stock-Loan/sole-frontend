@@ -28,6 +28,10 @@ export const orgSettingsSchema = z
 			.number()
 			.min(0, "Minimum 0 days")
 			.max(3650, "Maximum 3650 days"),
+		session_timeout_minutes: z
+			.number()
+			.min(1, "Minimum 1 minute")
+			.max(60, "Maximum 60 minutes"),
 		audit_log_retention_days: z
 			.number()
 			.min(30, "Minimum 30 days")

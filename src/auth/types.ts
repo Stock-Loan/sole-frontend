@@ -145,6 +145,7 @@ export interface SelfContextResponse {
 		permissions?: string[];
 	}>;
 	permissions: string[];
+	session_timeout_minutes: number;
 }
 
 export interface ChangePasswordPayload {
@@ -219,5 +220,22 @@ export interface StepUpMfaContextValue {
 }
 
 export interface StepUpMfaProviderProps {
+	children: import("react").ReactNode;
+}
+
+export interface InactivityContextValue {
+	/** Time in seconds until session expires */
+	secondsRemaining: number | null;
+	/** Whether the warning countdown is visible */
+	isWarningVisible: boolean;
+	/** Session timeout in minutes from org settings */
+	sessionTimeoutMinutes: number;
+	/** Manually refresh activity (extends session) */
+	refreshActivity: () => void;
+	/** Whether activity refresh is in progress */
+	isRefreshing: boolean;
+}
+
+export interface InactivityProviderProps {
 	children: import("react").ReactNode;
 }

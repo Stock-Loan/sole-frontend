@@ -7,6 +7,7 @@ export interface OrgSettings {
 	require_two_factor: boolean;
 	mfa_required_actions: MfaEnforcementAction[];
 	remember_device_days: number;
+	session_timeout_minutes: number;
 	audit_log_retention_days: number;
 	inactive_user_retention_days: number;
 	enforce_service_duration_rule: boolean;
@@ -32,6 +33,7 @@ export interface OrgSettingsUpdatePayload {
 	require_two_factor?: boolean;
 	mfa_required_actions?: MfaEnforcementAction[];
 	remember_device_days?: number;
+	session_timeout_minutes?: number;
 	audit_log_retention_days?: number;
 	inactive_user_retention_days?: number;
 	enforce_service_duration_rule?: boolean;
@@ -55,6 +57,7 @@ export interface OrgSettingsFormValues {
 	require_two_factor: boolean;
 	mfa_required_actions: MfaEnforcementAction[];
 	remember_device_days: number;
+	session_timeout_minutes: number;
 	audit_log_retention_days: number;
 	inactive_user_retention_days: number;
 	enforce_service_duration_rule: boolean;

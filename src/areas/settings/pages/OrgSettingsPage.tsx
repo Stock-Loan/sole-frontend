@@ -39,6 +39,7 @@ export function OrgSettingsPage() {
 			require_two_factor: false,
 			mfa_required_actions: [],
 			remember_device_days: 30,
+			session_timeout_minutes: 5,
 			audit_log_retention_days: 180,
 			inactive_user_retention_days: 180,
 			enforce_service_duration_rule: false,
@@ -68,6 +69,7 @@ export function OrgSettingsPage() {
 					? (data.mfa_required_actions ?? [])
 					: [],
 				remember_device_days: data.remember_device_days ?? 30,
+				session_timeout_minutes: data.session_timeout_minutes ?? 5,
 				audit_log_retention_days: data.audit_log_retention_days ?? 180,
 				inactive_user_retention_days: data.inactive_user_retention_days ?? 180,
 				enforce_service_duration_rule: Boolean(
@@ -142,6 +144,7 @@ export function OrgSettingsPage() {
 					? (updated.mfa_required_actions ?? [])
 					: [],
 				remember_device_days: updated.remember_device_days ?? 30,
+				session_timeout_minutes: updated.session_timeout_minutes ?? 5,
 				audit_log_retention_days: updated.audit_log_retention_days,
 				inactive_user_retention_days: updated.inactive_user_retention_days,
 				enforce_service_duration_rule: Boolean(

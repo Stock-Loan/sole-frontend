@@ -190,6 +190,34 @@ export function OrgSettingsGeneralRetentionTab({
 						/>
 						<FormField
 							control={form.control}
+							name="session_timeout_minutes"
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>Session timeout (minutes)</FormLabel>
+									<div className="mb-2 text-sm text-muted-foreground">
+										Users will be automatically logged out after this period of
+										inactivity. A warning countdown will appear 60 seconds
+										before timeout.
+									</div>
+									<FormControl>
+										<Input
+											type="number"
+											min={1}
+											max={60}
+											{...field}
+											value={Number.isNaN(field.value) ? "" : field.value}
+											onChange={(event) =>
+												field.onChange(event.target.valueAsNumber)
+											}
+											disabled={!canManage || isSubmitting}
+										/>
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+						<FormField
+							control={form.control}
 							name="mfa_required_actions"
 							render={({ field }) => (
 								<FormItem>
