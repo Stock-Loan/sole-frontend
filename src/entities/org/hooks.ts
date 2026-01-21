@@ -112,3 +112,12 @@ export function useRefreshPbgcRates(
 		...options,
 	});
 }
+
+export function toggleValue<T extends string>(
+	values: T[],
+	value: T,
+	checked: boolean,
+) {
+	if (checked) return [...values, value];
+	return values.filter((item) => item !== value);
+}

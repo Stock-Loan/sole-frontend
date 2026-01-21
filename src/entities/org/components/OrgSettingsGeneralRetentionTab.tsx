@@ -11,60 +11,8 @@ import { Input } from "@/shared/ui/input";
 import { Switch } from "@/shared/ui/switch";
 import { Checkbox } from "@/shared/ui/checkbox";
 import type { OrgSettingsGeneralRetentionTabProps } from "../types";
-
-const mfaEnforcementOptions = [
-	{
-		value: "LOGIN",
-		label: "During every login",
-		description:
-			"Require MFA on every sign-in, even if the device is remembered.",
-	},
-	{
-		value: "LOAN_SUBMISSION",
-		label: "During user loan submission",
-		description: "Prompt for MFA when users submit a loan application.",
-	},
-	{
-		value: "STOCK_GRANT_ASSIGNMENT",
-		label: "Assigning new stock to users",
-		description: "Require MFA before creating stock grants for users.",
-	},
-	{
-		value: "LOAN_PAYMENT_RECORD",
-		label: "Recording loan payments",
-		description: "Require MFA before recording a loan repayment.",
-	},
-	{
-		value: "WORKFLOW_COMPLETE",
-		label: "Completing workflow stages",
-		description:
-			"Prompt for MFA before marking HR, Finance, or Legal stages complete.",
-	},
-	{
-		value: "ORG_SETTINGS_CHANGE",
-		label: "Changing org settings",
-		description: "Require MFA before saving organization settings.",
-	},
-	{
-		value: "USER_PROFILE_EDIT",
-		label: "Editing a user's profile",
-		description: "Require MFA before admins update user profile fields.",
-	},
-	{
-		value: "ROLE_ASSIGNMENT",
-		label: "Assigning roles to users",
-		description: "Require MFA before assigning roles to a user.",
-	},
-] as const;
-
-function toggleValue<T extends string>(
-	values: T[],
-	value: T,
-	checked: boolean,
-) {
-	if (checked) return [...values, value];
-	return values.filter((item) => item !== value);
-}
+import { mfaEnforcementOptions } from "../constants";
+import { toggleValue } from "../hooks";
 
 export function OrgSettingsGeneralRetentionTab({
 	form,
@@ -162,6 +110,12 @@ export function OrgSettingsGeneralRetentionTab({
 											/>
 										</FormControl>
 										<FormMessage />
+										{requireTwoFactor ? (
+											<span className="block mt-1 text-xs text-amber-600 font-medium">
+												Note: "Require MFA during every login" overrides this
+												setting.
+											</span>
+										) : null}
 									</FormItem>
 								)}
 							/>

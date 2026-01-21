@@ -82,3 +82,54 @@ export const MONTH_LABELS = [
 	"November",
 	"December",
 ] as const;
+
+export const mfaEnforcementOptions = [
+	{
+		value: "LOGIN",
+		label: "During every login",
+		description:
+			"Require MFA on every sign-in. This overrides the 'Remember device' setting, forcing users to provide MFA even on trusted devices.",
+	},
+	{
+		value: "LOAN_SUBMISSION",
+		label: "During user loan submission",
+		description: "Prompt for MFA when users submit a loan application.",
+	},
+	{
+		value: "STOCK_GRANT_ASSIGNMENT",
+		label: "Assigning new stock to users",
+		description: "Require MFA before creating stock grants for users.",
+	},
+	{
+		value: "STOCK_STATUS_CHANGE",
+		label: "Changing stock grant status",
+		description:
+			"Require MFA before changing a stock grant's status (e.g., Active, Cancelled, Exercised).",
+	},
+	{
+		value: "LOAN_PAYMENT_RECORD",
+		label: "Recording loan payments",
+		description: "Require MFA before recording a loan repayment.",
+	},
+	{
+		value: "WORKFLOW_COMPLETE",
+		label: "Completing workflow stages",
+		description:
+			"Prompt for MFA before marking HR, Finance, or Legal stages complete.",
+	},
+	{
+		value: "ORG_SETTINGS_CHANGE",
+		label: "Changing org settings",
+		description: "Require MFA before saving organization settings.",
+	},
+	{
+		value: "USER_PROFILE_EDIT",
+		label: "Editing a user's profile",
+		description: "Require MFA before admins update user profile fields.",
+	},
+	{
+		value: "ROLE_ASSIGNMENT",
+		label: "Assigning roles to users",
+		description: "Require MFA before assigning roles to a user.",
+	},
+] as const;
