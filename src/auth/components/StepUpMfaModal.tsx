@@ -72,7 +72,12 @@ export function StepUpMfaModal() {
 		(value: string) => {
 			setCode(value);
 			// Auto-submit when expected length is reached (only for TOTP)
-			if (codeType === "totp" && value.length === 6 && ctx && !ctx.isVerifying) {
+			if (
+				codeType === "totp" &&
+				value.length === 6 &&
+				ctx &&
+				!ctx.isVerifying
+			) {
 				ctx
 					.verifyStepUp(value, "totp")
 					.then(() => {
