@@ -117,7 +117,13 @@ export function InactivityProvider({ children }: InactivityProviderProps) {
 		}, 1000);
 
 		return () => clearInterval(interval);
-	}, [isLoggedIn, isContextLoading, sessionTimeoutMs, warningTimeMs, clearSession]);
+	}, [
+		isLoggedIn,
+		isContextLoading,
+		sessionTimeoutMs,
+		warningTimeMs,
+		clearSession,
+	]);
 
 	const refreshActivity = useCallback(async () => {
 		if (!tokens?.refresh_token || !currentOrgId || isRefreshing) return;

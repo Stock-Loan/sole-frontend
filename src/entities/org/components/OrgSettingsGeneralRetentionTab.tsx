@@ -118,29 +118,6 @@ export function OrgSettingsGeneralRetentionTab({
 						/>
 						<FormField
 							control={form.control}
-							name="allow_user_data_export"
-							render={({ field }) => (
-								<FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 shadow-sm">
-									<div className="space-y-0.5">
-										<FormLabel className="text-base">
-											Allow user data export
-										</FormLabel>
-										<div className="text-sm text-muted-foreground">
-											Enable or disable personal data export for employees.
-										</div>
-									</div>
-									<FormControl>
-										<Switch
-											checked={field.value}
-											onCheckedChange={field.onChange}
-											disabled={!canManage || isSubmitting}
-										/>
-									</FormControl>
-								</FormItem>
-							)}
-						/>
-						<FormField
-							control={form.control}
 							name="require_two_factor"
 							render={({ field }) => (
 								<FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 shadow-sm">
@@ -161,61 +138,60 @@ export function OrgSettingsGeneralRetentionTab({
 								</FormItem>
 							)}
 						/>
-						<FormField
-							control={form.control}
-							name="remember_device_days"
-							render={({ field }) => (
-								<FormItem>
-									<FormLabel>Remember device (days)</FormLabel>
-									<div className="mb-2 text-sm text-muted-foreground">
-										Number of days to skip MFA on trusted devices. Set to 0 to
-										disable.
-									</div>
-									<FormControl>
-										<Input
-											type="number"
-											min={0}
-											max={3650}
-											{...field}
-											value={Number.isNaN(field.value) ? "" : field.value}
-											onChange={(event) =>
-												field.onChange(event.target.valueAsNumber)
-											}
-											disabled={!canManage || isSubmitting}
-										/>
-									</FormControl>
-									<FormMessage />
-								</FormItem>
-							)}
-						/>
-						<FormField
-							control={form.control}
-							name="session_timeout_minutes"
-							render={({ field }) => (
-								<FormItem>
-									<FormLabel>Session timeout (minutes)</FormLabel>
-									<div className="mb-2 text-sm text-muted-foreground">
-										Users will be automatically logged out after this period of
-										inactivity. A warning countdown will appear 60 seconds
-										before timeout.
-									</div>
-									<FormControl>
-										<Input
-											type="number"
-											min={1}
-											max={60}
-											{...field}
-											value={Number.isNaN(field.value) ? "" : field.value}
-											onChange={(event) =>
-												field.onChange(event.target.valueAsNumber)
-											}
-											disabled={!canManage || isSubmitting}
-										/>
-									</FormControl>
-									<FormMessage />
-								</FormItem>
-							)}
-						/>
+						<div className="grid gap-4 md:grid-cols-2">
+							<FormField
+								control={form.control}
+								name="remember_device_days"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Remember device (days)</FormLabel>
+										<div className="mb-2 text-sm text-muted-foreground">
+											Days to skip MFA on trusted devices. 0 to disable.
+										</div>
+										<FormControl>
+											<Input
+												type="number"
+												min={0}
+												max={3650}
+												{...field}
+												value={Number.isNaN(field.value) ? "" : field.value}
+												onChange={(event) =>
+													field.onChange(event.target.valueAsNumber)
+												}
+												disabled={!canManage || isSubmitting}
+											/>
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+							<FormField
+								control={form.control}
+								name="session_timeout_minutes"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Session timeout (minutes)</FormLabel>
+										<div className="mb-2 text-sm text-muted-foreground">
+											Auto logout after inactivity. Warning shows 60s before.
+										</div>
+										<FormControl>
+											<Input
+												type="number"
+												min={1}
+												max={60}
+												{...field}
+												value={Number.isNaN(field.value) ? "" : field.value}
+												onChange={(event) =>
+													field.onChange(event.target.valueAsNumber)
+												}
+												disabled={!canManage || isSubmitting}
+											/>
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+						</div>
 						<FormField
 							control={form.control}
 							name="mfa_required_actions"
@@ -291,6 +267,29 @@ export function OrgSettingsGeneralRetentionTab({
 				</div>
 				<div className="min-h-0 flex-1 overflow-y-auto px-6 py-6">
 					<div className="grid max-w-2xl gap-6">
+						<FormField
+							control={form.control}
+							name="allow_user_data_export"
+							render={({ field }) => (
+								<FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 shadow-sm">
+									<div className="space-y-0.5">
+										<FormLabel className="text-base">
+											Allow user data export
+										</FormLabel>
+										<div className="text-sm text-muted-foreground">
+											Enable or disable personal data export for employees.
+										</div>
+									</div>
+									<FormControl>
+										<Switch
+											checked={field.value}
+											onCheckedChange={field.onChange}
+											disabled={!canManage || isSubmitting}
+										/>
+									</FormControl>
+								</FormItem>
+							)}
+						/>
 						<FormField
 							control={form.control}
 							name="audit_log_retention_days"

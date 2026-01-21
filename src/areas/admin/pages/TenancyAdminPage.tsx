@@ -9,6 +9,7 @@ import type {
 	DataTablePreferencesConfig,
 } from "@/shared/ui/Table/types";
 import { useToast } from "@/shared/ui/use-toast";
+import { useSelfContext } from "@/auth/hooks/hooks";
 import { OrgCreateForm } from "@/entities/org/components/OrgCreateForm";
 import { useCreateOrg } from "@/entities/org/hooks";
 import { useApiErrorToast } from "@/shared/api/useApiErrorToast";
@@ -29,8 +30,10 @@ export function TenancyAdminPage() {
 	const { toast } = useToast();
 	const apiErrorToast = useApiErrorToast();
 	const { orgs, setOrgs } = useTenant();
+	const { data: selfContext } = useSelfContext();
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
 	const formId = "create-org-form";
+	const isMultiTenant = selfContext?.tenancy_mode === "multi";
 	const createOrgMutation = useCreateOrg({
 		onSuccess: (created) => {
 			const exists = orgs.some((org) => org.id === created.id);
@@ -123,50 +126,56 @@ export function TenancyAdminPage() {
 				className="flex-1 min-h-0"
 				initialColumnVisibility={initialColumnVisibility}
 				preferences={preferencesConfig}
-				headerActions={{
-					primaryAction: {
-						label: "Create org",
-						onClick: () => setIsDialogOpen(true),
-						icon: Plus,
-					},
-				}}
+				headerActions={
+					isMultiTenant
+						? {
+								primaryAction: {
+									label: "Create org",
+									onClick: () => setIsDialogOpen(true),
+									icon: Plus,
+								},
+							}
+						: undefined
+				}
 			/>
 
-			<Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-				<DialogContent size="sm">
-					<DialogHeader>
-						<DialogTitle>Create organization</DialogTitle>
-						<DialogDescription>
-							Add a new organization to the SOLE platform.
-						</DialogDescription>
-					</DialogHeader>
-					<DialogBody>
-						<OrgCreateForm
-							onSubmit={async (values) => {
-								await createOrgMutation.mutateAsync(values);
-							}}
-							isSubmitting={createOrgMutation.isPending}
-							formId={formId}
-						/>
-					</DialogBody>
-					<DialogFooter>
-						<Button
-							variant="outline"
-							onClick={() => setIsDialogOpen(false)}
-							disabled={createOrgMutation.isPending}
-						>
-							Cancel
-						</Button>
-						<Button
-							type="submit"
-							form={formId}
-							disabled={createOrgMutation.isPending}
-						>
-							{createOrgMutation.isPending ? "Creating..." : "Create org"}
-						</Button>
-					</DialogFooter>
-				</DialogContent>
-			</Dialog>
+			{isMultiTenant && (
+				<Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+					<DialogContent size="sm">
+						<DialogHeader>
+							<DialogTitle>Create organization</DialogTitle>
+							<DialogDescription>
+								Add a new organization to the SOLE platform.
+							</DialogDescription>
+						</DialogHeader>
+						<DialogBody>
+							<OrgCreateForm
+								onSubmit={async (values) => {
+									await createOrgMutation.mutateAsync(values);
+								}}
+								isSubmitting={createOrgMutation.isPending}
+								formId={formId}
+							/>
+						</DialogBody>
+						<DialogFooter>
+							<Button
+								variant="outline"
+								onClick={() => setIsDialogOpen(false)}
+								disabled={createOrgMutation.isPending}
+							>
+								Cancel
+							</Button>
+							<Button
+								type="submit"
+								form={formId}
+								disabled={createOrgMutation.isPending}
+							>
+								{createOrgMutation.isPending ? "Creating..." : "Create org"}
+							</Button>
+						</DialogFooter>
+					</DialogContent>
+				</Dialog>
+			)}
 		</PageContainer>
 	);
 }

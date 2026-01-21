@@ -146,6 +146,7 @@ export interface SelfContextResponse {
 	}>;
 	permissions: string[];
 	session_timeout_minutes: number;
+	tenancy_mode: "single" | "multi";
 }
 
 export interface ChangePasswordPayload {
