@@ -18,6 +18,14 @@ export function RequireAuth({ children }: PropsWithChildren) {
 		return <Navigate to={routes.login} state={{ from: location }} replace />;
 	}
 
+	// Enforce mandatory password change before accessing protected routes
+	if (
+		user.must_change_password &&
+		location.pathname !== routes.changePassword
+	) {
+		return <Navigate to={routes.changePassword} replace />;
+	}
+
 	return <>{children}</>;
 }
 
