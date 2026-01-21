@@ -69,6 +69,7 @@ import type { OrgSummary } from "@/entities/org/types";
 import { Label } from "@/shared/ui/label";
 import { Checkbox } from "@/shared/ui/checkbox";
 import { MfaEnrollmentPage } from "@/auth/components/MfaEnrollmentPage";
+import { OtpInput } from "@/auth/components/OtpInput";
 
 const PENDING_EMAIL_KEY = "sole.pending-login-email";
 const PENDING_ORG_SWITCH_KEY = "sole.pending-org-switch";
@@ -936,12 +937,17 @@ export function LoginPage() {
 							<FormItem>
 								<FormLabel>Authentication code</FormLabel>
 								<FormControl>
-									<Input
-										{...field}
-										autoComplete="one-time-code"
-										placeholder="123456"
+									<OtpInput
+										value={field.value ?? ""}
+										onChange={(next) =>
+											mfaForm.setValue("code", next, {
+												shouldDirty: true,
+												shouldTouch: true,
+												shouldValidate: true,
+											})
+										}
 										disabled={loginMfaMutation.isPending}
-										className="h-13"
+										autoFocus
 									/>
 								</FormControl>
 								<FormMessage />
@@ -970,26 +976,18 @@ export function LoginPage() {
 										role="button"
 										tabIndex={0}
 										onClick={() =>
-											mfaForm.setValue(
-												"remember_device",
-												!field.value,
-												{
-													shouldDirty: true,
-													shouldTouch: true,
-												}
-											)
+											mfaForm.setValue("remember_device", !field.value, {
+												shouldDirty: true,
+												shouldTouch: true,
+											})
 										}
 										onKeyDown={(event) => {
 											if (event.key === " " || event.key === "Enter") {
 												event.preventDefault();
-												mfaForm.setValue(
-													"remember_device",
-													!field.value,
-													{
-														shouldDirty: true,
-														shouldTouch: true,
-													}
-												);
+												mfaForm.setValue("remember_device", !field.value, {
+													shouldDirty: true,
+													shouldTouch: true,
+												});
 											}
 										}}
 										className="cursor-pointer text-sm font-normal"

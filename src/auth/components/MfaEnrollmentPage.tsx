@@ -11,7 +11,7 @@ import {
 	FormLabel,
 	FormMessage,
 } from "@/shared/ui/Form/form";
-import { Input } from "@/shared/ui/input";
+import { OtpInput } from "@/auth/components/OtpInput";
 import { Checkbox } from "@/shared/ui/checkbox";
 import { Label } from "@/shared/ui/label";
 import type { MfaEnrollmentPageProps } from "@/auth/types";
@@ -71,12 +71,17 @@ export function MfaEnrollmentPage({
 											<FormItem>
 												<FormLabel>Authentication code</FormLabel>
 												<FormControl>
-													<Input
-														{...field}
-														autoComplete="one-time-code"
-														placeholder="123456"
+													<OtpInput
+														value={field.value ?? ""}
+														onChange={(next) =>
+															form.setValue("code", next, {
+																shouldDirty: true,
+																shouldTouch: true,
+																shouldValidate: true,
+															})
+														}
 														disabled={isSubmitting}
-														className="h-12"
+														autoFocus
 													/>
 												</FormControl>
 												<FormMessage />
@@ -98,7 +103,7 @@ export function MfaEnrollmentPage({
 																{
 																	shouldDirty: true,
 																	shouldTouch: true,
-																}
+																},
 															)
 														}
 														onClick={(event) => event.stopPropagation()}
@@ -109,29 +114,18 @@ export function MfaEnrollmentPage({
 														role="button"
 														tabIndex={0}
 														onClick={() =>
-															form.setValue(
-																"remember_device",
-																!field.value,
-																{
-																	shouldDirty: true,
-																	shouldTouch: true,
-																}
-															)
+															form.setValue("remember_device", !field.value, {
+																shouldDirty: true,
+																shouldTouch: true,
+															})
 														}
 														onKeyDown={(event) => {
-															if (
-																event.key === " " ||
-																event.key === "Enter"
-															) {
+															if (event.key === " " || event.key === "Enter") {
 																event.preventDefault();
-																form.setValue(
-																	"remember_device",
-																	!field.value,
-																	{
-																		shouldDirty: true,
-																		shouldTouch: true,
-																	}
-																);
+																form.setValue("remember_device", !field.value, {
+																	shouldDirty: true,
+																	shouldTouch: true,
+																});
 															}
 														}}
 														className="cursor-pointer text-sm font-normal"

@@ -5,12 +5,25 @@ const repaymentMethodsSchema = z.array(
 	z.enum(["INTEREST_ONLY", "BALLOON", "PRINCIPAL_AND_INTEREST"]),
 );
 const interestTypesSchema = z.array(z.enum(["FIXED", "VARIABLE"]));
+const mfaEnforcementSchema = z.array(
+	z.enum([
+		"LOGIN",
+		"LOAN_SUBMISSION",
+		"STOCK_GRANT_ASSIGNMENT",
+		"LOAN_PAYMENT_RECORD",
+		"WORKFLOW_COMPLETE",
+		"ORG_SETTINGS_CHANGE",
+		"USER_PROFILE_EDIT",
+		"ROLE_ASSIGNMENT",
+	]),
+);
 
 export const orgSettingsSchema = z
 	.object({
 		allow_user_data_export: z.boolean(),
 		allow_profile_edit: z.boolean(),
 		require_two_factor: z.boolean(),
+		mfa_required_actions: mfaEnforcementSchema,
 		remember_device_days: z
 			.number()
 			.min(0, "Minimum 0 days")

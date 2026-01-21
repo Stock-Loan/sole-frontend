@@ -17,6 +17,8 @@ import type {
 	OrgDiscoveryPayload,
 	OrgDiscoveryResponse,
 	SelfContextResponse,
+	StepUpVerifyPayload,
+	StepUpVerifyResponse,
 	TokenPair,
 } from "@/auth/types";
 import type { OrgSummary } from "@/entities/org/types";
@@ -176,4 +178,14 @@ export async function changePasswordWithToken(
 export async function getSelfContext() {
 	const { data } = await apiClient.get<SelfContextResponse>("/self/context");
 	return unwrapApiResponse<SelfContextResponse>(data);
+}
+
+export async function verifyStepUpMfa(
+	payload: StepUpVerifyPayload,
+): Promise<StepUpVerifyResponse> {
+	const { data } = await apiClient.post<StepUpVerifyResponse>(
+		"/auth/step-up/verify",
+		payload,
+	);
+	return unwrapApiResponse<StepUpVerifyResponse>(data) as StepUpVerifyResponse;
 }

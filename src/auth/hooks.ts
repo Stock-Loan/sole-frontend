@@ -207,3 +207,7 @@ export function storeRememberDeviceToken(
 		// ignore storage errors
 	}
 }
+
+export function normalize(value: string, length: number) {
+	return value.replace(/\D/g, "").slice(0, length);
+}

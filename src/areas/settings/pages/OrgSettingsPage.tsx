@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, type FieldErrors } from "react-hook-form";
+import { useForm, useWatch, type FieldErrors } from "react-hook-form";
 import { PageContainer } from "@/shared/ui/PageContainer";
 import { PageHeader } from "@/shared/ui/PageHeader";
 import { Button } from "@/shared/ui/Button";
@@ -37,6 +37,7 @@ export function OrgSettingsPage() {
 			allow_user_data_export: true,
 			allow_profile_edit: true,
 			require_two_factor: false,
+			mfa_required_actions: [],
 			remember_device_days: 30,
 			audit_log_retention_days: 180,
 			inactive_user_retention_days: 180,
@@ -63,6 +64,9 @@ export function OrgSettingsPage() {
 				allow_user_data_export: Boolean(data.allow_user_data_export),
 				allow_profile_edit: Boolean(data.allow_profile_edit),
 				require_two_factor: Boolean(data.require_two_factor),
+				mfa_required_actions: data.require_two_factor
+					? (data.mfa_required_actions ?? [])
+					: [],
 				remember_device_days: data.remember_device_days ?? 30,
 				audit_log_retention_days: data.audit_log_retention_days ?? 180,
 				inactive_user_retention_days: data.inactive_user_retention_days ?? 180,
@@ -96,6 +100,17 @@ export function OrgSettingsPage() {
 		}
 	}, [settingsQuery.data, form]);
 
+	const requireTwoFactor = useWatch({
+		control: form.control,
+		name: "require_two_factor",
+	});
+
+	useEffect(() => {
+		if (!requireTwoFactor) {
+			form.setValue("mfa_required_actions", []);
+		}
+	}, [requireTwoFactor, form]);
+
 	const updateMutation = useUpdateOrgSettings({
 		onSuccess: (updated) => {
 			toast({ title: "Settings saved" });
@@ -123,6 +138,9 @@ export function OrgSettingsPage() {
 				allow_user_data_export: updated.allow_user_data_export,
 				allow_profile_edit: updated.allow_profile_edit,
 				require_two_factor: updated.require_two_factor,
+				mfa_required_actions: updated.require_two_factor
+					? (updated.mfa_required_actions ?? [])
+					: [],
 				remember_device_days: updated.remember_device_days ?? 30,
 				audit_log_retention_days: updated.audit_log_retention_days,
 				inactive_user_retention_days: updated.inactive_user_retention_days,
@@ -161,6 +179,9 @@ export function OrgSettingsPage() {
 		if (!canManage) return;
 		updateMutation.mutate({
 			...values,
+			mfa_required_actions: values.require_two_factor
+				? values.mfa_required_actions
+				: [],
 			min_service_duration_years: values.enforce_service_duration_rule
 				? values.min_service_duration_years
 				: null,

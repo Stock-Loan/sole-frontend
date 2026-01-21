@@ -169,3 +169,48 @@ export interface MfaEnrollmentPageProps {
 	onSubmit: (values: LoginMfaFormValues) => void;
 	onReset: () => void;
 }
+
+export interface OtpInputProps {
+	value: string;
+	onChange: (value: string) => void;
+	disabled?: boolean;
+	length?: number;
+	autoFocus?: boolean;
+	className?: string;
+	inputClassName?: string;
+}
+
+// Step-up MFA types
+export interface StepUpChallengeResponse {
+	step_up_required: boolean;
+	challenge_token: string;
+	action: string;
+}
+
+export interface StepUpVerifyPayload {
+	challenge_token: string;
+	code: string;
+}
+
+export interface StepUpVerifyResponse {
+	step_up_token: string;
+	action: string;
+	expires_in_seconds: number;
+}
+
+// Re-export shared types for convenience
+export type { PendingStepUpRequest, StepUpChallengeData } from "@/shared/api/types";
+
+export interface StepUpMfaContextValue {
+	isStepUpRequired: boolean;
+	challenge: StepUpChallengeResponse | null;
+	pendingRequest: import("@/shared/api/types").PendingStepUpRequest | null;
+	requestStepUp: (
+		challenge: import("@/shared/api/types").StepUpChallengeData,
+		request: import("@/shared/api/types").PendingStepUpRequest,
+	) => void;
+	verifyStepUp: (code: string) => Promise<void>;
+	cancelStepUp: () => void;
+	isVerifying: boolean;
+	error: string | null;
+}

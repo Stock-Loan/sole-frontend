@@ -2,6 +2,7 @@ import axios, { AxiosHeaders } from "axios";
 import { routes } from "@/shared/lib/routes";
 import { unwrapApiResponse } from "@/shared/api/response";
 import type {
+	StepUpHandler,
 	TokenResolver,
 	TokenUpdater,
 	VoidHandler,
@@ -12,6 +13,7 @@ let refreshTokenResolver: TokenResolver = () => null;
 let orgResolver: TokenResolver = () => null;
 let tokenUpdater: TokenUpdater | null = null;
 let unauthorizedHandler: VoidHandler | null = null;
+let stepUpHandler: StepUpHandler | null = null;
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
@@ -38,6 +40,10 @@ export function setOrgResolver(resolver: TokenResolver) {
 
 export function setUnauthorizedHandler(handler: VoidHandler | null) {
 	unauthorizedHandler = handler;
+}
+
+export function setStepUpHandler(handler: StepUpHandler | null) {
+	stepUpHandler = handler;
 }
 
 apiClient.interceptors.request.use((config) => {
@@ -88,13 +94,37 @@ apiClient.interceptors.response.use(
 	async (error) => {
 		const originalRequest = error.config;
 		const status = error?.response?.status;
-		const detailRaw = error?.response?.data?.detail;
+		const responseData = error?.response?.data;
+		const detailRaw = responseData?.detail;
 		const detail =
 			typeof detailRaw === "string"
 				? detailRaw
 				: Array.isArray(detailRaw) && typeof detailRaw[0]?.msg === "string"
 					? detailRaw[0].msg
 					: null;
+
+		// Check for step-up MFA required response
+		if (
+			status === 403 &&
+			responseData?.code === "step_up_mfa_required" &&
+			responseData?.details?.step_up_required === true &&
+			stepUpHandler
+		) {
+			const challenge = {
+				step_up_required: true,
+				challenge_token: responseData.details.challenge_token,
+				action: responseData.details.action,
+			};
+
+			// Return a promise that will be resolved/rejected by the step-up handler
+			return new Promise((resolve, reject) => {
+				stepUpHandler!(challenge, {
+					config: originalRequest,
+					resolve,
+					reject,
+				});
+			});
+		}
 
 		if (
 			status === 403 &&

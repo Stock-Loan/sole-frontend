@@ -1,4 +1,5 @@
 import { Archive, ShieldCheck } from "lucide-react";
+import { useWatch } from "react-hook-form";
 import {
 	FormControl,
 	FormField,
@@ -8,13 +9,72 @@ import {
 } from "@/shared/ui/Form/form";
 import { Input } from "@/shared/ui/input";
 import { Switch } from "@/shared/ui/switch";
+import { Checkbox } from "@/shared/ui/checkbox";
 import type { OrgSettingsGeneralRetentionTabProps } from "../types";
+
+const mfaEnforcementOptions = [
+	{
+		value: "LOGIN",
+		label: "During every login",
+		description:
+			"Require MFA on every sign-in, even if the device is remembered.",
+	},
+	{
+		value: "LOAN_SUBMISSION",
+		label: "During user loan submission",
+		description: "Prompt for MFA when users submit a loan application.",
+	},
+	{
+		value: "STOCK_GRANT_ASSIGNMENT",
+		label: "Assigning new stock to users",
+		description: "Require MFA before creating stock grants for users.",
+	},
+	{
+		value: "LOAN_PAYMENT_RECORD",
+		label: "Recording loan payments",
+		description: "Require MFA before recording a loan repayment.",
+	},
+	{
+		value: "WORKFLOW_COMPLETE",
+		label: "Completing workflow stages",
+		description:
+			"Prompt for MFA before marking HR, Finance, or Legal stages complete.",
+	},
+	{
+		value: "ORG_SETTINGS_CHANGE",
+		label: "Changing org settings",
+		description: "Require MFA before saving organization settings.",
+	},
+	{
+		value: "USER_PROFILE_EDIT",
+		label: "Editing a user's profile",
+		description: "Require MFA before admins update user profile fields.",
+	},
+	{
+		value: "ROLE_ASSIGNMENT",
+		label: "Assigning roles to users",
+		description: "Require MFA before assigning roles to a user.",
+	},
+] as const;
+
+function toggleValue<T extends string>(
+	values: T[],
+	value: T,
+	checked: boolean,
+) {
+	if (checked) return [...values, value];
+	return values.filter((item) => item !== value);
+}
 
 export function OrgSettingsGeneralRetentionTab({
 	form,
 	canManage,
 	isSubmitting,
 }: OrgSettingsGeneralRetentionTabProps) {
+	const requireTwoFactor = useWatch({
+		control: form.control,
+		name: "require_two_factor",
+	});
 	return (
 		<div className="grid min-h-0 flex-1 gap-6 lg:grid-cols-2">
 			<div className="flex min-h-0 flex-1 flex-col">
@@ -124,6 +184,62 @@ export function OrgSettingsGeneralRetentionTab({
 											disabled={!canManage || isSubmitting}
 										/>
 									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+						<FormField
+							control={form.control}
+							name="mfa_required_actions"
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>Require MFA for</FormLabel>
+									<div className="mb-2 text-sm text-muted-foreground">
+										Choose when MFA is compulsory for users in this
+										organization.
+									</div>
+									{!requireTwoFactor ? (
+										<p className="text-xs text-muted-foreground">
+											Enable “Require MFA” to configure these enforcement rules.
+										</p>
+									) : null}
+									<div className="mt-3 grid gap-3 md:grid-cols-2">
+										{mfaEnforcementOptions.map((option) => {
+											const checked = field.value?.includes(option.value);
+											return (
+												<label
+													key={option.value}
+													className="flex items-start gap-3 rounded-lg border border-border/70 p-4 text-sm shadow-sm"
+												>
+													<Checkbox
+														checked={checked}
+														onCheckedChange={(value) => {
+															const updated = toggleValue(
+																field.value ?? [],
+																option.value,
+																Boolean(value),
+															);
+															form.setValue("mfa_required_actions", updated, {
+																shouldDirty: true,
+																shouldValidate: true,
+															});
+														}}
+														disabled={
+															!canManage || isSubmitting || !requireTwoFactor
+														}
+													/>
+													<div>
+														<p className="font-medium text-foreground">
+															{option.label}
+														</p>
+														<p className="text-xs text-muted-foreground">
+															{option.description}
+														</p>
+													</div>
+												</label>
+											);
+										})}
+									</div>
 									<FormMessage />
 								</FormItem>
 							)}
