@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import { cn } from "@/shared/lib/utils";
 import type { OtpInputProps } from "../types";
-import { normalize } from "../hooks/hooks";
+import { normalize } from "../hooks";
 
 const DIGIT_RE = /\d/;
 
@@ -97,7 +97,7 @@ export function OtpInput({
 						const current = normalize(value ?? "", length)
 							.padEnd(length, " ")
 							.split("");
-						cleaned.split("").forEach((char, offset) => {
+						cleaned.split("").forEach((char: string, offset: number) => {
 							current[index + offset] = char;
 						});
 						onChange(current.join("").replace(/\s/g, ""));

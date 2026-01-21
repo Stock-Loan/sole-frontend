@@ -3,7 +3,7 @@ import { Navigate, useLocation } from "react-router-dom";
 import { LoadingState } from "@/shared/ui/LoadingState";
 import { useTenant } from "@/features/tenancy/hooks";
 import { routes } from "@/shared/lib/routes";
-import { useAuth, usePermissions } from "@/auth/hooks/hooks";
+import { useAuth, usePermissions } from "@/auth/hooks";
 import type { RequirePermissionProps } from "./types";
 
 export function RequireAuth({ children }: PropsWithChildren) {

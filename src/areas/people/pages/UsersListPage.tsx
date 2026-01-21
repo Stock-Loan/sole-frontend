@@ -25,7 +25,7 @@ import { useApiErrorToast } from "@/shared/api/useApiErrorToast";
 import { routes } from "@/shared/lib/routes";
 import { normalizeDisplay } from "@/shared/lib/utils";
 import { formatDate } from "@/shared/lib/format";
-import { useAuth, usePermissions } from "@/auth/hooks/hooks";
+import { useAuth, usePermissions } from "@/auth/hooks";
 import { AddUserDialog } from "@/entities/user/components/AddUserDialog";
 import {
 	useBulkDeleteOrgUsers,

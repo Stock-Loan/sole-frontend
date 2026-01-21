@@ -9,11 +9,9 @@ import type {
 	OrgUserInfoRowProps,
 	OrgUserSidePanelProps,
 } from "../types";
-import { usePermissions } from "@/auth/hooks/hooks";
+import { usePermissions, useSelfContext, useAuth } from "@/auth/hooks";
 import { normalizeDisplay } from "@/shared/lib/utils";
 import { getSelfContextRoleNames } from "../utils";
-import { useSelfContext } from "@/auth/hooks/hooks";
-import { useAuth } from "@/auth/hooks/hooks";
 import { useOrgUserDetail } from "@/entities/user/hooks";
 
 export function OrgUserSidePanel({

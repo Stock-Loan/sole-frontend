@@ -9,7 +9,7 @@ import type {
 	DataTablePreferencesConfig,
 } from "@/shared/ui/Table/types";
 import { useToast } from "@/shared/ui/use-toast";
-import { useSelfContext } from "@/auth/hooks/hooks";
+import { useSelfContext } from "@/auth/hooks";
 import { OrgCreateForm } from "@/entities/org/components/OrgCreateForm";
 import { useCreateOrg } from "@/entities/org/hooks";
 import { useApiErrorToast } from "@/shared/api/useApiErrorToast";

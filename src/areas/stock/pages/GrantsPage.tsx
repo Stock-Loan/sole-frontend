@@ -2,7 +2,7 @@ import { useRef } from "react";
 import { PageContainer } from "@/shared/ui/PageContainer";
 import { PageHeader } from "@/shared/ui/PageHeader";
 import { EmptyState } from "@/shared/ui/EmptyState";
-import { usePermissions } from "@/auth/hooks/hooks";
+import { usePermissions } from "@/auth/hooks";
 import { StockGrantsSection } from "@/entities/stock-grant/components/StockGrantsSection";
 import type { StockGrantsSectionHandle } from "@/entities/stock-grant/types";
 import { useStockSearch } from "@/entities/stock-grant/context/context";

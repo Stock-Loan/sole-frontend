@@ -6,7 +6,7 @@ import { EmptyState } from "@/shared/ui/EmptyState";
 import { LoadingState } from "@/shared/ui/LoadingState";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { TabButton } from "@/shared/ui/TabButton";
-import { usePermissions } from "@/auth/hooks/hooks";
+import { usePermissions } from "@/auth/hooks";
 import { useToast } from "@/shared/ui/use-toast";
 import { parseApiError } from "@/shared/api/errors";
 import { downloadBlob } from "@/shared/lib/download";

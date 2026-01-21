@@ -1,23 +1,36 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { PropsWithChildren } from "react";
 import {
 	setAccessTokenResolver,
 	setRefreshTokenResolver,
+	setStepUpHandler,
 	setTokenUpdater,
 	setUnauthorizedHandler,
 } from "@/shared/api/http";
-import { logout as logoutApi } from "@/auth/api";
+import {
+	logout as logoutApi,
+	retryRequestWithStepUpToken,
+	verifyStepUpMfa,
+} from "@/auth/api";
+import { STORAGE_KEY } from "@/auth/constants";
+import { AuthContext, StepUpMfaContext } from "@/auth/context";
 import type {
+	AuthContextValue,
 	AuthUser,
 	PersistedSession,
 	RoleCode,
+	StepUpChallengeResponse,
+	StepUpMfaContextValue,
+	StepUpMfaProviderProps,
 	TokenPair,
 } from "@/auth/types";
+import type {
+	PendingStepUpRequest,
+	StepUpChallengeData,
+} from "@/shared/api/types";
 import { routes } from "@/shared/lib/routes";
-import { AuthContext } from "./context";
-import type { AuthContextValue } from "./types";
 
-const STORAGE_KEY = "sole.auth.session";
+// ─── Auth Provider ───────────────────────────────────────────────────────────
 
 function loadPersistedSession(): PersistedSession {
 	if (typeof localStorage === "undefined") {
@@ -117,7 +130,6 @@ export function AuthProvider({ children }: PropsWithChildren) {
 		try {
 			await logoutApi();
 		} catch (error) {
-			// ignore logout errors
 			console.warn("Logout failed", error);
 		} finally {
 			clearSession();
@@ -169,7 +181,6 @@ export function AuthProvider({ children }: PropsWithChildren) {
 			if (!roles || roles.length === 0) {
 				return true;
 			}
-
 			return roles.some((role) => user?.roles?.includes(role));
 		},
 		[user?.roles],
@@ -204,4 +215,110 @@ export function AuthProvider({ children }: PropsWithChildren) {
 	);
 
 	return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+// ─── Step-Up MFA Provider ────────────────────────────────────────────────────
+
+export function StepUpMfaProvider({ children }: StepUpMfaProviderProps) {
+	const [challenge, setChallenge] = useState<StepUpChallengeResponse | null>(
+		null,
+	);
+	const [pendingRequest, setPendingRequest] =
+		useState<PendingStepUpRequest | null>(null);
+	const [isVerifying, setIsVerifying] = useState(false);
+	const [error, setError] = useState<string | null>(null);
+
+	const requestStepUpRef = useRef<
+		| ((challenge: StepUpChallengeData, request: PendingStepUpRequest) => void)
+		| null
+	>(null);
+
+	const requestStepUp = useCallback(
+		(challengeData: StepUpChallengeData, request: PendingStepUpRequest) => {
+			setChallenge(challengeData);
+			setPendingRequest(request);
+			setError(null);
+		},
+		[],
+	);
+
+	requestStepUpRef.current = requestStepUp;
+
+	useEffect(() => {
+		setStepUpHandler((challenge, request) => {
+			requestStepUpRef.current?.(challenge, request);
+		});
+		return () => {
+			setStepUpHandler(null);
+		};
+	}, []);
+
+	const verifyStepUp = useCallback(
+		async (code: string, codeType: "totp" | "recovery" = "totp") => {
+			if (!challenge || !pendingRequest) {
+				throw new Error("No pending step-up challenge");
+			}
+			setIsVerifying(true);
+			setError(null);
+			try {
+				const result = await verifyStepUpMfa({
+					challenge_token: challenge.challenge_token,
+					code,
+					code_type: codeType,
+				});
+				const response = await retryRequestWithStepUpToken(
+					pendingRequest.config as Record<string, unknown>,
+					result.step_up_token,
+				);
+				pendingRequest.resolve({ data: response });
+				setChallenge(null);
+				setPendingRequest(null);
+			} catch (err) {
+				const message =
+					err instanceof Error ? err.message : "Verification failed";
+				setError(message);
+				throw err;
+			} finally {
+				setIsVerifying(false);
+			}
+		},
+		[challenge, pendingRequest],
+	);
+
+	const cancelStepUp = useCallback(() => {
+		if (pendingRequest) {
+			pendingRequest.reject(new Error("Step-up MFA cancelled by user"));
+		}
+		setChallenge(null);
+		setPendingRequest(null);
+		setError(null);
+	}, [pendingRequest]);
+
+	const value = useMemo<StepUpMfaContextValue>(
+		() => ({
+			isStepUpRequired: challenge !== null,
+			challenge,
+			pendingRequest,
+			requestStepUp,
+			verifyStepUp,
+			cancelStepUp,
+			isVerifying,
+			error,
+		}),
+		[
+			challenge,
+			pendingRequest,
+			requestStepUp,
+			verifyStepUp,
+			cancelStepUp,
+			isVerifying,
+			error,
+		],
+	);
+
+	return (
+		<StepUpMfaContext.Provider value={value}>
+			{children}
+		</StepUpMfaContext.Provider>
+	);
 }

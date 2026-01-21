@@ -8,7 +8,7 @@ import { Button } from "@/shared/ui/Button";
 import { Badge } from "@/shared/ui/badge";
 import { Skeleton } from "@/shared/ui/Skeleton";
 import { getOrgUserDisplayName } from "@/entities/user/constants";
-import { usePermissions } from "@/auth/hooks/hooks";
+import { usePermissions } from "@/auth/hooks";
 import { formatCurrency, formatDate } from "@/shared/lib/format";
 import { cn } from "@/shared/lib/utils";
 import { routes } from "@/shared/lib/routes";

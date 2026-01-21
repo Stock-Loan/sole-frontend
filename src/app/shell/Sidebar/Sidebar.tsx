@@ -3,7 +3,7 @@ import { useLocation } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import { Logo } from "@/shared/ui/Logo";
 import { Button } from "@/shared/ui/Button";
-import { usePermissions } from "@/auth/hooks/hooks";
+import { usePermissions } from "@/auth/hooks";
 import { useLocalStorage } from "@/shared/hooks/useLocalStorage";
 import { cn } from "@/shared/lib/utils";
 import { routes } from "@/shared/lib/routes";

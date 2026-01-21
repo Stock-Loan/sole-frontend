@@ -14,11 +14,9 @@ import { formatDate } from "@/shared/lib/format";
 import type { OrgUserInfoRowProps } from "@/entities/user/types";
 import { Badge } from "@/shared/ui/badge";
 import { normalizeDisplay } from "@/shared/lib/utils";
-import { useSelfContext } from "@/auth/hooks/hooks";
-import { useAuth } from "@/auth/hooks/hooks";
+import { useSelfContext, useAuth, usePermissions } from "@/auth/hooks";
 import { useToast } from "@/shared/ui/use-toast";
 import { useApiErrorToast } from "@/shared/api/useApiErrorToast";
-import { usePermissions } from "@/auth/hooks/hooks";
 import { useOrgUserDetail } from "@/entities/user/hooks";
 import { ShieldCheck, ShieldOff } from "lucide-react";
 import {

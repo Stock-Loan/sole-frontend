@@ -13,7 +13,7 @@ import type { PropsWithChildren } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { setOrgResolver } from "@/shared/api/http";
 import { queryClient } from "@/shared/api/queryClient";
-import { useAuth } from "@/auth/hooks/hooks";
+import { useAuth } from "@/auth/hooks";
 import { tenancyKeys } from "@/features/tenancy/keys";
 import type { OrgSummary, PersistedTenancy, TenantContextValue } from "./types";
 import { discoverTenants, listTenants } from "./tenantApi";

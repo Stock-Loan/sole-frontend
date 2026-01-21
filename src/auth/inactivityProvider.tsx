@@ -1,25 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { InactivityContext } from "./inactivityContextDef";
+import {
+	ACTIVITY_EVENTS,
+	ACTIVITY_THROTTLE_MS,
+	WARNING_SECONDS,
+} from "./constants";
+import { InactivityContext } from "./context";
 import type { InactivityContextValue, InactivityProviderProps } from "./types";
 import { refreshSession } from "./api";
-import { useSelfContext, useAuth } from "./hooks/hooks";
+import { useSelfContext, useAuth } from "./hooks";
 import { useTenant } from "@/features/tenancy/hooks";
-
-/** Warning starts 60 seconds before timeout */
-const WARNING_SECONDS = 60;
-
-/** Activity events to track */
-const ACTIVITY_EVENTS = [
-	"mousedown",
-	"mousemove",
-	"keydown",
-	"scroll",
-	"touchstart",
-	"click",
-] as const;
-
-/** Throttle activity updates to avoid excessive state changes */
-const ACTIVITY_THROTTLE_MS = 1000;
 
 export function InactivityProvider({ children }: InactivityProviderProps) {
 	const { tokens, setSession, user, clearSession } = useAuth();

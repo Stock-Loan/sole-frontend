@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/shared/ui/Button";
 import { PageContainer } from "@/shared/ui/PageContainer";
 import { routes } from "@/shared/lib/routes";
-import { useAuth } from "@/auth/hooks/hooks";
+import { useAuth } from "@/auth/hooks";
 
 export function NotAuthorizedPage() {
 	const { logout } = useAuth();

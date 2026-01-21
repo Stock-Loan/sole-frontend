@@ -11,7 +11,7 @@ import {
 } from "@/auth/api";
 import { RecoveryCodesDisplay } from "@/auth/components/RecoveryCodesDisplay";
 import { useApiErrorToast } from "@/shared/api/useApiErrorToast";
-import { useAuth } from "@/auth/hooks/hooks";
+import { useAuth } from "@/auth/hooks";
 
 export function RecoveryCodesManager() {
 	const { toast } = useToast();

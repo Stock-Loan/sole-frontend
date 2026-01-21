@@ -10,7 +10,7 @@ import {
 } from "@/shared/ui/dropdown-menu";
 import { areas } from "@/app/navigation/areas";
 import { navConfig } from "@/app/navigation/nav-config";
-import { usePermissions } from "@/auth/hooks/hooks";
+import { usePermissions } from "@/auth/hooks";
 import { useActiveArea } from "@/app/navigation/useActiveArea";
 import { cn } from "@/shared/lib/utils";
 

@@ -11,34 +11,13 @@ import {
 import { Button } from "@/shared/ui/Button";
 import { Input } from "@/shared/ui/input";
 import { OtpInput } from "./OtpInput";
-import { useStepUpMfaOptional } from "../hooks/useStepUpMfa";
+import { ACTION_LABELS, RECOVERY_CODE_ALLOWED_ACTIONS } from "@/auth/constants";
+import { useStepUpMfaOptional } from "@/auth/hooks";
 import { Loader2, ShieldCheck } from "lucide-react";
-
-const ACTION_LABELS: Record<string, string> = {
-	STOCK_GRANT_ASSIGNMENT: "Stock Grant Assignment",
-	LOAN_SUBMISSION: "Loan Submission",
-	LOAN_PAYMENT_RECORD: "Loan Payment Recording",
-	WORKFLOW_COMPLETE: "Workflow Completion",
-	ORG_SETTINGS_CHANGE: "Organization Settings Change",
-	USER_PROFILE_EDIT: "User Profile Edit",
-	ROLE_ASSIGNMENT: "Role Assignment",
-	LOGIN: "Login",
-	RECOVERY_CODES_REGENERATE: "Recovery Codes Regeneration",
-	USER_MFA_RESET: "User MFA Reset",
-	SELF_MFA_RESET: "MFA Deactivation",
-};
 
 function getActionLabel(action: string): string {
 	return ACTION_LABELS[action] ?? action.replace(/_/g, " ").toLowerCase();
 }
-
-// Actions that allow recovery code as an alternative
-const RECOVERY_CODE_ALLOWED_ACTIONS = new Set([
-	"LOGIN",
-	"SELF_MFA_RESET",
-	"USER_MFA_RESET",
-	"RECOVERY_CODES_REGENERATE",
-]);
 
 export function StepUpMfaModal() {
 	const ctx = useStepUpMfaOptional();

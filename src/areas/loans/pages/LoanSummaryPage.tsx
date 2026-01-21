@@ -4,7 +4,7 @@ import { PageHeader } from "@/shared/ui/PageHeader";
 import { EmptyState } from "@/shared/ui/EmptyState";
 import { Card, CardContent, CardHeader } from "@/shared/ui/card";
 import { Skeleton } from "@/shared/ui/Skeleton";
-import { usePermissions } from "@/auth/hooks/hooks";
+import { usePermissions } from "@/auth/hooks";
 import { formatDate } from "@/shared/lib/format";
 import { useLoanDashboardSummary } from "@/entities/loan/hooks";
 import {

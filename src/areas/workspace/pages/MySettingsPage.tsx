@@ -9,7 +9,7 @@ import { Skeleton } from "@/shared/ui/Skeleton";
 import { routes } from "@/shared/lib/routes";
 import { formatDate } from "@/shared/lib/format";
 import { TabButton } from "@/shared/ui/TabButton";
-import { useAuth } from "@/auth/hooks/hooks";
+import { useAuth } from "@/auth/hooks";
 import { useUserSettings } from "@/features/user-settings/hooks";
 import { RecoveryCodesManager } from "@/auth/components/RecoveryCodesManager";
 import type {

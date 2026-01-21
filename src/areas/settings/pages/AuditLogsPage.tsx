@@ -9,8 +9,7 @@ import type {
 	DataTablePreferencesConfig,
 } from "@/shared/ui/Table/types";
 import { loadDataTablePreferences } from "@/shared/ui/Table/constants";
-import { usePermissions } from "@/auth/hooks/hooks";
-import { useAuth } from "@/auth/hooks/hooks";
+import { usePermissions, useAuth } from "@/auth/hooks";
 import { useOrgAuditLogs } from "@/entities/audit/hooks";
 import type { AuditLog } from "@/entities/audit/types";
 import { formatAuditValue, stringifyAuditValue } from "@/entities/audit/utils";

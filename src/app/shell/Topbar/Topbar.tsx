@@ -4,7 +4,7 @@ import { TenantSwitcher } from "@/features/tenancy/TenantSwitcher";
 import { NotificationBell } from "@/features/notifications/components/NotificationBell";
 import { UserMenu } from "./UserMenu";
 import { useMemo } from "react";
-import { usePermissions } from "@/auth/hooks/hooks";
+import { usePermissions } from "@/auth/hooks";
 import { getSearchItems } from "./search-items";
 
 export function Topbar() {

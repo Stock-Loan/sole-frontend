@@ -8,7 +8,7 @@ import { Button } from "@/shared/ui/Button";
 import { Skeleton } from "@/shared/ui/Skeleton";
 import { routes } from "@/shared/lib/routes";
 import { formatCurrency, formatDate, formatPercent } from "@/shared/lib/format";
-import { usePermissions } from "@/auth/hooks/hooks";
+import { usePermissions } from "@/auth/hooks";
 import { useMeDashboardSummary } from "@/entities/dashboard/hooks";
 import {
 	formatShares,

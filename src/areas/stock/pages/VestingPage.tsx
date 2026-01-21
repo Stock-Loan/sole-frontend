@@ -5,7 +5,7 @@ import { EmptyState } from "@/shared/ui/EmptyState";
 import { Button } from "@/shared/ui/Button";
 import { DataTable } from "@/shared/ui/Table/DataTable";
 import type { ColumnDefinition } from "@/shared/ui/Table/types";
-import { usePermissions } from "@/auth/hooks/hooks";
+import { usePermissions } from "@/auth/hooks";
 import { useAllStockGrants } from "@/entities/stock-grant/hooks";
 import { formatShares } from "@/entities/stock-grant/constants";
 import { formatDate } from "@/shared/lib/format";

@@ -13,9 +13,8 @@ import type { ColumnDefinition } from "@/shared/ui/Table/types";
 import { useToast } from "@/shared/ui/use-toast";
 import { useApiErrorToast } from "@/shared/api/useApiErrorToast";
 import { formatCurrency, formatDate } from "@/shared/lib/format";
-import { usePermissions } from "@/auth/hooks/hooks";
+import { usePermissions, useAuth } from "@/auth/hooks";
 import { formatShares } from "@/entities/stock-grant/constants";
-import { useAuth } from "@/auth/hooks/hooks";
 import {
 	useCreateStockGrant,
 	useStockGrantsList,

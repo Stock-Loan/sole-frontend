@@ -49,9 +49,10 @@ import {
 	useLoginMfaSetupVerify,
 	useOrgDiscovery,
 	useStartLogin,
-} from "@/auth/hooks/hooks";
+} from "@/auth/hooks";
 import { getMeWithToken } from "@/auth/api";
 import { emailSchema, mfaCodeSchema, passwordSchema } from "@/auth/schemas";
+import { PENDING_EMAIL_KEY, PENDING_ORG_SWITCH_KEY } from "@/auth/constants";
 import type {
 	AuthUser,
 	LoginEmailFormValues,
@@ -72,10 +73,6 @@ import { Checkbox } from "@/shared/ui/checkbox";
 import { MfaEnrollmentPage } from "@/auth/components/MfaEnrollmentPage";
 import { OtpInput } from "@/auth/components/OtpInput";
 import { RecoveryCodesDisplay } from "@/auth/components/RecoveryCodesDisplay";
-
-const PENDING_EMAIL_KEY = "sole.pending-login-email";
-const PENDING_ORG_SWITCH_KEY = "sole.pending-org-switch";
-export const REMEMBER_DEVICE_KEY = "sole.mfa.remember-device";
 
 export function LoginPage() {
 	const navigate = useNavigate();

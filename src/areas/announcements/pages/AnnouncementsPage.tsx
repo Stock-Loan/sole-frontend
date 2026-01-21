@@ -17,8 +17,7 @@ import {
 	DialogTitle,
 } from "@/shared/ui/Dialog/dialog";
 import { useToast } from "@/shared/ui/use-toast";
-import { usePermissions } from "@/auth/hooks/hooks";
-import { useAuth } from "@/auth/hooks/hooks";
+import { usePermissions, useAuth } from "@/auth/hooks";
 import { useApiErrorToast } from "@/shared/api/useApiErrorToast";
 import { formatDate } from "@/shared/lib/format";
 import { loadDataTablePreferences } from "@/shared/ui/Table/constants";

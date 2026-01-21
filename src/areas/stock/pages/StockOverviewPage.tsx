@@ -7,7 +7,7 @@ import { Button } from "@/shared/ui/Button";
 import { EmptyState } from "@/shared/ui/EmptyState";
 import { Skeleton } from "@/shared/ui/Skeleton";
 import { routes } from "@/shared/lib/routes";
-import { usePermissions } from "@/auth/hooks/hooks";
+import { usePermissions } from "@/auth/hooks";
 import { useOrgStockDashboardSummary } from "@/entities/stock-grant/hooks";
 import { StockSummaryMetricGrid } from "@/entities/stock-grant/components/StockSummaryMetricGrid";
 import { StockSummaryStackedBarCard } from "@/entities/stock-grant/components/StockSummaryStackedBarCard";

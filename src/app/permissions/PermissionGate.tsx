@@ -1,5 +1,5 @@
 import { Navigate } from "react-router-dom";
-import { usePermissions } from "@/auth/hooks/hooks";
+import { usePermissions } from "@/auth/hooks";
 import { routes } from "@/shared/lib/routes";
 import type { PermissionGateProps } from "./types";
 

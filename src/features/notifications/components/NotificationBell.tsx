@@ -20,7 +20,7 @@ import {
 	useUnreadNotifications,
 } from "../hooks";
 import { notificationToasts } from "../toasts";
-import { useAuth } from "@/auth/hooks/hooks";
+import { useAuth } from "@/auth/hooks";
 
 export function NotificationBell() {
 	const { user } = useAuth();

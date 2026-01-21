@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { Button } from "@/shared/ui/Button";
 import { routes } from "@/shared/lib/routes";
 import { formatDate } from "@/shared/lib/format";
-import { usePermissions } from "@/auth/hooks/hooks";
+import { usePermissions } from "@/auth/hooks";
 import { useMyLoanApplications } from "@/entities/loan/hooks";
 import { LoanStatusBadge } from "@/entities/loan/components/loan-pages/LoanStatusBadge";
 

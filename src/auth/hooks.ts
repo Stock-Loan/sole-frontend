@@ -1,10 +1,11 @@
+import { useContext } from "react";
 import {
 	useMutation,
 	useQuery,
 	type UseQueryOptions,
 } from "@tanstack/react-query";
 import { canPermissions } from "@/app/permissions/can";
-import { authKeys } from "@/auth/keys";
+import { authKeys, REMEMBER_DEVICE_KEY } from "@/auth/constants";
 import { useTenant } from "@/features/tenancy/hooks";
 import {
 	changePassword,
@@ -21,7 +22,11 @@ import {
 	mfaSetupVerify,
 	startLogin,
 } from "@/auth/api";
-import { useAuthContext } from "@/auth/context";
+import {
+	AuthContext,
+	InactivityContext,
+	StepUpMfaContext,
+} from "@/auth/context";
 import type {
 	AuthUser,
 	ChangePasswordPayload,
@@ -37,13 +42,44 @@ import type {
 	MfaSetupStartResponse,
 	MfaSetupVerifyPayload,
 	OrgDiscoveryPayload,
+	RememberDeviceMap,
 } from "@/auth/types";
 import type { OrgSummary } from "@/entities/org/types";
-import { REMEMBER_DEVICE_KEY } from "../pages/LoginPage";
-import type { RememberDeviceMap } from "../types";
+
+export function useAuthContext() {
+	const ctx = useContext(AuthContext);
+	if (!ctx) {
+		throw new Error("useAuthContext must be used within an AuthProvider");
+	}
+	return ctx;
+}
 
 export function useAuth() {
 	return useAuthContext();
+}
+
+export function useInactivity() {
+	const ctx = useContext(InactivityContext);
+	if (!ctx) {
+		throw new Error("useInactivity must be used within an InactivityProvider");
+	}
+	return ctx;
+}
+
+export function useInactivityOptional() {
+	return useContext(InactivityContext);
+}
+
+export function useStepUpMfa() {
+	const ctx = useContext(StepUpMfaContext);
+	if (!ctx) {
+		throw new Error("useStepUpMfa must be used within a StepUpMfaProvider");
+	}
+	return ctx;
+}
+
+export function useStepUpMfaOptional() {
+	return useContext(StepUpMfaContext);
 }
 
 export function useSelfContext() {
@@ -190,6 +226,7 @@ export function usePermissions() {
 			Boolean(isSuperuser) || canPermissions(permissions, needed),
 	};
 }
+
 export function loadRememberDeviceToken(orgId?: string | null) {
 	if (!orgId || typeof localStorage === "undefined") return null;
 	try {
@@ -201,6 +238,7 @@ export function loadRememberDeviceToken(orgId?: string | null) {
 		return null;
 	}
 }
+
 export function storeRememberDeviceToken(
 	orgId: string,
 	token: string | null | undefined,

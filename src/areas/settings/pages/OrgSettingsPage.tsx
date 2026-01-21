@@ -6,7 +6,7 @@ import { PageHeader } from "@/shared/ui/PageHeader";
 import { Button } from "@/shared/ui/Button";
 import { Form } from "@/shared/ui/Form/form";
 import { TabButton } from "@/shared/ui/TabButton";
-import { usePermissions } from "@/auth/hooks/hooks";
+import { usePermissions } from "@/auth/hooks";
 import { useApiErrorToast } from "@/shared/api/useApiErrorToast";
 import { useToast } from "@/shared/ui/use-toast";
 import { EmptyState } from "@/shared/ui/EmptyState";

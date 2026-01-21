@@ -6,7 +6,7 @@ import { Button } from "@/shared/ui/Button";
 import { useToast } from "@/shared/ui/use-toast";
 import { useApiErrorToast } from "@/shared/api/useApiErrorToast";
 import { downloadBlob } from "@/shared/lib/download";
-import { usePermissions } from "@/auth/hooks/hooks";
+import { usePermissions } from "@/auth/hooks";
 import { AppDialog } from "@/shared/ui/Dialog/dialog";
 import {
 	useCreateOrgDocumentFolder,

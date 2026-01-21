@@ -1,12 +1,20 @@
-import { createContext, useContext } from "react";
-import type { AuthContextValue } from "./types";
+import { createContext } from "react";
+import type {
+	AuthContextValue,
+	InactivityContextValue,
+	StepUpMfaContextValue,
+} from "@/auth/types";
 
-export const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+// ─── Context Definitions ─────────────────────────────────────────────────────
 
-export function useAuthContext() {
-	const ctx = useContext(AuthContext);
-	if (!ctx) {
-		throw new Error("useAuthContext must be used within an AuthProvider");
-	}
-	return ctx;
-}
+export const AuthContext = createContext<AuthContextValue | undefined>(
+	undefined,
+);
+
+export const InactivityContext = createContext<
+	InactivityContextValue | undefined
+>(undefined);
+
+export const StepUpMfaContext = createContext<
+	StepUpMfaContextValue | undefined
+>(undefined);

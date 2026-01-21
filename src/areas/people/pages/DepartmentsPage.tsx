@@ -9,7 +9,7 @@ import type { ColumnDefinition } from "@/shared/ui/Table/types";
 import { Button } from "@/shared/ui/Button";
 import { useToast } from "@/shared/ui/use-toast";
 import { ToolbarButton } from "@/shared/ui/toolbar";
-import { useAuth } from "@/auth/hooks/hooks";
+import { useAuth } from "@/auth/hooks";
 import {
 	Dialog,
 	DialogBody,
@@ -18,7 +18,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/shared/ui/Dialog/dialog";
-import { usePermissions } from "@/auth/hooks/hooks";
+import { usePermissions } from "@/auth/hooks";
 import { useApiErrorToast } from "@/shared/api/useApiErrorToast";
 import { formatDate } from "@/shared/lib/format";
 import { loadDataTablePreferences } from "@/shared/ui/Table/constants";

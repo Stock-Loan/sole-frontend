@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { useInactivityOptional } from "../hooks/useInactivity";
+import { useInactivityOptional } from "@/auth/hooks";
 import { Button } from "@/shared/ui/Button";
 import { AlertTriangle, Loader2 } from "lucide-react";
 

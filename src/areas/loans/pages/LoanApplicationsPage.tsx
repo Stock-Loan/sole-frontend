@@ -27,7 +27,7 @@ import { routes } from "@/shared/lib/routes";
 import { formatCurrency, formatDate } from "@/shared/lib/format";
 import { formatShares } from "@/entities/stock-grant/constants";
 import { normalizeDisplay } from "@/shared/lib/utils";
-import { useAuth, usePermissions } from "@/auth/hooks/hooks";
+import { useAuth, usePermissions } from "@/auth/hooks";
 import {
 	useActivateLoanBacklog,
 	useOrgLoanApplications,

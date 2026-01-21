@@ -4,7 +4,7 @@ import { Button } from "@/shared/ui/Button";
 import { PageContainer } from "@/shared/ui/PageContainer";
 import { PublicHeader } from "@/shared/ui/PublicHeader";
 import { routes } from "@/shared/lib/routes";
-import { useAuth } from "@/auth/hooks/hooks";
+import { useAuth } from "@/auth/hooks";
 
 export function WelcomePage() {
 	const { user, logout } = useAuth();
