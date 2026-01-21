@@ -44,6 +44,7 @@ import {
 	useAuth,
 	useCompleteLogin,
 	useLoginMfa,
+	useLoginMfaRecovery,
 	useLoginMfaSetupStart,
 	useLoginMfaSetupVerify,
 	useOrgDiscovery,
@@ -70,6 +71,7 @@ import { Label } from "@/shared/ui/label";
 import { Checkbox } from "@/shared/ui/checkbox";
 import { MfaEnrollmentPage } from "@/auth/components/MfaEnrollmentPage";
 import { OtpInput } from "@/auth/components/OtpInput";
+import { RecoveryCodesDisplay } from "@/auth/components/RecoveryCodesDisplay";
 
 const PENDING_EMAIL_KEY = "sole.pending-login-email";
 const PENDING_ORG_SWITCH_KEY = "sole.pending-org-switch";
@@ -90,7 +92,13 @@ export function LoginPage() {
 	const pendingOrgToastShownRef = useRef(false);
 
 	const [step, setStep] = useState<
-		"email" | "org" | "password" | "mfa" | "mfa-setup"
+		| "email"
+		| "org"
+		| "password"
+		| "mfa"
+		| "mfa-setup"
+		| "mfa-recovery"
+		| "recovery-codes"
 	>("email");
 	const [challengeToken, setChallengeToken] = useState<string | null>(null);
 	const [email, setEmail] = useState<string>("");
@@ -105,6 +113,15 @@ export function LoginPage() {
 	const [rememberDeviceDays, setRememberDeviceDays] = useState<number | null>(
 		null,
 	);
+	const [recoveryCodes, setRecoveryCodes] = useState<string[]>([]);
+	const [pendingLoginData, setPendingLoginData] = useState<{
+		tokens: {
+			access_token: string;
+			refresh_token: string;
+			token_type: "bearer";
+		};
+		user: AuthUser;
+	} | null>(null);
 
 	const emailForm = useForm<LoginEmailFormValues>({
 		resolver: zodResolver(emailSchema),
@@ -121,9 +138,12 @@ export function LoginPage() {
 		defaultValues: { code: "", remember_device: false },
 	});
 
+	const [recoveryCodeInput, setRecoveryCodeInput] = useState("");
+
 	const startLoginMutation = useStartLogin();
 	const completeLoginMutation = useCompleteLogin();
 	const loginMfaMutation = useLoginMfa();
+	const loginMfaRecoveryMutation = useLoginMfaRecovery();
 	const loginMfaSetupStartMutation = useLoginMfaSetupStart();
 	const loginMfaSetupVerifyMutation = useLoginMfaSetupVerify();
 	const orgDiscoveryMutation = useOrgDiscovery();
@@ -588,6 +608,67 @@ export function LoginPage() {
 		);
 	};
 
+	const handleRecoveryCodeSubmit = (e: React.FormEvent) => {
+		e.preventDefault();
+		if (!currentOrgId || !mfaToken || !recoveryCodeInput.trim()) {
+			toast({
+				variant: "destructive",
+				title: "Recovery code required",
+				description: "Please enter your recovery code.",
+			});
+			return;
+		}
+		loginMfaRecoveryMutation.mutate(
+			{
+				payload: {
+					mfa_token: mfaToken,
+					recovery_code: recoveryCodeInput.trim().toUpperCase(),
+				},
+				orgId: currentOrgId,
+			},
+			{
+				onSuccess: async (response) => {
+					const tokens = {
+						access_token: response.access_token,
+						refresh_token: response.refresh_token,
+						token_type: "bearer" as const,
+					};
+					const user = await getMeWithToken(tokens.access_token, currentOrgId);
+					if (user.must_change_password) {
+						setSessionForOrg(currentOrgId, tokens, user);
+						if (typeof localStorage !== "undefined") {
+							localStorage.removeItem(PENDING_EMAIL_KEY);
+							localStorage.removeItem(PENDING_ORG_SWITCH_KEY);
+						}
+						toast({
+							title: "Password change required",
+							description: "Please update your password to finish signing in.",
+						});
+						navigate(routes.changePassword, { replace: true });
+						return;
+					}
+					setSessionForOrg(currentOrgId, tokens, user);
+					if (typeof localStorage !== "undefined") {
+						localStorage.removeItem(PENDING_EMAIL_KEY);
+						localStorage.removeItem(PENDING_ORG_SWITCH_KEY);
+					}
+					toast({
+						title: "Welcome back",
+						description:
+							"Signed in with recovery code. Consider regenerating your recovery codes.",
+					});
+					const from = (location.state as { from?: Location })?.from;
+					const destination = from?.pathname
+						? `${from.pathname}${from.search ?? ""}${from.hash ?? ""}`
+						: routes.workspace;
+					navigate(destination, { replace: true });
+				},
+				onError: (error) => {
+					apiErrorToast(error, "Invalid recovery code. Please try again.");
+				},
+			},
+		);
+	};
 	const handleMfaSetupSubmit = (values: LoginMfaFormValues) => {
 		if (!currentOrgId || !setupToken) {
 			toast({
@@ -626,6 +707,16 @@ export function LoginPage() {
 							tokens.access_token,
 							currentOrgId,
 						);
+
+						// Store recovery codes and pending login data, then show recovery codes step
+						if (response.recovery_codes && response.recovery_codes.length > 0) {
+							setRecoveryCodes(response.recovery_codes);
+							setPendingLoginData({ tokens, user });
+							setStep("recovery-codes");
+							return;
+						}
+
+						// Fallback for case where no recovery codes (shouldn't happen)
 						if (user.must_change_password) {
 							setSessionForOrg(currentOrgId, tokens, user);
 							if (typeof localStorage !== "undefined") {
@@ -706,6 +797,9 @@ export function LoginPage() {
 		setMfaAccount(null);
 		setMfaOtpAuthUrl(null);
 		setRememberDeviceDays(null);
+		setRecoveryCodes([]);
+		setPendingLoginData(null);
+		setRecoveryCodeInput("");
 		setAvailableOrgs([]);
 		setOrgs([]);
 		setCurrentOrgId(null);
@@ -717,6 +811,43 @@ export function LoginPage() {
 		mfaForm.reset({ code: "", remember_device: false });
 	};
 
+	const handleRecoveryCodesContinue = () => {
+		if (!pendingLoginData || !currentOrgId) {
+			resetFlow();
+			return;
+		}
+		const { tokens, user } = pendingLoginData;
+
+		if (user.must_change_password) {
+			setSessionForOrg(currentOrgId, tokens, user);
+			if (typeof localStorage !== "undefined") {
+				localStorage.removeItem(PENDING_EMAIL_KEY);
+				localStorage.removeItem(PENDING_ORG_SWITCH_KEY);
+			}
+			toast({
+				title: "Password change required",
+				description: "Please update your password to finish signing in.",
+			});
+			navigate(routes.changePassword, { replace: true });
+			return;
+		}
+
+		setSessionForOrg(currentOrgId, tokens, user);
+		if (typeof localStorage !== "undefined") {
+			localStorage.removeItem(PENDING_EMAIL_KEY);
+			localStorage.removeItem(PENDING_ORG_SWITCH_KEY);
+		}
+		toast({
+			title: "MFA enabled",
+			description: "You are now signed in.",
+		});
+		const from = (location.state as { from?: Location })?.from;
+		const destination = from?.pathname
+			? `${from.pathname}${from.search ?? ""}${from.hash ?? ""}`
+			: routes.workspace;
+		navigate(destination, { replace: true });
+	};
+
 	const rememberDeviceAllowed = (rememberDeviceDays ?? 1) > 0;
 
 	const statusMessage = useMemo(() => {
@@ -724,11 +855,14 @@ export function LoginPage() {
 		if (startLoginMutation.isPending) return "Verifying email...";
 		if (completeLoginMutation.isPending) return "Signing you in...";
 		if (loginMfaMutation.isPending) return "Verifying MFA code...";
+		if (loginMfaRecoveryMutation.isPending) return "Verifying recovery code...";
 		if (loginMfaSetupStartMutation.isPending) return "Preparing MFA setup...";
 		if (loginMfaSetupVerifyMutation.isPending) return "Confirming MFA setup...";
 		if (step === "org") return "Select your organization to continue.";
 		if (step === "password")
 			return "Email verified. Enter your password to continue.";
+		if (step === "mfa-recovery")
+			return "Enter one of your backup recovery codes.";
 		if (step === "mfa")
 			return "Multi-factor authentication is required for this account.";
 		if (step === "mfa-setup")
@@ -740,6 +874,7 @@ export function LoginPage() {
 		startLoginMutation.isPending,
 		completeLoginMutation.isPending,
 		loginMfaMutation.isPending,
+		loginMfaRecoveryMutation.isPending,
 		loginMfaSetupStartMutation.isPending,
 		loginMfaSetupVerifyMutation.isPending,
 	]);
@@ -748,7 +883,8 @@ export function LoginPage() {
 		if (step === "email") return "Step 1 of 4";
 		if (step === "org") return "Step 2 of 4";
 		if (step === "password") return "Step 3 of 4";
-		if (step === "mfa" || step === "mfa-setup") return "Step 4 of 4";
+		if (step === "mfa" || step === "mfa-setup" || step === "mfa-recovery")
+			return "Step 4 of 4";
 		return "";
 	}, [step]);
 
@@ -1022,6 +1158,74 @@ export function LoginPage() {
 							"Verify"
 						)}
 					</Button>
+					<div className="flex flex-col items-center gap-2">
+						<button
+							type="button"
+							onClick={() => setStep("mfa-recovery")}
+							className="text-xs font-medium text-muted-foreground hover:text-primary hover:underline"
+						>
+							Use a recovery code instead
+						</button>
+						<button
+							type="button"
+							onClick={resetFlow}
+							className="inline-flex items-center justify-center gap-1 text-xs font-semibold text-primary hover:underline"
+						>
+							<ArrowLeft className="h-3 w-3" />
+							Use a different email
+						</button>
+					</div>
+				</form>
+			</Form>
+		);
+	}
+
+	if (step === "mfa-recovery") {
+		stepContent = (
+			<form className="space-y-4" onSubmit={handleRecoveryCodeSubmit}>
+				<div className="space-y-2">
+					<Label htmlFor="recovery-code">Recovery code</Label>
+					<Input
+						id="recovery-code"
+						type="text"
+						value={recoveryCodeInput}
+						onChange={(e) => setRecoveryCodeInput(e.target.value.toUpperCase())}
+						placeholder="XXXX-XXXX"
+						autoComplete="off"
+						disabled={loginMfaRecoveryMutation.isPending}
+						className="h-13 font-mono text-center tracking-widest"
+					/>
+					<p className="text-xs text-muted-foreground">
+						Enter one of the recovery codes you saved when setting up MFA.
+					</p>
+				</div>
+				<Button
+					className="w-full py-3.5 text-md"
+					type="submit"
+					disabled={
+						loginMfaRecoveryMutation.isPending || !recoveryCodeInput.trim()
+					}
+				>
+					{loginMfaRecoveryMutation.isPending ? (
+						<>
+							<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+							Verifying...
+						</>
+					) : (
+						"Verify recovery code"
+					)}
+				</Button>
+				<div className="flex flex-col items-center gap-2">
+					<button
+						type="button"
+						onClick={() => {
+							setRecoveryCodeInput("");
+							setStep("mfa");
+						}}
+						className="text-xs font-medium text-muted-foreground hover:text-primary hover:underline"
+					>
+						Use authenticator app instead
+					</button>
 					<button
 						type="button"
 						onClick={resetFlow}
@@ -1030,8 +1234,8 @@ export function LoginPage() {
 						<ArrowLeft className="h-3 w-3" />
 						Use a different email
 					</button>
-				</form>
-			</Form>
+				</div>
+			</form>
 		);
 	}
 
@@ -1047,6 +1251,15 @@ export function LoginPage() {
 				onSubmit={handleMfaSetupSubmit}
 				onReset={resetFlow}
 				showRememberDevice={rememberDeviceAllowed}
+			/>
+		);
+	}
+
+	if (step === "recovery-codes") {
+		return (
+			<RecoveryCodesDisplay
+				recoveryCodes={recoveryCodes}
+				onContinue={handleRecoveryCodesContinue}
 			/>
 		);
 	}

@@ -60,7 +60,14 @@ export interface OrgUserDto {
 	postal_code?: string | null;
 	is_active?: boolean;
 	is_superuser?: boolean;
+	mfa_enabled?: boolean;
 	created_at?: string;
+}
+
+export interface AdminMfaResetButtonProps {
+	membershipId: string;
+	userEmail: string;
+	onReset?: () => void;
 }
 
 export interface OrgMembershipDto {

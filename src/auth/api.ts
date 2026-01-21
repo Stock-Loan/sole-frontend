@@ -7,15 +7,19 @@ import type {
 	LoginCompletePayload,
 	LoginCompleteResponse,
 	LoginMfaPayload,
+	LoginMfaRecoveryPayload,
 	LoginMfaResponse,
 	LoginMfaSetupStartPayload,
 	LoginMfaSetupVerifyPayload,
 	LoginStartPayload,
 	LoginStartResponse,
+	MfaSetupCompleteResponse,
 	MfaSetupStartResponse,
 	MfaSetupVerifyPayload,
 	OrgDiscoveryPayload,
 	OrgDiscoveryResponse,
+	RecoveryCodesCountResponse,
+	RegenerateRecoveryCodesResponse,
 	SelfContextResponse,
 	StepUpVerifyPayload,
 	StepUpVerifyResponse,
@@ -86,8 +90,20 @@ export async function loginMfaSetupVerify(
 	payload: LoginMfaSetupVerifyPayload,
 	orgId?: string,
 ) {
-	const { data } = await apiClient.post<LoginMfaResponse>(
+	const { data } = await apiClient.post<MfaSetupCompleteResponse>(
 		"/auth/login/mfa/setup/verify",
+		payload,
+		orgId ? { headers: { "X-Org-Id": orgId } } : undefined,
+	);
+	return unwrapApiResponse<MfaSetupCompleteResponse>(data);
+}
+
+export async function loginMfaRecovery(
+	payload: LoginMfaRecoveryPayload,
+	orgId?: string,
+) {
+	const { data } = await apiClient.post<LoginMfaResponse>(
+		"/auth/login/mfa/recovery",
 		payload,
 		orgId ? { headers: { "X-Org-Id": orgId } } : undefined,
 	);
@@ -150,11 +166,37 @@ export async function mfaSetupStart() {
 }
 
 export async function mfaSetupVerify(payload: MfaSetupVerifyPayload) {
-	const { data } = await apiClient.post<LoginMfaResponse>(
+	const { data } = await apiClient.post<MfaSetupCompleteResponse>(
 		"/auth/mfa/setup/verify",
 		payload,
 	);
-	return unwrapApiResponse<LoginMfaResponse>(data);
+	return unwrapApiResponse<MfaSetupCompleteResponse>(data);
+}
+
+export async function getRecoveryCodesCount() {
+	const { data } = await apiClient.get<RecoveryCodesCountResponse>(
+		"/auth/mfa/recovery-codes/count",
+	);
+	return unwrapApiResponse<RecoveryCodesCountResponse>(data);
+}
+
+export async function regenerateRecoveryCodes() {
+	const { data } = await apiClient.post<RegenerateRecoveryCodesResponse>(
+		"/auth/mfa/recovery-codes/regenerate",
+	);
+	return unwrapApiResponse<RegenerateRecoveryCodesResponse>(data);
+}
+
+export async function selfMfaReset() {
+	const { data } = await apiClient.post<{ message: string }>("/auth/mfa/reset");
+	return unwrapApiResponse<{ message: string }>(data);
+}
+
+export async function adminResetUserMfa(membershipId: string) {
+	const { data } = await apiClient.post<{ message: string }>(
+		`/org/users/${membershipId}/mfa/reset`,
+	);
+	return unwrapApiResponse<{ message: string }>(data);
 }
 
 export async function changePasswordWithToken(

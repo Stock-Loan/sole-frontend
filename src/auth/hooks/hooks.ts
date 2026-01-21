@@ -14,6 +14,7 @@ import {
 	getMe,
 	getSelfContext,
 	loginMfa,
+	loginMfaRecovery,
 	loginMfaSetupStart,
 	loginMfaSetupVerify,
 	mfaSetupStart,
@@ -26,11 +27,13 @@ import type {
 	ChangePasswordPayload,
 	LoginCompletePayload,
 	LoginMfaPayload,
+	LoginMfaRecoveryPayload,
 	LoginMfaResponse,
 	LoginMfaSetupStartPayload,
 	LoginMfaSetupVerifyPayload,
 	LoginStartPayload,
 	LoginStartResponse,
+	MfaSetupCompleteResponse,
 	MfaSetupStartResponse,
 	MfaSetupVerifyPayload,
 	OrgDiscoveryPayload,
@@ -115,11 +118,21 @@ export function useLoginMfaSetupStart() {
 
 export function useLoginMfaSetupVerify() {
 	return useMutation<
-		LoginMfaResponse,
+		MfaSetupCompleteResponse,
 		unknown,
 		{ payload: LoginMfaSetupVerifyPayload; orgId?: string }
 	>({
 		mutationFn: ({ payload, orgId }) => loginMfaSetupVerify(payload, orgId),
+	});
+}
+
+export function useLoginMfaRecovery() {
+	return useMutation<
+		LoginMfaResponse,
+		unknown,
+		{ payload: LoginMfaRecoveryPayload; orgId?: string }
+	>({
+		mutationFn: ({ payload, orgId }) => loginMfaRecovery(payload, orgId),
 	});
 }
 
@@ -154,7 +167,7 @@ export function useMfaSetupStart() {
 }
 
 export function useMfaSetupVerify() {
-	return useMutation<LoginMfaResponse, unknown, MfaSetupVerifyPayload>({
+	return useMutation<MfaSetupCompleteResponse, unknown, MfaSetupVerifyPayload>({
 		mutationFn: (payload) => mfaSetupVerify(payload),
 	});
 }

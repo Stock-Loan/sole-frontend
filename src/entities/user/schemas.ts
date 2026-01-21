@@ -64,6 +64,7 @@ export const OrgUserDtoSchema = z.object({
 	postal_code: z.string().nullable().optional(),
 	is_active: z.boolean().optional(),
 	is_superuser: z.boolean().optional(),
+	mfa_enabled: z.boolean().optional(),
 	created_at: z.string().optional(),
 });
 
@@ -80,7 +81,10 @@ export const RoleSchema: z.ZodType<Role> = z.object({
 	name: z.string(),
 	description: z.string().nullable().optional(),
 	is_system_role: z.boolean().optional(),
-	permissions: z.array(z.string()).nullish().transform(val => val ?? []), // Make permissions optional and default to empty array
+	permissions: z
+		.array(z.string())
+		.nullish()
+		.transform((val) => val ?? []), // Make permissions optional and default to empty array
 	created_at: z.string().optional(),
 	updated_at: z.string().optional(),
 });
@@ -112,7 +116,10 @@ export const OrgUserListItemSchema = z.object({
 });
 
 export const OrgUsersListResponseSchema = z.object({
-	items: z.array(OrgUserListItemSchema).nullish().transform(val => val ?? []),
+	items: z
+		.array(OrgUserListItemSchema)
+		.nullish()
+		.transform((val) => val ?? []),
 	total: z.number().optional(),
 	page: z.number().optional(),
 	page_size: z.number().optional(),

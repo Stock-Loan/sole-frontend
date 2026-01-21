@@ -11,6 +11,7 @@ import { formatDate } from "@/shared/lib/format";
 import { TabButton } from "@/shared/ui/TabButton";
 import { useAuth } from "@/auth/hooks/hooks";
 import { useUserSettings } from "@/features/user-settings/hooks";
+import { RecoveryCodesManager } from "@/auth/components/RecoveryCodesManager";
 import type {
 	UserSettingsInfoCardProps,
 	UserSettingsSectionGridProps,
@@ -206,6 +207,12 @@ export function MySettingsPage() {
 									{securityUser?.mfa_enabled ? "Enabled" : "Not enabled"}
 								</p>
 							</div>
+							{securityUser?.mfa_enabled && (
+								<>
+									<Separator />
+									<RecoveryCodesManager />
+								</>
+							)}
 							<Separator />
 							<div className="space-y-2 text-sm text-muted-foreground">
 								<p className="font-medium text-foreground">Password</p>

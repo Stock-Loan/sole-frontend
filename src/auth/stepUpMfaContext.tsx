@@ -49,7 +49,7 @@ export function StepUpMfaProvider({ children }: StepUpMfaProviderProps) {
 	}, []);
 
 	const verifyStepUp = useCallback(
-		async (code: string) => {
+		async (code: string, codeType: "totp" | "recovery" = "totp") => {
 			if (!challenge || !pendingRequest) {
 				throw new Error("No pending step-up challenge");
 			}
@@ -61,6 +61,7 @@ export function StepUpMfaProvider({ children }: StepUpMfaProviderProps) {
 				const result = await verifyStepUpMfa({
 					challenge_token: challenge.challenge_token,
 					code,
+					code_type: codeType,
 				});
 
 				// Retry the original request with the step-up token

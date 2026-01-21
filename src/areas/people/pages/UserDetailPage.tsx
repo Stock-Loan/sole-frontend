@@ -7,6 +7,7 @@ import { LoadingState } from "@/shared/ui/LoadingState";
 import { Button } from "@/shared/ui/Button";
 import { routes } from "@/shared/lib/routes";
 import { OrgUserProfileDialog } from "@/entities/user/components/OrgUserProfileDialog";
+import { AdminMfaResetButton } from "@/entities/user/components/AdminMfaResetButton";
 import { useCountries } from "@/entities/meta/useCountries";
 import { useSubdivisions } from "@/entities/meta/useSubdivisions";
 import { formatDate } from "@/shared/lib/format";
@@ -19,6 +20,7 @@ import { useToast } from "@/shared/ui/use-toast";
 import { useApiErrorToast } from "@/shared/api/useApiErrorToast";
 import { usePermissions } from "@/auth/hooks/hooks";
 import { useOrgUserDetail } from "@/entities/user/hooks";
+import { ShieldCheck, ShieldOff } from "lucide-react";
 import {
 	useDepartmentsList,
 	useUpdateUserDepartment,
@@ -276,6 +278,37 @@ export function UserDetailPage() {
 									</span>
 								) : null}
 							</div>
+						</section>
+
+						{/* Security / MFA Section */}
+						<section className="space-y-3 rounded-lg border border-border/60 bg-card/50 p-4 w-1/2">
+							<div className="flex items-center justify-between">
+								<h3 className="text-sm font-semibold">Security</h3>
+							</div>
+							<div className="flex items-center gap-2 text-sm">
+								{data.user.mfa_enabled ? (
+									<>
+										<ShieldCheck className="h-4 w-4 text-emerald-600" />
+										<span>MFA enabled</span>
+									</>
+								) : (
+									<>
+										<ShieldOff className="h-4 w-4 text-amber-500" />
+										<span>MFA not enabled</span>
+									</>
+								)}
+							</div>
+							{data.user.mfa_enabled &&
+								can("user.mfa.reset") &&
+								authUser?.id !== data.user.id && (
+									<div className="pt-2">
+										<AdminMfaResetButton
+											membershipId={data.membership.id}
+											userEmail={data.user.email}
+											onReset={() => refetch()}
+										/>
+									</div>
+								)}
 						</section>
 
 						<section className="space-y-2">

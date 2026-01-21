@@ -88,6 +88,16 @@ export interface LoginMfaResponse extends TokenPair {
 	remember_device_token?: string | null;
 }
 
+export interface MfaSetupCompleteResponse extends TokenPair {
+	remember_device_token?: string | null;
+	recovery_codes: string[];
+}
+
+export interface LoginMfaRecoveryPayload {
+	mfa_token: string;
+	recovery_code: string;
+}
+
 export interface LoginMfaSetupStartPayload {
 	setup_token: string;
 }
@@ -160,6 +170,20 @@ export interface ChangePasswordFormValues {
 	confirm_password: string;
 }
 export type RememberDeviceMap = Record<string, string>;
+
+// Recovery codes types
+export interface RecoveryCodesCountResponse {
+	remaining_count: number;
+}
+
+export interface RegenerateRecoveryCodesResponse {
+	recovery_codes: string[];
+}
+
+export interface AdminMfaResetResponse {
+	message: string;
+}
+
 export interface MfaEnrollmentPageProps {
 	form: UseFormReturn<LoginMfaFormValues>;
 	issuer?: string | null;
@@ -192,6 +216,7 @@ export interface StepUpChallengeResponse {
 export interface StepUpVerifyPayload {
 	challenge_token: string;
 	code: string;
+	code_type?: "totp" | "recovery";
 }
 
 export interface StepUpVerifyResponse {
@@ -214,7 +239,7 @@ export interface StepUpMfaContextValue {
 		challenge: import("@/shared/api/types").StepUpChallengeData,
 		request: import("@/shared/api/types").PendingStepUpRequest,
 	) => void;
-	verifyStepUp: (code: string) => Promise<void>;
+	verifyStepUp: (code: string, codeType?: "totp" | "recovery") => Promise<void>;
 	cancelStepUp: () => void;
 	isVerifying: boolean;
 	error: string | null;
@@ -239,4 +264,10 @@ export interface InactivityContextValue {
 
 export interface InactivityProviderProps {
 	children: import("react").ReactNode;
+}
+
+export interface RecoveryCodesDisplayProps {
+	recoveryCodes: string[];
+	onContinue: () => void;
+	isLoggedIn?: boolean;
 }
