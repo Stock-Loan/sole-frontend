@@ -254,6 +254,10 @@ export function LoginPage() {
 			{
 				onSuccess: async (response) => {
 					setRememberDeviceDays(response.remember_device_days ?? null);
+					// Clear stored remember device token if org has disabled the feature
+					if (response.remember_device_days === 0 && rememberDeviceToken) {
+						storeRememberDeviceToken(currentOrgId, null);
+					}
 					if (response.mfa_setup_required) {
 						const setup = response.setup_token;
 						if (!setup) {
@@ -362,6 +366,12 @@ export function LoginPage() {
 						return;
 					}
 					if (response.mfa_required) {
+						// If we sent a remember device token but still got mfa_required,
+						// it means the token was invalid (expired, revoked, or org disabled feature)
+						// Clear the stored token so we don't keep sending an invalid one
+						if (rememberDeviceToken) {
+							storeRememberDeviceToken(currentOrgId, null);
+						}
 						if (!response.mfa_token) {
 							toast({
 								variant: "destructive",
