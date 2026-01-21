@@ -177,7 +177,7 @@ export function RecoveryCodesManager() {
 
 			{/* New Codes Display Dialog */}
 			<Dialog open={showCodesDialog} onOpenChange={handleCloseCodesDialog}>
-				<DialogContent className="max-w-lg">
+				<DialogContent className="max-h-[90vh] max-w-2xl overflow-hidden p-0">
 					<RecoveryCodesDisplay
 						recoveryCodes={newCodes}
 						onContinue={handleCloseCodesDialog}
