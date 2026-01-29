@@ -6,6 +6,7 @@ import {
 	Flag,
 	FolderOpen,
 	Gauge,
+	Lock,
 	Megaphone,
 	Settings,
 	Shield,
@@ -164,6 +165,13 @@ export const navConfig: NavConfig = {
 			path: "/app/settings/org",
 			icon: Settings,
 			permissions: "org.settings.view",
+		},
+		{
+			id: "settings-acl-assignments",
+			label: "ACL assignments",
+			path: "/app/settings/acl-assignments",
+			icon: Lock,
+			permissions: "acl.manage",
 		},
 		{
 			id: "settings-mid-term-rates",

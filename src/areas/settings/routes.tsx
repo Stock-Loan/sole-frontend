@@ -3,6 +3,7 @@ import { RequirePermission } from "@/app/router/route-guards";
 import { OrgSettingsPage } from "./pages/OrgSettingsPage";
 import { AuditLogsPage } from "./pages/AuditLogsPage";
 import { MidTermRatesPage } from "./pages/MidTermRatesPage";
+import { AclAssignmentsPage } from "./pages/AclAssignmentsPage";
 
 export const settingsRoutes: RouteObject[] = [
 	{ index: true, element: <Navigate to="org" replace /> },
@@ -19,6 +20,14 @@ export const settingsRoutes: RouteObject[] = [
 		element: (
 			<RequirePermission permission="audit_log.view">
 				<AuditLogsPage />
+			</RequirePermission>
+		),
+	},
+	{
+		path: "acl-assignments",
+		element: (
+			<RequirePermission permission="acl.manage">
+				<AclAssignmentsPage />
 			</RequirePermission>
 		),
 	},

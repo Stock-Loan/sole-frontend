@@ -24,6 +24,7 @@ export function DataTableTopBar({
 		return (
 			<Button
 				key={action.label}
+				type="button"
 				variant={action.variant ?? defaultVariant}
 				size={action.size ?? "sm"}
 				onClick={action.onClick}
@@ -68,7 +69,12 @@ export function DataTableTopBar({
 			</div>
 			{enableExport ? (
 				<div className="flex flex-wrap items-center gap-2">
-					<Button variant="outline" size="sm" onClick={onExportAll}>
+					<Button
+						type="button"
+						variant="outline"
+						size="sm"
+						onClick={onExportAll}
+					>
 						<Download className="mr-2 h-4 w-4" />
 						Export all
 					</Button>
