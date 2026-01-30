@@ -1,12 +1,9 @@
-import { Link } from "react-router-dom";
 import { useMemo } from "react";
 import { PageHeader } from "@/shared/ui/PageHeader";
 import { PageContainer } from "@/shared/ui/PageContainer";
 import { Card, CardContent, CardHeader } from "@/shared/ui/card";
-import { Button } from "@/shared/ui/Button";
 import { EmptyState } from "@/shared/ui/EmptyState";
 import { Skeleton } from "@/shared/ui/Skeleton";
-import { routes } from "@/shared/lib/routes";
 import { usePermissions } from "@/auth/hooks";
 import { useOrgStockDashboardSummary } from "@/entities/stock-grant/hooks";
 import { StockSummaryMetricGrid } from "@/entities/stock-grant/components/StockSummaryMetricGrid";
@@ -72,16 +69,6 @@ export function StockOverviewPage() {
 			<PageHeader
 				title="Stock Summary"
 				subtitle="Track stock program coverage, vesting trends, and eligibility."
-				actions={
-					<div className="flex flex-wrap gap-2">
-						<Button asChild variant="outline" size="sm">
-							<Link to={routes.stockGrants}>View all grants</Link>
-						</Button>
-						<Button asChild variant="outline" size="sm">
-							<Link to={routes.settingsOrg}>View program rules</Link>
-						</Button>
-					</div>
-				}
 			/>
 
 			{!canViewStock ? (
