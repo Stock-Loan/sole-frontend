@@ -73,7 +73,7 @@ export function AreaSwitcher() {
 					<ChevronDown className="h-4 w-4" aria-hidden="true" />
 				</Button>
 			</DropdownMenuTrigger>
-			<DropdownMenuContent align="start" className="w-64">
+			<DropdownMenuContent align="start" className="w-80 flex flex-col gap-1.5">
 				{visibleAreas.map((area) => {
 					const AreaIcon = area.icon;
 					return (
@@ -81,11 +81,16 @@ export function AreaSwitcher() {
 							key={area.id}
 							onClick={() => navigate(area.path)}
 							className={cn(
-								"flex items-start gap-3",
-								area.id === currentArea.id && "bg-muted/40",
+								"flex items-start gap-3 hover:bg-muted/80 cursor-pointer",
+								area.id === currentArea.id && "bg-primary/5 text-foreground ",
 							)}
 						>
-							<AreaIcon className="mt-0.5 h-4 w-4 text-muted-foreground" />
+							<AreaIcon
+								className={cn(
+									"mt-0.5 h-4 w-4 text-muted-foreground",
+									area.id === currentArea.id && "text-primary",
+								)}
+							/>
 							<div className="flex flex-col">
 								<span className="text-sm font-semibold">{area.label}</span>
 								{area.description ? (
