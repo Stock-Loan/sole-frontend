@@ -12,7 +12,11 @@ import { loadDataTablePreferences } from "@/shared/ui/Table/constants";
 import { usePermissions, useAuth } from "@/auth/hooks";
 import { useOrgAuditLogs } from "@/entities/audit/hooks";
 import type { AuditLog } from "@/entities/audit/types";
-import { formatAuditValue, stringifyAuditValue } from "@/entities/audit/utils";
+import {
+	formatAuditChanges,
+	formatAuditValue,
+	stringifyAuditValue,
+} from "@/entities/audit/utils";
 import { formatDate } from "@/shared/lib/format";
 import { Label } from "@/shared/ui/label";
 import {
@@ -23,6 +27,8 @@ import {
 	SelectValue,
 } from "@/shared/ui/select";
 import { useApiErrorToast } from "@/shared/api/useApiErrorToast";
+import { ToolbarButton } from "@/shared/ui/toolbar";
+import { AuditLogDialog } from "@/areas/settings/components/AuditLogDialog";
 
 export function AuditLogsPage() {
 	const apiErrorToast = useApiErrorToast();
@@ -55,6 +61,8 @@ export function AuditLogsPage() {
 		pageSize: defaultPageSize,
 	});
 	const [resourceType, setResourceType] = useState("all");
+	const [activeLog, setActiveLog] = useState<AuditLog | null>(null);
+	const [selectionResetKey, setSelectionResetKey] = useState(0);
 	const handleResourceTypeChange = (value: string) => {
 		setResourceType(value);
 		setPaginationState((prev) =>
@@ -110,11 +118,35 @@ export function AuditLogsPage() {
 	const columns = useMemo<ColumnDefinition<AuditLog>[]>(
 		() => [
 			{
+				id: "id",
+				header: "ID",
+				accessor: (log) => log.id,
+				cell: (log) => log.id,
+				headerClassName: "min-w-[180px] whitespace-nowrap",
+				cellClassName: "text-xs text-muted-foreground break-all",
+			},
+			{
+				id: "org_id",
+				header: "Org ID",
+				accessor: (log) => log.org_id ?? "",
+				cell: (log) => log.org_id ?? "—",
+				headerClassName: "min-w-[160px] whitespace-nowrap",
+				cellClassName: "text-xs text-muted-foreground break-all",
+			},
+			{
 				id: "actor_name",
 				header: "Actor",
 				accessor: (log) => log.actor?.full_name ?? "",
 				cell: (log) => log.actor?.full_name ?? "—",
 				headerClassName: "min-w-[180px] whitespace-nowrap",
+			},
+			{
+				id: "actor_user_id",
+				header: "Actor user ID",
+				accessor: (log) => log.actor?.user_id ?? "",
+				cell: (log) => log.actor?.user_id ?? "—",
+				headerClassName: "min-w-[180px] whitespace-nowrap",
+				cellClassName: "text-xs text-muted-foreground break-all",
 			},
 			{
 				id: "actor_email",
@@ -130,6 +162,26 @@ export function AuditLogsPage() {
 				accessor: (log) => log.action,
 				cell: (log) => log.action,
 				headerClassName: "min-w-[180px] whitespace-nowrap",
+			},
+			{
+				id: "summary",
+				header: "Summary",
+				accessor: (log) => log.summary ?? "",
+				cell: (log) => log.summary ?? "—",
+				headerClassName: "min-w-[220px] whitespace-nowrap",
+			},
+			{
+				id: "changes",
+				header: "Changes",
+				accessor: (log) => formatAuditChanges(log.changes),
+				cell: (log) => (
+					<span title={stringifyAuditValue(log.changes)}>
+						{formatAuditChanges(log.changes)}
+					</span>
+				),
+				exportAccessor: (log) => stringifyAuditValue(log.changes),
+				cellClassName: "text-xs text-muted-foreground break-all",
+				headerClassName: "min-w-[220px] whitespace-nowrap",
 			},
 			{
 				id: "resource_type",
@@ -219,10 +271,11 @@ export function AuditLogsPage() {
 							getRowId={(log) => log.id}
 							isLoading={auditLogsQuery.isLoading}
 							emptyMessage="No audit log entries found."
-							enableRowSelection={false}
+							enableRowSelection
 							enableExport
 							exportFileName="audit-logs.csv"
 							className="min-h-0 flex-1"
+							onRowClick={(log) => setActiveLog(log)}
 							preferences={preferencesConfig}
 							headerFilters={
 								<>
@@ -254,11 +307,32 @@ export function AuditLogsPage() {
 								</>
 							}
 							initialColumnVisibility={{
+								id: false,
+								org_id: false,
+								actor_user_id: false,
 								actor_email: false,
 								actor_id: false,
 								old_value: false,
 								new_value: false,
 							}}
+							renderToolbarActions={(selectedLogs) => {
+								const selectedLog =
+									selectedLogs.length === 1 ? selectedLogs[0] : null;
+								return (
+									<ToolbarButton
+										variant="outline"
+										size="sm"
+										disabled={!selectedLog}
+										onClick={() => {
+											if (!selectedLog) return;
+											setActiveLog(selectedLog);
+										}}
+									>
+										View details
+									</ToolbarButton>
+								);
+							}}
+							selectionResetKey={selectionResetKey}
 							pagination={{
 								enabled: true,
 								mode: "server",
@@ -266,12 +340,22 @@ export function AuditLogsPage() {
 								onPaginationChange: setPaginationState,
 								pageCount: totalPages,
 								totalRows,
-								pageSizeOptions: [20, 50, 100, 200],
-							}}
-						/>
+									pageSizeOptions: [20, 50, 100, 200],
+								}}
+							/>
 					)}
 				</>
 			)}
+			<AuditLogDialog
+				open={Boolean(activeLog)}
+				onOpenChange={(open) => {
+					if (!open) {
+						setActiveLog(null);
+						setSelectionResetKey((prev) => prev + 1);
+					}
+				}}
+				auditLog={activeLog}
+			/>
 		</PageContainer>
 	);
 }

@@ -10,6 +10,8 @@ export interface AuditLog {
 	action: string;
 	resource_type?: string | null;
 	resource_id?: string | null;
+	summary?: string | null;
+	changes?: Record<string, { from?: unknown; to?: unknown }> | null;
 	old_value?: unknown;
 	new_value?: unknown;
 	created_at: string;
