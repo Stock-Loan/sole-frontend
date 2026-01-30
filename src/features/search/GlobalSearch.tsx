@@ -80,7 +80,7 @@ export function GlobalSearch({
 
 	const triggerClasses = compact
 		? "inline-flex h-10 items-center justify-center rounded border border-border/60 bg-background/80 text-muted-foreground shadow-sm transition hover:-translate-y-[1px] hover:text-foreground hover:shadow-md focus-visible:outline-none focus-visible:ring-0"
-		: "group relative flex items-center justify-center xl:justify-start gap-3 rounded-xl border border-border/60 bg-background/80 px-3 text-left text-sm shadow-sm transition hover:-translate-y-[1px] hover:border-primary/50 hover:shadow-md focus-visible:outline-none focus-visible:ring-0 w-11 xl:w-full xl:max-w-md h-11";
+		: "group relative flex items-center justify-center xl:justify-start gap-3 rounded-xl border border-border/60 bg-background/80 px-3 text-left text-sm shadow-sm transition hover:-translate-y-[1px] hover:border-primary/50 hover:shadow-md focus-visible:outline-none focus-visible:ring-0 w-11 xl:w-full xl:max-w-md py-2.5";
 
 	return (
 		<Dialog open={open} onOpenChange={handleOpenChange}>
