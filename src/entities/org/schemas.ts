@@ -2,7 +2,7 @@ import { z } from "zod";
 import { nonEmptyString } from "@/shared/lib/validators";
 
 const repaymentMethodsSchema = z.array(
-	z.enum(["INTEREST_ONLY", "BALLOON", "PRINCIPAL_AND_INTEREST"]),
+	z.enum(["BALLOON", "PRINCIPAL_AND_INTEREST"]),
 );
 const interestTypesSchema = z.array(z.enum(["FIXED", "VARIABLE"]));
 const mfaEnforcementSchema = z.array(

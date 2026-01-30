@@ -39,7 +39,6 @@ export const loanRepaymentSchema = z.object({
 export const loanScheduleWhatIfSchema = z.object({
 	as_of_date: nonEmptyString,
 	repayment_method: z.enum([
-		"INTEREST_ONLY",
 		"BALLOON",
 		"PRINCIPAL_AND_INTEREST",
 	]),

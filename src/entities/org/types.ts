@@ -90,7 +90,6 @@ export type MfaEnforcementAction =
 	| "ACL_ASSIGNMENT";
 
 export type LoanRepaymentMethod =
-	| "INTEREST_ONLY"
 	| "BALLOON"
 	| "PRINCIPAL_AND_INTEREST";
 

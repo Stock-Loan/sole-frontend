@@ -48,11 +48,6 @@ export const loanWizardInterestTypeOptions: LoanWizardOption<LoanInterestType>[]
 export const loanWizardRepaymentMethodOptions: LoanWizardOption<LoanRepaymentMethod>[] =
 	[
 		{
-			value: "INTEREST_ONLY",
-			label: "Interest only",
-			description: "Interest payments with principal due at the end.",
-		},
-		{
 			value: "BALLOON",
 			label: "Balloon",
 			description: "Smaller payments with a larger final payment.",

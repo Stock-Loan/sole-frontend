@@ -419,6 +419,11 @@ export const StockGrantsSection = forwardRef<
 			vestingEvents: false,
 			nextVestingSummary: false,
 			notes: false,
+			vestedShares: false,
+			reservedShares: false,
+			availableVestedShares: false,
+			unvestedShares: false,
+			nextVestingEvent: false,
 		}),
 		[],
 	);

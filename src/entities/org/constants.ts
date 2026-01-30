@@ -11,11 +11,6 @@ export const repaymentMethodOptions: ReadonlyArray<{
 	description: string;
 }> = [
 	{
-		value: "INTEREST_ONLY",
-		label: "Interest only",
-		description: "Pay interest during the term, principal due at the end.",
-	},
-	{
 		value: "BALLOON",
 		label: "Balloon",
 		description: "Smaller periodic payments with a larger final payment.",

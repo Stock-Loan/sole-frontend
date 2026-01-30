@@ -28,10 +28,14 @@ export function LoanSummaryPieChart({
 	total,
 	emptyMessage = "No data available.",
 }: LoanSummaryPieChartProps) {
-	const sum = items.reduce((acc, item) => acc + item.value, 0);
-	const base = total ?? sum;
+	const normalizedItems = items.map((item) => ({
+		...item,
+		value: Number.isFinite(item.value) ? item.value : 0,
+	}));
+	const sum = normalizedItems.reduce((acc, item) => acc + item.value, 0);
+	const base = Number.isFinite(total ?? sum) ? (total ?? sum) : sum;
 
-	if (!items.length || base <= 0) {
+	if (!normalizedItems.length || base <= 0) {
 		return (
 			<Card className="h-full">
 				<CardHeader className="pb-2">
@@ -44,7 +48,7 @@ export function LoanSummaryPieChart({
 		);
 	}
 
-	const gradient = buildGradient(items, base);
+	const gradient = buildGradient(normalizedItems, base);
 
 	return (
 		<Card className="h-full">
@@ -69,7 +73,7 @@ export function LoanSummaryPieChart({
 						</div>
 					</div>
 					<div className="w-full max-w-[280px] space-y-2 lg:w-[260px] lg:max-w-none">
-						{items.map((item, index) => {
+						{normalizedItems.map((item, index) => {
 							const ratio = base > 0 ? item.value / base : 0;
 							const color =
 								item.color ?? Object.values(colorPalette.chart)[index % 6];

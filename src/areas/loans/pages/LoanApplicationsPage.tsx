@@ -269,6 +269,7 @@ export function LoanApplicationsPage() {
 		() => ({
 			applicantEmail: false,
 			employeeId: false,
+			departmentName: false,
 			departmentId: false,
 			userId: false,
 			orgMembershipId: false,
@@ -282,6 +283,8 @@ export function LoanApplicationsPage() {
 			total_payable_amount: false,
 			interest_type: false,
 			repayment_method: false,
+			created_at: false,
+			updated_at: false,
 		}),
 		[],
 	);
