@@ -132,4 +132,9 @@ export const mfaEnforcementOptions = [
 		label: "Assigning roles to users",
 		description: "Require MFA before assigning roles to a user.",
 	},
+	{
+		value: "ACL_ASSIGNMENT",
+		label: "Managing ACL assignments",
+		description: "Require MFA before creating, updating, or removing ACL assignments.",
+	},
 ] as const;

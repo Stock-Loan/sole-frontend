@@ -16,6 +16,7 @@ const mfaEnforcementSchema = z.array(
 		"ORG_SETTINGS_CHANGE",
 		"USER_PROFILE_EDIT",
 		"ROLE_ASSIGNMENT",
+		"ACL_ASSIGNMENT",
 	]),
 );
 

@@ -27,6 +27,7 @@ export const ACTION_LABELS: Record<string, string> = {
 	ORG_SETTINGS_CHANGE: "Organization Settings Change",
 	USER_PROFILE_EDIT: "User Profile Edit",
 	ROLE_ASSIGNMENT: "Role Assignment",
+	ACL_ASSIGNMENT: "ACL Assignment",
 	LOGIN: "Login",
 	RECOVERY_CODES_REGENERATE: "Recovery Codes Regeneration",
 	USER_MFA_RESET: "User MFA Reset",
