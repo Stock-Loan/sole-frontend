@@ -1,4 +1,4 @@
-import { Download, Search } from "lucide-react";
+import { Download, Plus, Search } from "lucide-react";
 import { Button } from "@/shared/ui/Button";
 import { Input } from "@/shared/ui/input";
 import type { DataTableHeaderAction, DataTableTopBarProps } from "./types";
@@ -18,9 +18,9 @@ export function DataTableTopBar({
 
 	const renderAction = (
 		action: DataTableHeaderAction,
-		defaultVariant: "default" | "outline",
+		defaultVariant: "ghost",
 	) => {
-		const Icon = action.icon;
+		const Icon = action.icon ?? Plus;
 		return (
 			<Button
 				key={action.label}
@@ -42,8 +42,8 @@ export function DataTableTopBar({
 			<div className="flex flex-1 flex-wrap items-center gap-3">
 				{hasActions ? (
 					<div className="flex flex-wrap items-center gap-2">
-						{primaryAction ? renderAction(primaryAction, "default") : null}
-						{secondaryActions.map((action) => renderAction(action, "outline"))}
+						{primaryAction ? renderAction(primaryAction, "ghost") : null}
+						{secondaryActions.map((action) => renderAction(action, "ghost"))}
 					</div>
 				) : null}
 				{headerFilters ? (
@@ -71,7 +71,7 @@ export function DataTableTopBar({
 				<div className="flex flex-wrap items-center gap-2">
 					<Button
 						type="button"
-						variant="outline"
+						variant="ghost"
 						size="sm"
 						onClick={onExportAll}
 					>

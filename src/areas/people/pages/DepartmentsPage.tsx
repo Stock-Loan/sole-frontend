@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { PaginationState, VisibilityState } from "@tanstack/react-table";
-import { PlusCircle, AlertTriangle, Users } from "lucide-react";
+import { AlertTriangle, Users } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import { PageContainer } from "@/shared/ui/PageContainer";
 import { PageHeader } from "@/shared/ui/PageHeader";
@@ -10,6 +10,7 @@ import { Button } from "@/shared/ui/Button";
 import { useToast } from "@/shared/ui/use-toast";
 import { ToolbarButton } from "@/shared/ui/toolbar";
 import { useAuth } from "@/auth/hooks";
+import { Checkbox } from "@/shared/ui/checkbox";
 import {
 	Dialog,
 	DialogBody,
@@ -330,7 +331,7 @@ export function DepartmentsPage() {
 					getRowId={(dept) => dept.id}
 					isLoading={isLoading}
 					enableRowSelection
-					enableExport={false}
+					enableExport={true}
 					pagination={{
 						enabled: true,
 						mode: "server",
@@ -401,17 +402,18 @@ export function DepartmentsPage() {
 							? {
 									label: "New department",
 									onClick: openCreate,
-									icon: PlusCircle,
 								}
 							: undefined,
-						secondaryActions: [
-							{
-								label: includeArchived ? "Hide archived" : "Show archived",
-								onClick: handleToggleArchived,
-								variant: includeArchived ? "secondary" : "outline",
-							},
-						],
 					}}
+					headerFilters={
+						<label className="flex items-center gap-2 text-xs text-muted-foreground">
+							<Checkbox
+								checked={includeArchived}
+								onCheckedChange={() => handleToggleArchived()}
+							/>
+							Show archived
+						</label>
+					}
 				/>
 			)}
 

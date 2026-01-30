@@ -132,11 +132,10 @@ export function MidTermRatesPage() {
 					preferences={preferencesConfig}
 					headerActions={{
 						primaryAction: {
-							label: refreshMutation.isPending ? "Refreshing..." : "Refresh",
+							label: refreshMutation.isPending ? "Refetching..." : "Refetch",
 							onClick: () => refreshMutation.mutate(),
 							icon: RefreshCw,
 							disabled: !canManage || refreshMutation.isPending,
-							variant: "outline",
 							size: "sm",
 							title: canManage
 								? "Fetch latest rates"

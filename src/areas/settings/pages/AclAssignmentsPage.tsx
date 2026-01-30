@@ -190,14 +190,14 @@ export function AclAssignmentsPage() {
 				isLoading={assignmentsQuery.isLoading}
 				emptyMessage={emptyMessage}
 				enableRowSelection
-				enableExport={false}
+				enableExport
+				exportFileName="acl-assignments.csv"
 				className="min-h-0 flex-1"
 				headerActions={{
 					primaryAction: {
 						label: "Add assignment",
 						onClick: handleAdd,
 						disabled: !hasUsers,
-						variant: "default",
 						size: "sm",
 					},
 				}}
