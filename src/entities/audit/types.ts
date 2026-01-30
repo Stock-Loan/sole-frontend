@@ -33,3 +33,15 @@ export interface AuditLogListParams {
 	created_from?: string;
 	created_to?: string;
 }
+export type AuditChangeEntry = {
+	field: string;
+	from: string;
+	to: string;
+};
+
+export type AuditDiffLineType = "same" | "added" | "removed";
+
+export interface AuditDiffLine {
+	line: string;
+	type: AuditDiffLineType;
+}

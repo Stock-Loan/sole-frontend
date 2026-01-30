@@ -1,5 +1,6 @@
 import type { OrgUserListItem } from "@/entities/user/types";
 import type { AclAssignment } from "@/entities/acl/types";
+import type { AuditLog } from "@/entities/audit/types";
 
 export interface AclAssignmentDialogProps {
 	open: boolean;
@@ -30,4 +31,9 @@ export interface AclUserPermissionsDialogProps {
 	onOpenChange: (open: boolean) => void;
 	assignment: AclAssignment | null;
 	assignments: AclAssignment[];
+}
+export interface AuditLogDialogProps {
+	open: boolean;
+	onOpenChange: (open: boolean) => void;
+	auditLog: AuditLog | null;
 }

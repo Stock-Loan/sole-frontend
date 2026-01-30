@@ -6,23 +6,17 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/shared/ui/Dialog/dialog";
-import type { AuditLog } from "@/entities/audit/types";
 import { useState } from "react";
 import {
+	diffAuditJsonLines,
 	formatAuditChanges,
 	getAuditChangeEntries,
-	stringifyAuditJson,
 	stringifyAuditValue,
 } from "@/entities/audit/utils";
 import { formatDate } from "@/shared/lib/format";
 import { Switch } from "@/shared/ui/switch";
 import { Label } from "@/shared/ui/label";
-
-interface AuditLogDialogProps {
-	open: boolean;
-	onOpenChange: (open: boolean) => void;
-	auditLog: AuditLog | null;
-}
+import type { AuditLogDialogProps } from "../types";
 
 export function AuditLogDialog({
 	open,
@@ -34,7 +28,7 @@ export function AuditLogDialog({
 	if (!auditLog) {
 		return (
 			<Dialog open={open} onOpenChange={onOpenChange}>
-				<DialogContent size="md">
+				<DialogContent size="lg">
 					<DialogHeader>
 						<DialogTitle>Audit log</DialogTitle>
 					</DialogHeader>
@@ -49,6 +43,7 @@ export function AuditLogDialog({
 	}
 
 	const changeEntries = getAuditChangeEntries(auditLog.changes);
+	const diff = diffAuditJsonLines(auditLog.old_value, auditLog.new_value);
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
@@ -144,9 +139,9 @@ export function AuditLogDialog({
 								{changeEntries.map((entry) => (
 									<div key={entry.field} className="flex flex-wrap gap-2">
 										<span className="font-semibold">{entry.field}:</span>
-											<span className="text-muted-foreground">
-												{entry.from} {"->"} {entry.to}
-											</span>
+										<span className="text-muted-foreground">
+											{entry.from} {"->"} {entry.to}
+										</span>
 									</div>
 								))}
 							</div>
@@ -163,9 +158,27 @@ export function AuditLogDialog({
 								Old value
 							</p>
 							<pre className="mt-2 max-h-48 overflow-auto rounded-md bg-background p-2 text-xs text-muted-foreground">
-								{showRaw
-									? stringifyAuditJson(auditLog.old_value) || "—"
-									: stringifyAuditValue(auditLog.old_value) || "—"}
+								{showRaw ? (
+									diff.oldLines.length ? (
+										diff.oldLines.map((line, index) => (
+											<span
+												key={`${line.type}-${index}-${line.line}`}
+												className={[
+													"block whitespace-pre",
+													line.type === "removed"
+														? "bg-destructive/10 text-destructive"
+														: "text-muted-foreground",
+												].join(" ")}
+											>
+												{line.line}
+											</span>
+										))
+									) : (
+										<span className="block whitespace-pre">—</span>
+									)
+								) : (
+									stringifyAuditValue(auditLog.old_value) || "—"
+								)}
 							</pre>
 						</div>
 						<div className="rounded-lg border border-border/60 bg-muted/20 p-3">
@@ -173,9 +186,27 @@ export function AuditLogDialog({
 								New value
 							</p>
 							<pre className="mt-2 max-h-48 overflow-auto rounded-md bg-background p-2 text-xs text-muted-foreground">
-								{showRaw
-									? stringifyAuditJson(auditLog.new_value) || "—"
-									: stringifyAuditValue(auditLog.new_value) || "—"}
+								{showRaw ? (
+									diff.newLines.length ? (
+										diff.newLines.map((line, index) => (
+											<span
+												key={`${line.type}-${index}-${line.line}`}
+												className={[
+													"block whitespace-pre",
+													line.type === "added"
+														? "bg-emerald-500/10 text-emerald-700"
+														: "text-muted-foreground",
+												].join(" ")}
+											>
+												{line.line}
+											</span>
+										))
+									) : (
+										<span className="block whitespace-pre">—</span>
+									)
+								) : (
+									stringifyAuditValue(auditLog.new_value) || "—"
+								)}
 							</pre>
 						</div>
 					</div>
