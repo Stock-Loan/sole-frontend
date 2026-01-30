@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useWatch, type FieldErrors } from "react-hook-form";
 import { PageContainer } from "@/shared/ui/PageContainer";
@@ -6,7 +6,7 @@ import { PageHeader } from "@/shared/ui/PageHeader";
 import { Button } from "@/shared/ui/Button";
 import { Form } from "@/shared/ui/Form/form";
 import { TabButton } from "@/shared/ui/TabButton";
-import { usePermissions } from "@/auth/hooks";
+import { usePermissions, useAuth } from "@/auth/hooks";
 import { useApiErrorToast } from "@/shared/api/useApiErrorToast";
 import { useToast } from "@/shared/ui/use-toast";
 import { EmptyState } from "@/shared/ui/EmptyState";
@@ -24,12 +24,15 @@ import { SETTINGS_TAB_MAP } from "@/entities/org/constants";
 
 export function OrgSettingsPage() {
 	const { can } = usePermissions();
+	const { user } = useAuth();
 	const canManage = can("org.settings.manage");
 	const apiErrorToast = useApiErrorToast();
 	const { toast } = useToast();
 	const [tab, setTab] = useState<OrgSettingsTabKey>("general");
 
-	const settingsQuery = useOrgSettings();
+	const settingsQuery = useOrgSettings(user?.org_id, {
+		enabled: Boolean(user?.org_id),
+	});
 
 	const form = useForm<OrgSettingsFormValues>({
 		resolver: zodResolver(orgSettingsSchema),
@@ -107,13 +110,20 @@ export function OrgSettingsPage() {
 		name: "require_two_factor",
 	});
 
+	const requireTwoFactorRef = useRef<boolean | undefined>(undefined);
+
 	useEffect(() => {
-		if (!requireTwoFactor) {
+		if (requireTwoFactorRef.current === undefined) {
+			requireTwoFactorRef.current = requireTwoFactor;
+			return;
+		}
+		if (requireTwoFactorRef.current && !requireTwoFactor) {
 			form.setValue("mfa_required_actions", []);
 		}
+		requireTwoFactorRef.current = requireTwoFactor;
 	}, [requireTwoFactor, form]);
 
-	const updateMutation = useUpdateOrgSettings({
+	const updateMutation = useUpdateOrgSettings(user?.org_id, {
 		onSuccess: (updated) => {
 			toast({ title: "Settings saved" });
 			if (

@@ -23,6 +23,13 @@ export function OrgSettingsGeneralRetentionTab({
 		control: form.control,
 		name: "require_two_factor",
 	});
+	const mfaRequiredActions = useWatch({
+		control: form.control,
+		name: "mfa_required_actions",
+	});
+	const loginMfaRequired = Boolean(
+		requireTwoFactor && mfaRequiredActions?.includes("LOGIN"),
+	);
 	return (
 		<div className="grid min-h-0 flex-1 gap-6 lg:grid-cols-2">
 			<div className="flex min-h-0 flex-1 flex-col">
@@ -106,7 +113,7 @@ export function OrgSettingsGeneralRetentionTab({
 												onChange={(event) =>
 													field.onChange(event.target.valueAsNumber)
 												}
-												disabled={!canManage || isSubmitting}
+												disabled={!canManage || isSubmitting || loginMfaRequired}
 											/>
 										</FormControl>
 										<FormMessage />

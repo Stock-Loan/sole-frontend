@@ -1,5 +1,6 @@
 export const orgSettingsKeys = {
-	get: () => ["org-settings", "get"] as const,
+	get: (orgId?: string | null) =>
+		["org-settings", "get", orgId ?? "current"] as const,
 	update: (payload?: unknown) =>
 		["org-settings", "update", payload ?? {}] as const,
 	selfPolicy: () => ["org-policy", "self"] as const,

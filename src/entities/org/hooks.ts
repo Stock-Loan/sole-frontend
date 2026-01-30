@@ -25,16 +25,18 @@ import type {
 } from "./types";
 
 export function useOrgSettings(
+	orgId?: string | null,
 	options: Omit<UseQueryOptions<OrgSettings>, "queryKey" | "queryFn"> = {},
 ) {
 	return useQuery({
-		queryKey: orgSettingsKeys.get(),
+		queryKey: orgSettingsKeys.get(orgId),
 		queryFn: getOrgSettings,
 		...options,
 	});
 }
 
 export function useUpdateOrgSettings(
+	orgId?: string | null,
 	options: Omit<
 		UseMutationOptions<OrgSettings, unknown, OrgSettingsUpdatePayload>,
 		"mutationFn"
@@ -45,7 +47,10 @@ export function useUpdateOrgSettings(
 	return useMutation({
 		mutationFn: updateOrgSettings,
 		onSuccess: (data, variables, onMutateResult, context) => {
-			void queryClient.invalidateQueries({ queryKey: orgSettingsKeys.get() });
+			queryClient.setQueryData(orgSettingsKeys.get(orgId), data);
+			void queryClient.invalidateQueries({
+				queryKey: orgSettingsKeys.get(orgId),
+			});
 			options.onSuccess?.(data, variables, onMutateResult, context);
 		},
 		onError: (error, variables, onMutateResult, context) => {
