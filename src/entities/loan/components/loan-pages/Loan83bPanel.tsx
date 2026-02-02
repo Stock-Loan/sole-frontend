@@ -43,8 +43,7 @@ export function Loan83bPanel({
 		try {
 			await onRegister({
 				document_type: "SECTION_83B_ELECTION",
-				file_name: selectedFile.name,
-				storage_path_or_url: selectedFile.name,
+				file: selectedFile,
 			});
 			setSelectedFile(null);
 			toast({

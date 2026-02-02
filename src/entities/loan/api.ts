@@ -1,5 +1,6 @@
 import { apiClient } from "@/shared/api/http";
 import { unwrapApiResponse } from "@/shared/api/response";
+import { uploadFileToSignedUrl } from "@/shared/api/upload";
 import type {
 	FinanceLoanDetailResponse,
 	HrLoanDetailResponse,
@@ -19,6 +20,7 @@ import type {
 	LoanDocument,
 	LoanDocumentCreatePayload,
 	LoanDocumentUploadPayload,
+	LoanDocumentUploadUrlPayload,
 	LoanDocumentsGroupedResponse,
 	LoanActivateBacklogResponse,
 	LoanWorkflowAssignPayload,
@@ -30,6 +32,57 @@ import type {
 	LoanWorkflowStage,
 	LoanWorkflowStageUpdatePayload,
 } from "./types";
+
+async function requestLoanDocumentUploadUrl(
+	id: string,
+	payload: LoanDocumentUploadUrlPayload
+): Promise<{
+	upload_url: string;
+	required_headers_or_fields?: Record<string, string>;
+	storage_provider: string;
+	storage_bucket: string;
+	storage_key: string;
+	file_name?: string | null;
+}> {
+	const { data } = await apiClient.post(
+		`/org/loans/${id}/documents/upload-url`,
+		payload
+	);
+	return unwrapApiResponse(data);
+}
+
+async function uploadLoanDocumentToStage(
+	id: string,
+	endpoint: string,
+	payload: LoanDocumentUploadPayload
+): Promise<LoanDocument> {
+	const fileName = payload.file.name;
+	const contentType = payload.file.type || "application/octet-stream";
+	const sizeBytes = payload.file.size;
+	const uploadUrl = await requestLoanDocumentUploadUrl(id, {
+		document_type: payload.document_type,
+		file_name: fileName,
+		content_type: contentType,
+		size_bytes: sizeBytes,
+	});
+	await uploadFileToSignedUrl({
+		uploadUrl: uploadUrl.upload_url,
+		file: payload.file,
+		contentType,
+		requiredHeaders: uploadUrl.required_headers_or_fields,
+	});
+	const createPayload: LoanDocumentCreatePayload = {
+		document_type: payload.document_type,
+		file_name: uploadUrl.file_name ?? fileName,
+		storage_key: uploadUrl.storage_key,
+		storage_provider: uploadUrl.storage_provider,
+		storage_bucket: uploadUrl.storage_bucket,
+		content_type: contentType,
+		size_bytes: sizeBytes,
+	};
+	const { data } = await apiClient.post<LoanDocument>(endpoint, createPayload);
+	return unwrapApiResponse<LoanDocument>(data);
+}
 
 export async function getMyLoanQuote(
 	payload: LoanQuoteInput
@@ -144,6 +197,54 @@ export async function registerMyLoan83bDocument(
 	return unwrapApiResponse<LoanDocument>(data);
 }
 
+async function requestMyLoan83bUploadUrl(
+	id: string,
+	payload: LoanDocumentUploadUrlPayload
+): Promise<{
+	upload_url: string;
+	required_headers_or_fields?: Record<string, string>;
+	storage_provider: string;
+	storage_bucket: string;
+	storage_key: string;
+	file_name?: string | null;
+}> {
+	const { data } = await apiClient.post(
+		`/me/loans/${id}/documents/83b/upload-url`,
+		payload
+	);
+	return unwrapApiResponse(data);
+}
+
+export async function uploadMyLoan83bDocument(
+	id: string,
+	payload: LoanDocumentUploadPayload
+): Promise<LoanDocument> {
+	const fileName = payload.file.name;
+	const contentType = payload.file.type || "application/octet-stream";
+	const sizeBytes = payload.file.size;
+	const uploadUrl = await requestMyLoan83bUploadUrl(id, {
+		document_type: payload.document_type,
+		file_name: fileName,
+		content_type: contentType,
+		size_bytes: sizeBytes,
+	});
+	await uploadFileToSignedUrl({
+		uploadUrl: uploadUrl.upload_url,
+		file: payload.file,
+		contentType,
+		requiredHeaders: uploadUrl.required_headers_or_fields,
+	});
+	return registerMyLoan83bDocument(id, {
+		document_type: payload.document_type,
+		file_name: uploadUrl.file_name ?? fileName,
+		storage_key: uploadUrl.storage_key,
+		storage_provider: uploadUrl.storage_provider,
+		storage_bucket: uploadUrl.storage_bucket,
+		content_type: contentType,
+		size_bytes: sizeBytes,
+	});
+}
+
 export async function listOrgLoanApplications(
 	params: LoanApplicationListParams = {}
 ): Promise<LoanApplicationListResponse> {
@@ -180,7 +281,41 @@ export async function createOrgLoanRepayment(
 	appendIfValue("principal_amount", payload.principal_amount);
 	appendIfValue("interest_amount", payload.interest_amount);
 	if (payload.evidence_file) {
-		formData.append("evidence_file", payload.evidence_file);
+		const fileName = payload.evidence_file.name;
+		const contentType =
+			payload.evidence_file.type || "application/octet-stream";
+		const sizeBytes = payload.evidence_file.size;
+		const { data: uploadUrlData } = await apiClient.post(
+			`/org/loans/${id}/repayments/upload-url`,
+			{
+				file_name: fileName,
+				content_type: contentType,
+				size_bytes: sizeBytes,
+			}
+		);
+		const uploadUrl = unwrapApiResponse(uploadUrlData) as {
+			upload_url: string;
+			required_headers_or_fields?: Record<string, string>;
+			storage_provider: string;
+			storage_bucket: string;
+			storage_key: string;
+			file_name?: string | null;
+		};
+		await uploadFileToSignedUrl({
+			uploadUrl: uploadUrl.upload_url,
+			file: payload.evidence_file,
+			contentType,
+			requiredHeaders: uploadUrl.required_headers_or_fields,
+		});
+		formData.append("evidence_storage_key", uploadUrl.storage_key);
+		formData.append("evidence_storage_provider", uploadUrl.storage_provider);
+		formData.append("evidence_storage_bucket", uploadUrl.storage_bucket);
+		formData.append(
+			"evidence_file_name",
+			uploadUrl.file_name ?? fileName
+		);
+		formData.append("evidence_content_type", contentType);
+		formData.append("evidence_size_bytes", String(sizeBytes));
 	}
 	const { data } = await apiClient.post<LoanRepaymentRecordResponse>(
 		`/org/loans/${id}/repayments`,
@@ -393,15 +528,7 @@ export async function uploadHrDocument(
 	id: string,
 	payload: LoanDocumentUploadPayload
 ): Promise<LoanDocument> {
-	const formData = new FormData();
-	formData.append("document_type", payload.document_type);
-	formData.append("file", payload.file);
-	const { data } = await apiClient.post<LoanDocument>(
-		`/org/loans/${id}/documents/hr/upload`,
-		formData,
-		{ headers: { "Content-Type": "multipart/form-data" } }
-	);
-	return unwrapApiResponse<LoanDocument>(data);
+	return uploadLoanDocumentToStage(id, `/org/loans/${id}/documents/hr`, payload);
 }
 
 export async function registerFinanceDocument(
@@ -419,15 +546,11 @@ export async function uploadFinanceDocument(
 	id: string,
 	payload: LoanDocumentUploadPayload
 ): Promise<LoanDocument> {
-	const formData = new FormData();
-	formData.append("document_type", payload.document_type);
-	formData.append("file", payload.file);
-	const { data } = await apiClient.post<LoanDocument>(
-		`/org/loans/${id}/documents/finance/upload`,
-		formData,
-		{ headers: { "Content-Type": "multipart/form-data" } }
+	return uploadLoanDocumentToStage(
+		id,
+		`/org/loans/${id}/documents/finance`,
+		payload
 	);
-	return unwrapApiResponse<LoanDocument>(data);
 }
 
 export async function registerLegalDocument(
@@ -445,15 +568,11 @@ export async function uploadLegalDocument(
 	id: string,
 	payload: LoanDocumentUploadPayload
 ): Promise<LoanDocument> {
-	const formData = new FormData();
-	formData.append("document_type", payload.document_type);
-	formData.append("file", payload.file);
-	const { data } = await apiClient.post<LoanDocument>(
-		`/org/loans/${id}/documents/legal/upload`,
-		formData,
-		{ headers: { "Content-Type": "multipart/form-data" } }
+	return uploadLoanDocumentToStage(
+		id,
+		`/org/loans/${id}/documents/legal`,
+		payload
 	);
-	return unwrapApiResponse<LoanDocument>(data);
 }
 
 export async function registerLegalIssuanceDocument(
@@ -471,15 +590,11 @@ export async function uploadLegalIssuanceDocument(
 	id: string,
 	payload: LoanDocumentUploadPayload
 ): Promise<LoanDocument> {
-	const formData = new FormData();
-	formData.append("document_type", payload.document_type);
-	formData.append("file", payload.file);
-	const { data } = await apiClient.post<LoanDocument>(
-		`/org/loans/${id}/documents/legal-issuance/upload`,
-		formData,
-		{ headers: { "Content-Type": "multipart/form-data" } }
+	return uploadLoanDocumentToStage(
+		id,
+		`/org/loans/${id}/documents/legal-issuance`,
+		payload
 	);
-	return unwrapApiResponse<LoanDocument>(data);
 }
 
 export async function listOrgLoanDocuments(

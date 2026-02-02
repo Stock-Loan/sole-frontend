@@ -27,7 +27,7 @@ import {
 	useMyLoanRepayments,
 	useMyLoanSchedule,
 	useMyLoanScheduleWhatIf,
-	useRegisterMyLoan83bDocument,
+	useUploadMyLoan83bDocument,
 } from "@/entities/loan/hooks";
 import { useToast } from "@/shared/ui/use-toast";
 import { parseApiError } from "@/shared/api/errors";
@@ -89,7 +89,7 @@ export function LoanSelfDetailContent({
 	});
 	const isActiveLoan = loan?.status === "ACTIVE";
 	const show83bAction = isActiveLoan && !loan?.has_83b_election && canUpload83b;
-	const register83bMutation = useRegisterMyLoan83bDocument();
+	const register83bMutation = useUploadMyLoan83bDocument();
 	const availableTabs = useMemo<LoanDetailTabOption[]>(() => {
 		const options: LoanDetailTabOption[] = [
 			{ id: "overview", label: "Overview" },

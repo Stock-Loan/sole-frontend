@@ -49,6 +49,27 @@ export interface OrgDocumentTemplateListParams {
 	folder_id?: string | null;
 }
 
+export interface OrgDocumentTemplateUploadUrlPayload {
+	folder_id?: string | null;
+	file_name: string;
+	content_type: string;
+	size_bytes: number;
+	checksum?: string | null;
+}
+
+export interface OrgDocumentTemplateCreatePayload {
+	folder_id?: string | null;
+	name?: string | null;
+	description?: string | null;
+	file_name: string;
+	storage_key: string;
+	storage_provider: string;
+	storage_bucket: string;
+	content_type: string;
+	size_bytes: number;
+	checksum?: string | null;
+}
+
 export interface OrgDocumentTemplateUploadPayload {
 	file: File;
 	folder_id?: string | null;

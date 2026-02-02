@@ -40,6 +40,7 @@ import {
 	activateLoanBacklog,
 	assignLoanWorkflowStage,
 	registerMyLoan83bDocument,
+	uploadMyLoan83bDocument,
 	registerFinanceDocument,
 	registerHrDocument,
 	registerLegalDocument,
@@ -927,6 +928,38 @@ export function useRegisterMyLoan83bDocument(
 			options.onError?.(error, variables, onMutateResult, context);
 		},
 		...options,
+	});
+}
+
+export function useUploadMyLoan83bDocument(
+	options: Omit<
+		UseMutationOptions<
+			LoanDocument,
+			unknown,
+			{ id: string; payload: LoanDocumentUploadPayload }
+		>,
+		"mutationFn"
+	> = {},
+) {
+	const queryClient = useQueryClient();
+	return useMutation<
+		LoanDocument,
+		unknown,
+		{ id: string; payload: LoanDocumentUploadPayload }
+	>({
+		mutationFn: ({ id, payload }) => uploadMyLoan83bDocument(id, payload),
+		onSuccess: (data, variables, onMutateResult, context) => {
+			void queryClient.invalidateQueries({
+				queryKey: meKeys.loans.documents(variables.id),
+			});
+			void queryClient.invalidateQueries({
+				queryKey: meKeys.loans.detail(variables.id),
+			});
+			options.onSuccess?.(data, variables, onMutateResult, context);
+		},
+		onError: (error, variables, onMutateResult, context) => {
+			options.onError?.(error, variables, onMutateResult, context);
+		},
 	});
 }
 

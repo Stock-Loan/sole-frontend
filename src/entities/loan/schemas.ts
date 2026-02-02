@@ -15,7 +15,12 @@ export const loanSpouseInfoSchema = z.object({
 export const loanDocumentCreateSchema = z.object({
 	document_type: nonEmptyString,
 	file_name: nonEmptyString,
-	storage_path_or_url: nonEmptyString,
+	storage_key: nonEmptyString,
+	storage_provider: nonEmptyString,
+	storage_bucket: nonEmptyString,
+	content_type: nonEmptyString,
+	size_bytes: z.coerce.number().int().positive(),
+	checksum: z.string().trim().optional().or(z.literal("")),
 });
 
 export const loanDocumentUploadSchema = z.object({

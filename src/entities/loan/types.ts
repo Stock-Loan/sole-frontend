@@ -381,7 +381,20 @@ export interface LoanWorkflowAssignPayload {
 export interface LoanDocumentCreatePayload {
 	document_type: string;
 	file_name: string;
-	storage_path_or_url: string;
+	storage_key: string;
+	storage_provider: string;
+	storage_bucket: string;
+	content_type: string;
+	size_bytes: number;
+	checksum?: string | null;
+}
+
+export interface LoanDocumentUploadUrlPayload {
+	document_type: string;
+	file_name: string;
+	content_type: string;
+	size_bytes: number;
+	checksum?: string | null;
 }
 
 export interface LoanDocumentUploadPayload {
@@ -767,7 +780,7 @@ export interface Loan83bPanelProps {
 	loanId: string;
 	dueDate?: string | null;
 	daysUntilDue?: number | null;
-	onRegister: (payload: LoanDocumentCreatePayload) => Promise<unknown>;
+	onRegister: (payload: LoanDocumentUploadPayload) => Promise<unknown>;
 	isRegistering?: boolean;
 }
 
