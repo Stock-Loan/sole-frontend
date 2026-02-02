@@ -3,7 +3,10 @@ import type { PublicHeaderProps } from "./types";
 
 export function PublicHeader({ actions }: PublicHeaderProps) {
 	return (
-		<header className="w-full">
+		<header
+			className="sticky top-0 z-40 w-full transform-gpu"
+			style={{ willChange: "transform" }}
+		>
 			<div className="px-6 py-4 sm:px-6 lg:px-10">
 				<Logo />
 				{actions}

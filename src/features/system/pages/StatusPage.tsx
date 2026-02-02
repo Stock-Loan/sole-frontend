@@ -126,44 +126,46 @@ export function StatusPage() {
 						</CardTitle>
 					</CardHeader>
 					<CardContent className="p-0">
-						<table className="w-full text-sm">
-							<thead className="text-left text-xs uppercase text-muted-foreground">
-								<tr className="border-b">
-									<th className="px-4 py-3">Service</th>
-									<th className="px-4 py-3">Status</th>
-									<th className="px-4 py-3">Version</th>
-									<th className="px-4 py-3">Notes</th>
-								</tr>
-							</thead>
-							<tbody>
-								{Object.entries(data.checks).map(([name, check]) => {
-									if (!check) return null;
-									const copy = statusCopy[check.status];
-									const Icon = copy.icon;
-									return (
-										<tr key={name} className="border-b last:border-b-0">
-											<td className="px-4 py-3 font-medium capitalize">
-												{name}
-											</td>
-											<td className="px-4 py-3">
-												<span
-													className={`inline-flex items-center gap-1 ${copy.className}`}
-												>
-													<Icon className="h-4 w-4" aria-hidden="true" />
-													{copy.label}
-												</span>
-											</td>
-											<td className="px-4 py-3 text-muted-foreground">
-												{check.version || "—"}
-											</td>
-											<td className="px-4 py-3 text-muted-foreground">
-												{check.message || "No incidents reported"}
-											</td>
-										</tr>
-									);
-								})}
-							</tbody>
-						</table>
+						<div className="w-full overflow-x-auto">
+							<table className="min-w-[520px] w-full text-sm">
+								<thead className="text-left text-xs uppercase text-muted-foreground">
+									<tr className="border-b">
+										<th className="px-4 py-3">Service</th>
+										<th className="px-4 py-3">Status</th>
+										<th className="px-4 py-3">Version</th>
+										<th className="px-4 py-3">Notes</th>
+									</tr>
+								</thead>
+								<tbody>
+									{Object.entries(data.checks).map(([name, check]) => {
+										if (!check) return null;
+										const copy = statusCopy[check.status];
+										const Icon = copy.icon;
+										return (
+											<tr key={name} className="border-b last:border-b-0">
+												<td className="px-4 py-3 font-medium capitalize">
+													{name}
+												</td>
+												<td className="px-4 py-3">
+													<span
+														className={`inline-flex items-center gap-1 ${copy.className}`}
+													>
+														<Icon className="h-4 w-4" aria-hidden="true" />
+														{copy.label}
+													</span>
+												</td>
+												<td className="px-4 py-3 text-muted-foreground">
+													{check.version || "—"}
+												</td>
+												<td className="px-4 py-3 text-muted-foreground">
+													{check.message || "No incidents reported"}
+												</td>
+											</tr>
+										);
+									})}
+								</tbody>
+							</table>
+						</div>
 					</CardContent>
 				</Card>
 				<div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
