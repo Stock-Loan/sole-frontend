@@ -16,6 +16,7 @@ import { ANNOUNCEMENT_TYPE_COLORS } from "@/entities/announcement/constants";
 import {
 	useMarkNotificationRead,
 	useRecentNotifications,
+	useAnnouncementStream,
 	useUnreadNotificationCount,
 	useUnreadNotifications,
 } from "../hooks";
@@ -31,6 +32,7 @@ export function NotificationBell() {
 	const unreadCountQuery = useUnreadNotificationCount(canView);
 	const recentReadQuery = useRecentNotifications(open && canView);
 	const markReadMutation = useMarkNotificationRead();
+	useAnnouncementStream(canView);
 
 	const announcements = useMemo(
 		() => unreadListQuery.data?.items ?? [],
