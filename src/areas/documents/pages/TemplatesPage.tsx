@@ -64,10 +64,13 @@ export function TemplatesPage() {
 			: null;
 	}, [folders, selectedFolderId]);
 
-	const templatesQuery = useOrgDocumentTemplates(
-		{ folder_id: activeFolderId ?? undefined },
-		{ enabled: canView },
+	const templateParams = useMemo(
+		() => (activeFolderId ? { folder_id: activeFolderId } : {}),
+		[activeFolderId],
 	);
+	const templatesQuery = useOrgDocumentTemplates(templateParams, {
+		enabled: canView,
+	});
 	const templates = useMemo(
 		() => templatesQuery.data?.items ?? [],
 		[templatesQuery.data],
