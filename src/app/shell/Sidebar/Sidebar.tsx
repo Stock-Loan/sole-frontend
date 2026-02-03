@@ -25,6 +25,8 @@ export function Sidebar({
 	collapsed: collapsedProp,
 	onCollapseChange,
 	onNavigate,
+	mobileOpen = false,
+	onMobileClose,
 }: SidebarProps) {
 	const location = useLocation();
 	const activeArea = useActiveArea();
@@ -86,17 +88,23 @@ export function Sidebar({
 		return bestMatchId;
 	}, [visibleItems, location.pathname]);
 
+	const handleNavigate = () => {
+		onNavigate?.();
+		onMobileClose?.();
+	};
+
 	return (
 		<aside
 			className={cn(
-				"relative z-50 flex h-full flex-col rounded-3xl border border-border/60 bg-background/80 shadow-sm backdrop-blur transition-[width] duration-300",
-				collapsed ? "w-24" : "w-50",
+				"fixed inset-y-0 left-0 z-50 flex h-[100dvh] w-72 flex-col border border-border/60 bg-background/80 shadow-sm backdrop-blur transition-transform duration-300 md:static md:h-full md:translate-x-0 md:rounded-3xl md:transition-[width] md:duration-300",
+				mobileOpen ? "translate-x-0" : "-translate-x-full",
+				collapsed ? "md:w-24" : "md:w-50",
 			)}
 		>
 			<Button
 				variant="ghost"
 				size="icon"
-				className="absolute -right-3 top-20 z-50 h-6 w-6 rounded-full border border-border bg-background p-0 shadow-sm hover:bg-accent focus-visible:ring-offset-0"
+				className="absolute -right-3 top-20 z-50 hidden h-6 w-6 rounded-full border border-border bg-background p-0 shadow-sm hover:bg-accent focus-visible:ring-offset-0 md:inline-flex"
 				onClick={handleToggle}
 				aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
 			>
@@ -157,7 +165,7 @@ export function Sidebar({
 							item={item}
 							collapsed={collapsed}
 							isActive={item.id === activeItemId}
-							onNavigate={onNavigate}
+							onNavigate={handleNavigate}
 						/>
 					))
 				)}

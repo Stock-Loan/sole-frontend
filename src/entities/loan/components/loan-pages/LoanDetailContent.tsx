@@ -222,6 +222,8 @@ export function LoanDetailContent({
 		);
 	};
 	const showOverview = !showTabs || activeTab === "overview";
+	const showEditInfo = Boolean(loan.last_edit_note);
+	const editedByName = loan.last_edited_by?.full_name ?? "Unknown user";
 	const missedPaymentDates = loan.missed_payment_dates?.filter(Boolean) ?? [];
 	const missedPaymentDatesLabel = formatList(
 		missedPaymentDates.map((date) => formatDate(date)),
@@ -262,6 +264,19 @@ export function LoanDetailContent({
 					) : null}
 				</div>
 			</div>
+
+			{showEditInfo ? (
+				<div className="rounded-md border border-border/60 bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
+					<p className="font-semibold text-foreground">Edited</p>
+					<p className="mt-1">
+						Last edited by {editedByName} on{" "}
+						{loan.last_edited_at ? formatDate(loan.last_edited_at) : "—"}.
+					</p>
+					<p className="mt-1 text-foreground">
+						Reason: {loan.last_edit_note ?? "—"}
+					</p>
+				</div>
+			) : null}
 
 			{showOverview ? (
 				<>
@@ -325,6 +340,29 @@ export function LoanDetailContent({
 									label="Updated at"
 									value={formatDate(loan.updated_at)}
 								/>
+								{showEditInfo ? (
+									<>
+										<DetailRow
+											label="Last edited by"
+											value={
+												loan.last_edited_by?.full_name ??
+												loan.last_edited_by?.email ??
+												loan.last_edited_by?.user_id ??
+												"—"
+											}
+											valueClassName="break-all"
+										/>
+										<DetailRow
+											label="Last edited at"
+											value={formatDate(loan.last_edited_at)}
+										/>
+										<DetailRow
+											label="Edit note"
+											value={loan.last_edit_note ?? "—"}
+											valueClassName="break-words"
+										/>
+									</>
+								) : null}
 							</CardContent>
 						</Card>
 
@@ -358,7 +396,6 @@ export function LoanDetailContent({
 							</CardContent>
 						</Card>
 					</div>
-
 					{loan.applicant ? (
 						<Card>
 							<CardHeader className="pb-2">

@@ -11,4 +11,6 @@ export interface SidebarProps {
 	collapsed?: boolean;
 	onCollapseChange?: (collapsed: boolean) => void;
 	onNavigate?: () => void;
+	mobileOpen?: boolean;
+	onMobileClose?: () => void;
 }

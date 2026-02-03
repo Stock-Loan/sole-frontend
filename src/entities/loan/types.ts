@@ -230,6 +230,12 @@ export interface LoanApplicationQuoteInputsSnapshot {
 	as_of_date?: string | null;
 }
 
+export interface LoanEditActor {
+	user_id: string;
+	full_name: string;
+	email: string;
+}
+
 export interface LoanApplication extends LoanApplicationSummary {
 	activation_date?: string | null;
 	election_83b_due_date?: string | null;
@@ -274,6 +280,9 @@ export interface LoanApplication extends LoanApplicationSummary {
 	has_83b_election?: boolean;
 	days_until_83b_due?: number | null;
 	decision_reason?: string | null;
+	last_edit_note?: string | null;
+	last_edited_at?: string | null;
+	last_edited_by?: LoanEditActor | null;
 }
 
 export interface LoanApplicantSummary {
@@ -727,11 +736,57 @@ export interface LoanRepaymentsPanelProps {
 	className?: string;
 }
 
+export interface LoanAdminEditFormValues {
+	note: string;
+	selection_mode: LoanSelectionMode;
+	selection_value: string;
+	as_of_date: string;
+	desired_interest_type: LoanInterestType | "";
+	desired_repayment_method: LoanRepaymentMethod | "";
+	desired_term_months: string;
+	marital_status_snapshot: string;
+	spouse_first_name: string;
+	spouse_middle_name: string;
+	spouse_last_name: string;
+	spouse_email: string;
+	spouse_phone: string;
+	spouse_address: string;
+	reset_workflow: boolean;
+	delete_documents: boolean;
+}
+
+export interface LoanAdminEditPayload {
+	note: string;
+	reset_workflow?: boolean;
+	delete_documents?: boolean;
+	selection_mode?: LoanSelectionMode;
+	selection_value?: string | null;
+	as_of_date?: string | null;
+	desired_interest_type?: LoanInterestType | null;
+	desired_repayment_method?: LoanRepaymentMethod | null;
+	desired_term_months?: number | null;
+	marital_status_snapshot?: string | null;
+	spouse_first_name?: string | null;
+	spouse_middle_name?: string | null;
+	spouse_last_name?: string | null;
+	spouse_email?: string | null;
+	spouse_phone?: string | null;
+	spouse_address?: string | null;
+}
+
 export type LoanDetailTab = "overview" | "repayments" | "schedule" | "83b";
 
 export interface LoanDetailTabOption {
 	id: LoanDetailTab;
 	label: string;
+}
+
+export interface LoanEditDialogProps {
+	open: boolean;
+	onOpenChange: (open: boolean) => void;
+	loan?: LoanApplication | null;
+	onSubmit: (values: LoanAdminEditFormValues) => Promise<void> | void;
+	isSubmitting?: boolean;
 }
 
 export interface LoanRepaymentDialogProps {

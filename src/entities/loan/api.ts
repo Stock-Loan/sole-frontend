@@ -17,6 +17,7 @@ import type {
 	LoanRepaymentsResponse,
 	LoanScheduleResponse,
 	LoanScheduleWhatIfPayload,
+	LoanAdminEditPayload,
 	LoanDocument,
 	LoanDocumentCreatePayload,
 	LoanDocumentUploadPayload,
@@ -378,6 +379,17 @@ export async function getOrgLoanApplication(
 	id: string
 ): Promise<LoanApplication> {
 	const { data } = await apiClient.get<LoanApplication>(`/org/loans/${id}`);
+	return unwrapApiResponse<LoanApplication>(data);
+}
+
+export async function editOrgLoanApplication(
+	id: string,
+	payload: LoanAdminEditPayload
+): Promise<LoanApplication> {
+	const { data } = await apiClient.patch<LoanApplication>(
+		`/org/loans/${id}/edit`,
+		payload
+	);
 	return unwrapApiResponse<LoanApplication>(data);
 }
 

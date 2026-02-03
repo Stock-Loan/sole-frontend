@@ -12,22 +12,13 @@ import {
 import { formatCurrency, formatDate } from "@/shared/lib/format";
 import { formatShares } from "@/entities/stock-grant/constants";
 import { normalizeDisplay } from "@/shared/lib/utils";
-import type { StockGrant } from "@/entities/stock-grant/types";
+import type {
+	StockGrantDetailGridProps,
+	StockGrantDetailItem,
+	StockGrantDetailProps,
+} from "@/entities/stock-grant/types";
 
-type StockGrantDetailProps = {
-	grant: StockGrant | null;
-	isLoading?: boolean;
-	isError?: boolean;
-	onRetry?: () => void;
-	showOrgFields?: boolean;
-};
-
-type DetailItem = {
-	label: string;
-	value: string;
-};
-
-function DetailGrid({ items }: { items: DetailItem[] }) {
+function DetailGrid({ items }: StockGrantDetailGridProps) {
 	return (
 		<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
 			{items.map((item) => (
@@ -71,7 +62,7 @@ export function StockGrantDetail({
 				)})`
 			: "—";
 
-	const summaryItems: DetailItem[] = [
+	const summaryItems: StockGrantDetailItem[] = [
 		{ label: "Grant date", value: formatDate(grant.grant_date) },
 		{ label: "Total shares", value: formatShares(grant.total_shares) },
 		{

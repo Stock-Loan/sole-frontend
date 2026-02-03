@@ -24,6 +24,7 @@ import {
 	getMyLegalLoanQueue,
 	getLoanDashboardSummary,
 	getOrgLoanApplication,
+	editOrgLoanApplication,
 	getMyLoanQuote,
 	listOrgLoanDocuments,
 	listOrgLoanApplications,
@@ -76,6 +77,7 @@ import type {
 	LoanRepaymentsResponse,
 	LoanScheduleResponse,
 	LoanScheduleWhatIfPayload,
+	LoanAdminEditPayload,
 	LoanWorkflowAssignPayload,
 	LoanQueueListParams,
 	LoanQueueListResponse,
@@ -996,6 +998,35 @@ export function useActivateLoanBacklog(
 		mutationFn: (params) => activateLoanBacklog(params),
 		onSuccess: (data, variables, onMutateResult, context) => {
 			void queryClient.invalidateQueries({ queryKey: orgKeys.loans.list() });
+			options.onSuccess?.(data, variables, onMutateResult, context);
+		},
+		onError: (error, variables, onMutateResult, context) => {
+			options.onError?.(error, variables, onMutateResult, context);
+		},
+		...options,
+	});
+}
+
+export function useEditOrgLoanApplication(
+	options: Omit<
+		UseMutationOptions<
+			LoanApplication,
+			unknown,
+			{ id: string; payload: LoanAdminEditPayload }
+		>,
+		"mutationFn"
+	> = {},
+) {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: ({ id, payload }) => editOrgLoanApplication(id, payload),
+		onSuccess: (data, variables, onMutateResult, context) => {
+			void queryClient.invalidateQueries({
+				queryKey: orgKeys.loans.detail(variables.id),
+			});
+			void queryClient.invalidateQueries({
+				queryKey: orgKeys.loans.list(),
+			});
 			options.onSuccess?.(data, variables, onMutateResult, context);
 		},
 		onError: (error, variables, onMutateResult, context) => {

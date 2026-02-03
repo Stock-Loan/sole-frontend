@@ -206,6 +206,23 @@ export interface StockGrantDialogProps {
 	isSubmitting?: boolean;
 }
 
+export interface StockGrantDetailItem {
+	label: string;
+	value: string;
+}
+
+export interface StockGrantDetailGridProps {
+	items: StockGrantDetailItem[];
+}
+
+export interface StockGrantDetailProps {
+	grant: StockGrant | null;
+	isLoading?: boolean;
+	isError?: boolean;
+	onRetry?: () => void;
+	showOrgFields?: boolean;
+}
+
 export interface StockGrantsSectionProps {
 	membershipId: string;
 	canManage: boolean;

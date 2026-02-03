@@ -1,22 +1,26 @@
-import type { SearchItem } from "@/features/search/types";
+export interface TopbarProps {
+	onToggleSidebar?: () => void;
+}
 
-export type SearchItemWithAccess = SearchItem & {
-	permissions?: string | string[];
-};
-
-export type RouteSearchMeta = {
-	title: string;
-	description?: string;
-	category?: string;
-	permissions?: string | string[];
-	path?: string;
-	hidden?: boolean;
-};
-
-export type RouteHandle = {
-	search?: RouteSearchMeta;
-};
-
-export type UserDropdownProps = {
+export interface UserDropdownProps {
 	showChevron?: boolean;
-};
+}
+
+export interface RouteHandle {
+	search?: {
+		title: string;
+		description?: string;
+		category?: string;
+		path?: string;
+		permissions?: string | string[];
+		hidden?: boolean;
+	};
+}
+
+export interface SearchItemWithAccess {
+	title: string;
+	description: string;
+	category: string;
+	path: string;
+	permissions?: string | string[];
+}

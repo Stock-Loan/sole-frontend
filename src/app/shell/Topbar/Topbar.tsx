@@ -6,14 +6,27 @@ import { UserMenu } from "./UserMenu";
 import { useMemo } from "react";
 import { usePermissions } from "@/auth/hooks";
 import { getSearchItems } from "./search-items";
+import { Button } from "@/shared/ui/Button";
+import { Menu } from "lucide-react";
+import type { TopbarProps } from "./types";
 
-export function Topbar() {
+export function Topbar({ onToggleSidebar }: TopbarProps) {
 	const { can } = usePermissions();
 	const searchItems = useMemo(() => getSearchItems(can), [can]);
 
 	return (
 		<header className="sticky top-0 z-40 flex items-center justify-between gap-4 px-6 py-3">
 			<div className="flex items-center gap-3 shrink-0">
+				<Button
+					type="button"
+					variant="ghost"
+					size="icon"
+					className="md:hidden"
+					onClick={onToggleSidebar}
+					aria-label="Open navigation"
+				>
+					<Menu className="h-5 w-5" />
+				</Button>
 				<AreaSwitcher />
 			</div>
 

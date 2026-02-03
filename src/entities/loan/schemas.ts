@@ -51,3 +51,28 @@ export const loanScheduleWhatIfSchema = z.object({
 	annual_rate_percent: nonEmptyString,
 	principal: z.string().trim().optional().or(z.literal("")),
 });
+
+export const loanAdminEditSchema = z.object({
+	note: nonEmptyString,
+	selection_mode: z.enum(["SHARES", "PERCENT"]),
+	selection_value: nonEmptyString,
+	as_of_date: nonEmptyString,
+	desired_interest_type: z.enum(["FIXED", "VARIABLE"]).or(z.literal("")),
+	desired_repayment_method: z
+		.enum(["BALLOON", "PRINCIPAL_AND_INTEREST"])
+		.or(z.literal("")),
+	desired_term_months: z.string().trim().refine(
+		(value) =>
+			!value || (Number.isFinite(Number(value)) && Number(value) > 0),
+		"Enter a valid term"
+	),
+	marital_status_snapshot: z.string().trim().or(z.literal("")),
+	spouse_first_name: z.string().trim().or(z.literal("")),
+	spouse_middle_name: z.string().trim().or(z.literal("")),
+	spouse_last_name: z.string().trim().or(z.literal("")),
+	spouse_email: z.string().trim().or(z.literal("")),
+	spouse_phone: z.string().trim().or(z.literal("")),
+	spouse_address: z.string().trim().or(z.literal("")),
+	reset_workflow: z.boolean(),
+	delete_documents: z.boolean(),
+});

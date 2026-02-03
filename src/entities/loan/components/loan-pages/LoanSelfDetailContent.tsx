@@ -196,6 +196,8 @@ export function LoanSelfDetailContent({
 		);
 	};
 	const showOverview = !showTabs || activeTab === "overview";
+	const showEditInfo = Boolean(loan.last_edit_note);
+	const editedByName = loan.last_edited_by?.full_name ?? "Unknown user";
 
 	return (
 		<div className="space-y-6">
@@ -316,6 +318,18 @@ export function LoanSelfDetailContent({
 							</CardContent>
 						</Card>
 					</div>
+					{showEditInfo ? (
+						<div className="rounded-md border border-border/60 bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
+							<p className="font-semibold text-foreground">Edited</p>
+							<p className="mt-1">
+								Last edited by {editedByName} on{" "}
+								{loan.last_edited_at ? formatDate(loan.last_edited_at) : "—"}.
+							</p>
+							<p className="mt-1 text-foreground">
+								Reason: {loan.last_edit_note ?? "—"}
+							</p>
+						</div>
+					) : null}
 
 					<div className="grid gap-4 lg:grid-cols-2">
 						<Card>
