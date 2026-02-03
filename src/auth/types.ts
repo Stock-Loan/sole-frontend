@@ -194,6 +194,7 @@ export interface MfaEnrollmentPageProps {
 	isSubmitting: boolean;
 	onSubmit: (values: LoginMfaFormValues) => void;
 	onReset: () => void;
+	resetLabel?: string;
 }
 
 export interface OtpInputProps {

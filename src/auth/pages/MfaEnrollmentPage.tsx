@@ -26,6 +26,7 @@ export function MfaEnrollmentPage({
 	isSubmitting,
 	onSubmit,
 	onReset,
+	resetLabel = "Use a different email",
 }: MfaEnrollmentPageProps) {
 	return (
 		<div className="fixed inset-0 z-50 flex flex-col overflow-hidden bg-background">
@@ -157,7 +158,7 @@ export function MfaEnrollmentPage({
 												className="inline-flex items-center justify-center gap-1 text-xs font-semibold text-primary hover:underline"
 											>
 												<ArrowLeft className="h-3 w-3" />
-												Use a different email
+												{resetLabel}
 											</button>
 										</div>
 

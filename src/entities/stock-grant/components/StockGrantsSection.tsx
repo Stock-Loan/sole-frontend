@@ -5,6 +5,7 @@ import {
 	useMemo,
 	useState,
 } from "react";
+import { useNavigate } from "react-router-dom";
 import type { PaginationState, VisibilityState } from "@tanstack/react-table";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/Button";
@@ -15,6 +16,7 @@ import { useApiErrorToast } from "@/shared/api/useApiErrorToast";
 import { formatCurrency, formatDate } from "@/shared/lib/format";
 import { usePermissions, useAuth } from "@/auth/hooks";
 import { formatShares } from "@/entities/stock-grant/constants";
+import { routes } from "@/shared/lib/routes";
 import {
 	useCreateStockGrant,
 	useStockGrantsList,
@@ -60,6 +62,7 @@ export const StockGrantsSection = forwardRef<
 	{ membershipId, canManage, isGrantActionBlocked = false },
 	ref,
 ) {
+	const navigate = useNavigate();
 	const { toast } = useToast();
 	const apiErrorToast = useApiErrorToast();
 	const { can } = usePermissions();
@@ -453,6 +456,11 @@ export const StockGrantsSection = forwardRef<
 				emptyMessage="No grants yet for this employee."
 				enableRowSelection={canManage}
 				enableExport={true}
+				onRowClick={(grant) =>
+					navigate(
+						routes.stockGrantDetail.replace(":grantId", grant.id),
+					)
+				}
 				preferences={preferencesConfig}
 				initialColumnVisibility={initialColumnVisibility}
 				pagination={{
@@ -487,23 +495,42 @@ export const StockGrantsSection = forwardRef<
 							selectedGrant.status === "EXERCISED_OUT"
 						: false;
 					return (
-						<Button
-							variant="outline"
-							size="sm"
-							disabled={!hasSingle || isLocked}
-							onClick={() => {
-								if (selectedGrant) {
-									handleOpenEdit(selectedGrant);
+						<div className="flex items-center gap-2">
+							<Button
+								variant="outline"
+								size="sm"
+								disabled={!hasSingle}
+								onClick={() => {
+									if (selectedGrant) {
+										navigate(
+											routes.stockGrantDetail.replace(
+												":grantId",
+												selectedGrant.id,
+											),
+										);
+									}
+								}}
+							>
+								View details
+							</Button>
+							<Button
+								variant="outline"
+								size="sm"
+								disabled={!hasSingle || isLocked}
+								onClick={() => {
+									if (selectedGrant) {
+										handleOpenEdit(selectedGrant);
+									}
+								}}
+								title={
+									isLocked
+										? "This grant is locked and cannot be edited."
+										: "Edit grant"
 								}
-							}}
-							title={
-								isLocked
-									? "This grant is locked and cannot be edited."
-									: "Edit grant"
-							}
-						>
-							Edit
-						</Button>
+							>
+								Edit
+							</Button>
+						</div>
 					);
 				}}
 			/>

@@ -12,6 +12,8 @@ export const stockGrantKeys = {
 			["stock", "grants", "list", membershipId, params ?? {}] as const,
 		all: (membershipId: string) =>
 			["stock", "grants", "all", membershipId] as const,
+		detail: (grantId: string) =>
+			["stock", "grants", "detail", grantId] as const,
 	},
 	dashboardSummary: (params?: StockDashboardSummaryParams) =>
 		["stock", "dashboard-summary", params ?? {}] as const,

@@ -20,6 +20,7 @@ import {
 	FormMessage,
 } from "@/shared/ui/Form/form";
 import { Input } from "@/shared/ui/input";
+import { Textarea } from "@/shared/ui/textarea";
 import {
 	Select,
 	SelectContent,
@@ -244,11 +245,12 @@ export function StockGrantDialog({
 										<FormItem className="md:col-span-2">
 											<FormLabel>Notes</FormLabel>
 											<FormControl>
-												<Input
+												<Textarea
 													placeholder="Optional note"
 													{...field}
 													value={(field.value as string) || ""}
 													disabled={isSubmitting}
+													rows={3}
 												/>
 											</FormControl>
 											<FormMessage />

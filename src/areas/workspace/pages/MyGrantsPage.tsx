@@ -8,6 +8,8 @@ import { useMeDashboardSummary } from "@/entities/dashboard/hooks";
 import { formatCurrency, formatDate } from "@/shared/lib/format";
 import { formatShares } from "@/entities/stock-grant/constants";
 import type { DashboardGrantSummary } from "@/entities/dashboard/types";
+import { routes } from "@/shared/lib/routes";
+import { useNavigate } from "react-router-dom";
 
 const columns: ColumnDefinition<DashboardGrantSummary>[] = [
 	{
@@ -86,6 +88,7 @@ const columns: ColumnDefinition<DashboardGrantSummary>[] = [
 ];
 
 export function MyGrantsPage() {
+	const navigate = useNavigate();
 	const { can } = usePermissions();
 	const canViewSelf = can("stock.self.view");
 	const summaryQuery = useMeDashboardSummary({}, { enabled: canViewSelf });
@@ -122,6 +125,14 @@ export function MyGrantsPage() {
 					emptyMessage="No grants found."
 					enableRowSelection={false}
 					enableExport={false}
+					onRowClick={(grant) =>
+						navigate(
+							routes.workspaceGrantDetail.replace(
+								":grantId",
+								grant.grant_id,
+							),
+						)
+					}
 					className="min-h-0 flex-1"
 					pagination={{ enabled: false }}
 				/>

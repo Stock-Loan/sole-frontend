@@ -14,7 +14,7 @@ export function StatusPage() {
 	const { data, isLoading, isError, refetch } = useStatusSummary();
 
 	const renderStatusBadge = (status: ServiceStatus) => {
-		const definition = statusCopy[status];
+		const definition = statusCopy[status] ?? statusCopy.down;
 		const Icon = definition.icon;
 		return (
 			<span
@@ -137,10 +137,11 @@ export function StatusPage() {
 									</tr>
 								</thead>
 								<tbody>
-									{Object.entries(data.checks).map(([name, check]) => {
-										if (!check) return null;
-										const copy = statusCopy[check.status];
-										const Icon = copy.icon;
+								{Object.entries(data.checks).map(([name, check]) => {
+									if (!check) return null;
+									const copy =
+										statusCopy[check.status as ServiceStatus] ?? statusCopy.down;
+									const Icon = copy.icon;
 										return (
 											<tr key={name} className="border-b last:border-b-0">
 												<td className="px-4 py-3 font-medium capitalize">
@@ -184,7 +185,7 @@ function ServiceCard({
 	message,
 	icon: Icon,
 }: ServiceCardProps) {
-	const copy = statusCopy[status];
+	const copy = statusCopy[status] ?? statusCopy.down;
 	return (
 		<div className="rounded-lg border bg-card p-4 shadow-sm transition hover:border-primary/40">
 			<div className="flex items-center justify-between">

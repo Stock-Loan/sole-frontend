@@ -9,6 +9,7 @@ import { MyLoanDetailPage } from "./pages/MyLoanDetailPage";
 import { MyLoanDocumentsPage } from "./pages/MyLoanDocumentsPage";
 import { MyVestingEventsPage } from "./pages/MyVestingEventsPage";
 import { MyGrantsPage } from "./pages/MyGrantsPage";
+import { MyGrantDetailPage } from "./pages/MyGrantDetailPage";
 
 export const workspaceRoutes: RouteObject[] = [
 	{
@@ -93,6 +94,14 @@ export const workspaceRoutes: RouteObject[] = [
 				category: "Stock",
 			},
 		},
+	},
+	{
+		path: "grants/:grantId",
+		element: (
+			<RequirePermission permission="stock.self.view">
+				<MyGrantDetailPage />
+			</RequirePermission>
+		),
 	},
 	{
 		path: "settings",

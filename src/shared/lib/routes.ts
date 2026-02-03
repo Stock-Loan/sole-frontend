@@ -1,6 +1,7 @@
 export const routes = {
 	root: "/",
 	login: "/auth/login",
+	mfaSetup: "/auth/mfa-setup",
 	changePassword: "/auth/change-password",
 	status: "/status",
 	notAuthorized: "/not-authorized",
@@ -8,6 +9,7 @@ export const routes = {
 	workspace: "/app/workspace",
 	workspaceLoans: "/app/workspace/loans",
 	workspaceGrants: "/app/workspace/grants",
+	workspaceGrantDetail: "/app/workspace/grants/:grantId",
 	workspaceVestingEvents: "/app/workspace/vesting-events",
 	workspaceLoanWizardNew: "/app/workspace/loans/new",
 	workspaceLoanWizardEdit: "/app/workspace/loans/:id/edit",
@@ -24,6 +26,7 @@ export const routes = {
 	stockOverview: "/app/stock",
 	stockManage: "/app/stock/manage",
 	stockGrants: "/app/stock/grants",
+	stockGrantDetail: "/app/stock/grants/:grantId",
 	stockVesting: "/app/stock/vesting",
 	peopleUsers: "/app/people/users",
 	peopleUserDetail: "/app/people/users/:membershipId",
@@ -43,6 +46,7 @@ export const routes = {
 	auth: {
 		root: "/auth",
 		login: () => "/auth/login",
+		mfaSetup: () => "/auth/mfa-setup",
 		changePassword: () => "/auth/change-password",
 	},
 } as const;

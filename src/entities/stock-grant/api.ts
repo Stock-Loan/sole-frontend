@@ -45,6 +45,20 @@ export async function updateStockGrant(
 	return unwrapApiResponse<StockGrant>(data);
 }
 
+export async function getOrgStockGrant(grantId: string): Promise<StockGrant> {
+	const { data } = await apiClient.get<StockGrant>(
+		`/org/stock/grants/${grantId}`
+	);
+	return unwrapApiResponse<StockGrant>(data);
+}
+
+export async function getMyStockGrant(grantId: string): Promise<StockGrant> {
+	const { data } = await apiClient.get<StockGrant>(
+		`/me/stock/grants/${grantId}`
+	);
+	return unwrapApiResponse<StockGrant>(data);
+}
+
 export async function getStockSummary(
 	membershipId: string,
 	params: StockSummaryParams = {}

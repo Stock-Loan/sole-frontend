@@ -10,6 +10,8 @@ import { meKeys } from "@/shared/api/queryKeys";
 import {
 	createStockGrant,
 	getOrgStockDashboardSummary,
+	getOrgStockGrant,
+	getMyStockGrant,
 	getMyStockSummary,
 	getStockSummary,
 	listStockGrants,
@@ -81,6 +83,30 @@ export function useStockGrantsList(
 		queryFn: () => listStockGrants(membershipId, params),
 		enabled: Boolean(membershipId) && (options.enabled ?? true),
 		placeholderData: (previous) => previous,
+		...options,
+	});
+}
+
+export function useOrgStockGrant(
+	grantId: string,
+	options: Omit<UseQueryOptions<StockGrant>, "queryKey" | "queryFn"> = {},
+) {
+	return useQuery({
+		queryKey: stockGrantKeys.grants.detail(grantId),
+		queryFn: () => getOrgStockGrant(grantId),
+		enabled: Boolean(grantId) && (options.enabled ?? true),
+		...options,
+	});
+}
+
+export function useMyStockGrant(
+	grantId: string,
+	options: Omit<UseQueryOptions<StockGrant>, "queryKey" | "queryFn"> = {},
+) {
+	return useQuery({
+		queryKey: meKeys.stock.grant(grantId),
+		queryFn: () => getMyStockGrant(grantId),
+		enabled: Boolean(grantId) && (options.enabled ?? true),
 		...options,
 	});
 }

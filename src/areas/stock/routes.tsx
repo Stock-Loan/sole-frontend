@@ -4,6 +4,7 @@ import { StockLayout } from "./layout";
 import { StockAdminPage } from "./pages/StockAdminPage";
 import { StockOverviewPage } from "./pages/StockOverviewPage";
 import { GrantsPage } from "./pages/GrantsPage";
+import { GrantDetailPage } from "./pages/GrantDetailPage";
 import { VestingPage } from "./pages/VestingPage";
 
 export const stockRoutes: RouteObject[] = [
@@ -40,6 +41,17 @@ export const stockRoutes: RouteObject[] = [
 						mode="any"
 					>
 						<GrantsPage />
+					</RequirePermission>
+				),
+			},
+			{
+				path: "grants/:grantId",
+				element: (
+					<RequirePermission
+						permission={["stock.view", "stock.manage"]}
+						mode="any"
+					>
+						<GrantDetailPage />
 					</RequirePermission>
 				),
 			},

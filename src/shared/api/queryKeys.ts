@@ -49,6 +49,7 @@ export const meKeys = {
 	stock: {
 		summary: (params?: StockSummaryParams) =>
 			["me", "stock", "summary", params ?? {}] as const,
+		grant: (grantId: string) => ["me", "stock", "grants", grantId] as const,
 	},
 	loans: {
 		list: (params?: LoanApplicationListParams) =>

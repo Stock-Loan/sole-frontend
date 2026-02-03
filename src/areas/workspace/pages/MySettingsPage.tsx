@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { ShieldCheck, ShieldOff, UserCircle2 } from "lucide-react";
 import { PageHeader } from "@/shared/ui/PageHeader";
 import { PageContainer } from "@/shared/ui/PageContainer";
@@ -20,7 +20,10 @@ import type {
 
 export function MySettingsPage() {
 	const { user: cachedUser } = useAuth();
-	const [tab, setTab] = useState<UserSettingsTabKey>("profile");
+	const location = useLocation();
+	const initialTab =
+		(location.state as { tab?: UserSettingsTabKey } | null)?.tab ?? "profile";
+	const [tab, setTab] = useState<UserSettingsTabKey>(initialTab);
 
 	const { data: profile, isLoading, isError } = useUserSettings();
 
@@ -206,6 +209,11 @@ export function MySettingsPage() {
 									Status:{" "}
 									{securityUser?.mfa_enabled ? "Enabled" : "Not enabled"}
 								</p>
+								{!securityUser?.mfa_enabled ? (
+									<Button asChild size="sm" className="w-fit">
+										<Link to={routes.mfaSetup}>Enroll MFA</Link>
+									</Button>
+								) : null}
 							</div>
 							{securityUser?.mfa_enabled && (
 								<>
