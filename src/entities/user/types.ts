@@ -171,8 +171,8 @@ export interface OnboardUserPayload {
 	address_line1?: string;
 	address_line2?: string;
 	postal_code?: string;
-	employee_id?: string;
-	employment_start_date?: string;
+	employee_id: string;
+	employment_start_date: string;
 	employment_status?: EmploymentStatus;
 	temporary_password?: string;
 }
@@ -199,7 +199,6 @@ export interface UpdateOrgUserProfilePayload {
 	address_line1?: string;
 	address_line2?: string;
 	postal_code?: string;
-	employee_id?: string;
 }
 
 export interface UpdateOrgUserProfileWithStatusPayload {

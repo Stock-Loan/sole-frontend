@@ -172,14 +172,14 @@ export function useOnboardUser() {
 				});
 			} else if (result.user_status === "existing") {
 				toast({
-					title: "User linked",
+					title: "Existing user found",
 					description:
-						"The existing account has been added to this organization.",
+						"An existing user record was found in this organization and has been reused.",
 				});
 			} else {
 				toast({
 					title: "User onboarded",
-					description: "The user has been added to this organization.",
+					description: "The user has been onboarded into this organization.",
 				});
 			}
 			// Invalidate the list to show the new user

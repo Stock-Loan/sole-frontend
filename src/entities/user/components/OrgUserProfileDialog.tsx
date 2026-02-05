@@ -82,7 +82,6 @@ export function OrgUserProfileDialog({
 			address_line1: "",
 			address_line2: "",
 			postal_code: "",
-			employee_id: "",
 			employment_status: "ACTIVE",
 			platform_status: "ACTIVE",
 		},
@@ -118,7 +117,6 @@ export function OrgUserProfileDialog({
 			address_line1: user.user.address_line1 || "",
 			address_line2: user.user.address_line2 || "",
 			postal_code: user.user.postal_code || "",
-			employee_id: user.membership.employee_id || "",
 			employment_status: normalizedEmployment,
 			platform_status:
 				(user.membership.platform_status || "ACTIVE")
@@ -151,7 +149,6 @@ export function OrgUserProfileDialog({
 			["address_line1", user.user.address_line1],
 			["address_line2", user.user.address_line2],
 			["postal_code", user.user.postal_code],
-			["employee_id", user.membership.employee_id],
 		];
 		fields.forEach(([key, currentValue]) => {
 			const nextValue = normalizeValue(
@@ -332,19 +329,6 @@ export function OrgUserProfileDialog({
 													<SelectItem value="WIDOWED">Widowed</SelectItem>
 												</SelectContent>
 											</Select>
-											<FormMessage />
-										</FormItem>
-									)}
-								/>
-								<FormField
-									control={form.control}
-									name="employee_id"
-									render={({ field }) => (
-										<FormItem>
-											<FormLabel>Employee ID</FormLabel>
-											<FormControl>
-												<Input {...field} />
-											</FormControl>
 											<FormMessage />
 										</FormItem>
 									)}

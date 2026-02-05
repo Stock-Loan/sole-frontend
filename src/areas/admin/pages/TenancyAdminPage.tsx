@@ -9,7 +9,7 @@ import type {
 	DataTablePreferencesConfig,
 } from "@/shared/ui/Table/types";
 import { useToast } from "@/shared/ui/use-toast";
-import { useSelfContext } from "@/auth/hooks";
+import { useAuth, useSelfContext } from "@/auth/hooks";
 import { OrgCreateForm } from "@/entities/org/components/OrgCreateForm";
 import { useCreateOrg } from "@/entities/org/hooks";
 import { useApiErrorToast } from "@/shared/api/useApiErrorToast";
@@ -30,10 +30,12 @@ export function TenancyAdminPage() {
 	const { toast } = useToast();
 	const apiErrorToast = useApiErrorToast();
 	const { orgs, setOrgs } = useTenant();
+	const { user } = useAuth();
 	const { data: selfContext } = useSelfContext();
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
 	const formId = "create-org-form";
 	const isMultiTenant = selfContext?.tenancy_mode === "multi";
+	const isSuperAdmin = Boolean(user?.is_superuser);
 	const createOrgMutation = useCreateOrg({
 		onSuccess: (created) => {
 			const exists = orgs.some((org) => org.id === created.id);
@@ -127,7 +129,7 @@ export function TenancyAdminPage() {
 				initialColumnVisibility={initialColumnVisibility}
 				preferences={preferencesConfig}
 				headerActions={
-					isMultiTenant
+					isMultiTenant && isSuperAdmin
 						? {
 								primaryAction: {
 									label: "Create org",
@@ -139,7 +141,7 @@ export function TenancyAdminPage() {
 				}
 			/>
 
-			{isMultiTenant && (
+			{isMultiTenant && isSuperAdmin && (
 				<Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
 					<DialogContent size="sm">
 						<DialogHeader>

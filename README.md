@@ -46,6 +46,13 @@ Create a `.env` file (or use `.env.example`) with:
 VITE_API_BASE_URL=...
 ```
 
+## Tenancy (Org Context)
+
+- Login is org-scoped. Users select an organization after email verification when multiple orgs are available.
+- The app sets `X-Org-Id` on all API calls via the shared Axios client once a tenant is resolved.
+- Switching orgs updates the active tenant context and refreshes the session for that org.
+- Profile edits update org-scoped profile fields; membership data (employee ID, status) is managed separately per org.
+
 ## Project structure
 
 ```

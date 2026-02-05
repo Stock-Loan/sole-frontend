@@ -12,6 +12,7 @@ import type {
 import { loadDataTablePreferences } from "@/shared/ui/Table/constants";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/Button";
+import { Input } from "@/shared/ui/input";
 import {
 	Dialog,
 	DialogBody,
@@ -25,6 +26,7 @@ import { useApiErrorToast } from "@/shared/api/useApiErrorToast";
 import { routes } from "@/shared/lib/routes";
 import { normalizeDisplay } from "@/shared/lib/utils";
 import { formatDate } from "@/shared/lib/format";
+import { useToast } from "@/shared/ui/use-toast";
 import { useAuth, usePermissions } from "@/auth/hooks";
 import { AddUserDialog } from "@/entities/user/components/AddUserDialog";
 import {
@@ -301,6 +303,7 @@ const columns: ColumnDefinition<OrgUserListItem>[] = [
 export function UsersListPage() {
 	const navigate = useNavigate();
 	const { user } = useAuth();
+	const { toast } = useToast();
 	const { can } = usePermissions();
 	const [searchParams, setSearchParams] = useSearchParams();
 	const apiErrorToast = useApiErrorToast();
@@ -315,6 +318,12 @@ export function UsersListPage() {
 		null,
 	);
 	const [addUserOpen, setAddUserOpen] = useState(false);
+	const [tempPasswordInfo, setTempPasswordInfo] = useState<{
+		email: string;
+		password: string;
+	} | null>(null);
+	const [showTempPasswordDialog, setShowTempPasswordDialog] = useState(false);
+	const [revealTempPassword, setRevealTempPassword] = useState(false);
 
 	const onboardUserMutation = useOnboardUser();
 
@@ -540,7 +549,32 @@ export function UsersListPage() {
 			: `${pendingDeleteCount} users`;
 
 	const handleAddUser = async (values: OnboardUserPayload) => {
-		await onboardUserMutation.mutateAsync(values);
+		const result = await onboardUserMutation.mutateAsync(values);
+		if (result?.temporary_password) {
+			setTempPasswordInfo({
+				email: result.user?.email ?? values.email,
+				password: result.temporary_password,
+			});
+			setRevealTempPassword(false);
+			setShowTempPasswordDialog(true);
+		}
+	};
+
+	const handleCopyTempPassword = async () => {
+		if (!tempPasswordInfo?.password) return;
+		try {
+			await navigator.clipboard.writeText(tempPasswordInfo.password);
+			toast({
+				title: "Temporary password copied",
+				description: "Share this with the user so they can sign in.",
+			});
+		} catch {
+			toast({
+				variant: "destructive",
+				title: "Copy failed",
+				description: "Unable to copy. Please copy the password manually.",
+			});
+		}
 	};
 
 	return (
@@ -662,6 +696,73 @@ export function UsersListPage() {
 							onClick={handleConfirmDelete}
 						>
 							{isDeleting ? "Deleting..." : "Confirm delete"}
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
+			<Dialog
+				open={showTempPasswordDialog}
+				onOpenChange={(open) => {
+					setShowTempPasswordDialog(open);
+					if (!open) {
+						setTempPasswordInfo(null);
+						setRevealTempPassword(false);
+					}
+				}}
+			>
+				<DialogContent size="sm">
+					<DialogHeader>
+						<DialogTitle>Temporary password created</DialogTitle>
+					</DialogHeader>
+					<DialogBody>
+						<p className="text-sm text-muted-foreground">
+							Share this temporary password with{" "}
+							<span className="font-semibold text-foreground">
+								{tempPasswordInfo?.email ?? "the user"}
+							</span>
+							. They will be asked to change it on first login.
+						</p>
+						<div className="mt-4 space-y-2">
+							<label className="text-xs font-semibold text-muted-foreground">
+								Temporary password
+							</label>
+							<div className="flex items-center gap-2">
+								<Input
+									readOnly
+									value={
+										tempPasswordInfo?.password
+											? revealTempPassword
+												? tempPasswordInfo.password
+												: "••••••••••••"
+											: ""
+									}
+								/>
+								<Button
+									type="button"
+									variant="outline"
+									size="sm"
+									onClick={() => setRevealTempPassword((prev) => !prev)}
+								>
+									{revealTempPassword ? "Hide" : "Show"}
+								</Button>
+							</div>
+							<Button
+								type="button"
+								variant="outline"
+								size="sm"
+								onClick={handleCopyTempPassword}
+								disabled={!tempPasswordInfo?.password}
+							>
+								Copy password
+							</Button>
+						</div>
+					</DialogBody>
+					<DialogFooter>
+						<Button
+							type="button"
+							onClick={() => setShowTempPasswordDialog(false)}
+						>
+							Done
 						</Button>
 					</DialogFooter>
 				</DialogContent>

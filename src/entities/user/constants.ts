@@ -33,7 +33,7 @@ export const defaultValues: AddUserFormValues = {
 };
 
 export const BULK_ONBOARDING_FIELD_GUIDE: string[] = [
-	"Required columns: email, first_name, last_name, employee_id. Optional (recommended): temporary_password, employment_start_date, employment_status, marital_status, country, state, timezone, phone_number, address fields.",
+	"Required columns: email, first_name, last_name, employee_id, employment_start_date. Optional (recommended): temporary_password, employment_status, marital_status, country, state, timezone, phone_number, address fields.",
 	"Date format: ISO YYYY-MM-DD. If exporting from Excel, save dates as text/ISO to avoid serial conversions.",
 	"Country & state: names or codes. Examples — Countries: United States / USA / US, United Kingdom / UK / GB, India / IN. States: CA or California, NY or New York, England, London (maps to City of London), Maharashtra (diacritics handled).",
 	"Timezone: IANA IDs (e.g., America/Los_Angeles, Europe/London, Asia/Tokyo).",
@@ -51,7 +51,7 @@ export const BULK_ONBOARDING_VALIDATION_NOTES: string[] = [
 	"Empty files (no data rows) are rejected.",
 	"Per-field length limits are enforced before fuzzy matching to avoid CPU spikes.",
 	"Unexpected headers or length issues return clear row-numbered errors—remove any extra columns.",
-	"Existing users are reused across tenants. Success rows now include user_status and membership_status to show whether a new account or membership was created.",
+	"Existing users are reused within the current organization. Success rows include user_status and membership_status to show whether a user or membership already existed.",
 ];
 
 export function getOrgUserDisplayName(user: OrgUserDto) {

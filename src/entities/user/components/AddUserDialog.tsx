@@ -87,7 +87,7 @@ export function AddUserDialog({
 			open={open}
 			onOpenChange={onOpenChange}
 			title="Onboard a user"
-			description="Add a single user to this organization. If the email already exists, we will link the existing account."
+			description="Add a single user to this organization. If the email already exists in this org, we will reuse the existing user."
 			trigger={trigger}
 			actions={[
 				{
@@ -110,9 +110,11 @@ export function AddUserDialog({
 							name="first_name"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>First name</FormLabel>
+									<FormLabel>
+										First name <span className="text-destructive">*</span>
+									</FormLabel>
 									<FormControl>
-										<Input placeholder="Ada" {...field} />
+										<Input placeholder="Ada" required {...field} />
 									</FormControl>
 									<FormMessage />
 								</FormItem>
@@ -138,9 +140,11 @@ export function AddUserDialog({
 							name="last_name"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Last name</FormLabel>
+									<FormLabel>
+										Last name <span className="text-destructive">*</span>
+									</FormLabel>
 									<FormControl>
-										<Input placeholder="Lovelace" {...field} />
+										<Input placeholder="Lovelace" required {...field} />
 									</FormControl>
 									<FormMessage />
 								</FormItem>
@@ -167,11 +171,14 @@ export function AddUserDialog({
 							name="email"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Email</FormLabel>
+									<FormLabel>
+										Email <span className="text-destructive">*</span>
+									</FormLabel>
 									<FormControl>
 										<Input
 											type="email"
 											placeholder="user@example.com"
+											required
 											{...field}
 										/>
 									</FormControl>
@@ -404,9 +411,11 @@ export function AddUserDialog({
 							name="employee_id"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Employee ID</FormLabel>
+									<FormLabel>
+										Employee ID <span className="text-destructive">*</span>
+									</FormLabel>
 									<FormControl>
-										<Input placeholder="EMP-1234" {...field} />
+										<Input placeholder="EMP-1234" required {...field} />
 									</FormControl>
 									<FormMessage />
 								</FormItem>
@@ -417,9 +426,12 @@ export function AddUserDialog({
 							name="employment_start_date"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Employment start date</FormLabel>
+									<FormLabel>
+										Employment start date{" "}
+										<span className="text-destructive">*</span>
+									</FormLabel>
 									<FormControl>
-										<Input type="date" {...field} />
+										<Input type="date" required {...field} />
 									</FormControl>
 									<FormMessage />
 								</FormItem>

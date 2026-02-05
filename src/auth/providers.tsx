@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { PropsWithChildren } from "react";
 import {
 	setAccessTokenResolver,
+	setOrgResolver,
 	setStepUpHandler,
 	setTokenUpdater,
 	setUnauthorizedHandler,
@@ -46,6 +47,21 @@ function loadPersistedOrgId(): string | null {
 	}
 }
 
+function persistCurrentOrgId(orgId?: string | null) {
+	if (!orgId || typeof localStorage === "undefined") return;
+	try {
+		const raw = localStorage.getItem(TENANCY_STORAGE_KEY);
+		const parsed = raw ? (JSON.parse(raw) as { orgs?: unknown }) : {};
+		const orgs = Array.isArray(parsed?.orgs) ? parsed.orgs : [];
+		localStorage.setItem(
+			TENANCY_STORAGE_KEY,
+			JSON.stringify({ orgs, currentOrgId: orgId }),
+		);
+	} catch {
+		// ignore storage errors
+	}
+}
+
 export function AuthProvider({ children }: PropsWithChildren) {
 	const [user, setUser] = useState<AuthUser | null>(null);
 	const [tokens, setTokens] = useState<TokenPair | null>(null);
@@ -58,6 +74,9 @@ export function AuthProvider({ children }: PropsWithChildren) {
 		(nextTokens: TokenPair, nextUser: AuthUser) => {
 			setTokens(nextTokens);
 			setUser(nextUser);
+			if (nextUser?.org_id) {
+				persistCurrentOrgId(nextUser.org_id);
+			}
 			setTokensByOrgId((prev) => {
 				if (!nextUser?.org_id) return prev;
 				const next = { ...prev, [nextUser.org_id]: nextTokens };
@@ -75,6 +94,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 		(orgId: string, nextTokens: TokenPair, nextUser: AuthUser) => {
 			setTokens(nextTokens);
 			setUser(nextUser);
+			persistCurrentOrgId(orgId);
 			setTokensByOrgId((prev) => {
 				const next = { ...prev, [orgId]: nextTokens };
 				return next;
@@ -107,6 +127,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
 	useEffect(() => {
 		setAccessTokenResolver(() => tokens?.access_token ?? null);
+		setOrgResolver(() => loadPersistedOrgId() ?? user?.org_id ?? null);
 
 		setTokenUpdater((newTokens) => {
 			setTokens((prev) => {
