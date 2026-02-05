@@ -3,6 +3,7 @@ import { EmptyState } from "@/shared/ui/EmptyState";
 import { DataTable } from "@/shared/ui/Table/DataTable";
 import type { ColumnDefinition } from "@/shared/ui/Table/types";
 import { formatCurrency, formatDate } from "@/shared/lib/format";
+import { sanitizeExternalUrl } from "@/shared/lib/urls";
 import { cn } from "@/shared/lib/utils";
 import type { LoanRepaymentsPanelProps } from "@/entities/loan/types";
 import type { LoanRepayment } from "@/entities/loan/types";
@@ -53,7 +54,9 @@ export function LoanRepaymentsPanel({
 				accessor: "evidence_file_name",
 				cell: (row) => {
 					const name = row.evidence_file_name;
-					const url = row.evidence_storage_path_or_url;
+					const url = sanitizeExternalUrl(
+						row.evidence_storage_path_or_url,
+					);
 					if (!name) return "—";
 					if (!url) return name;
 					return (

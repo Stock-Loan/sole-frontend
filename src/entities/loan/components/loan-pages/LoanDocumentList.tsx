@@ -4,6 +4,7 @@ import { LoadingState } from "@/shared/ui/LoadingState";
 import { Button } from "@/shared/ui/Button";
 import { formatDate } from "@/shared/lib/format";
 import { normalizeDisplay } from "@/shared/lib/utils";
+import { sanitizeExternalUrl } from "@/shared/lib/urls";
 import type { LoanDocumentListProps } from "@/entities/loan/types";
 
 export function LoanDocumentList({
@@ -49,7 +50,8 @@ export function LoanDocumentList({
 					<div className="space-y-2">
 						{group.documents.map((doc) => {
 							const link = doc.storage_path_or_url ?? doc.storage_url;
-							const canLink = Boolean(link && link.includes("://"));
+							const safeLink = sanitizeExternalUrl(link);
+							const canLink = Boolean(safeLink);
 							const canDownload = Boolean(onDownload && doc.id);
 							const isDownloading =
 								downloadingDocumentId && doc.id
@@ -92,7 +94,7 @@ export function LoanDocumentList({
 												className="h-7 px-2 text-xs"
 											>
 												<a
-													href={link ?? undefined}
+													href={safeLink ?? undefined}
 													target="_blank"
 													rel="noreferrer"
 												>

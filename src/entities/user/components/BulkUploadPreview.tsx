@@ -1,9 +1,22 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { DataTable } from "@/shared/ui/Table/DataTable";
 import type { ColumnDefinition } from "@/shared/ui/Table/types";
+import { Button } from "@/shared/ui/Button";
 import type { BulkUploadPreviewProps, BulkUploadPreviewRow } from "../types";
 
+const SENSITIVE_HEADERS = new Set(["temporary_password"]);
+
+function normalizeHeader(value: string) {
+	return value.trim().toLowerCase().replace(/[^a-z0-9]+/g, "_");
+}
+
+function isSensitiveHeader(value: string) {
+	return SENSITIVE_HEADERS.has(normalizeHeader(value));
+}
+
 export function BulkUploadPreview({ headers, rows }: BulkUploadPreviewProps) {
+	const [showSensitiveValues, setShowSensitiveValues] = useState(false);
+
 	const previewRows = useMemo<BulkUploadPreviewRow[]>(
 		() =>
 			rows.map((row, index) => ({
@@ -12,6 +25,15 @@ export function BulkUploadPreview({ headers, rows }: BulkUploadPreviewProps) {
 				values: row,
 			})),
 		[rows],
+	);
+
+	const sensitiveColumns = useMemo(
+		() => headers.map((header) => isSensitiveHeader(header)),
+		[headers],
+	);
+	const hasSensitiveColumns = useMemo(
+		() => sensitiveColumns.some(Boolean),
+		[sensitiveColumns],
 	);
 
 	const previewColumns = useMemo<ColumnDefinition<BulkUploadPreviewRow>[]>(
@@ -28,20 +50,30 @@ export function BulkUploadPreview({ headers, rows }: BulkUploadPreviewProps) {
 				cellClassName: "text-xs font-medium",
 			},
 			...headers.map<ColumnDefinition<BulkUploadPreviewRow>>(
-				(header, index) => ({
-					id: `col-${index}`,
-					header,
-					accessor: (row: BulkUploadPreviewRow) => row.values[index] ?? "",
-					cell: (row: BulkUploadPreviewRow) => row.values[index] ?? "",
-					enableSorting: false,
-					enableFiltering: false,
-					enableHiding: false,
-					headerClassName: "text-xs capitalize whitespace-nowrap",
-					cellClassName: "text-xs",
-				}),
+				(header, index) => {
+					const isSensitive = sensitiveColumns[index] ?? false;
+					return {
+						id: `col-${index}`,
+						header,
+						accessor: (row: BulkUploadPreviewRow) => row.values[index] ?? "",
+						cell: (row: BulkUploadPreviewRow) => {
+							const value = row.values[index] ?? "";
+							if (!value) return "-";
+							if (isSensitive && !showSensitiveValues) {
+								return "********";
+							}
+							return value;
+						},
+						enableSorting: false,
+						enableFiltering: false,
+						enableHiding: false,
+						headerClassName: "text-xs capitalize whitespace-nowrap",
+						cellClassName: "text-xs",
+					};
+				},
 			),
 		],
-		[headers],
+		[headers, sensitiveColumns, showSensitiveValues],
 	);
 
 	if (headers.length === 0 || rows.length === 0) {
@@ -50,6 +82,24 @@ export function BulkUploadPreview({ headers, rows }: BulkUploadPreviewProps) {
 
 	return (
 		<div className="space-y-2">
+			{hasSensitiveColumns ? (
+				<div className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-border/60 bg-muted/20 px-3 py-2 text-xs text-muted-foreground">
+					<span>
+						Sensitive columns are hidden in the preview. Click reveal to view
+						them.
+					</span>
+					<Button
+						type="button"
+						variant="ghost"
+						size="sm"
+						className="h-7 px-2 text-xs"
+						aria-pressed={showSensitiveValues}
+						onClick={() => setShowSensitiveValues((prev) => !prev)}
+					>
+						{showSensitiveValues ? "Hide sensitive values" : "Reveal values"}
+					</Button>
+				</div>
+			) : null}
 			<div className="flex max-h-[60vh] min-h-0 flex-col">
 				<DataTable
 					data={previewRows}
