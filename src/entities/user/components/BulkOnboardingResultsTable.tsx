@@ -20,11 +20,6 @@ export function BulkOnboardingResultsTable({
 		[successes],
 	);
 
-	const renderTempPassword = (value?: string | null) => {
-		if (!value) return "—";
-		return showPasswords ? value : "********";
-	};
-
 	const successColumns = useMemo<
 		ColumnDefinition<BulkOnboardingSuccessItem>[]
 	>(
@@ -126,7 +121,11 @@ export function BulkOnboardingResultsTable({
 				id: "temporaryPassword",
 				header: "Temporary password",
 				accessor: (row) => row.temporary_password ?? "—",
-				cell: (row) => renderTempPassword(row.temporary_password),
+				cell: (row) => {
+					const value = row.temporary_password;
+					if (!value) return "—";
+					return showPasswords ? value : "********";
+				},
 				enableSorting: false,
 				enableFiltering: false,
 				enableHiding: false,

@@ -2,6 +2,7 @@ import axios, { AxiosHeaders } from "axios";
 import { routes } from "@/shared/lib/routes";
 import { unwrapApiResponse } from "@/shared/api/response";
 import { getCsrfToken, setCsrfToken } from "@/shared/api/csrf";
+import { refreshSessionWithRetry } from "@/shared/api/refresh";
 import type {
 	StepUpHandler,
 	TokenResolver,
@@ -162,30 +163,8 @@ apiClient.interceptors.response.use(
 		if (status === 401 && !originalRequest._retry && !isRefreshRequest) {
 			originalRequest._retry = true;
 			try {
-				const csrfToken = getCsrfToken();
-				const orgId = orgResolver();
-				const headers: Record<string, string> = {};
-				if (csrfToken) {
-					headers["X-CSRF-Token"] = csrfToken;
-				}
-				if (orgId) {
-					headers["X-Org-Id"] = orgId;
-				}
-
-				// Direct axios call to avoid interceptor loop
-				const { data } = await axios.post(
-					`${baseURL}/auth/refresh`,
-					undefined,
-					{
-						headers,
-						withCredentials: true,
-					},
-				);
-
-				const tokens = unwrapApiResponse<{
-					access_token?: string;
-					csrf_token?: string | null;
-				}>(data);
+				const orgId = orgResolver() ?? undefined;
+				const tokens = await refreshSessionWithRetry(orgId);
 
 				if (tokens?.access_token) {
 					const update: {

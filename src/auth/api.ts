@@ -1,7 +1,6 @@
-import axios from "axios";
 import { apiClient } from "@/shared/api/http";
 import { unwrapApiResponse } from "@/shared/api/response";
-import { getCsrfToken } from "@/shared/api/csrf";
+import { refreshSessionWithRetry } from "@/shared/api/refresh";
 import type {
 	AuthUser,
 	ChangePasswordPayload,
@@ -27,8 +26,6 @@ import type {
 	TokenPair,
 } from "@/auth/types";
 import type { OrgSummary } from "@/entities/org/types";
-
-const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 export async function discoverOrg(
 	payload: OrgDiscoveryPayload,
@@ -116,26 +113,11 @@ export async function logout(): Promise<void> {
 }
 
 export async function refreshSession(orgId?: string) {
-	const { data } = await apiClient.post<TokenPair>(
-		"/auth/refresh",
-		undefined,
-		orgId ? { headers: { "X-Org-Id": orgId } } : undefined,
-	);
-	return unwrapApiResponse<TokenPair>(data);
+	return refreshSessionWithRetry(orgId);
 }
 
 export async function refreshSessionForOrgSwitch(orgId: string) {
-	const csrfToken = getCsrfToken();
-	const headers: Record<string, string> = { "X-Org-Id": orgId };
-	if (csrfToken) {
-		headers["X-CSRF-Token"] = csrfToken;
-	}
-	const { data } = await axios.post<TokenPair>(
-		`${baseURL}/auth/refresh`,
-		undefined,
-		{ headers, withCredentials: true },
-	);
-	return unwrapApiResponse<TokenPair>(data);
+	return refreshSessionWithRetry(orgId);
 }
 
 export async function getMe() {

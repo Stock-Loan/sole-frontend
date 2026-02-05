@@ -26,3 +26,6 @@ export type StepUpHandler = (
 	challenge: StepUpChallengeData,
 	request: PendingStepUpRequest,
 ) => void;
+export type CsrfTokenResponse = {
+	csrf_token?: string | null;
+};

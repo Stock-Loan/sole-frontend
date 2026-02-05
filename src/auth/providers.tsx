@@ -8,6 +8,7 @@ import {
 	setUnauthorizedHandler,
 } from "@/shared/api/http";
 import { setCsrfToken } from "@/shared/api/csrf";
+import { getJwtExpiry } from "@/shared/api/jwt";
 import {
 	getMeWithToken,
 	logout as logoutApi,
@@ -69,6 +70,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 		{},
 	);
 	const [isAuthenticating, setIsAuthenticating] = useState(true);
+	const refreshTimerRef = useRef<number | null>(null);
 
 	const setSession = useCallback(
 		(nextTokens: TokenPair, nextUser: AuthUser) => {
@@ -203,6 +205,47 @@ export function AuthProvider({ children }: PropsWithChildren) {
 			isMounted = false;
 		};
 	}, [clearSession, setSession]);
+
+	useEffect(() => {
+		if (refreshTimerRef.current) {
+			window.clearTimeout(refreshTimerRef.current);
+			refreshTimerRef.current = null;
+		}
+		if (!tokens?.access_token || !user) return;
+
+		const exp = getJwtExpiry(tokens.access_token);
+		if (!exp) return;
+		const refreshAtMs = exp * 1000 - 60_000;
+		const delay = Math.max(0, refreshAtMs - Date.now());
+
+		refreshTimerRef.current = window.setTimeout(async () => {
+			try {
+				const orgId = user.org_id ?? loadPersistedOrgId() ?? undefined;
+				const refreshed = await refreshSession(orgId);
+				if (!refreshed?.access_token) {
+					clearSession();
+					return;
+				}
+				const nextTokens: TokenPair = {
+					access_token: refreshed.access_token,
+					token_type: "bearer",
+				};
+				if (refreshed.csrf_token !== undefined) {
+					nextTokens.csrf_token = refreshed.csrf_token;
+				}
+				setSession(nextTokens, user);
+			} catch {
+				clearSession();
+			}
+		}, delay);
+
+		return () => {
+			if (refreshTimerRef.current) {
+				window.clearTimeout(refreshTimerRef.current);
+				refreshTimerRef.current = null;
+			}
+		};
+	}, [tokens?.access_token, user, clearSession, setSession]);
 
 	const hasAnyRole = useCallback(
 		(roles?: RoleCode[]) => {
