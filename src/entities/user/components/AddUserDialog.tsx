@@ -87,7 +87,7 @@ export function AddUserDialog({
 			open={open}
 			onOpenChange={onOpenChange}
 			title="Onboard a user"
-			description="Add a single user to this organization."
+			description="Add a single user to this organization. If the email already exists, we will link the existing account."
 			trigger={trigger}
 			actions={[
 				{

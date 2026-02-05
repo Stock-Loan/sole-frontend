@@ -128,6 +128,8 @@ export const OrgUsersListResponseSchema = z.object({
 export const OnboardUserResponseSchema = z.object({
 	user: OrgUserDtoSchema,
 	membership: OrgMembershipDtoSchema,
+	user_status: z.enum(["new", "existing"]).optional(),
+	membership_status: z.enum(["created", "already_exists"]).optional(),
 	temporary_password: z.string().optional(),
 });
 
@@ -143,6 +145,8 @@ export const BulkOnboardingSuccessSchema = z.object({
 	row_number: z.number(),
 	user: OrgUserDtoSchema.optional(),
 	membership: OrgMembershipDtoSchema.optional(),
+	user_status: z.enum(["new", "existing"]).optional(),
+	membership_status: z.enum(["created", "already_exists"]).optional(),
 	email: z.string().optional(),
 	first_name: z.string().optional(),
 	last_name: z.string().optional(),

@@ -1,5 +1,8 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { DataTable } from "@/shared/ui/Table/DataTable";
+import { normalizeDisplay } from "@/shared/lib/utils";
+import { Badge } from "@/shared/ui/badge";
+import { Button } from "@/shared/ui/Button";
 import type { ColumnDefinition } from "@/shared/ui/Table/types";
 import type {
 	BulkOnboardingErrorItem,
@@ -11,6 +14,17 @@ export function BulkOnboardingResultsTable({
 	successes,
 	errors,
 }: BulkOnboardingResultsTableProps) {
+	const [showPasswords, setShowPasswords] = useState(false);
+	const hasTemporaryPasswords = useMemo(
+		() => successes.some((row) => Boolean(row.temporary_password)),
+		[successes],
+	);
+
+	const renderTempPassword = (value?: string | null) => {
+		if (!value) return "—";
+		return showPasswords ? value : "********";
+	};
+
 	const successColumns = useMemo<
 		ColumnDefinition<BulkOnboardingSuccessItem>[]
 	>(
@@ -73,6 +87,24 @@ export function BulkOnboardingResultsTable({
 				enableHiding: false,
 			},
 			{
+				id: "userStatus",
+				header: "User status",
+				accessor: (row) => row.user_status ?? "—",
+				cell: (row) => normalizeDisplay(row.user_status),
+				enableSorting: false,
+				enableFiltering: false,
+				enableHiding: false,
+			},
+			{
+				id: "membershipStatus",
+				header: "Membership status",
+				accessor: (row) => row.membership_status ?? "—",
+				cell: (row) => normalizeDisplay(row.membership_status),
+				enableSorting: false,
+				enableFiltering: false,
+				enableHiding: false,
+			},
+			{
 				id: "platformStatus",
 				header: "Platform status",
 				accessor: (row) => row.membership?.platform_status ?? "—",
@@ -94,7 +126,7 @@ export function BulkOnboardingResultsTable({
 				id: "temporaryPassword",
 				header: "Temporary password",
 				accessor: (row) => row.temporary_password ?? "—",
-				cell: (row) => row.temporary_password ?? "—",
+				cell: (row) => renderTempPassword(row.temporary_password),
 				enableSorting: false,
 				enableFiltering: false,
 				enableHiding: false,
@@ -110,7 +142,7 @@ export function BulkOnboardingResultsTable({
 				cellClassName: "text-sm text-muted-foreground",
 			},
 		],
-		[]
+		[showPasswords]
 	);
 
 	const errorColumns = useMemo<ColumnDefinition<BulkOnboardingErrorItem>[]>(
@@ -180,6 +212,38 @@ export function BulkOnboardingResultsTable({
 
 	return (
 		<div className="space-y-4">
+			<div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border/60 bg-muted/20 px-3 py-2 text-xs text-muted-foreground">
+				<div className="space-y-2">
+					<div className="flex flex-wrap items-center gap-2">
+						<span className="font-semibold text-foreground">User status</span>
+						<Badge variant="outline">New</Badge>
+						<span>New account created</span>
+						<Badge variant="outline">Existing</Badge>
+						<span>Account already existed</span>
+					</div>
+					<div className="flex flex-wrap items-center gap-2">
+						<span className="font-semibold text-foreground">
+							Membership status
+						</span>
+						<Badge variant="outline">Created</Badge>
+						<span>Membership created</span>
+						<Badge variant="outline">Already exists</Badge>
+						<span>User was already in this org</span>
+					</div>
+				</div>
+				{hasTemporaryPasswords ? (
+					<Button
+						type="button"
+						variant="ghost"
+						size="sm"
+						className="h-7 px-2 text-xs"
+						aria-pressed={showPasswords}
+						onClick={() => setShowPasswords((prev) => !prev)}
+					>
+						{showPasswords ? "Hide passwords" : "Reveal passwords"}
+					</Button>
+				) : null}
+			</div>
 			{successes.length ? (
 				<div className="space-y-2">
 					<p className="text-sm font-medium text-foreground">

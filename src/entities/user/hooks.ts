@@ -164,11 +164,24 @@ export function useOnboardUser() {
 
 	return useMutation({
 		mutationFn: onboardOrgUser,
-		onSuccess: () => {
-			toast({
-				title: "User onboarded",
-				description: "The user has been added to this organization.",
-			});
+		onSuccess: (result) => {
+			if (result.membership_status === "already_exists") {
+				toast({
+					title: "User already onboarded",
+					description: "This user is already a member of the organization.",
+				});
+			} else if (result.user_status === "existing") {
+				toast({
+					title: "User linked",
+					description:
+						"The existing account has been added to this organization.",
+				});
+			} else {
+				toast({
+					title: "User onboarded",
+					description: "The user has been added to this organization.",
+				});
+			}
 			// Invalidate the list to show the new user
 			queryClient.invalidateQueries({ queryKey: userKeys.list() });
 		},

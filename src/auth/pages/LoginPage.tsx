@@ -8,7 +8,14 @@ import {
 	Loader2,
 	Shield,
 } from "lucide-react";
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import {
+	useCallback,
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+	type ReactNode,
+} from "react";
 import { useForm } from "react-hook-form";
 import {
 	Link,
@@ -91,6 +98,41 @@ function buildTokensFromResponse(response: {
 	return tokens;
 }
 
+function isPasswordChangeRequiredError(error: unknown): boolean {
+	if (!isAxiosError(error)) return false;
+	if (error.response?.status !== 403) return false;
+
+	const requestUrl = error.config?.url ?? "";
+	if (requestUrl.includes("/auth/me")) {
+		return true;
+	}
+
+	const data = error.response.data as
+		| {
+				code?: string;
+				message?: string;
+				detail?: string;
+				details?: { detail?: string; message?: string };
+		  }
+		| undefined;
+
+	const candidates = [
+		data?.code,
+		data?.message,
+		data?.detail,
+		data?.details?.detail,
+		data?.details?.message,
+	]
+		.filter((value): value is string => typeof value === "string")
+		.map((value) => value.toLowerCase());
+
+	return candidates.some((value) =>
+		value.includes("password change required") ||
+		value.includes("password_change_required") ||
+		value.includes("must_change_password"),
+	);
+}
+
 export function LoginPage() {
 	const navigate = useNavigate();
 	const location = useLocation();
@@ -157,6 +199,29 @@ export function LoginPage() {
 	const loginMfaSetupStartMutation = useLoginMfaSetupStart();
 	const loginMfaSetupVerifyMutation = useLoginMfaSetupVerify();
 	const orgDiscoveryMutation = useOrgDiscovery();
+
+	const handlePasswordChangeRequired = useCallback(
+		(tokens: TokenPair) => {
+			if (!currentOrgId) return;
+			const placeholderUser: AuthUser = {
+				id: "pending",
+				email: email,
+				is_active: true,
+				must_change_password: true,
+			};
+			setSessionForOrg(currentOrgId, tokens, placeholderUser);
+			if (typeof localStorage !== "undefined") {
+				localStorage.removeItem(PENDING_EMAIL_KEY);
+				localStorage.removeItem(PENDING_ORG_SWITCH_KEY);
+			}
+			toast({
+				title: "Password change required",
+				description: "Please update your password to finish signing in.",
+			});
+			navigate(routes.changePassword, { replace: true });
+		},
+		[currentOrgId, email, navigate, setSessionForOrg, toast],
+	);
 
 	useEffect(() => {
 		if (pendingOrgToastShownRef.current) return;
@@ -306,55 +371,13 @@ export function LoginPage() {
 									currentOrgId,
 								);
 								if (user.must_change_password) {
-									setSessionForOrg(currentOrgId, tokens, user);
-									if (typeof localStorage !== "undefined") {
-										localStorage.removeItem(PENDING_EMAIL_KEY);
-										localStorage.removeItem(PENDING_ORG_SWITCH_KEY);
-									}
-									toast({
-										title: "Password change required",
-										description:
-											"Please update your password to finish signing in.",
-									});
-									navigate(routes.changePassword, { replace: true });
+									handlePasswordChangeRequired(tokens);
 									return;
 								}
 							} catch (error) {
-								if (isAxiosError(error) && error.response?.status === 403) {
-									const data = error.response.data as
-										| {
-												detail?: string;
-												message?: string;
-												details?: { detail?: string };
-										  }
-										| undefined;
-									const detail =
-										data?.details?.detail ||
-										data?.detail ||
-										data?.message ||
-										"";
-
-									if (
-										detail.toLowerCase().includes("password change required")
-									) {
-										const placeholderUser: AuthUser = {
-											id: "pending",
-											email: email,
-											is_active: true,
-										};
-										setSessionForOrg(currentOrgId, tokens, placeholderUser);
-										if (typeof localStorage !== "undefined") {
-											localStorage.removeItem(PENDING_EMAIL_KEY);
-											localStorage.removeItem(PENDING_ORG_SWITCH_KEY);
-										}
-										toast({
-											title: "Password change required",
-											description:
-												"Please update your password to finish signing in.",
-										});
-										navigate(routes.changePassword, { replace: true });
-										return;
-									}
+								if (isPasswordChangeRequiredError(error)) {
+									handlePasswordChangeRequired(tokens);
+									return;
 								}
 							}
 						}
@@ -425,17 +448,7 @@ export function LoginPage() {
 							currentOrgId,
 						);
 						if (user.must_change_password) {
-							setSessionForOrg(currentOrgId, tokens, user);
-							if (typeof localStorage !== "undefined") {
-								localStorage.removeItem(PENDING_EMAIL_KEY);
-								localStorage.removeItem(PENDING_ORG_SWITCH_KEY);
-							}
-							toast({
-								title: "Password change required",
-								description:
-									"Please update your password to finish signing in.",
-							});
-							navigate(routes.changePassword, { replace: true });
+							handlePasswordChangeRequired(tokens);
 							return;
 						}
 						setSessionForOrg(currentOrgId, tokens, user);
@@ -453,38 +466,12 @@ export function LoginPage() {
 							: routes.workspace;
 						navigate(destination, { replace: true });
 					} catch (error) {
-						if (isAxiosError(error) && error.response?.status === 403) {
-							const data = error.response.data as
-								| {
-										detail?: string;
-										message?: string;
-										details?: { detail?: string };
-								  }
-								| undefined;
-							const detail =
-								data?.details?.detail || data?.detail || data?.message || "";
-
-							if (detail.toLowerCase().includes("password change required")) {
-								const placeholderUser: AuthUser = {
-									id: "pending",
-									email: email,
-									is_active: true,
-								};
-								setSessionForOrg(currentOrgId, tokens, placeholderUser);
-								if (typeof localStorage !== "undefined") {
-									localStorage.removeItem(PENDING_EMAIL_KEY);
-									localStorage.removeItem(PENDING_ORG_SWITCH_KEY);
-								}
-								toast({
-									title: "Password change required",
-									description:
-										"Please update your password to finish signing in.",
-								});
-								navigate(routes.changePassword, { replace: true });
-								return;
-							}
+						if (isPasswordChangeRequiredError(error)) {
+							handlePasswordChangeRequired(tokens);
+							return;
 						}
-						throw error;
+						apiErrorToast(error, "Unable to load your profile.");
+						return;
 					}
 				},
 				onError: (error) => {
@@ -540,17 +527,7 @@ export function LoginPage() {
 							currentOrgId,
 						);
 						if (user.must_change_password) {
-							setSessionForOrg(currentOrgId, tokens, user);
-							if (typeof localStorage !== "undefined") {
-								localStorage.removeItem(PENDING_EMAIL_KEY);
-								localStorage.removeItem(PENDING_ORG_SWITCH_KEY);
-							}
-							toast({
-								title: "Password change required",
-								description:
-									"Please update your password to finish signing in.",
-							});
-							navigate(routes.changePassword, { replace: true });
+							handlePasswordChangeRequired(tokens);
 							return;
 						}
 						setSessionForOrg(currentOrgId, tokens, user);
@@ -568,38 +545,12 @@ export function LoginPage() {
 							: routes.workspace;
 						navigate(destination, { replace: true });
 					} catch (error) {
-						if (isAxiosError(error) && error.response?.status === 403) {
-							const data = error.response.data as
-								| {
-										detail?: string;
-										message?: string;
-										details?: { detail?: string };
-								  }
-								| undefined;
-							const detail =
-								data?.details?.detail || data?.detail || data?.message || "";
-
-							if (detail.toLowerCase().includes("password change required")) {
-								const placeholderUser: AuthUser = {
-									id: "pending",
-									email: email,
-									is_active: true,
-								};
-								setSessionForOrg(currentOrgId, tokens, placeholderUser);
-								if (typeof localStorage !== "undefined") {
-									localStorage.removeItem(PENDING_EMAIL_KEY);
-									localStorage.removeItem(PENDING_ORG_SWITCH_KEY);
-								}
-								toast({
-									title: "Password change required",
-									description:
-										"Please update your password to finish signing in.",
-								});
-								navigate(routes.changePassword, { replace: true });
-								return;
-							}
+						if (isPasswordChangeRequiredError(error)) {
+							handlePasswordChangeRequired(tokens);
+							return;
 						}
-						throw error;
+						apiErrorToast(error, "Unable to load your profile.");
+						return;
 					}
 				},
 				onError: (error) => {
@@ -638,35 +589,34 @@ export function LoginPage() {
 						});
 						return;
 					}
-					const user = await getMeWithToken(tokens.access_token, currentOrgId);
-					if (user.must_change_password) {
+					try {
+						const user = await getMeWithToken(tokens.access_token, currentOrgId);
+						if (user.must_change_password) {
+							handlePasswordChangeRequired(tokens);
+							return;
+						}
 						setSessionForOrg(currentOrgId, tokens, user);
 						if (typeof localStorage !== "undefined") {
 							localStorage.removeItem(PENDING_EMAIL_KEY);
 							localStorage.removeItem(PENDING_ORG_SWITCH_KEY);
 						}
 						toast({
-							title: "Password change required",
-							description: "Please update your password to finish signing in.",
+							title: "Welcome back",
+							description:
+								"Signed in with recovery code. Consider regenerating your recovery codes.",
 						});
-						navigate(routes.changePassword, { replace: true });
-						return;
+						const from = (location.state as { from?: Location })?.from;
+						const destination = from?.pathname
+							? `${from.pathname}${from.search ?? ""}${from.hash ?? ""}`
+							: routes.workspace;
+						navigate(destination, { replace: true });
+					} catch (error) {
+						if (isPasswordChangeRequiredError(error)) {
+							handlePasswordChangeRequired(tokens);
+							return;
+						}
+						apiErrorToast(error, "Unable to load your profile.");
 					}
-					setSessionForOrg(currentOrgId, tokens, user);
-					if (typeof localStorage !== "undefined") {
-						localStorage.removeItem(PENDING_EMAIL_KEY);
-						localStorage.removeItem(PENDING_ORG_SWITCH_KEY);
-					}
-					toast({
-						title: "Welcome back",
-						description:
-							"Signed in with recovery code. Consider regenerating your recovery codes.",
-					});
-					const from = (location.state as { from?: Location })?.from;
-					const destination = from?.pathname
-						? `${from.pathname}${from.search ?? ""}${from.hash ?? ""}`
-						: routes.workspace;
-					navigate(destination, { replace: true });
 				},
 				onError: (error) => {
 					apiErrorToast(error, "Invalid recovery code. Please try again.");
@@ -727,17 +677,7 @@ export function LoginPage() {
 
 						// Fallback for case where no recovery codes (shouldn't happen)
 						if (user.must_change_password) {
-							setSessionForOrg(currentOrgId, tokens, user);
-							if (typeof localStorage !== "undefined") {
-								localStorage.removeItem(PENDING_EMAIL_KEY);
-								localStorage.removeItem(PENDING_ORG_SWITCH_KEY);
-							}
-							toast({
-								title: "Password change required",
-								description:
-									"Please update your password to finish signing in.",
-							});
-							navigate(routes.changePassword, { replace: true });
+							handlePasswordChangeRequired(tokens);
 							return;
 						}
 						setSessionForOrg(currentOrgId, tokens, user);
@@ -755,38 +695,12 @@ export function LoginPage() {
 							: routes.workspace;
 						navigate(destination, { replace: true });
 					} catch (error) {
-						if (isAxiosError(error) && error.response?.status === 403) {
-							const data = error.response.data as
-								| {
-										detail?: string;
-										message?: string;
-										details?: { detail?: string };
-								  }
-								| undefined;
-							const detail =
-								data?.details?.detail || data?.detail || data?.message || "";
-
-							if (detail.toLowerCase().includes("password change required")) {
-								const placeholderUser: AuthUser = {
-									id: "pending",
-									email: email,
-									is_active: true,
-								};
-								setSessionForOrg(currentOrgId, tokens, placeholderUser);
-								if (typeof localStorage !== "undefined") {
-									localStorage.removeItem(PENDING_EMAIL_KEY);
-									localStorage.removeItem(PENDING_ORG_SWITCH_KEY);
-								}
-								toast({
-									title: "Password change required",
-									description:
-										"Please update your password to finish signing in.",
-								});
-								navigate(routes.changePassword, { replace: true });
-								return;
-							}
+						if (isPasswordChangeRequiredError(error)) {
+							handlePasswordChangeRequired(tokens);
+							return;
 						}
-						throw error;
+						apiErrorToast(error, "Unable to load your profile.");
+						return;
 					}
 				},
 				onError: (error) => {

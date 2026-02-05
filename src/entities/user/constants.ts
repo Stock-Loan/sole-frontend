@@ -51,6 +51,7 @@ export const BULK_ONBOARDING_VALIDATION_NOTES: string[] = [
 	"Empty files (no data rows) are rejected.",
 	"Per-field length limits are enforced before fuzzy matching to avoid CPU spikes.",
 	"Unexpected headers or length issues return clear row-numbered errors—remove any extra columns.",
+	"Existing users are reused across tenants. Success rows now include user_status and membership_status to show whether a new account or membership was created.",
 ];
 
 export function getOrgUserDisplayName(user: OrgUserDto) {

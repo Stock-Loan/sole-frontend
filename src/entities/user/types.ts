@@ -180,6 +180,8 @@ export interface OnboardUserPayload {
 export interface OnboardUserResponse {
 	user: OrgUserDto;
 	membership: OrgMembershipDto;
+	user_status?: "new" | "existing";
+	membership_status?: "created" | "already_exists";
 	temporary_password?: string;
 }
 
@@ -221,6 +223,8 @@ export interface BulkOnboardingSuccessItem {
 	row_number: number;
 	user?: OrgUserDto;
 	membership?: OrgMembershipDto;
+	user_status?: "new" | "existing";
+	membership_status?: "created" | "already_exists";
 	email?: string;
 	first_name?: string;
 	last_name?: string;

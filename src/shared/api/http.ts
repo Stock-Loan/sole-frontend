@@ -91,6 +91,12 @@ apiClient.interceptors.response.use(
 			responseType === "arraybuffer" ||
 			responseType === "stream";
 
+		const csrfHeader =
+			response.headers?.["x-csrf-token"] ?? response.headers?.["X-CSRF-Token"];
+		if (typeof csrfHeader === "string" && csrfHeader) {
+			setCsrfToken(csrfHeader);
+		}
+
 		if (!shouldSkip) {
 			response.data = unwrapApiResponse(response.data);
 		}
