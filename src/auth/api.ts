@@ -1,6 +1,7 @@
 import axios from "axios";
 import { apiClient } from "@/shared/api/http";
 import { unwrapApiResponse } from "@/shared/api/response";
+import { getCsrfToken } from "@/shared/api/csrf";
 import type {
 	AuthUser,
 	ChangePasswordPayload,
@@ -114,23 +115,25 @@ export async function logout(): Promise<void> {
 	await apiClient.post<null>("/auth/logout");
 }
 
-export async function refreshSession(refresh_token: string, orgId?: string) {
+export async function refreshSession(orgId?: string) {
 	const { data } = await apiClient.post<TokenPair>(
 		"/auth/refresh",
-		{ refresh_token },
+		undefined,
 		orgId ? { headers: { "X-Org-Id": orgId } } : undefined,
 	);
 	return unwrapApiResponse<TokenPair>(data);
 }
 
-export async function refreshSessionForOrgSwitch(
-	refresh_token: string,
-	orgId: string,
-) {
+export async function refreshSessionForOrgSwitch(orgId: string) {
+	const csrfToken = getCsrfToken();
+	const headers: Record<string, string> = { "X-Org-Id": orgId };
+	if (csrfToken) {
+		headers["X-CSRF-Token"] = csrfToken;
+	}
 	const { data } = await axios.post<TokenPair>(
 		`${baseURL}/auth/refresh`,
-		{ refresh_token },
-		{ headers: { "X-Org-Id": orgId } },
+		undefined,
+		{ headers, withCredentials: true },
 	);
 	return unwrapApiResponse<TokenPair>(data);
 }

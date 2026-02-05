@@ -2,22 +2,22 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { PropsWithChildren } from "react";
 import {
 	setAccessTokenResolver,
-	setRefreshTokenResolver,
 	setStepUpHandler,
 	setTokenUpdater,
 	setUnauthorizedHandler,
 } from "@/shared/api/http";
+import { setCsrfToken } from "@/shared/api/csrf";
 import {
+	getMeWithToken,
 	logout as logoutApi,
+	refreshSession,
 	retryRequestWithStepUpToken,
 	verifyStepUpMfa,
 } from "@/auth/api";
-import { STORAGE_KEY } from "@/auth/constants";
 import { AuthContext, StepUpMfaContext } from "@/auth/context";
 import type {
 	AuthContextValue,
 	AuthUser,
-	PersistedSession,
 	RoleCode,
 	StepUpChallengeResponse,
 	StepUpMfaContextValue,
@@ -32,54 +32,27 @@ import { routes } from "@/shared/lib/routes";
 
 // ─── Auth Provider ───────────────────────────────────────────────────────────
 
-function loadPersistedSession(): PersistedSession {
-	if (typeof localStorage === "undefined") {
-		return { user: null, tokens: null, tokensByOrgId: {} };
-	}
-	try {
-		const raw = localStorage.getItem(STORAGE_KEY);
-		if (!raw) {
-			return { user: null, tokens: null, tokensByOrgId: {} };
-		}
-		const parsed = JSON.parse(raw) as PersistedSession;
-		return {
-			user: parsed?.user ?? null,
-			tokens: parsed?.tokens ?? null,
-			tokensByOrgId: parsed?.tokensByOrgId ?? {},
-		};
-	} catch (error) {
-		console.warn("Failed to load session from storage", error);
-		return { user: null, tokens: null, tokensByOrgId: {} };
-	}
-}
+const TENANCY_STORAGE_KEY = "sole.tenancy";
 
-function persistSession(session: PersistedSession) {
-	if (typeof localStorage === "undefined") return;
+function loadPersistedOrgId(): string | null {
+	if (typeof localStorage === "undefined") return null;
 	try {
-		localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
-	} catch (error) {
-		console.warn("Failed to persist session", error);
-	}
-}
-
-function clearPersistedSession() {
-	if (typeof localStorage === "undefined") return;
-	try {
-		localStorage.removeItem(STORAGE_KEY);
-	} catch (error) {
-		console.warn("Failed to clear session", error);
+		const raw = localStorage.getItem(TENANCY_STORAGE_KEY);
+		if (!raw) return null;
+		const parsed = JSON.parse(raw) as { currentOrgId?: string | null };
+		return parsed?.currentOrgId ?? null;
+	} catch {
+		return null;
 	}
 }
 
 export function AuthProvider({ children }: PropsWithChildren) {
-	const persisted = loadPersistedSession();
-
-	const [user, setUser] = useState<AuthUser | null>(persisted.user);
-	const [tokens, setTokens] = useState<TokenPair | null>(persisted.tokens);
+	const [user, setUser] = useState<AuthUser | null>(null);
+	const [tokens, setTokens] = useState<TokenPair | null>(null);
 	const [tokensByOrgId, setTokensByOrgId] = useState<Record<string, TokenPair>>(
-		persisted.tokensByOrgId ?? {},
+		{},
 	);
-	const [isAuthenticating, setIsAuthenticating] = useState(false);
+	const [isAuthenticating, setIsAuthenticating] = useState(true);
 
 	const setSession = useCallback(
 		(nextTokens: TokenPair, nextUser: AuthUser) => {
@@ -88,13 +61,11 @@ export function AuthProvider({ children }: PropsWithChildren) {
 			setTokensByOrgId((prev) => {
 				if (!nextUser?.org_id) return prev;
 				const next = { ...prev, [nextUser.org_id]: nextTokens };
-				persistSession({
-					tokens: nextTokens,
-					user: nextUser,
-					tokensByOrgId: next,
-				});
 				return next;
 			});
+			if (nextTokens.csrf_token !== undefined) {
+				setCsrfToken(nextTokens.csrf_token ?? null);
+			}
 			setIsAuthenticating(false);
 		},
 		[],
@@ -106,13 +77,11 @@ export function AuthProvider({ children }: PropsWithChildren) {
 			setUser(nextUser);
 			setTokensByOrgId((prev) => {
 				const next = { ...prev, [orgId]: nextTokens };
-				persistSession({
-					tokens: nextTokens,
-					user: nextUser,
-					tokensByOrgId: next,
-				});
 				return next;
 			});
+			if (nextTokens.csrf_token !== undefined) {
+				setCsrfToken(nextTokens.csrf_token ?? null);
+			}
 			setIsAuthenticating(false);
 		},
 		[],
@@ -122,7 +91,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 		setUser(null);
 		setTokens(null);
 		setTokensByOrgId({});
-		clearPersistedSession();
+		setCsrfToken(null);
 		setIsAuthenticating(false);
 	}, []);
 
@@ -138,7 +107,6 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
 	useEffect(() => {
 		setAccessTokenResolver(() => tokens?.access_token ?? null);
-		setRefreshTokenResolver(() => tokens?.refresh_token ?? null);
 
 		setTokenUpdater((newTokens) => {
 			setTokens((prev) => {
@@ -152,9 +120,11 @@ export function AuthProvider({ children }: PropsWithChildren) {
 					...prev,
 					[orgId]: { ...(prev[orgId] ?? {}), ...newTokens },
 				} as Record<string, TokenPair>;
-				persistSession({ tokens, user, tokensByOrgId: next });
 				return next;
 			});
+			if ("csrf_token" in newTokens) {
+				setCsrfToken(newTokens.csrf_token ?? null);
+			}
 		});
 
 		setUnauthorizedHandler(() => {
@@ -164,17 +134,54 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
 		return () => {
 			setAccessTokenResolver(() => null);
-			setRefreshTokenResolver(() => null);
 			setTokenUpdater(() => {});
 			setUnauthorizedHandler(null);
 		};
-	}, [tokens?.access_token, tokens?.refresh_token, clearSession, tokens, user]);
+	}, [tokens?.access_token, clearSession, user]);
 
 	useEffect(() => {
-		if (user && tokens) {
-			persistSession({ user, tokens, tokensByOrgId });
-		}
-	}, [user, tokens, tokensByOrgId]);
+		let isMounted = true;
+
+		const bootstrap = async () => {
+			setIsAuthenticating(true);
+			try {
+				const orgId = loadPersistedOrgId();
+				const refreshed = await refreshSession(orgId ?? undefined);
+				if (!isMounted) return;
+				if (!refreshed?.access_token) {
+					clearSession();
+					return;
+				}
+				const nextTokens: TokenPair = {
+					access_token: refreshed.access_token,
+					token_type: "bearer",
+				};
+				if (refreshed.csrf_token !== undefined) {
+					nextTokens.csrf_token = refreshed.csrf_token;
+					setCsrfToken(refreshed.csrf_token ?? null);
+				}
+				const nextUser = await getMeWithToken(
+					nextTokens.access_token,
+					orgId ?? undefined,
+				);
+				if (!isMounted) return;
+				setSession(nextTokens, nextUser);
+			} catch {
+				if (isMounted) {
+					clearSession();
+				}
+			} finally {
+				if (isMounted) {
+					setIsAuthenticating(false);
+				}
+			}
+		};
+
+		void bootstrap();
+		return () => {
+			isMounted = false;
+		};
+	}, [clearSession, setSession]);
 
 	const hasAnyRole = useCallback(
 		(roles?: RoleCode[]) => {

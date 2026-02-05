@@ -4,8 +4,9 @@ export type RoleCode = string;
 
 export interface TokenPair {
 	access_token: string;
-	refresh_token: string;
 	token_type: "bearer";
+	refresh_token?: string;
+	csrf_token?: string | null;
 }
 
 export interface AuthUser {
@@ -69,8 +70,9 @@ export interface LoginCompletePayload {
 
 export interface LoginCompleteResponse {
 	access_token?: string;
-	refresh_token?: string;
 	token_type?: "bearer";
+	refresh_token?: string;
+	csrf_token?: string | null;
 	mfa_required?: boolean;
 	mfa_setup_required?: boolean;
 	mfa_token?: string | null;

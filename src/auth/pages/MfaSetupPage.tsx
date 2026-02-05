@@ -12,7 +12,7 @@ import { useTenant } from "@/features/tenancy/hooks";
 import { routes } from "@/shared/lib/routes";
 import { useToast } from "@/shared/ui/use-toast";
 import { useApiErrorToast } from "@/shared/api/useApiErrorToast";
-import type { LoginMfaFormValues } from "@/auth/types";
+import type { LoginMfaFormValues, TokenPair } from "@/auth/types";
 
 export function MfaSetupPage() {
 	const { tokens, setSessionForOrg } = useAuth();
@@ -72,11 +72,21 @@ export function MfaSetupPage() {
 			},
 			{
 				onSuccess: async (response) => {
-					const nextTokens = {
+					if (!response.access_token) {
+						toast({
+							variant: "destructive",
+							title: "MFA setup failed",
+							description: "Missing access token.",
+						});
+						return;
+					}
+					const nextTokens: TokenPair = {
 						access_token: response.access_token,
-						refresh_token: response.refresh_token,
 						token_type: "bearer" as const,
 					};
+					if (response.csrf_token !== undefined) {
+						nextTokens.csrf_token = response.csrf_token;
+					}
 					if (response.remember_device_token) {
 						storeRememberDeviceToken(
 							currentOrgId,

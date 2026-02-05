@@ -5,7 +5,11 @@ import {
 	WARNING_SECONDS,
 } from "./constants";
 import { InactivityContext } from "./context";
-import type { InactivityContextValue, InactivityProviderProps } from "./types";
+import type {
+	InactivityContextValue,
+	InactivityProviderProps,
+	TokenPair,
+} from "./types";
 import { refreshSession } from "./api";
 import { useSelfContext, useAuth } from "./hooks";
 import { useTenant } from "@/features/tenancy/hooks";
@@ -115,23 +119,20 @@ export function InactivityProvider({ children }: InactivityProviderProps) {
 	]);
 
 	const refreshActivity = useCallback(async () => {
-		if (!tokens?.refresh_token || !currentOrgId || isRefreshing) return;
+		if (!tokens?.access_token || !currentOrgId || isRefreshing) return;
 
 		setIsRefreshing(true);
 		try {
-			const newTokens = await refreshSession(
-				tokens.refresh_token,
-				currentOrgId,
-			);
-			if (newTokens && user) {
-				setSession(
-					{
-						access_token: newTokens.access_token,
-						refresh_token: newTokens.refresh_token,
-						token_type: "bearer",
-					},
-					user,
-				);
+			const refreshed = await refreshSession(currentOrgId);
+			if (refreshed?.access_token && user) {
+				const nextTokens: TokenPair = {
+					access_token: refreshed.access_token,
+					token_type: "bearer" as const,
+				};
+				if (refreshed.csrf_token !== undefined) {
+					nextTokens.csrf_token = refreshed.csrf_token;
+				}
+				setSession(nextTokens, user);
 			}
 			setLastActivityTime(Date.now());
 			setIsWarningVisible(false);

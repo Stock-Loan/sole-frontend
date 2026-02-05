@@ -1,7 +1,6 @@
 export const PENDING_EMAIL_KEY = "sole.pending-login-email";
 export const PENDING_ORG_SWITCH_KEY = "sole.pending-org-switch";
 export const REMEMBER_DEVICE_KEY = "sole.mfa.remember-device";
-export const STORAGE_KEY = "sole.auth.session";
 
 /** Warning starts 60 seconds before timeout */
 export const WARNING_SECONDS = 60;

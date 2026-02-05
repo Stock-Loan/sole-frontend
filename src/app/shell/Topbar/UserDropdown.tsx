@@ -15,6 +15,14 @@ import { routes } from "@/shared/lib/routes";
 import { useUserSettings } from "@/features/user-settings/hooks";
 import type { UserDropdownProps } from "./types";
 
+const USER_ID_MAX_CHARS = 15;
+
+function truncateValue(value: string, maxChars: number) {
+	if (value.length <= maxChars) return value;
+	if (maxChars <= 3) return value.slice(0, maxChars);
+	return `${value.slice(0, maxChars - 3)}...`;
+}
+
 export function UserDropdown({ showChevron = false }: UserDropdownProps) {
 	const { user, setUser, logout } = useAuth();
 
@@ -41,6 +49,20 @@ export function UserDropdown({ showChevron = false }: UserDropdownProps) {
 		displayUser?.email,
 		displayUser?.full_name,
 	]);
+
+	const secondaryLabel = useMemo(() => {
+		return (
+			selfProfile?.membership.employee_id ||
+			displayUser?.email ||
+			displayUser?.id ||
+			"email@domain"
+		);
+	}, [selfProfile?.membership.employee_id, displayUser?.email, displayUser?.id]);
+
+	const secondaryDisplay = useMemo(
+		() => truncateValue(secondaryLabel, USER_ID_MAX_CHARS),
+		[secondaryLabel],
+	);
 
 	const initials = useMemo(() => {
 		const nameForInitials =
@@ -78,10 +100,8 @@ export function UserDropdown({ showChevron = false }: UserDropdownProps) {
 					</Avatar>
 					<div className="hidden text-left text-xs leading-tight sm:block">
 						<p className="font-semibold text-foreground">{displayName}</p>
-						<p className="text-muted-foreground">
-							{selfProfile?.membership.employee_id ||
-								displayUser?.email ||
-								"email@domain"}
+						<p className="text-muted-foreground" title={secondaryLabel}>
+							{secondaryDisplay}
 						</p>
 					</div>
 					{showChevron ? (

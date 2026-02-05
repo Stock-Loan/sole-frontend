@@ -58,6 +58,7 @@ import type {
 	LoginEmailFormValues,
 	LoginMfaFormValues,
 	LoginPasswordFormValues,
+	TokenPair,
 } from "@/auth/types";
 import { useTenantOptional } from "@/features/tenancy/hooks";
 import {
@@ -73,6 +74,22 @@ import { Checkbox } from "@/shared/ui/checkbox";
 import { MfaEnrollmentPage } from "@/auth/pages/MfaEnrollmentPage";
 import { OtpInput } from "@/auth/components/OtpInput";
 import { RecoveryCodesDisplay } from "@/auth/components/RecoveryCodesDisplay";
+
+function buildTokensFromResponse(response: {
+	access_token?: string;
+	refresh_token?: string;
+	csrf_token?: string | null;
+}): TokenPair | null {
+	if (!response.access_token) return null;
+	const tokens: TokenPair = {
+		access_token: response.access_token,
+		token_type: "bearer",
+	};
+	if (response.csrf_token !== undefined) {
+		tokens.csrf_token = response.csrf_token;
+	}
+	return tokens;
+}
 
 export function LoginPage() {
 	const navigate = useNavigate();
@@ -112,11 +129,7 @@ export function LoginPage() {
 	);
 	const [recoveryCodes, setRecoveryCodes] = useState<string[]>([]);
 	const [pendingLoginData, setPendingLoginData] = useState<{
-		tokens: {
-			access_token: string;
-			refresh_token: string;
-			token_type: "bearer";
-		};
+		tokens: TokenPair;
 		user: AuthUser;
 	} | null>(null);
 
@@ -285,18 +298,14 @@ export function LoginPage() {
 							});
 							return;
 						}
-						if (response.access_token && response.refresh_token) {
+						const tokens = buildTokensFromResponse(response);
+						if (tokens) {
 							try {
 								const user = await getMeWithToken(
-									response.access_token,
+									tokens.access_token,
 									currentOrgId,
 								);
 								if (user.must_change_password) {
-									const tokens = {
-										access_token: response.access_token,
-										refresh_token: response.refresh_token,
-										token_type: "bearer" as const,
-									};
 									setSessionForOrg(currentOrgId, tokens, user);
 									if (typeof localStorage !== "undefined") {
 										localStorage.removeItem(PENDING_EMAIL_KEY);
@@ -332,11 +341,6 @@ export function LoginPage() {
 											id: "pending",
 											email: email,
 											is_active: true,
-										};
-										const tokens = {
-											access_token: response.access_token,
-											refresh_token: response.refresh_token,
-											token_type: "bearer" as const,
 										};
 										setSessionForOrg(currentOrgId, tokens, placeholderUser);
 										if (typeof localStorage !== "undefined") {
@@ -406,19 +410,15 @@ export function LoginPage() {
 						});
 						return;
 					}
-					if (!response.access_token || !response.refresh_token) {
+					const tokens = buildTokensFromResponse(response);
+					if (!tokens) {
 						toast({
 							variant: "destructive",
 							title: "Login failed",
-							description: "Missing authentication tokens.",
+							description: "Missing access token.",
 						});
 						return;
 					}
-					const tokens = {
-						access_token: response.access_token,
-						refresh_token: response.refresh_token,
-						token_type: "bearer" as const,
-					};
 					try {
 						const user = await getMeWithToken(
 							tokens.access_token,
@@ -519,11 +519,15 @@ export function LoginPage() {
 			},
 			{
 				onSuccess: async (response) => {
-					const tokens = {
-						access_token: response.access_token,
-						refresh_token: response.refresh_token,
-						token_type: "bearer" as const,
-					};
+					const tokens = buildTokensFromResponse(response);
+					if (!tokens) {
+						toast({
+							variant: "destructive",
+							title: "Login failed",
+							description: "Missing access token.",
+						});
+						return;
+					}
 					if (response.remember_device_token) {
 						storeRememberDeviceToken(
 							currentOrgId,
@@ -625,11 +629,15 @@ export function LoginPage() {
 			},
 			{
 				onSuccess: async (response) => {
-					const tokens = {
-						access_token: response.access_token,
-						refresh_token: response.refresh_token,
-						token_type: "bearer" as const,
-					};
+					const tokens = buildTokensFromResponse(response);
+					if (!tokens) {
+						toast({
+							variant: "destructive",
+							title: "Login failed",
+							description: "Missing access token.",
+						});
+						return;
+					}
 					const user = await getMeWithToken(tokens.access_token, currentOrgId);
 					if (user.must_change_password) {
 						setSessionForOrg(currentOrgId, tokens, user);
@@ -688,11 +696,15 @@ export function LoginPage() {
 			},
 			{
 				onSuccess: async (response) => {
-					const tokens = {
-						access_token: response.access_token,
-						refresh_token: response.refresh_token,
-						token_type: "bearer" as const,
-					};
+					const tokens = buildTokensFromResponse(response);
+					if (!tokens) {
+						toast({
+							variant: "destructive",
+							title: "Login failed",
+							description: "Missing access token.",
+						});
+						return;
+					}
 					if (response.remember_device_token) {
 						storeRememberDeviceToken(
 							currentOrgId,

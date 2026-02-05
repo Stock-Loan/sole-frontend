@@ -14,8 +14,10 @@ import { useQuery } from "@tanstack/react-query";
 import { setOrgResolver } from "@/shared/api/http";
 import { queryClient } from "@/shared/api/queryClient";
 import { useAuth } from "@/auth/hooks";
+import { refreshSessionForOrgSwitch } from "@/auth/api";
 import { tenancyKeys } from "@/features/tenancy/keys";
 import type { OrgSummary, PersistedTenancy, TenantContextValue } from "./types";
+import type { TokenPair } from "@/auth/types";
 import { discoverTenants, listTenants } from "./tenantApi";
 import { routes } from "@/shared/lib/routes";
 
@@ -82,7 +84,7 @@ export function TenantProvider({ children }: PropsWithChildren) {
 
 	useLayoutEffect(() => {
 		if (!currentOrgId && fallbackOrgId) {
-			// eslint-disable-next-line react-hooks/set-state-in-effect
+			 
 			setCurrentOrgId(fallbackOrgId);
 		}
 	}, [currentOrgId, fallbackOrgId]);
@@ -109,7 +111,7 @@ export function TenantProvider({ children }: PropsWithChildren) {
 		if (orgs.length > 1) {
 			const resolvedOrg = data[0];
 			if (resolvedOrg) {
-				// eslint-disable-next-line react-hooks/set-state-in-effect
+				 
 				setOrgs((prev) => {
 					const hasOrg = prev.some((org) => org.id === resolvedOrg.id);
 					if (hasOrg) {
@@ -137,21 +139,44 @@ export function TenantProvider({ children }: PropsWithChildren) {
 
 	const switchOrg = useCallback(
 		(orgId: string) => {
-			if (orgId === currentOrgId) return;
-			if (user?.is_superuser) {
-				setCurrentOrgId(orgId);
-				return;
-			}
-			const tokensForOrg = getTokensForOrg(orgId);
-			if (!tokensForOrg || !user) {
-				if (typeof localStorage !== "undefined") {
-					localStorage.setItem(PENDING_ORG_SWITCH_KEY, orgId);
+			void (async () => {
+				if (orgId === currentOrgId) return;
+				if (!user) {
+					if (typeof localStorage !== "undefined") {
+						localStorage.setItem(PENDING_ORG_SWITCH_KEY, orgId);
+					}
+					window.location.assign(routes.login);
+					return;
 				}
-				window.location.assign(routes.login);
-				return;
-			}
-			setSessionForOrg(orgId, tokensForOrg, user);
-			setCurrentOrgId(orgId);
+
+				const tokensForOrg = getTokensForOrg(orgId);
+				if (tokensForOrg) {
+					setSessionForOrg(orgId, tokensForOrg, user);
+					setCurrentOrgId(orgId);
+					return;
+				}
+
+				try {
+					const refreshed = await refreshSessionForOrgSwitch(orgId);
+					if (!refreshed?.access_token) {
+						throw new Error("Missing access token");
+					}
+					const nextTokens: TokenPair = {
+						access_token: refreshed.access_token,
+						token_type: "bearer" as const,
+					};
+					if (refreshed.csrf_token !== undefined) {
+						nextTokens.csrf_token = refreshed.csrf_token;
+					}
+					setSessionForOrg(orgId, nextTokens, user);
+					setCurrentOrgId(orgId);
+				} catch {
+					if (typeof localStorage !== "undefined") {
+						localStorage.setItem(PENDING_ORG_SWITCH_KEY, orgId);
+					}
+					window.location.assign(routes.login);
+				}
+			})();
 		},
 		[currentOrgId, getTokensForOrg, setSessionForOrg, user],
 	);

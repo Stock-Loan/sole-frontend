@@ -1,6 +1,7 @@
 import axios, { AxiosHeaders } from "axios";
 import { routes } from "@/shared/lib/routes";
 import { unwrapApiResponse } from "@/shared/api/response";
+import { getCsrfToken, setCsrfToken } from "@/shared/api/csrf";
 import type {
 	StepUpHandler,
 	TokenResolver,
@@ -9,7 +10,6 @@ import type {
 } from "@/shared/api/types";
 
 let accessTokenResolver: TokenResolver = () => null;
-let refreshTokenResolver: TokenResolver = () => null;
 let orgResolver: TokenResolver = () => null;
 let tokenUpdater: TokenUpdater | null = null;
 let unauthorizedHandler: VoidHandler | null = null;
@@ -24,10 +24,6 @@ export const apiClient = axios.create({
 
 export function setAccessTokenResolver(resolver: TokenResolver) {
 	accessTokenResolver = resolver;
-}
-
-export function setRefreshTokenResolver(resolver: TokenResolver) {
-	refreshTokenResolver = resolver;
 }
 
 export function setTokenUpdater(updater: TokenUpdater) {
@@ -49,11 +45,18 @@ export function setStepUpHandler(handler: StepUpHandler | null) {
 apiClient.interceptors.request.use((config) => {
 	const token = accessTokenResolver();
 	const orgId = orgResolver();
+	const csrfToken = getCsrfToken();
 	const rawUrl = config.url ?? "";
 	const normalizedUrl = rawUrl.startsWith(baseURL)
 		? rawUrl.slice(baseURL.length)
 		: rawUrl;
-	const isAuthLoginFlow =
+	const isRefreshRequest = normalizedUrl.startsWith("/auth/refresh");
+	const isAuthHeaderExcluded =
+		normalizedUrl.startsWith("/auth/login/") ||
+		normalizedUrl.startsWith("/auth/org-discovery") ||
+		normalizedUrl.startsWith("/auth/orgs/resolve") ||
+		normalizedUrl.startsWith("/auth/refresh");
+	const isOrgHeaderExcluded =
 		normalizedUrl.startsWith("/auth/login/") ||
 		normalizedUrl.startsWith("/auth/org-discovery") ||
 		normalizedUrl.startsWith("/auth/orgs/resolve");
@@ -67,11 +70,14 @@ apiClient.interceptors.request.use((config) => {
 
 	const headers = config.headers as AxiosHeaders;
 
-	if (token && !isAuthLoginFlow && !headers.has("Authorization")) {
+	if (token && !isAuthHeaderExcluded && !headers.has("Authorization")) {
 		headers.set("Authorization", `Bearer ${token}`);
 	}
-	if (orgId && !isAuthLoginFlow && !headers.has("X-Org-Id")) {
+	if (orgId && !isOrgHeaderExcluded && !headers.has("X-Org-Id")) {
 		headers.set("X-Org-Id", orgId);
+	}
+	if (csrfToken && isRefreshRequest && !headers.has("X-CSRF-Token")) {
+		headers.set("X-CSRF-Token", csrfToken);
 	}
 
 	return config;
@@ -95,6 +101,11 @@ apiClient.interceptors.response.use(
 		const originalRequest = error.config;
 		const status = error?.response?.status;
 		const responseData = error?.response?.data;
+		const rawUrl = originalRequest?.url ?? "";
+		const normalizedUrl = rawUrl.startsWith(baseURL)
+			? rawUrl.slice(baseURL.length)
+			: rawUrl;
+		const isRefreshRequest = normalizedUrl.startsWith("/auth/refresh");
 		const detailRaw = responseData?.detail;
 		const detail =
 			typeof detailRaw === "string"
@@ -142,33 +153,52 @@ apiClient.interceptors.response.use(
 			);
 		}
 
-		if (status === 401 && !originalRequest._retry) {
-			const refreshToken = refreshTokenResolver();
-			if (refreshToken) {
-				originalRequest._retry = true;
-				try {
-					// Direct axios call to avoid interceptor loop
-					const { data } = await axios.post(
-						`${baseURL}/auth/refresh`,
-						{ refresh_token: refreshToken },
-						{ headers: { "X-Org-Id": orgResolver() } },
-					);
-
-					const tokens = unwrapApiResponse<{
-						access_token?: string;
-						refresh_token?: string;
-					}>(data);
-
-					if (tokens?.access_token && tokens?.refresh_token) {
-						tokenUpdater?.(
-							tokens as { access_token: string; refresh_token: string },
-						);
-						originalRequest.headers.Authorization = `Bearer ${tokens.access_token}`;
-						return apiClient(originalRequest);
-					}
-				} catch {
-					// Refresh failed, proceed to logout
+		if (status === 401 && !originalRequest._retry && !isRefreshRequest) {
+			originalRequest._retry = true;
+			try {
+				const csrfToken = getCsrfToken();
+				const orgId = orgResolver();
+				const headers: Record<string, string> = {};
+				if (csrfToken) {
+					headers["X-CSRF-Token"] = csrfToken;
 				}
+				if (orgId) {
+					headers["X-Org-Id"] = orgId;
+				}
+
+				// Direct axios call to avoid interceptor loop
+				const { data } = await axios.post(
+					`${baseURL}/auth/refresh`,
+					undefined,
+					{
+						headers,
+						withCredentials: true,
+					},
+				);
+
+				const tokens = unwrapApiResponse<{
+					access_token?: string;
+					csrf_token?: string | null;
+				}>(data);
+
+				if (tokens?.access_token) {
+					const update: {
+						access_token: string;
+						csrf_token?: string | null;
+					} = { access_token: tokens.access_token };
+					if (tokens.csrf_token !== undefined) {
+						update.csrf_token = tokens.csrf_token;
+						setCsrfToken(tokens.csrf_token ?? null);
+					}
+					tokenUpdater?.(update);
+					if (!originalRequest.headers) {
+						originalRequest.headers = {};
+					}
+					originalRequest.headers.Authorization = `Bearer ${tokens.access_token}`;
+					return apiClient(originalRequest);
+				}
+			} catch {
+				// Refresh failed, proceed to logout
 			}
 
 			const hasToken = Boolean(accessTokenResolver());
