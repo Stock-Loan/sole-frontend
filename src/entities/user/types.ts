@@ -1,4 +1,4 @@
-import type { formSchema, profileSchema } from "@/entities/user/schemas";
+import type { formSchema, profileSchema, selfProfileSchema } from "@/entities/user/schemas";
 import { z } from "zod";
 import type { Role } from "@/entities/role/types";
 
@@ -201,6 +201,18 @@ export interface UpdateOrgUserProfilePayload {
 	postal_code?: string;
 }
 
+export interface UpdateSelfProfilePayload {
+	preferred_name?: string;
+	timezone?: string;
+	phone_number?: string;
+	marital_status?: string;
+	country?: string;
+	state?: string;
+	address_line1?: string;
+	address_line2?: string;
+	postal_code?: string;
+}
+
 export interface UpdateOrgUserProfileWithStatusPayload {
 	profilePayload?: UpdateOrgUserProfilePayload;
 	statusPayload?: UpdateOrgUserStatusPayload;
@@ -272,6 +284,7 @@ export interface AddUserDialogProps {
 }
 export type AddUserFormValues = z.infer<typeof formSchema>;
 export type ProfileFormValues = z.infer<typeof profileSchema>;
+export type SelfProfileFormValues = z.infer<typeof selfProfileSchema>;
 export interface OrgUserProfileDialogProps {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;

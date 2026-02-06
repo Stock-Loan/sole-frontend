@@ -11,6 +11,8 @@ import { formatDate } from "@/shared/lib/format";
 import { TabButton } from "@/shared/ui/TabButton";
 import { useAuth } from "@/auth/hooks";
 import { useUserSettings } from "@/features/user-settings/hooks";
+import { useSelfOrgPolicy } from "@/entities/org/hooks";
+import { SelfProfileDialog } from "@/features/user-settings/components/SelfProfileDialog";
 import { RecoveryCodesManager } from "@/auth/components/RecoveryCodesManager";
 import type {
 	UserSettingsInfoCardProps,
@@ -26,6 +28,9 @@ export function MySettingsPage() {
 	const [tab, setTab] = useState<UserSettingsTabKey>(initialTab);
 
 	const { data: profile, isLoading, isError } = useUserSettings();
+	const { data: policy } = useSelfOrgPolicy();
+	const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
+	const canEditProfile = Boolean(policy?.allow_profile_edit);
 
 	const profileUser = profile?.user;
 	const membership = profile?.membership;
@@ -121,7 +126,8 @@ export function MySettingsPage() {
 	];
 
 	return (
-		<PageContainer className="flex min-h-0 flex-1 flex-col gap-4">
+		<>
+			<PageContainer className="flex min-h-0 flex-1 flex-col gap-4">
 			<PageHeader
 				title="User settings"
 				subtitle="Manage your account details, security, and credentials."
@@ -162,9 +168,29 @@ export function MySettingsPage() {
 										Your basic account information and org context.
 									</p>
 								</div>
+								<Button
+									className="ml-auto"
+									size="sm"
+									disabled={!canEditProfile}
+									onClick={() => setIsProfileDialogOpen(true)}
+								>
+									Edit profile
+								</Button>
 							</div>
 						</div>
 						<div className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
+							<div className="mb-4 rounded-lg border border-amber-200 bg-amber-50/70 px-4 py-3 text-sm text-amber-900">
+								<p className="font-medium">Admin-managed fields</p>
+								<p className="text-xs text-amber-900/80">
+									Email, legal name, employee ID, and employment start date can only
+									be updated by your organization admin.
+								</p>
+								{!canEditProfile ? (
+									<p className="mt-2 text-xs text-amber-900/80">
+										Profile editing is disabled by your organization settings.
+									</p>
+								) : null}
+							</div>
 							<SectionGrid items={personalItems} />
 							<Separator className="my-4" />
 							<div>
@@ -233,7 +259,14 @@ export function MySettingsPage() {
 					</div>
 				)}
 			</div>
-		</PageContainer>
+			</PageContainer>
+			<SelfProfileDialog
+				open={isProfileDialogOpen}
+				onOpenChange={setIsProfileDialogOpen}
+				profile={profile}
+				canEdit={canEditProfile}
+			/>
+		</>
 	);
 }
 

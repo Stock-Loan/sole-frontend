@@ -39,6 +39,7 @@ export function MyStockPage() {
 	const reservations = summary?.reservations;
 	const loanSummary = summary?.loan_summary;
 	const repaymentActivity = summary?.repayment_activity;
+	const profileCompletion = summary?.profile_completion;
 	const nextPaymentDate = loanSummary?.next_payment_date ?? null;
 	const nextPaymentAmount = loanSummary?.next_payment_amount ?? null;
 	const isEligible = eligibility?.eligible_to_exercise;
@@ -110,6 +111,25 @@ export function MyStockPage() {
 	const attentionPendingCount = attentionItems.length;
 	const unreadAnnouncementsCount = attention?.unread_announcements_count ?? 0;
 	const showAttentionCard = Boolean(attention || attentionItems.length > 0);
+
+	const profileFieldLabels: Record<string, string> = {
+		preferred_name: "Preferred name",
+		phone_number: "Phone number",
+		timezone: "Timezone",
+		marital_status: "Marital status",
+		country: "Country",
+		state: "State",
+		address_line1: "Address line 1",
+		address_line2: "Address line 2",
+		postal_code: "Postal code",
+	};
+	const profileMissingLabels =
+		profileCompletion?.missing_fields?.map(
+			(field) => profileFieldLabels[field] ?? field,
+		) ?? [];
+	const profileCompletionPercent = profileCompletion?.completion_percent ?? 100;
+	const showProfileCompletion =
+		Boolean(profileCompletion) && !profileCompletion?.is_complete;
 
 	const reasons =
 		eligibility?.reasons?.map((reason) =>
@@ -276,6 +296,36 @@ export function MyStockPage() {
 				/>
 			) : (
 				<div className="space-y-8">
+					{showProfileCompletion ? (
+						<Card className="border-amber-200 bg-amber-50/70">
+							<CardHeader className="pb-2">
+								<CardTitle className="flex items-center gap-2 text-sm font-semibold text-amber-900">
+									<AlertTriangle className="h-4 w-4" />
+									Complete your profile
+								</CardTitle>
+							</CardHeader>
+							<CardContent className="space-y-2 text-sm text-amber-900">
+								<p>
+									Your profile is {profileCompletionPercent}% complete. Please
+									fill the remaining details to keep your records up to date.
+								</p>
+								{profileMissingLabels.length > 0 ? (
+									<p className="text-xs text-amber-800">
+										Missing: {profileMissingLabels.join(", ")}
+									</p>
+								) : null}
+								<div className="h-2 w-full rounded-full bg-amber-100">
+									<div
+										className="h-2 rounded-full bg-amber-400"
+										style={{ width: `${profileCompletionPercent}%` }}
+									/>
+								</div>
+								<Button asChild size="sm" className="w-fit">
+									<Link to={routes.workspaceSettings}>Update profile</Link>
+								</Button>
+							</CardContent>
+						</Card>
+					) : null}
 					<div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
 						{metricCards.map((metric) => (
 							<Card

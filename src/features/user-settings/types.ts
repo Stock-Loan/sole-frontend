@@ -12,3 +12,10 @@ export interface UserSettingsInfoCardProps {
 export interface UserSettingsSectionGridProps {
 	items: UserSettingsInfoCardProps[];
 }
+
+export interface SelfProfileDialogProps {
+	open: boolean;
+	onOpenChange: (open: boolean) => void;
+	profile: UserSettingsProfile | null | undefined;
+	canEdit: boolean;
+}

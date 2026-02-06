@@ -233,3 +233,15 @@ export const profileSchema = z.object({
 	]),
 	platform_status: z.enum(["ACTIVE", "INVITED", "SUSPENDED"]),
 });
+
+export const selfProfileSchema = z.object({
+	preferred_name: z.string().optional(),
+	timezone: z.string().min(1, "Select a timezone"),
+	phone_number: z.string().min(1, "Phone number is required"),
+	marital_status: z.string().min(1, "Select marital status"),
+	country: z.string().min(1, "Select a country"),
+	state: z.string().min(1, "Select a state"),
+	address_line1: z.string().min(1, "Address line 1 is required"),
+	address_line2: z.string().optional(),
+	postal_code: z.string().min(1, "Postal code is required"),
+});

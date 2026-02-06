@@ -18,6 +18,15 @@ export interface DashboardAttentionSummary {
 	pending_actions: DashboardPendingAction[];
 }
 
+export interface DashboardProfileCompletion {
+	completion_percent: number;
+	missing_fields: string[];
+	required_fields: string[];
+	total_required_fields: number;
+	missing_count: number;
+	is_complete: boolean;
+}
+
 export interface DashboardStockTotals {
 	grant_count: number;
 	total_granted_shares: number;
@@ -141,6 +150,7 @@ export interface DashboardRepaymentActivity {
 export interface MeDashboardSummary {
 	as_of_date: string;
 	attention: DashboardAttentionSummary;
+	profile_completion: DashboardProfileCompletion;
 	stock_totals: DashboardStockTotals;
 	stock_eligibility: DashboardStockEligibility;
 	vesting_timeline: DashboardVestingTimeline;
