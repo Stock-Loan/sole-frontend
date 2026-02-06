@@ -215,7 +215,12 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
 		const exp = getJwtExpiry(tokens.access_token);
 		if (!exp) return;
-		const refreshAtMs = exp * 1000 - 60_000;
+		const baseRefreshAt = exp * 1000 - 60_000;
+		const jitter = Math.floor(Math.random() * 30_000);
+		const jitterDirection = Math.random() < 0.5 ? -1 : 1;
+		const jitteredRefreshAt = baseRefreshAt + jitterDirection * jitter;
+		const latestRefreshAt = exp * 1000 - 5_000;
+		const refreshAtMs = Math.min(jitteredRefreshAt, latestRefreshAt);
 		const delay = Math.max(0, refreshAtMs - Date.now());
 
 		refreshTimerRef.current = window.setTimeout(async () => {

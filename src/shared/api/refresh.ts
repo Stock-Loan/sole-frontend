@@ -8,8 +8,138 @@ const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 const inflightRefresh: Record<string, Promise<TokenPair> | undefined> = {};
 
+const REFRESH_LOCK_TTL_MS = 15_000;
+const REFRESH_CHANNEL_NAME = "sole.auth.refresh";
+const REFRESH_LOCK_PREFIX = "sole.auth.refresh.lock";
+const TAB_ID_KEY = "sole.auth.tab_id";
+
+const refreshChannel =
+	typeof BroadcastChannel !== "undefined"
+		? new BroadcastChannel(REFRESH_CHANNEL_NAME)
+		: null;
+
 function getRefreshKey(orgId?: string | null) {
 	return orgId ? `org:${orgId}` : "org:default";
+}
+
+function getLockKey(orgId?: string | null) {
+	return `${REFRESH_LOCK_PREFIX}:${orgId ?? "default"}`;
+}
+
+function getTabId(): string {
+	if (typeof sessionStorage === "undefined") {
+		return "tab-" + Math.random().toString(36).slice(2);
+	}
+	try {
+		const existing = sessionStorage.getItem(TAB_ID_KEY);
+		if (existing) return existing;
+		const next = "tab-" + Math.random().toString(36).slice(2);
+		sessionStorage.setItem(TAB_ID_KEY, next);
+		return next;
+	} catch {
+		return "tab-" + Math.random().toString(36).slice(2);
+	}
+}
+
+const tabId = getTabId();
+
+type RefreshLock = { ownerId: string; expiresAt: number };
+
+function readLock(lockKey: string): RefreshLock | null {
+	if (typeof localStorage === "undefined") return null;
+	try {
+		const raw = localStorage.getItem(lockKey);
+		if (!raw) return null;
+		const parsed = JSON.parse(raw) as RefreshLock;
+		if (!parsed?.ownerId || !parsed?.expiresAt) return null;
+		return parsed;
+	} catch {
+		return null;
+	}
+}
+
+function writeLock(lockKey: string, lock: RefreshLock) {
+	if (typeof localStorage === "undefined") return;
+	try {
+		localStorage.setItem(lockKey, JSON.stringify(lock));
+	} catch {
+		// ignore storage errors
+	}
+}
+
+function clearLock(lockKey: string) {
+	if (typeof localStorage === "undefined") return;
+	try {
+		localStorage.removeItem(lockKey);
+	} catch {
+		// ignore storage errors
+	}
+}
+
+function tryAcquireLock(orgId?: string | null) {
+	if (typeof localStorage === "undefined") return null;
+	const lockKey = getLockKey(orgId);
+	const now = Date.now();
+	const existing = readLock(lockKey);
+	if (existing && existing.expiresAt > now && existing.ownerId !== tabId) {
+		return null;
+	}
+	const lock: RefreshLock = { ownerId: tabId, expiresAt: now + REFRESH_LOCK_TTL_MS };
+	writeLock(lockKey, lock);
+	const confirm = readLock(lockKey);
+	if (!confirm || confirm.ownerId !== tabId) return null;
+	return {
+		release: () => {
+			const current = readLock(lockKey);
+			if (current?.ownerId === tabId) {
+				clearLock(lockKey);
+			}
+		},
+	};
+}
+
+function broadcastRefresh(orgId: string | null | undefined, tokens: TokenPair) {
+	if (!refreshChannel) return;
+	refreshChannel.postMessage({
+		type: "refresh:complete",
+		key: getRefreshKey(orgId),
+		tokens,
+	});
+}
+
+function waitForBroadcast(orgId?: string | null): Promise<TokenPair | null> {
+	if (!refreshChannel) return Promise.resolve(null);
+	const key = getRefreshKey(orgId);
+	return new Promise((resolve) => {
+		const handler = (event: MessageEvent) => {
+			const payload = event.data as
+				| { type?: string; key?: string; tokens?: TokenPair }
+				| undefined;
+			if (!payload || payload.type !== "refresh:complete") return;
+			if (payload.key !== key) return;
+			cleanup();
+			resolve(payload.tokens ?? null);
+		};
+		const cleanup = () => {
+			refreshChannel.removeEventListener("message", handler);
+			clearTimeout(timeoutId);
+		};
+		const timeoutId = setTimeout(() => {
+			cleanup();
+			resolve(null);
+		}, REFRESH_LOCK_TTL_MS);
+		refreshChannel.addEventListener("message", handler);
+	});
+}
+
+function isOverloadFailure(error: unknown): boolean {
+	if (!isAxiosError(error)) return false;
+	const status = error.response?.status;
+	return status === 429 || status === 503;
+}
+
+function sleep(ms: number) {
+	return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function extractErrorMessage(error: unknown): string | null {
@@ -77,14 +207,44 @@ export async function refreshSessionWithRetry(
 	}
 
 	const promise = (async () => {
-		try {
-			return await refreshOnce(orgId);
-		} catch (error) {
-			if (isCsrfFailure(error)) {
-				await requestCsrfToken(orgId);
-				return await refreshOnce(orgId);
+		let lock = tryAcquireLock(orgId);
+		if (!lock) {
+			const broadcasted = await waitForBroadcast(orgId);
+			if (broadcasted?.access_token) {
+				return broadcasted;
 			}
-			throw error;
+			lock = tryAcquireLock(orgId);
+		}
+
+		const runRefresh = async () => {
+			let csrfRetried = false;
+			let overloadRetried = false;
+			while (true) {
+				try {
+					return await refreshOnce(orgId);
+				} catch (error) {
+					if (isCsrfFailure(error) && !csrfRetried) {
+						csrfRetried = true;
+						await requestCsrfToken(orgId);
+						continue;
+					}
+					if (isOverloadFailure(error) && !overloadRetried) {
+						overloadRetried = true;
+						const jitter = 200 + Math.floor(Math.random() * 800);
+						await sleep(jitter);
+						continue;
+					}
+					throw error;
+				}
+			}
+		};
+
+		try {
+			const tokens = await runRefresh();
+			broadcastRefresh(orgId, tokens);
+			return tokens;
+		} finally {
+			lock?.release();
 		}
 	})().finally(() => {
 		delete inflightRefresh[key];

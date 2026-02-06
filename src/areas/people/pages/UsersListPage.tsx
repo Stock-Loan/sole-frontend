@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { PaginationState, VisibilityState } from "@tanstack/react-table";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Eye, EyeOff } from "lucide-react";
 import { PageContainer } from "@/shared/ui/PageContainer";
 import { PageHeader } from "@/shared/ui/PageHeader";
 import { EmptyState } from "@/shared/ui/EmptyState";
@@ -726,24 +727,31 @@ export function UsersListPage() {
 							<label className="text-xs font-semibold text-muted-foreground">
 								Temporary password
 							</label>
-							<div className="flex items-center gap-2">
+							<div className="relative">
 								<Input
 									readOnly
-									value={
-										tempPasswordInfo?.password
-											? revealTempPassword
-												? tempPasswordInfo.password
-												: "••••••••••••"
-											: ""
-									}
+									type={revealTempPassword ? "text" : "password"}
+									value={tempPasswordInfo?.password ?? ""}
+									className="pr-11"
 								/>
 								<Button
 									type="button"
-									variant="outline"
-									size="sm"
+									variant="ghost"
+									size="icon"
+									className="absolute right-1 top-1/2 h-9 w-9 -translate-y-1/2"
 									onClick={() => setRevealTempPassword((prev) => !prev)}
+									aria-label={
+										revealTempPassword
+											? "Hide temporary password"
+											: "Show temporary password"
+									}
+									disabled={!tempPasswordInfo?.password}
 								>
-									{revealTempPassword ? "Hide" : "Show"}
+									{revealTempPassword ? (
+										<EyeOff className="h-4 w-4" />
+									) : (
+										<Eye className="h-4 w-4" />
+									)}
 								</Button>
 							</div>
 							<Button

@@ -27,19 +27,49 @@ import type {
 } from "@/auth/types";
 import type { OrgSummary } from "@/entities/org/types";
 
+const ORG_DISCOVERY_TTL_MS = 60_000;
+const orgDiscoveryCache = new Map<
+	string,
+	{ expiresAt: number; orgs: OrgSummary[] }
+>();
+
+function getOrgDiscoveryCacheKey(email: string) {
+	return email.trim().toLowerCase();
+}
+
+function getCachedOrgDiscovery(email: string): OrgSummary[] | null {
+	const key = getOrgDiscoveryCacheKey(email);
+	const cached = orgDiscoveryCache.get(key);
+	if (!cached) return null;
+	if (cached.expiresAt < Date.now()) {
+		orgDiscoveryCache.delete(key);
+		return null;
+	}
+	return cached.orgs;
+}
+
+function setCachedOrgDiscovery(email: string, orgs: OrgSummary[]) {
+	const key = getOrgDiscoveryCacheKey(email);
+	orgDiscoveryCache.set(key, { expiresAt: Date.now() + ORG_DISCOVERY_TTL_MS, orgs });
+}
+
 export async function discoverOrg(
 	payload: OrgDiscoveryPayload,
 ): Promise<OrgSummary[]> {
+	const cached = getCachedOrgDiscovery(payload.email);
+	if (cached) return cached;
 	const { data } = await apiClient.post<OrgDiscoveryResponse>(
 		"/auth/org-discovery",
 		payload,
 	);
 	const response = unwrapApiResponse<OrgDiscoveryResponse>(data);
-	return (response?.orgs ?? []).map((org) => ({
+	const orgs = (response?.orgs ?? []).map((org) => ({
 		id: org.org_id,
 		name: org.name,
 		slug: org.slug,
 	}));
+	setCachedOrgDiscovery(payload.email, orgs);
+	return orgs;
 }
 
 export async function startLogin(payload: LoginStartPayload, orgId?: string) {
