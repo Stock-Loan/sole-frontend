@@ -108,3 +108,12 @@ export async function getOrgUserSummary(): Promise<UserDashboardSummary> {
 	);
 	return unwrapApiResponse<UserDashboardSummary>(data);
 }
+
+export async function adminResetUserMfa(
+	membershipId: string,
+): Promise<{ message: string }> {
+	const { data } = await apiClient.post<{ message: string }>(
+		`/org/users/${membershipId}/mfa/reset`,
+	);
+	return unwrapApiResponse<{ message: string }>(data);
+}

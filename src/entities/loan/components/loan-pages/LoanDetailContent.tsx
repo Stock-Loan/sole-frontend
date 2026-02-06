@@ -43,7 +43,6 @@ import { useToast } from "@/shared/ui/use-toast";
 import { parseApiError } from "@/shared/api/errors";
 import { downloadBlob } from "@/shared/lib/download";
 import { buildScheduleCsv } from "@/entities/loan/utils/schedule";
-import { usePermissions } from "@/auth/hooks";
 import type {
 	LoanDetailTab,
 	LoanDetailTabOption,
@@ -66,25 +65,19 @@ export function LoanDetailContent({
 	onRetry,
 	emptyTitle = "Unable to load loan",
 	emptyMessage = "We couldn't fetch this loan application.",
+	permissions,
 }: LoanDetailContentProps) {
 	const { toast } = useToast();
-	const { can } = usePermissions();
 	const [downloadingDocumentId, setDownloadingDocumentId] = useState<
 		string | null
 	>(null);
 	const [activeTab, setActiveTab] = useState<LoanDetailTab>("overview");
-	const canViewDocuments = can([
-		"loan.document.view",
-		"loan.document.manage_hr",
-		"loan.document.manage_finance",
-		"loan.document.manage_legal",
-		"loan.workflow.post_issuance.manage",
-	]);
-	const canViewRepayments = can("loan.payment.view");
-	const canRecordRepayment = can("loan.payment.record");
-	const canViewSchedule = can("loan.schedule.view");
-	const canExportSchedule = can("loan.export.schedule");
-	const canRunWhatIf = can("loan.what_if.simulate");
+	const canViewDocuments = permissions?.canViewDocuments ?? false;
+	const canViewRepayments = permissions?.canViewRepayments ?? false;
+	const canRecordRepayment = permissions?.canRecordRepayment ?? false;
+	const canViewSchedule = permissions?.canViewSchedule ?? false;
+	const canExportSchedule = permissions?.canExportSchedule ?? false;
+	const canRunWhatIf = permissions?.canRunWhatIf ?? false;
 	const downloadMutation = useDownloadOrgLoanDocument({
 		onError: (error) => {
 			toast({

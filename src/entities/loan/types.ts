@@ -598,6 +598,24 @@ export interface LoanStatusBadgeProps {
 	className?: string;
 }
 
+export interface LoanDetailPermissions {
+	canViewDocuments?: boolean;
+	canViewRepayments?: boolean;
+	canRecordRepayment?: boolean;
+	canViewSchedule?: boolean;
+	canExportSchedule?: boolean;
+	canRunWhatIf?: boolean;
+}
+
+export interface LoanSelfDetailPermissions {
+	canViewDocuments?: boolean;
+	canViewRepayments?: boolean;
+	canViewSchedule?: boolean;
+	canExportLoan?: boolean;
+	canUpload83b?: boolean;
+	canRunWhatIf?: boolean;
+}
+
 export interface LoanDetailContentProps {
 	loan?: LoanApplication | null;
 	isLoading: boolean;
@@ -605,6 +623,7 @@ export interface LoanDetailContentProps {
 	onRetry?: () => void;
 	emptyTitle?: string;
 	emptyMessage?: string;
+	permissions?: LoanDetailPermissions;
 }
 
 export interface LoanSelfDetailContentProps {
@@ -619,6 +638,7 @@ export interface LoanSelfDetailContentProps {
 	documentsError?: boolean;
 	onDocumentsRetry?: () => void;
 	canViewDocuments?: boolean;
+	permissions?: LoanSelfDetailPermissions;
 }
 
 export interface LoanDetailSummaryCardProps {

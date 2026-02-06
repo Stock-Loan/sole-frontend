@@ -17,6 +17,11 @@ export function MyLoanDetailPage() {
 	const canViewLoans = can("loan.view_own");
 	const canApplyLoan = can("loan.apply");
 	const canViewDocuments = can("loan.document.self_view");
+	const canViewRepayments = can("loan.payment.self.view");
+	const canViewSchedule = can("loan.schedule.self.view");
+	const canExportLoan = can("loan.export.self");
+	const canUpload83b = can("loan.document.self_upload_83b");
+	const canRunWhatIf = can("loan.what_if.self.simulate");
 
 	const loanQuery = useMyLoanApplication(id ?? "", { enabled: canViewLoans });
 	const loan = loanQuery.data;
@@ -71,7 +76,14 @@ export function MyLoanDetailPage() {
 				documentsLoading={documentsQuery.isLoading}
 				documentsError={documentsQuery.isError}
 				onDocumentsRetry={() => documentsQuery.refetch()}
-				canViewDocuments={canViewDocuments}
+				permissions={{
+					canViewDocuments,
+					canViewRepayments,
+					canViewSchedule,
+					canExportLoan,
+					canUpload83b,
+					canRunWhatIf,
+				}}
 			/>
 		</PageContainer>
 	);

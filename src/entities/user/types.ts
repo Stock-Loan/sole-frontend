@@ -304,4 +304,7 @@ export interface OrgUserSidePanelProps {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 	onUpdated?: () => void;
+	canManageUsers?: boolean;
+	currentUserId?: string | null;
+	selfContextRoleNames?: string[];
 }

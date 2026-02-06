@@ -32,7 +32,6 @@ import {
 import { useToast } from "@/shared/ui/use-toast";
 import { parseApiError } from "@/shared/api/errors";
 import { downloadBlob } from "@/shared/lib/download";
-import { usePermissions } from "@/auth/hooks";
 import type {
 	LoanDetailTab,
 	LoanDetailTabOption,
@@ -65,19 +64,21 @@ export function LoanSelfDetailContent({
 	documentsLoading,
 	documentsError,
 	onDocumentsRetry,
-	canViewDocuments = true,
+	canViewDocuments: canViewDocumentsProp,
+	permissions,
 }: LoanSelfDetailContentProps) {
 	const { toast } = useToast();
-	const { can } = usePermissions();
 	const [downloadingDocumentId, setDownloadingDocumentId] = useState<
 		string | null
 	>(null);
 	const [activeTab, setActiveTab] = useState<LoanDetailTab>("overview");
-	const canViewRepayments = can("loan.payment.self.view");
-	const canViewSchedule = can("loan.schedule.self.view");
-	const canExportLoan = can("loan.export.self");
-	const canUpload83b = can("loan.document.self_upload_83b");
-	const canRunWhatIf = can("loan.what_if.self.simulate");
+	const canViewDocuments =
+		permissions?.canViewDocuments ?? canViewDocumentsProp ?? false;
+	const canViewRepayments = permissions?.canViewRepayments ?? false;
+	const canViewSchedule = permissions?.canViewSchedule ?? false;
+	const canExportLoan = permissions?.canExportLoan ?? false;
+	const canUpload83b = permissions?.canUpload83b ?? false;
+	const canRunWhatIf = permissions?.canRunWhatIf ?? false;
 	const downloadMutation = useDownloadMyLoanDocument({
 		onError: (error) => {
 			toast({

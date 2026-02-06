@@ -9,9 +9,7 @@ import type {
 	OrgUserInfoRowProps,
 	OrgUserSidePanelProps,
 } from "../types";
-import { usePermissions, useSelfContext, useAuth } from "@/auth/hooks";
 import { normalizeDisplay } from "@/shared/lib/utils";
-import { getSelfContextRoleNames } from "../utils";
 import { useOrgUserDetail } from "@/entities/user/hooks";
 
 export function OrgUserSidePanel({
@@ -19,19 +17,18 @@ export function OrgUserSidePanel({
 	open,
 	onOpenChange,
 	onUpdated = () => undefined,
+	canManageUsers = false,
+	currentUserId,
+	selfContextRoleNames = [],
 }: OrgUserSidePanelProps) {
 	const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
 	const enabled = open && Boolean(membershipId);
-	const { can } = usePermissions();
-	const canManageUsers = can("user.manage");
 
 	const {
 		data: user,
 		isLoading,
 		isError,
 	} = useOrgUserDetail(enabled ? membershipId || null : null);
-	const { data: selfContext } = useSelfContext();
-	const { user: authUser } = useAuth();
 
 	useEffect(() => {
 		if (!isError) return;
@@ -45,14 +42,14 @@ export function OrgUserSidePanel({
 	const userRolesForDisplay = useMemo(() => {
 		if (!user) return "—";
 		const baseNames = user.roles?.map((r) => r.name) ?? [];
-		const isSelf = authUser?.id === user.user.id;
+		const isSelf = Boolean(currentUserId && currentUserId === user.user.id);
 		const combined = isSelf
 			? Array.from(
-					new Set([...baseNames, ...getSelfContextRoleNames(selfContext)]),
+					new Set([...baseNames, ...selfContextRoleNames]),
 				)
 			: baseNames;
 		return combined.sort().join(", ") || "—";
-	}, [user, authUser?.id, selfContext]);
+	}, [user, currentUserId, selfContextRoleNames]);
 
 	const infoItems =
 		user?.user && user?.membership

@@ -1,12 +1,19 @@
 import axios, { isAxiosError } from "axios";
 import { unwrapApiResponse } from "@/shared/api/response";
 import { getCsrfToken, setCsrfToken } from "@/shared/api/csrf";
-import type { TokenPair } from "@/auth/types";
 import type { CsrfTokenResponse } from "./types";
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
-const inflightRefresh: Record<string, Promise<TokenPair> | undefined> = {};
+type RefreshTokenPair = {
+	access_token?: string;
+	refresh_token?: string;
+	token_type?: string;
+	csrf_token?: string | null;
+};
+
+const inflightRefresh: Record<string, Promise<RefreshTokenPair> | undefined> =
+	{};
 
 const REFRESH_LOCK_TTL_MS = 15_000;
 const REFRESH_CHANNEL_NAME = "sole.auth.refresh";
@@ -98,7 +105,10 @@ function tryAcquireLock(orgId?: string | null) {
 	};
 }
 
-function broadcastRefresh(orgId: string | null | undefined, tokens: TokenPair) {
+function broadcastRefresh(
+	orgId: string | null | undefined,
+	tokens: RefreshTokenPair,
+) {
 	if (!refreshChannel) return;
 	refreshChannel.postMessage({
 		type: "refresh:complete",
@@ -107,13 +117,15 @@ function broadcastRefresh(orgId: string | null | undefined, tokens: TokenPair) {
 	});
 }
 
-function waitForBroadcast(orgId?: string | null): Promise<TokenPair | null> {
+function waitForBroadcast(
+	orgId?: string | null,
+): Promise<RefreshTokenPair | null> {
 	if (!refreshChannel) return Promise.resolve(null);
 	const key = getRefreshKey(orgId);
 	return new Promise((resolve) => {
 		const handler = (event: MessageEvent) => {
 			const payload = event.data as
-				| { type?: string; key?: string; tokens?: TokenPair }
+				| { type?: string; key?: string; tokens?: RefreshTokenPair }
 				| undefined;
 			if (!payload || payload.type !== "refresh:complete") return;
 			if (payload.key !== key) return;
@@ -177,7 +189,7 @@ async function requestCsrfToken(
 	return payload;
 }
 
-async function refreshOnce(orgId?: string): Promise<TokenPair> {
+async function refreshOnce(orgId?: string): Promise<RefreshTokenPair> {
 	const csrfToken = getCsrfToken();
 	const headers: Record<string, string> = {};
 	if (csrfToken) {
@@ -186,12 +198,12 @@ async function refreshOnce(orgId?: string): Promise<TokenPair> {
 	if (orgId) {
 		headers["X-Org-Id"] = orgId;
 	}
-	const { data } = await axios.post<TokenPair>(
+	const { data } = await axios.post<RefreshTokenPair>(
 		`${baseURL}/auth/refresh`,
 		undefined,
 		{ headers, withCredentials: true },
 	);
-	const payload = unwrapApiResponse<TokenPair>(data);
+	const payload = unwrapApiResponse<RefreshTokenPair>(data);
 	if (payload?.csrf_token !== undefined) {
 		setCsrfToken(payload.csrf_token ?? null);
 	}
@@ -200,7 +212,7 @@ async function refreshOnce(orgId?: string): Promise<TokenPair> {
 
 export async function refreshSessionWithRetry(
 	orgId?: string,
-): Promise<TokenPair> {
+): Promise<RefreshTokenPair> {
 	const key = getRefreshKey(orgId);
 	if (inflightRefresh[key]) {
 		return inflightRefresh[key];

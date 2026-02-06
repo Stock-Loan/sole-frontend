@@ -11,7 +11,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/shared/ui/Dialog/dialog";
-import { adminResetUserMfa } from "@/auth/api";
+import { adminResetUserMfa } from "@/entities/user/api";
 import { useApiErrorToast } from "@/shared/api/useApiErrorToast";
 import type { AdminMfaResetButtonProps } from "@/entities/user/types";
 

@@ -14,7 +14,6 @@ import type { ColumnDefinition } from "@/shared/ui/Table/types";
 import { useToast } from "@/shared/ui/use-toast";
 import { useApiErrorToast } from "@/shared/api/useApiErrorToast";
 import { formatCurrency, formatDate } from "@/shared/lib/format";
-import { usePermissions, useAuth } from "@/auth/hooks";
 import { formatShares } from "@/entities/stock-grant/constants";
 import { routes } from "@/shared/lib/routes";
 import {
@@ -59,15 +58,19 @@ export const StockGrantsSection = forwardRef<
 	StockGrantsSectionHandle,
 	StockGrantsSectionProps
 >(function StockGrantsSection(
-	{ membershipId, canManage, isGrantActionBlocked = false },
+	{
+		membershipId,
+		canManage,
+		isGrantActionBlocked = false,
+		canViewSummary = false,
+		userId,
+		orgId,
+	},
 	ref,
 ) {
 	const navigate = useNavigate();
 	const { toast } = useToast();
 	const apiErrorToast = useApiErrorToast();
-	const { can } = usePermissions();
-	const canViewSummary = can(["stock.vesting.view", "stock.eligibility.view"]);
-	const { user } = useAuth();
 
 	const [dialogOpen, setDialogOpen] = useState(false);
 	const [dialogMode, setDialogMode] = useState<StockGrantFormMode>("create");
@@ -81,11 +84,11 @@ export const StockGrantsSection = forwardRef<
 		() => ({
 			id: `stock-grants-${membershipId}`,
 			scope: "user" as const,
-			userKey: user?.id ?? null,
-			orgKey: user?.org_id ?? null,
+			userKey: userId ?? null,
+			orgKey: orgId ?? null,
 			version: 1,
 		}),
-		[membershipId, user?.id, user?.org_id],
+		[membershipId, userId, orgId],
 	);
 
 	const listParams = useMemo(

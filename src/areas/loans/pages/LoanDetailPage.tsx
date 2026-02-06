@@ -26,6 +26,20 @@ export function LoanDetailPage() {
 	});
 	const loan = loanQuery.data;
 	const canEditLoan = can("loan.manage");
+	const loanPermissions = {
+		canViewDocuments: can([
+			"loan.document.view",
+			"loan.document.manage_hr",
+			"loan.document.manage_finance",
+			"loan.document.manage_legal",
+			"loan.workflow.post_issuance.manage",
+		]),
+		canViewRepayments: can("loan.payment.view"),
+		canRecordRepayment: can("loan.payment.record"),
+		canViewSchedule: can("loan.schedule.view"),
+		canExportSchedule: can("loan.export.schedule"),
+		canRunWhatIf: can("loan.what_if.simulate"),
+	};
 	const editMutation = useEditOrgLoanApplication({
 		onSuccess: () => {
 			toast({ title: "Loan updated" });
@@ -78,6 +92,7 @@ export function LoanDetailPage() {
 				isLoading={loanQuery.isLoading}
 				isError={loanQuery.isError}
 				onRetry={() => loanQuery.refetch()}
+				permissions={loanPermissions}
 			/>
 			<LoanEditDialog
 				open={editDialogOpen}

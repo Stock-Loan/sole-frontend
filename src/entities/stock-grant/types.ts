@@ -227,6 +227,9 @@ export interface StockGrantsSectionProps {
 	membershipId: string;
 	canManage: boolean;
 	isGrantActionBlocked?: boolean;
+	canViewSummary?: boolean;
+	userId?: string | null;
+	orgId?: string | null;
 }
 
 export interface StockGrantsSectionHandle {

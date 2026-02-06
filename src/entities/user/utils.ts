@@ -1,6 +1,13 @@
 import type { Role } from "@/entities/role/types";
 import type { MembershipRole, OrgMembershipDto } from "./types";
-import type { SelfContextResponse } from "@/auth/types";
+type SelfContextRole = {
+	id: string;
+	name?: string | null;
+};
+
+type SelfContextResponseLike = {
+	roles?: SelfContextRole[];
+};
 
 export function getMembershipRoleIds(membership?: OrgMembershipDto): string[] {
 	if (!membership) return [];
@@ -41,14 +48,18 @@ export function getMembershipRoleNames(
 	return Array.from(new Set(normalized));
 }
 
-export function getSelfContextRoleIds(context?: SelfContextResponse): string[] {
+export function getSelfContextRoleIds(
+	context?: SelfContextResponseLike,
+): string[] {
 	if (!context?.roles) return [];
 	return context.roles
 		.map((role) => role.id)
 		.filter(Boolean);
 }
 
-export function getSelfContextRoleNames(context?: SelfContextResponse): string[] {
+export function getSelfContextRoleNames(
+	context?: SelfContextResponseLike,
+): string[] {
 	if (!context?.roles) return [];
 	return Array.from(
 		new Set(
