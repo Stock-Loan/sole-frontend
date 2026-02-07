@@ -2,7 +2,10 @@ import axios, { AxiosHeaders } from "axios";
 import { routes } from "@/shared/lib/routes";
 import { unwrapApiResponse } from "@/shared/api/response";
 import { getCsrfToken, setCsrfToken } from "@/shared/api/csrf";
-import { refreshSessionWithRetry } from "@/shared/api/refresh";
+import {
+	isRefreshAuthFailure,
+	refreshSessionWithRetry,
+} from "@/shared/api/refresh";
 import type {
 	StepUpHandler,
 	TokenResolver,
@@ -162,6 +165,7 @@ apiClient.interceptors.response.use(
 
 		if (status === 401 && !originalRequest._retry && !isRefreshRequest) {
 			originalRequest._retry = true;
+			let refreshError: unknown = null;
 			try {
 				const orgId = orgResolver() ?? undefined;
 				const tokens = await refreshSessionWithRetry(orgId);
@@ -182,12 +186,12 @@ apiClient.interceptors.response.use(
 					originalRequest.headers.Authorization = `Bearer ${tokens.access_token}`;
 					return apiClient(originalRequest);
 				}
-			} catch {
-				// Refresh failed, proceed to logout
+			} catch (error) {
+				refreshError = error;
 			}
 
 			const hasToken = Boolean(accessTokenResolver());
-			if (hasToken) {
+			if (hasToken && isRefreshAuthFailure(refreshError)) {
 				unauthorizedHandler?.();
 			}
 		}

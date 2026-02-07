@@ -150,6 +150,14 @@ function isOverloadFailure(error: unknown): boolean {
 	return status === 429 || status === 503;
 }
 
+function isRetryableFailure(error: unknown): boolean {
+	if (!isAxiosError(error)) return true;
+	const status = error.response?.status;
+	if (!status) return true;
+	if (status === 429 || status === 503 || status === 408) return true;
+	return status >= 500;
+}
+
 function sleep(ms: number) {
 	return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -168,6 +176,33 @@ function isCsrfFailure(error: unknown): boolean {
 	if (error.response?.status !== 403) return false;
 	const message = extractErrorMessage(error) || "";
 	return message.toLowerCase().includes("csrf");
+}
+
+function isOrgScopedFailure(error: unknown): boolean {
+	if (!isAxiosError(error)) return false;
+	const status = error.response?.status;
+	if (!status || ![400, 401, 403, 404].includes(status)) return false;
+	const message = (extractErrorMessage(error) || "").toLowerCase();
+	if (!message) return status === 404;
+	return (
+		message.includes("tenant") ||
+		message.includes("org") ||
+		message.includes("organization") ||
+		message.includes("member")
+	);
+}
+
+export function isRefreshAuthFailure(error: unknown): boolean {
+	if (!isAxiosError(error)) return false;
+	const status = error.response?.status;
+	if (!status) return false;
+	// Retriable infrastructure failures should never force logout.
+	if (isRetryableFailure(error)) return false;
+	// CSRF/tenant/missing token/invalid token failures should force re-auth.
+	if (status === 401 || status === 403 || status === 400 || status === 404) {
+		return true;
+	}
+	return false;
 }
 
 async function requestCsrfToken(
@@ -230,19 +265,33 @@ export async function refreshSessionWithRetry(
 
 		const runRefresh = async () => {
 			let csrfRetried = false;
-			let overloadRetried = false;
+			let retryCount = 0;
+			let attemptedOrgFallback = false;
+			let targetOrgId = orgId;
 			while (true) {
 				try {
-					return await refreshOnce(orgId);
+					return await refreshOnce(targetOrgId);
 				} catch (error) {
 					if (isCsrfFailure(error) && !csrfRetried) {
 						csrfRetried = true;
-						await requestCsrfToken(orgId);
+						await requestCsrfToken(targetOrgId);
 						continue;
 					}
-					if (isOverloadFailure(error) && !overloadRetried) {
-						overloadRetried = true;
-						const jitter = 200 + Math.floor(Math.random() * 800);
+					if (
+						targetOrgId &&
+						!attemptedOrgFallback &&
+						isOrgScopedFailure(error)
+					) {
+						attemptedOrgFallback = true;
+						targetOrgId = undefined;
+						csrfRetried = false;
+						retryCount = 0;
+						continue;
+					}
+					if (isRetryableFailure(error) && retryCount < 2) {
+						retryCount += 1;
+						const base = isOverloadFailure(error) ? 300 : 500;
+						const jitter = base + Math.floor(Math.random() * 900);
 						await sleep(jitter);
 						continue;
 					}

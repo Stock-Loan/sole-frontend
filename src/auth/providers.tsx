@@ -9,6 +9,7 @@ import {
 } from "@/shared/api/http";
 import { setCsrfToken } from "@/shared/api/csrf";
 import { getJwtExpiry } from "@/shared/api/jwt";
+import { isRefreshAuthFailure } from "@/shared/api/refresh";
 import {
 	getMeWithToken,
 	logout as logoutApi,
@@ -94,8 +95,9 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
 	const setSessionForOrg = useCallback(
 		(orgId: string, nextTokens: TokenPair, nextUser: AuthUser) => {
+			const scopedUser: AuthUser = { ...nextUser, org_id: orgId };
 			setTokens(nextTokens);
-			setUser(nextUser);
+			setUser(scopedUser);
 			persistCurrentOrgId(orgId);
 			setTokensByOrgId((prev) => {
 				const next = { ...prev, [orgId]: nextTokens };
@@ -129,7 +131,8 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
 	useEffect(() => {
 		setAccessTokenResolver(() => tokens?.access_token ?? null);
-		setOrgResolver(() => loadPersistedOrgId() ?? user?.org_id ?? null);
+		// Prefer in-memory authenticated org to avoid stale localStorage org headers.
+		setOrgResolver(() => user?.org_id ?? loadPersistedOrgId() ?? null);
 
 		setTokenUpdater((newTokens) => {
 			setTokens((prev) => {
@@ -223,10 +226,10 @@ export function AuthProvider({ children }: PropsWithChildren) {
 		const refreshAtMs = Math.min(jitteredRefreshAt, latestRefreshAt);
 		const delay = Math.max(0, refreshAtMs - Date.now());
 
-		refreshTimerRef.current = window.setTimeout(async () => {
-			try {
-				const orgId = user.org_id ?? loadPersistedOrgId() ?? undefined;
-				const refreshed = await refreshSession(orgId);
+			refreshTimerRef.current = window.setTimeout(async () => {
+				try {
+					const orgId = user.org_id ?? loadPersistedOrgId() ?? undefined;
+					const refreshed = await refreshSession(orgId);
 				if (!refreshed?.access_token) {
 					clearSession();
 					return;
@@ -237,12 +240,14 @@ export function AuthProvider({ children }: PropsWithChildren) {
 				};
 				if (refreshed.csrf_token !== undefined) {
 					nextTokens.csrf_token = refreshed.csrf_token;
+					}
+					setSession(nextTokens, user);
+				} catch (error) {
+					if (isRefreshAuthFailure(error)) {
+						clearSession();
+					}
 				}
-				setSession(nextTokens, user);
-			} catch {
-				clearSession();
-			}
-		}, delay);
+			}, delay);
 
 		return () => {
 			if (refreshTimerRef.current) {

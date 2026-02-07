@@ -15,6 +15,7 @@ import { setOrgResolver } from "@/shared/api/http";
 import { queryClient } from "@/shared/api/queryClient";
 import { useAuth } from "@/auth/hooks";
 import { refreshSessionForOrgSwitch } from "@/auth/api";
+import { isRefreshAuthFailure } from "@/shared/api/refresh";
 import { tenancyKeys } from "@/features/tenancy/keys";
 import type { OrgSummary, PersistedTenancy, TenantContextValue } from "./types";
 import type { TokenPair } from "@/auth/types";
@@ -170,7 +171,11 @@ export function TenantProvider({ children }: PropsWithChildren) {
 					}
 					setSessionForOrg(orgId, nextTokens, user);
 					setCurrentOrgId(orgId);
-				} catch {
+				} catch (error) {
+					if (!isRefreshAuthFailure(error)) {
+						console.warn("Temporary org switch failure", error);
+						return;
+					}
 					if (typeof localStorage !== "undefined") {
 						localStorage.setItem(PENDING_ORG_SWITCH_KEY, orgId);
 					}

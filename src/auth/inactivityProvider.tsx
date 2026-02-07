@@ -13,6 +13,7 @@ import type {
 import { refreshSession } from "./api";
 import { useSelfContext, useAuth } from "./hooks";
 import { useTenant } from "@/features/tenancy/hooks";
+import { isRefreshAuthFailure } from "@/shared/api/refresh";
 
 export function InactivityProvider({ children }: InactivityProviderProps) {
 	const { tokens, setSession, user, clearSession } = useAuth();
@@ -137,9 +138,11 @@ export function InactivityProvider({ children }: InactivityProviderProps) {
 			setLastActivityTime(Date.now());
 			setIsWarningVisible(false);
 			setSecondsRemaining(null);
-		} catch {
-			// If refresh fails, clear session
-			clearSession();
+		} catch (error) {
+			// Only clear session for authentication failures, not transient outages.
+			if (isRefreshAuthFailure(error)) {
+				clearSession();
+			}
 		} finally {
 			setIsRefreshing(false);
 		}
