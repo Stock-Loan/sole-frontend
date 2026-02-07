@@ -35,18 +35,67 @@ export function UserOnboardingPage() {
 	const downloadMutation = useDownloadOnboardingTemplate();
 	const uploadMutation = useUploadOnboardingCsv();
 
+	const parseCsvRows = (text: string): string[][] => {
+		const rows: string[][] = [];
+		let row: string[] = [];
+		let cell = "";
+		let inQuotes = false;
+
+		for (let index = 0; index < text.length; index += 1) {
+			const char = text[index];
+
+			if (char === '"') {
+				const next = text[index + 1];
+				if (inQuotes && next === '"') {
+					cell += '"';
+					index += 1;
+					continue;
+				}
+				inQuotes = !inQuotes;
+				continue;
+			}
+
+			if (char === "," && !inQuotes) {
+				row.push(cell.trim());
+				cell = "";
+				continue;
+			}
+
+			if ((char === "\n" || char === "\r") && !inQuotes) {
+				if (char === "\r" && text[index + 1] === "\n") {
+					index += 1;
+				}
+				row.push(cell.trim());
+				if (row.some((value) => value.length > 0)) {
+					rows.push(row);
+				}
+				row = [];
+				cell = "";
+				continue;
+			}
+
+			cell += char;
+		}
+
+		if (cell.length > 0 || row.length > 0) {
+			row.push(cell.trim());
+			if (row.some((value) => value.length > 0)) {
+				rows.push(row);
+			}
+		}
+
+		return rows;
+	};
+
 	const parseCsv = (text: string) => {
-		const lines = text.split(/\r?\n/).filter((line) => line.trim().length > 0);
-		if (lines.length === 0) {
+		const rows = parseCsvRows(text);
+		if (rows.length === 0) {
 			throw new Error("CSV appears empty.");
 		}
-		const headers = lines[0].split(",").map((h) => h.trim());
-		const rows = lines
-			.slice(1)
-			.map((line) => line.split(",").map((cell) => cell.trim()));
+		const [headers, ...dataRows] = rows;
 		return {
 			headers,
-			rows: rows.slice(0, 50),
+			rows: dataRows.slice(0, 50),
 		};
 	};
 

@@ -9,12 +9,13 @@ import {
 	useRef,
 	useState,
 } from "react";
+import { isAxiosError } from "axios";
 import type { PropsWithChildren } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { setOrgResolver } from "@/shared/api/http";
 import { queryClient } from "@/shared/api/queryClient";
 import { useAuth } from "@/auth/hooks";
-import { refreshSessionForOrgSwitch } from "@/auth/api";
+import { getMeWithToken, refreshSessionForOrgSwitch } from "@/auth/api";
 import { isRefreshAuthFailure } from "@/shared/api/refresh";
 import { tenancyKeys } from "@/features/tenancy/keys";
 import type { OrgSummary, PersistedTenancy, TenantContextValue } from "./types";
@@ -54,7 +55,18 @@ function persistTenancy(state: PersistedTenancy) {
 	}
 }
 
+function savePendingOrgSwitch(orgId: string) {
+	if (typeof localStorage === "undefined") return;
+	localStorage.setItem(PENDING_ORG_SWITCH_KEY, orgId);
+}
+
 const TenantContext = createContext<TenantContextValue | undefined>(undefined);
+
+function isAuthFailure(error: unknown): boolean {
+	if (!isAxiosError(error)) return false;
+	const status = error.response?.status;
+	return status === 400 || status === 401 || status === 403 || status === 404;
+}
 
 export function TenantProvider({ children }: PropsWithChildren) {
 	const { user, tokens, setSessionForOrg, getTokensForOrg } = useAuth();
@@ -85,7 +97,6 @@ export function TenantProvider({ children }: PropsWithChildren) {
 
 	useLayoutEffect(() => {
 		if (!currentOrgId && fallbackOrgId) {
-			 
 			setCurrentOrgId(fallbackOrgId);
 		}
 	}, [currentOrgId, fallbackOrgId]);
@@ -112,7 +123,6 @@ export function TenantProvider({ children }: PropsWithChildren) {
 		if (orgs.length > 1) {
 			const resolvedOrg = data[0];
 			if (resolvedOrg) {
-				 
 				setOrgs((prev) => {
 					const hasOrg = prev.some((org) => org.id === resolvedOrg.id);
 					if (hasOrg) {
@@ -143,42 +153,37 @@ export function TenantProvider({ children }: PropsWithChildren) {
 			void (async () => {
 				if (orgId === currentOrgId) return;
 				if (!user) {
-					if (typeof localStorage !== "undefined") {
-						localStorage.setItem(PENDING_ORG_SWITCH_KEY, orgId);
-					}
+					savePendingOrgSwitch(orgId);
 					window.location.assign(routes.login);
 					return;
 				}
 
-				const tokensForOrg = getTokensForOrg(orgId);
-				if (tokensForOrg) {
-					setSessionForOrg(orgId, tokensForOrg, user);
-					setCurrentOrgId(orgId);
-					return;
-				}
-
 				try {
-					const refreshed = await refreshSessionForOrgSwitch(orgId);
-					if (!refreshed?.access_token) {
-						throw new Error("Missing access token");
+					let nextTokens: TokenPair | null = getTokensForOrg(orgId);
+
+					if (!nextTokens) {
+						const refreshed = await refreshSessionForOrgSwitch(orgId);
+						if (!refreshed?.access_token) {
+							throw new Error("Missing access token");
+						}
+						nextTokens = {
+							access_token: refreshed.access_token,
+							token_type: "bearer",
+						};
+						if (refreshed.csrf_token !== undefined) {
+							nextTokens.csrf_token = refreshed.csrf_token;
+						}
 					}
-					const nextTokens: TokenPair = {
-						access_token: refreshed.access_token,
-						token_type: "bearer" as const,
-					};
-					if (refreshed.csrf_token !== undefined) {
-						nextTokens.csrf_token = refreshed.csrf_token;
-					}
-					setSessionForOrg(orgId, nextTokens, user);
+
+					const orgUser = await getMeWithToken(nextTokens.access_token, orgId);
+					setSessionForOrg(orgId, nextTokens, orgUser);
 					setCurrentOrgId(orgId);
 				} catch (error) {
-					if (!isRefreshAuthFailure(error)) {
+					if (!isRefreshAuthFailure(error) && !isAuthFailure(error)) {
 						console.warn("Temporary org switch failure", error);
 						return;
 					}
-					if (typeof localStorage !== "undefined") {
-						localStorage.setItem(PENDING_ORG_SWITCH_KEY, orgId);
-					}
+					savePendingOrgSwitch(orgId);
 					window.location.assign(routes.login);
 				}
 			})();

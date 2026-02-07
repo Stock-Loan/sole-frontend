@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { AppDialog } from "@/shared/ui/Dialog/dialog";
@@ -46,6 +46,12 @@ export function AddUserDialog({
 		defaultValues,
 	});
 
+	useEffect(() => {
+		if (open) return;
+		form.reset(defaultValues);
+		setSelectedCountry(defaultValues.country ?? "");
+	}, [form, open]);
+
 	const {
 		data: countries = [],
 		isLoading: isCountriesLoading,
@@ -68,6 +74,7 @@ export function AddUserDialog({
 		try {
 			await onSubmit(values);
 			form.reset(defaultValues);
+			setSelectedCountry(defaultValues.country ?? "");
 			onOpenChange(false);
 		} catch (err) {
 			const message =

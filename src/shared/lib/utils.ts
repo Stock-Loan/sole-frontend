@@ -6,34 +6,56 @@ export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
 }
 
-export function extractErrorMessage(error: unknown): string | null {
-	if (isAxiosError(error)) {
-		const data = error.response?.data as
-			| { detail?: unknown; message?: unknown }
-			| string
-			| undefined;
-		if (typeof data === "string") return data;
-		const detail = data?.detail ?? data?.message;
-		const messageFromDetail = pickMessage(detail);
-		if (messageFromDetail) return messageFromDetail;
-		if (typeof error.message === "string") return error.message;
-	} else if (error instanceof Error) {
-		return error.message;
+function pickMessage(detail: unknown): string | null {
+	if (!detail) return null;
+	if (typeof detail === "string") {
+		const trimmed = detail.trim();
+		return trimmed.length > 0 ? trimmed : null;
+	}
+	if (Array.isArray(detail) && detail.length) {
+		for (const item of detail) {
+			const message = pickMessage(item);
+			if (message) return message;
+		}
+		return null;
+	}
+	if (typeof detail === "object") {
+		const record = detail as Record<string, unknown>;
+		const orderedCandidates = [
+			record.msg,
+			record.message,
+			record.detail,
+			record.error,
+			record.column,
+		];
+		for (const candidate of orderedCandidates) {
+			const message = pickMessage(candidate);
+			if (message) return message;
+		}
 	}
 	return null;
 }
 
-function pickMessage(detail: unknown): string | null {
-	if (!detail) return null;
-	if (typeof detail === "string") return detail;
-	if (Array.isArray(detail) && detail.length) {
-		return pickMessage(detail[0]);
-	}
-	if (typeof detail === "object") {
-		const record = detail as Record<string, unknown>;
-		if (typeof record.msg === "string") return record.msg;
-		if (typeof record.message === "string") return record.message;
-		if (typeof record.detail === "string") return record.detail;
+export function extractErrorMessage(error: unknown): string | null {
+	if (isAxiosError(error)) {
+		const data = error.response?.data as
+			| { detail?: unknown; message?: unknown; details?: unknown; error?: unknown }
+			| string
+			| undefined;
+		if (typeof data === "string") return data;
+
+		const candidates = [
+			pickMessage(data?.detail),
+			pickMessage(data?.details),
+			pickMessage(data?.message),
+			pickMessage(data?.error),
+		];
+		const specific = candidates.find((value) => Boolean(value));
+		if (specific) return specific;
+
+		if (typeof error.message === "string") return error.message;
+	} else if (error instanceof Error) {
+		return error.message;
 	}
 	return null;
 }

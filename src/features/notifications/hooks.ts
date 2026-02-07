@@ -18,6 +18,11 @@ const defaultRecentParams: AnnouncementListParams = {
 	page_size: 10,
 };
 
+const MAX_STREAM_RETRY_DELAY_MS = 10_000;
+const RETRY_JITTER_MS = 1_000;
+
+class FatalStreamError extends Error {}
+
 export function useUnreadNotifications(enabled: boolean) {
 	return useQuery({
 		queryKey: announcementKeys.unread(),
@@ -38,7 +43,7 @@ export function useUnreadNotificationCount(enabled: boolean) {
 
 export function useRecentNotifications(
 	enabled: boolean,
-	params: AnnouncementListParams = defaultRecentParams
+	params: AnnouncementListParams = defaultRecentParams,
 ) {
 	return useQuery({
 		queryKey: announcementKeys.list(params),
@@ -77,14 +82,33 @@ export function useAnnouncementStream(enabled: boolean) {
 		if (!baseUrl) return;
 
 		const controller = new AbortController();
+		let retryCount = 0;
 
-		fetchEventSource(`${baseUrl}/announcements/stream`, {
+		void fetchEventSource(`${baseUrl}/announcements/stream`, {
 			method: "GET",
 			headers: {
 				Authorization: `Bearer ${accessToken}`,
 				"X-Org-Id": currentOrgId,
+				Accept: "text/event-stream",
 			},
+			credentials: "include",
+			openWhenHidden: true,
 			signal: controller.signal,
+			onopen: async (response) => {
+				if (
+					response.ok &&
+					(response.headers.get("content-type") || "").includes(
+						"text/event-stream",
+					)
+				) {
+					retryCount = 0;
+					return;
+				}
+				if (response.status === 401 || response.status === 403) {
+					throw new FatalStreamError("Unauthorized for announcement stream");
+				}
+				throw new Error(`Unexpected stream response: ${response.status}`);
+			},
 			onmessage: (event) => {
 				if (event.event && event.event !== "announcement.published") return;
 				if (!event.data) return;
@@ -101,10 +125,28 @@ export function useAnnouncementStream(enabled: boolean) {
 					queryKey: announcementKeys.unreadCount(),
 				});
 			},
+			onclose: () => {
+				if (!controller.signal.aborted) {
+					throw new Error("Announcement stream closed unexpectedly");
+				}
+			},
 			onerror: (error) => {
 				if (controller.signal.aborted) return;
-				throw error;
+				if (error instanceof FatalStreamError) {
+					controller.abort();
+					return;
+				}
+				retryCount += 1;
+				const backoff = Math.min(
+					MAX_STREAM_RETRY_DELAY_MS,
+					retryCount * 1000 + Math.floor(Math.random() * RETRY_JITTER_MS),
+				);
+				return backoff;
 			},
+		}).catch((error) => {
+			if (!controller.signal.aborted) {
+				console.warn("Announcement stream stopped", error);
+			}
 		});
 
 		return () => {

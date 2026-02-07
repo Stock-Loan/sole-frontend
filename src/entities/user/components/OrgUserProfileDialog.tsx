@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { AppDialog } from "@/shared/ui/Dialog/dialog";
 import { Input } from "@/shared/ui/input";
 import {
@@ -49,7 +49,6 @@ export function OrgUserProfileDialog({
 	membershipId,
 	onUpdated,
 }: OrgUserProfileDialogProps) {
-	const [selectedCountry, setSelectedCountry] = useState<string>("");
 	const currentEmploymentStatus = user?.membership.employment_status;
 	const [pendingPayload, setPendingPayload] =
 		useState<UpdateOrgUserProfileWithStatusPayload | null>(null);
@@ -87,6 +86,9 @@ export function OrgUserProfileDialog({
 		},
 	});
 
+	const selectedCountry =
+		useWatch({ control: form.control, name: "country" }) ?? "";
+
 	const {
 		data: countries = [],
 		isLoading: isCountriesLoading,
@@ -123,9 +125,6 @@ export function OrgUserProfileDialog({
 					.toString()
 					.toUpperCase() as ProfileFormValues["platform_status"],
 		});
-		setTimeout(() => {
-			setSelectedCountry(user.user.country || "");
-		}, 0);
 	}, [form, user]);
 
 	const normalizeValue = (value?: string | null) => (value ?? "").trim();
@@ -195,7 +194,6 @@ export function OrgUserProfileDialog({
 	};
 
 	const handleCountryChange = (code: string) => {
-		setSelectedCountry(code);
 		form.setValue("country", code);
 		form.setValue("state", "");
 	};
@@ -571,7 +569,9 @@ export function OrgUserProfileDialog({
 												<SelectContent>
 													<SelectItem value="ACTIVE">Active</SelectItem>
 													<SelectItem value="INVITED">Invited</SelectItem>
-													<SelectItem value="SUSPENDED">Suspended</SelectItem>
+													<SelectItem value="ENABLED">Enabled</SelectItem>
+													<SelectItem value="DISABLED">Disabled</SelectItem>
+													<SelectItem value="LOCKED">Locked</SelectItem>
 												</SelectContent>
 											</Select>
 											<FormMessage />
