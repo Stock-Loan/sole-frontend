@@ -55,8 +55,14 @@ export function MySettingsPage() {
 		{ label: "Phone number", value: profileUser?.phone_number || "—" },
 		{ label: "Timezone", value: profileUser?.timezone || "—" },
 		{ label: "Marital status", value: profileUser?.marital_status || "—" },
-		{ label: "Country", value: profileUser?.country || "—" },
-		{ label: "State", value: profileUser?.state || "—" },
+		{
+			label: "Country",
+			value: profileUser?.country_name || profileUser?.country || "—",
+		},
+		{
+			label: "State",
+			value: profileUser?.state_name || profileUser?.state || "—",
+		},
 		{ label: "Address line 1", value: profileUser?.address_line1 || "—" },
 		{ label: "Address line 2", value: profileUser?.address_line2 || "—" },
 		{ label: "Postal code", value: profileUser?.postal_code || "—" },

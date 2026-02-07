@@ -55,6 +55,10 @@ export interface OrgUserDto {
 	marital_status?: string | null;
 	country?: string | null;
 	state?: string | null;
+	country_code?: string | null;
+	state_code?: string | null;
+	country_name?: string | null;
+	state_name?: string | null;
 	address_line1?: string | null;
 	address_line2?: string | null;
 	postal_code?: string | null;
