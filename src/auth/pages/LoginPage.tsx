@@ -1,13 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isAxiosError } from "axios";
-import {
-	ArrowLeft,
-	CheckCircle2,
-	Eye,
-	EyeOff,
-	Loader2,
-	Shield,
-} from "lucide-react";
+import { ArrowLeft, Eye, EyeOff, Loader2, Shield } from "lucide-react";
 import {
 	useCallback,
 	useEffect,
@@ -49,22 +42,20 @@ import {
 	loadRememberDeviceToken,
 	storeRememberDeviceToken,
 	useAuth,
-	useCompleteLogin,
-	useLoginMfa,
-	useLoginMfaRecovery,
-	useLoginMfaSetupStart,
-	useLoginMfaSetupVerify,
-	useOrgDiscovery,
-	useStartLogin,
+	useLogin,
+	useSelectOrg,
+	useMfaVerify,
+	useMfaEnrollStart,
+	useMfaEnrollVerify,
 } from "@/auth/hooks";
-import { getMeWithToken } from "@/auth/api";
-import { emailSchema, mfaCodeSchema, passwordSchema } from "@/auth/schemas";
+import { getAuthOrgs, getMeWithToken } from "@/auth/api";
+import { credentialsSchema, mfaCodeSchema } from "@/auth/schemas";
 import { PENDING_EMAIL_KEY, PENDING_ORG_SWITCH_KEY } from "@/auth/constants";
 import type {
+	AuthOrgSummary,
 	AuthUser,
-	LoginEmailFormValues,
+	LoginCredentialsFormValues,
 	LoginMfaFormValues,
-	LoginPasswordFormValues,
 	TokenPair,
 } from "@/auth/types";
 import { useTenantOptional } from "@/features/tenancy/hooks";
@@ -126,10 +117,11 @@ function isPasswordChangeRequiredError(error: unknown): boolean {
 		.filter((value): value is string => typeof value === "string")
 		.map((value) => value.toLowerCase());
 
-	return candidates.some((value) =>
-		value.includes("password change required") ||
-		value.includes("password_change_required") ||
-		value.includes("must_change_password"),
+	return candidates.some(
+		(value) =>
+			value.includes("password change required") ||
+			value.includes("password_change_required") ||
+			value.includes("must_change_password"),
 	);
 }
 
@@ -148,19 +140,18 @@ export function LoginPage() {
 	const pendingOrgToastShownRef = useRef(false);
 
 	const [step, setStep] = useState<
-		| "email"
-		| "org"
-		| "password"
+		| "credentials"
+		| "org-select"
 		| "mfa"
 		| "mfa-setup"
 		| "mfa-recovery"
 		| "recovery-codes"
-	>("email");
-	const [challengeToken, setChallengeToken] = useState<string | null>(null);
-	const [email, setEmail] = useState<string>("");
+	>("credentials");
 	const [showPassword, setShowPassword] = useState(false);
-	const [availableOrgs, setAvailableOrgs] = useState<OrgSummary[]>([]);
-	const [mfaToken, setMfaToken] = useState<string | null>(null);
+	const [preOrgToken, setPreOrgToken] = useState<string | null>(null);
+	const [email, setEmail] = useState<string>("");
+	const [availableOrgs, setAvailableOrgs] = useState<AuthOrgSummary[]>([]);
+	const [challengeToken, setChallengeToken] = useState<string | null>(null);
 	const [setupToken, setSetupToken] = useState<string | null>(null);
 	const [mfaSecret, setMfaSecret] = useState<string | null>(null);
 	const [mfaIssuer, setMfaIssuer] = useState<string | null>(null);
@@ -174,15 +165,11 @@ export function LoginPage() {
 		tokens: TokenPair;
 		user: AuthUser;
 	} | null>(null);
+	const [isLoadingOrgs, setIsLoadingOrgs] = useState(false);
 
-	const emailForm = useForm<LoginEmailFormValues>({
-		resolver: zodResolver(emailSchema),
-		defaultValues: { email: "" },
-	});
-
-	const passwordForm = useForm<LoginPasswordFormValues>({
-		resolver: zodResolver(passwordSchema),
-		defaultValues: { password: "" },
+	const credentialsForm = useForm<LoginCredentialsFormValues>({
+		resolver: zodResolver(credentialsSchema),
+		defaultValues: { email: "", password: "" },
 	});
 
 	const mfaForm = useForm<LoginMfaFormValues>({
@@ -192,13 +179,11 @@ export function LoginPage() {
 
 	const [recoveryCodeInput, setRecoveryCodeInput] = useState("");
 
-	const startLoginMutation = useStartLogin();
-	const completeLoginMutation = useCompleteLogin();
-	const loginMfaMutation = useLoginMfa();
-	const loginMfaRecoveryMutation = useLoginMfaRecovery();
-	const loginMfaSetupStartMutation = useLoginMfaSetupStart();
-	const loginMfaSetupVerifyMutation = useLoginMfaSetupVerify();
-	const orgDiscoveryMutation = useOrgDiscovery();
+	const loginMutation = useLogin();
+	const selectOrgMutation = useSelectOrg();
+	const mfaVerifyMutation = useMfaVerify();
+	const mfaEnrollStartMutation = useMfaEnrollStart();
+	const mfaEnrollVerifyMutation = useMfaEnrollVerify();
 
 	const handlePasswordChangeRequired = useCallback(
 		(tokens: TokenPair) => {
@@ -223,6 +208,46 @@ export function LoginPage() {
 		[currentOrgId, email, navigate, setSessionForOrg, toast],
 	);
 
+	const completeLogin = useCallback(
+		async (tokens: TokenPair, orgId: string) => {
+			try {
+				const user = await getMeWithToken(tokens.access_token, orgId);
+				if (user.must_change_password) {
+					handlePasswordChangeRequired(tokens);
+					return;
+				}
+				setSessionForOrg(orgId, tokens, user);
+				if (typeof localStorage !== "undefined") {
+					localStorage.removeItem(PENDING_EMAIL_KEY);
+					localStorage.removeItem(PENDING_ORG_SWITCH_KEY);
+				}
+				toast({
+					title: "Welcome back",
+					description: "You are now signed in.",
+				});
+				const from = (location.state as { from?: Location })?.from;
+				const destination = from?.pathname
+					? `${from.pathname}${from.search ?? ""}${from.hash ?? ""}`
+					: routes.workspace;
+				navigate(destination, { replace: true });
+			} catch (error) {
+				if (isPasswordChangeRequiredError(error)) {
+					handlePasswordChangeRequired(tokens);
+					return;
+				}
+				apiErrorToast(error, "Unable to load your profile.");
+			}
+		},
+		[
+			apiErrorToast,
+			handlePasswordChangeRequired,
+			location.state,
+			navigate,
+			setSessionForOrg,
+			toast,
+		],
+	);
+
 	useEffect(() => {
 		if (pendingOrgToastShownRef.current) return;
 		const pendingOrgId =
@@ -238,75 +263,184 @@ export function LoginPage() {
 		});
 	}, [toast]);
 
-	const startLoginForOrg = (emailAddress: string, orgId: string) => {
-		startLoginMutation.mutate(
-			{ payload: { email: emailAddress }, orgId },
-			{
-				onSuccess: (data, variables) => {
-					setChallengeToken(data.challenge_token);
-					setEmail(variables.payload.email);
-					if (typeof localStorage !== "undefined") {
-						localStorage.setItem(PENDING_EMAIL_KEY, variables.payload.email);
-					}
-					setStep("password");
-					toast({
-						title: "Email verified",
-						description: "Enter your password to finish signing in.",
-					});
+	const handleSelectOrg = useCallback(
+		(orgId: string, token: string) => {
+			setCurrentOrgId(orgId);
+			const rememberDeviceToken = loadRememberDeviceToken(orgId);
+			selectOrgMutation.mutate(
+				{
+					payload: {
+						org_id: orgId,
+						remember_device_token: rememberDeviceToken,
+					},
+					preOrgToken: token,
 				},
-				onError: (error) => {
-					apiErrorToast(error, "Unable to verify email. Please try again.");
-				},
-			},
-		);
-	};
+				{
+					onSuccess: async (response) => {
+						setRememberDeviceDays(response.remember_device_days ?? null);
+						if (response.remember_device_days === 0 && rememberDeviceToken) {
+							storeRememberDeviceToken(orgId, null);
+						}
 
-	const handleEmailSubmit = (values: LoginEmailFormValues) => {
-		orgDiscoveryMutation.mutate(
-			{ email: values.email },
+						if (response.mfa_setup_required) {
+							if (!response.setup_token) {
+								toast({
+									variant: "destructive",
+									title: "MFA setup failed",
+									description: "Missing setup token. Please try again.",
+								});
+								return;
+							}
+							setSetupToken(response.setup_token);
+							setStep("mfa-setup");
+							mfaEnrollStartMutation.mutate(
+								{
+									payload: { setup_token: response.setup_token },
+									preOrgToken: token,
+								},
+								{
+									onSuccess: (setupData) => {
+										setMfaSecret(setupData.secret);
+										setMfaIssuer(setupData.issuer);
+										setMfaAccount(setupData.account);
+										setMfaOtpAuthUrl(setupData.otpauth_url);
+										setRememberDeviceDays(
+											setupData.remember_device_days ?? null,
+										);
+										mfaForm.reset({ code: "", remember_device: false });
+									},
+									onError: (error) => {
+										apiErrorToast(
+											error,
+											"Unable to start MFA setup. Please try again.",
+										);
+									},
+								},
+							);
+							return;
+						}
+
+						if (response.mfa_required) {
+							if (rememberDeviceToken) {
+								storeRememberDeviceToken(orgId, null);
+							}
+							if (!response.challenge_token) {
+								toast({
+									variant: "destructive",
+									title: "MFA required",
+									description: "Missing challenge token. Please try again.",
+								});
+								return;
+							}
+							setChallengeToken(response.challenge_token);
+							setStep("mfa");
+							mfaForm.reset({ code: "", remember_device: false });
+							return;
+						}
+
+						const tokens = buildTokensFromResponse(response);
+						if (!tokens) {
+							toast({
+								variant: "destructive",
+								title: "Login failed",
+								description: "Missing access token.",
+							});
+							return;
+						}
+						await completeLogin(tokens, orgId);
+					},
+					onError: (error) => {
+						apiErrorToast(
+							error,
+							"Unable to select organization. Please try again.",
+						);
+					},
+				},
+			);
+		},
+		[
+			apiErrorToast,
+			completeLogin,
+			mfaEnrollStartMutation,
+			mfaForm,
+			selectOrgMutation,
+			setCurrentOrgId,
+			toast,
+		],
+	);
+
+	const handleCredentialsSubmit = (values: LoginCredentialsFormValues) => {
+		setEmail(values.email);
+		if (typeof localStorage !== "undefined") {
+			localStorage.setItem(PENDING_EMAIL_KEY, values.email);
+		}
+		loginMutation.mutate(
+			{ email: values.email, password: values.password },
 			{
-				onSuccess: (orgs) => {
-					if (!orgs.length) {
-						toast({
-							variant: "destructive",
-							title: "No organization found",
-							description: "We couldn't find an organization for that email.",
-						});
-						return;
-					}
-					setEmail(values.email);
-					setAvailableOrgs(orgs);
-					setOrgs(orgs);
-					const defaultOrgId = orgs[0]?.id ?? null;
-					const pendingOrgId =
-						typeof localStorage !== "undefined"
-							? localStorage.getItem(PENDING_ORG_SWITCH_KEY)
+				onSuccess: async (response) => {
+					const token = response.pre_org_token;
+					setPreOrgToken(token);
+
+					setIsLoadingOrgs(true);
+					try {
+						const orgsResponse = await getAuthOrgs(token);
+						const orgs = orgsResponse.orgs;
+						setIsLoadingOrgs(false);
+
+						if (!orgs.length) {
+							toast({
+								variant: "destructive",
+								title: "No organization found",
+								description: "No active organizations found for this account.",
+							});
+							return;
+						}
+
+						setAvailableOrgs(orgs);
+						const mappedOrgs = orgs.map((org) => ({
+							id: org.org_id,
+							name: org.name,
+							slug: org.slug ?? undefined,
+						}));
+						setOrgs(mappedOrgs);
+
+						const pendingOrgId =
+							typeof localStorage !== "undefined"
+								? localStorage.getItem(PENDING_ORG_SWITCH_KEY)
+								: null;
+						const matchingPendingOrg = pendingOrgId
+							? orgs.find((org) => org.org_id === pendingOrgId)
 							: null;
-					const resolvedOrgId =
-						pendingOrgId && orgs.some((org) => org.id === pendingOrgId)
-							? pendingOrgId
-							: defaultOrgId;
-					setCurrentOrgId(resolvedOrgId);
 
-					if (orgs.length === 1 && resolvedOrgId) {
-						startLoginForOrg(values.email, resolvedOrgId);
-						return;
+						if (orgs.length === 1 || orgsResponse.auto_selected) {
+							const orgId = orgs[0].org_id;
+							setCurrentOrgId(orgId);
+							handleSelectOrg(orgId, token);
+							return;
+						}
+
+						if (matchingPendingOrg) {
+							setCurrentOrgId(matchingPendingOrg.org_id);
+							handleSelectOrg(matchingPendingOrg.org_id, token);
+							return;
+						}
+
+						setCurrentOrgId(orgs[0].org_id);
+						setStep("org-select");
+					} catch (error) {
+						setIsLoadingOrgs(false);
+						apiErrorToast(error, "Unable to load organizations.");
 					}
-
-					setStep("org");
 				},
 				onError: (error) => {
-					apiErrorToast(
-						error,
-						"Unable to find an organization for that email.",
-					);
+					apiErrorToast(error, "Invalid email or password. Please try again.");
 				},
 			},
 		);
 	};
 
 	const handleOrgSubmit = () => {
-		if (!currentOrgId) {
+		if (!currentOrgId || !preOrgToken) {
 			toast({
 				variant: "destructive",
 				title: "Select an organization",
@@ -314,195 +448,29 @@ export function LoginPage() {
 			});
 			return;
 		}
-		startLoginForOrg(email, currentOrgId);
-	};
-
-	const handlePasswordSubmit = (values: LoginPasswordFormValues) => {
-		if (!challengeToken) {
-			toast({
-				variant: "destructive",
-				title: "Start login first",
-				description: "Verify your email before entering your password.",
-			});
-			setStep("email");
-			return;
-		}
-		if (!currentOrgId) {
-			toast({
-				variant: "destructive",
-				title: "Select an organization",
-				description: "Choose an organization to continue signing in.",
-			});
-			setStep("org");
-			return;
-		}
-		const rememberDeviceToken = loadRememberDeviceToken(currentOrgId);
-		completeLoginMutation.mutate(
-			{
-				payload: {
-					challenge_token: challengeToken,
-					password: values.password,
-					remember_device_token: rememberDeviceToken,
-				},
-				orgId: currentOrgId,
-			},
-			{
-				onSuccess: async (response) => {
-					setRememberDeviceDays(response.remember_device_days ?? null);
-					// Clear stored remember device token if org has disabled the feature
-					if (response.remember_device_days === 0 && rememberDeviceToken) {
-						storeRememberDeviceToken(currentOrgId, null);
-					}
-					if (response.mfa_setup_required) {
-						const setup = response.setup_token;
-						if (!setup) {
-							toast({
-								variant: "destructive",
-								title: "MFA setup failed",
-								description: "Missing setup token. Please try again.",
-							});
-							return;
-						}
-						const tokens = buildTokensFromResponse(response);
-						if (tokens) {
-							try {
-								const user = await getMeWithToken(
-									tokens.access_token,
-									currentOrgId,
-								);
-								if (user.must_change_password) {
-									handlePasswordChangeRequired(tokens);
-									return;
-								}
-							} catch (error) {
-								if (isPasswordChangeRequiredError(error)) {
-									handlePasswordChangeRequired(tokens);
-									return;
-								}
-							}
-						}
-						setSetupToken(setup);
-						setStep("mfa-setup");
-						loginMfaSetupStartMutation.mutate(
-							{ payload: { setup_token: setup }, orgId: currentOrgId },
-							{
-								onSuccess: (setupData) => {
-									setMfaSecret(setupData.secret);
-									setMfaIssuer(setupData.issuer);
-									setMfaAccount(setupData.account);
-									setMfaOtpAuthUrl(setupData.otpauth_url);
-									setRememberDeviceDays(setupData.remember_device_days ?? null);
-									mfaForm.reset({ code: "", remember_device: false });
-									toast({
-										title: "Set up MFA",
-										description:
-											"Add the secret to your authenticator app and enter the code.",
-									});
-								},
-								onError: (error) => {
-									apiErrorToast(
-										error,
-										"Unable to start MFA setup. Please try again.",
-									);
-								},
-							},
-						);
-						return;
-					}
-					if (response.mfa_required) {
-						// If we sent a remember device token but still got mfa_required,
-						// it means the token was invalid (expired, revoked, or org disabled feature)
-						// Clear the stored token so we don't keep sending an invalid one
-						if (rememberDeviceToken) {
-							storeRememberDeviceToken(currentOrgId, null);
-						}
-						if (!response.mfa_token) {
-							toast({
-								variant: "destructive",
-								title: "MFA required",
-								description: "Missing MFA token. Please try again.",
-							});
-							return;
-						}
-						setMfaToken(response.mfa_token);
-						setStep("mfa");
-						mfaForm.reset({ code: "", remember_device: false });
-						toast({
-							title: "MFA required",
-							description: "Enter the code from your authenticator app.",
-						});
-						return;
-					}
-					const tokens = buildTokensFromResponse(response);
-					if (!tokens) {
-						toast({
-							variant: "destructive",
-							title: "Login failed",
-							description: "Missing access token.",
-						});
-						return;
-					}
-					try {
-						const user = await getMeWithToken(
-							tokens.access_token,
-							currentOrgId,
-						);
-						if (user.must_change_password) {
-							handlePasswordChangeRequired(tokens);
-							return;
-						}
-						setSessionForOrg(currentOrgId, tokens, user);
-						if (typeof localStorage !== "undefined") {
-							localStorage.removeItem(PENDING_EMAIL_KEY);
-							localStorage.removeItem(PENDING_ORG_SWITCH_KEY);
-						}
-						toast({
-							title: "Welcome back",
-							description: "You are now signed in.",
-						});
-						const from = (location.state as { from?: Location })?.from;
-						const destination = from?.pathname
-							? `${from.pathname}${from.search ?? ""}${from.hash ?? ""}`
-							: routes.workspace;
-						navigate(destination, { replace: true });
-					} catch (error) {
-						if (isPasswordChangeRequiredError(error)) {
-							handlePasswordChangeRequired(tokens);
-							return;
-						}
-						apiErrorToast(error, "Unable to load your profile.");
-						return;
-					}
-				},
-				onError: (error) => {
-					apiErrorToast(
-						error,
-						"Invalid password or expired challenge. Please try again.",
-					);
-				},
-			},
-		);
+		handleSelectOrg(currentOrgId, preOrgToken);
 	};
 
 	const handleMfaSubmit = (values: LoginMfaFormValues) => {
-		if (!currentOrgId || !mfaToken) {
+		if (!preOrgToken || !challengeToken) {
 			toast({
 				variant: "destructive",
-				title: "MFA required",
-				description: "Restart the login flow to receive a new MFA prompt.",
+				title: "Session expired",
+				description: "Please sign in again.",
 			});
-			setStep("password");
+			resetFlow();
 			return;
 		}
-		loginMfaMutation.mutate(
+		mfaVerifyMutation.mutate(
 			{
 				payload: {
-					mfa_token: mfaToken,
+					challenge_token: challengeToken,
 					code: values.code,
+					code_type: "totp",
 					remember_device:
 						rememberDeviceAllowed && Boolean(values.remember_device),
 				},
-				orgId: currentOrgId,
+				preOrgToken,
 			},
 			{
 				onSuccess: async (response) => {
@@ -515,42 +483,14 @@ export function LoginPage() {
 						});
 						return;
 					}
-					if (response.remember_device_token) {
+					if (response.remember_device_token && currentOrgId) {
 						storeRememberDeviceToken(
 							currentOrgId,
 							response.remember_device_token,
 						);
 					}
-					try {
-						const user = await getMeWithToken(
-							tokens.access_token,
-							currentOrgId,
-						);
-						if (user.must_change_password) {
-							handlePasswordChangeRequired(tokens);
-							return;
-						}
-						setSessionForOrg(currentOrgId, tokens, user);
-						if (typeof localStorage !== "undefined") {
-							localStorage.removeItem(PENDING_EMAIL_KEY);
-							localStorage.removeItem(PENDING_ORG_SWITCH_KEY);
-						}
-						toast({
-							title: "Welcome back",
-							description: "You are now signed in.",
-						});
-						const from = (location.state as { from?: Location })?.from;
-						const destination = from?.pathname
-							? `${from.pathname}${from.search ?? ""}${from.hash ?? ""}`
-							: routes.workspace;
-						navigate(destination, { replace: true });
-					} catch (error) {
-						if (isPasswordChangeRequiredError(error)) {
-							handlePasswordChangeRequired(tokens);
-							return;
-						}
-						apiErrorToast(error, "Unable to load your profile.");
-						return;
+					if (currentOrgId) {
+						await completeLogin(tokens, currentOrgId);
 					}
 				},
 				onError: (error) => {
@@ -562,7 +502,7 @@ export function LoginPage() {
 
 	const handleRecoveryCodeSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
-		if (!currentOrgId || !mfaToken || !recoveryCodeInput.trim()) {
+		if (!preOrgToken || !challengeToken || !recoveryCodeInput.trim()) {
 			toast({
 				variant: "destructive",
 				title: "Recovery code required",
@@ -570,13 +510,14 @@ export function LoginPage() {
 			});
 			return;
 		}
-		loginMfaRecoveryMutation.mutate(
+		mfaVerifyMutation.mutate(
 			{
 				payload: {
-					mfa_token: mfaToken,
-					recovery_code: recoveryCodeInput.trim().toUpperCase(),
+					challenge_token: challengeToken,
+					code: recoveryCodeInput.trim().toUpperCase(),
+					code_type: "recovery",
 				},
-				orgId: currentOrgId,
+				preOrgToken,
 			},
 			{
 				onSuccess: async (response) => {
@@ -589,33 +530,13 @@ export function LoginPage() {
 						});
 						return;
 					}
-					try {
-						const user = await getMeWithToken(tokens.access_token, currentOrgId);
-						if (user.must_change_password) {
-							handlePasswordChangeRequired(tokens);
-							return;
-						}
-						setSessionForOrg(currentOrgId, tokens, user);
-						if (typeof localStorage !== "undefined") {
-							localStorage.removeItem(PENDING_EMAIL_KEY);
-							localStorage.removeItem(PENDING_ORG_SWITCH_KEY);
-						}
+					if (currentOrgId) {
+						await completeLogin(tokens, currentOrgId);
 						toast({
 							title: "Welcome back",
 							description:
 								"Signed in with recovery code. Consider regenerating your recovery codes.",
 						});
-						const from = (location.state as { from?: Location })?.from;
-						const destination = from?.pathname
-							? `${from.pathname}${from.search ?? ""}${from.hash ?? ""}`
-							: routes.workspace;
-						navigate(destination, { replace: true });
-					} catch (error) {
-						if (isPasswordChangeRequiredError(error)) {
-							handlePasswordChangeRequired(tokens);
-							return;
-						}
-						apiErrorToast(error, "Unable to load your profile.");
 					}
 				},
 				onError: (error) => {
@@ -624,17 +545,18 @@ export function LoginPage() {
 			},
 		);
 	};
+
 	const handleMfaSetupSubmit = (values: LoginMfaFormValues) => {
-		if (!currentOrgId || !setupToken) {
+		if (!preOrgToken || !setupToken) {
 			toast({
 				variant: "destructive",
-				title: "MFA setup required",
-				description: "Restart the login flow to set up MFA.",
+				title: "Session expired",
+				description: "Please sign in again.",
 			});
-			setStep("password");
+			resetFlow();
 			return;
 		}
-		loginMfaSetupVerifyMutation.mutate(
+		mfaEnrollVerifyMutation.mutate(
 			{
 				payload: {
 					setup_token: setupToken,
@@ -642,12 +564,12 @@ export function LoginPage() {
 					remember_device:
 						rememberDeviceAllowed && Boolean(values.remember_device),
 				},
-				orgId: currentOrgId,
+				preOrgToken,
 			},
 			{
 				onSuccess: async (response) => {
 					const tokens = buildTokensFromResponse(response);
-					if (!tokens) {
+					if (!tokens || !currentOrgId) {
 						toast({
 							variant: "destructive",
 							title: "Login failed",
@@ -667,7 +589,6 @@ export function LoginPage() {
 							currentOrgId,
 						);
 
-						// Store recovery codes and pending login data, then show recovery codes step
 						if (response.recovery_codes && response.recovery_codes.length > 0) {
 							setRecoveryCodes(response.recovery_codes);
 							setPendingLoginData({ tokens, user });
@@ -675,7 +596,6 @@ export function LoginPage() {
 							return;
 						}
 
-						// Fallback for case where no recovery codes (shouldn't happen)
 						if (user.must_change_password) {
 							handlePasswordChangeRequired(tokens);
 							return;
@@ -700,7 +620,6 @@ export function LoginPage() {
 							return;
 						}
 						apiErrorToast(error, "Unable to load your profile.");
-						return;
 					}
 				},
 				onError: (error) => {
@@ -711,9 +630,9 @@ export function LoginPage() {
 	};
 
 	const resetFlow = () => {
-		setStep("email");
+		setStep("credentials");
+		setPreOrgToken(null);
 		setChallengeToken(null);
-		setMfaToken(null);
 		setSetupToken(null);
 		setMfaSecret(null);
 		setMfaIssuer(null);
@@ -730,7 +649,7 @@ export function LoginPage() {
 			localStorage.removeItem(PENDING_EMAIL_KEY);
 			localStorage.removeItem(PENDING_ORG_SWITCH_KEY);
 		}
-		passwordForm.reset();
+		credentialsForm.reset();
 		mfaForm.reset({ code: "", remember_device: false });
 	};
 
@@ -774,53 +693,47 @@ export function LoginPage() {
 	const rememberDeviceAllowed = (rememberDeviceDays ?? 1) > 0;
 
 	const statusMessage = useMemo(() => {
-		if (orgDiscoveryMutation.isPending) return "Finding your organization...";
-		if (startLoginMutation.isPending) return "Verifying email...";
-		if (completeLoginMutation.isPending) return "Signing you in...";
-		if (loginMfaMutation.isPending) return "Verifying MFA code...";
-		if (loginMfaRecoveryMutation.isPending) return "Verifying recovery code...";
-		if (loginMfaSetupStartMutation.isPending) return "Preparing MFA setup...";
-		if (loginMfaSetupVerifyMutation.isPending) return "Confirming MFA setup...";
-		if (step === "org") return "Select your organization to continue.";
-		if (step === "password")
-			return "Email verified. Enter your password to continue.";
+		if (loginMutation.isPending || isLoadingOrgs) return "Signing you in...";
+		if (selectOrgMutation.isPending) return "Connecting to organization...";
+		if (mfaVerifyMutation.isPending) return "Verifying MFA code...";
+		if (mfaEnrollStartMutation.isPending) return "Preparing MFA setup...";
+		if (mfaEnrollVerifyMutation.isPending) return "Confirming MFA setup...";
+		if (step === "org-select") return "Select your organization to continue.";
 		if (step === "mfa-recovery")
 			return "Enter one of your backup recovery codes.";
 		if (step === "mfa")
 			return "Multi-factor authentication is required for this account.";
 		if (step === "mfa-setup")
 			return "Set up your authenticator app to continue.";
-		return "Enter your email to get started.";
+		return "Enter your email and password to sign in.";
 	}, [
 		step,
-		orgDiscoveryMutation.isPending,
-		startLoginMutation.isPending,
-		completeLoginMutation.isPending,
-		loginMfaMutation.isPending,
-		loginMfaRecoveryMutation.isPending,
-		loginMfaSetupStartMutation.isPending,
-		loginMfaSetupVerifyMutation.isPending,
+		loginMutation.isPending,
+		isLoadingOrgs,
+		selectOrgMutation.isPending,
+		mfaVerifyMutation.isPending,
+		mfaEnrollStartMutation.isPending,
+		mfaEnrollVerifyMutation.isPending,
 	]);
 
 	const stepLabel = useMemo(() => {
-		if (step === "email") return "Step 1 of 4";
-		if (step === "org") return "Step 2 of 4";
-		if (step === "password") return "Step 3 of 4";
+		if (step === "credentials") return "Step 1 of 2";
+		if (step === "org-select") return "Step 2 of 2";
 		if (step === "mfa" || step === "mfa-setup" || step === "mfa-recovery")
-			return "Step 4 of 4";
+			return "Verification";
 		return "";
 	}, [step]);
 
 	let stepContent: ReactNode = null;
-	if (step === "email") {
+	if (step === "credentials") {
 		stepContent = (
-			<Form {...emailForm}>
+			<Form {...credentialsForm}>
 				<form
 					className="space-y-4"
-					onSubmit={emailForm.handleSubmit(handleEmailSubmit)}
+					onSubmit={credentialsForm.handleSubmit(handleCredentialsSubmit)}
 				>
 					<FormField
-						control={emailForm.control}
+						control={credentialsForm.control}
 						name="email"
 						render={({ field }) => (
 							<FormItem>
@@ -831,10 +744,7 @@ export function LoginPage() {
 										type="email"
 										autoComplete="email"
 										placeholder="you@example.com"
-										disabled={
-											startLoginMutation.isPending ||
-											orgDiscoveryMutation.isPending
-										}
+										disabled={loginMutation.isPending || isLoadingOrgs}
 										className="h-13"
 									/>
 								</FormControl>
@@ -842,102 +752,8 @@ export function LoginPage() {
 							</FormItem>
 						)}
 					/>
-					<Button
-						className="w-full py-3.5 text-md"
-						type="submit"
-						disabled={
-							startLoginMutation.isPending || orgDiscoveryMutation.isPending
-						}
-					>
-						{orgDiscoveryMutation.isPending || startLoginMutation.isPending ? (
-							<>
-								<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-								Verifying email…
-							</>
-						) : (
-							"Continue"
-						)}
-					</Button>
-				</form>
-			</Form>
-		);
-	} else if (step === "org") {
-		stepContent = (
-			<div className="space-y-4">
-				<div className="rounded-md border bg-muted/30 px-3 py-2 text-sm text-muted-foreground">
-					We found multiple organizations for{" "}
-					<span className="font-semibold text-foreground">{email}</span>. Select
-					the one you want to access.
-				</div>
-				<div className="space-y-2">
-					<Label>Organization</Label>
-					<Select
-						value={currentOrgId ?? undefined}
-						onValueChange={(value) => setCurrentOrgId(value)}
-					>
-						<SelectTrigger className="h-12">
-							<SelectValue placeholder="Select organization" />
-						</SelectTrigger>
-						<SelectContent>
-							{availableOrgs.map((org) => (
-								<SelectItem key={org.id} value={org.id}>
-									{org.name}
-								</SelectItem>
-							))}
-						</SelectContent>
-					</Select>
-				</div>
-				<Button
-					className="w-full py-3.5 text-md"
-					type="button"
-					onClick={handleOrgSubmit}
-					disabled={startLoginMutation.isPending || !currentOrgId}
-				>
-					{startLoginMutation.isPending ? (
-						<>
-							<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-							Verifying email…
-						</>
-					) : (
-						"Continue"
-					)}
-				</Button>
-				<button
-					type="button"
-					onClick={resetFlow}
-					className="inline-flex items-center justify-center gap-1 text-xs font-semibold text-primary hover:underline"
-				>
-					<ArrowLeft className="h-3 w-3" />
-					Use a different email
-				</button>
-			</div>
-		);
-	} else if (step === "password") {
-		stepContent = (
-			<Form {...passwordForm}>
-				<form
-					className="space-y-4"
-					onSubmit={passwordForm.handleSubmit(handlePasswordSubmit)}
-				>
-					<div className="flex flex-wrap items-center justify-between gap-2 rounded-md border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
-						<div className="flex items-center gap-2">
-							<CheckCircle2
-								className="h-4 w-4 text-emerald-600"
-								aria-hidden="true"
-							/>
-							<span className="font-medium text-foreground">{email}</span>
-						</div>
-						<button
-							type="button"
-							onClick={resetFlow}
-							className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
-						>
-							<ArrowLeft className="h-3 w-3" />
-							Use a different email
-						</button>
-					</div>
 					<FormField
-						control={passwordForm.control}
+						control={credentialsForm.control}
 						name="password"
 						render={({ field }) => (
 							<FormItem>
@@ -949,7 +765,7 @@ export function LoginPage() {
 											type={showPassword ? "text" : "password"}
 											autoComplete="current-password"
 											placeholder="Enter your password"
-											disabled={completeLoginMutation.isPending}
+											disabled={loginMutation.isPending || isLoadingOrgs}
 											className="h-13 pr-11"
 										/>
 										<Button
@@ -961,7 +777,7 @@ export function LoginPage() {
 											aria-label={
 												showPassword ? "Hide password" : "Show password"
 											}
-											disabled={completeLoginMutation.isPending}
+											disabled={loginMutation.isPending || isLoadingOrgs}
 										>
 											{showPassword ? (
 												<EyeOff className="h-4 w-4" />
@@ -978,12 +794,12 @@ export function LoginPage() {
 					<Button
 						className="w-full py-3.5 text-md"
 						type="submit"
-						disabled={completeLoginMutation.isPending}
+						disabled={loginMutation.isPending || isLoadingOrgs}
 					>
-						{completeLoginMutation.isPending ? (
+						{loginMutation.isPending || isLoadingOrgs ? (
 							<>
 								<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-								Signing in…
+								Signing in...
 							</>
 						) : (
 							"Sign in"
@@ -991,6 +807,57 @@ export function LoginPage() {
 					</Button>
 				</form>
 			</Form>
+		);
+	} else if (step === "org-select") {
+		stepContent = (
+			<div className="space-y-4">
+				<div className="rounded-md border bg-muted/30 px-3 py-2 text-sm text-muted-foreground">
+					Multiple organizations found for{" "}
+					<span className="font-semibold text-foreground">{email}</span>. Select
+					the one you want to access.
+				</div>
+				<div className="space-y-2">
+					<Label>Organization</Label>
+					<Select
+						value={currentOrgId ?? undefined}
+						onValueChange={(value) => setCurrentOrgId(value)}
+					>
+						<SelectTrigger className="h-12">
+							<SelectValue placeholder="Select organization" />
+						</SelectTrigger>
+						<SelectContent>
+							{availableOrgs.map((org) => (
+								<SelectItem key={org.org_id} value={org.org_id}>
+									{org.name}
+								</SelectItem>
+							))}
+						</SelectContent>
+					</Select>
+				</div>
+				<Button
+					className="w-full py-3.5 text-md"
+					type="button"
+					onClick={handleOrgSubmit}
+					disabled={selectOrgMutation.isPending || !currentOrgId}
+				>
+					{selectOrgMutation.isPending ? (
+						<>
+							<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+							Connecting...
+						</>
+					) : (
+						"Continue"
+					)}
+				</Button>
+				<button
+					type="button"
+					onClick={resetFlow}
+					className="inline-flex items-center justify-center gap-1 text-xs font-semibold text-primary hover:underline"
+				>
+					<ArrowLeft className="h-3 w-3" />
+					Use a different account
+				</button>
+			</div>
 		);
 	} else if (step === "mfa") {
 		stepContent = (
@@ -1015,7 +882,7 @@ export function LoginPage() {
 												shouldValidate: true,
 											})
 										}
-										disabled={loginMfaMutation.isPending}
+										disabled={mfaVerifyMutation.isPending}
 										autoFocus
 									/>
 								</FormControl>
@@ -1070,12 +937,12 @@ export function LoginPage() {
 					<Button
 						className="w-full py-3.5 text-md"
 						type="submit"
-						disabled={loginMfaMutation.isPending}
+						disabled={mfaVerifyMutation.isPending}
 					>
-						{loginMfaMutation.isPending ? (
+						{mfaVerifyMutation.isPending ? (
 							<>
 								<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-								Verifying code…
+								Verifying code...
 							</>
 						) : (
 							"Verify"
@@ -1095,7 +962,7 @@ export function LoginPage() {
 							className="inline-flex items-center justify-center gap-1 text-xs font-semibold text-primary hover:underline"
 						>
 							<ArrowLeft className="h-3 w-3" />
-							Use a different email
+							Use a different account
 						</button>
 					</div>
 				</form>
@@ -1115,7 +982,7 @@ export function LoginPage() {
 						onChange={(e) => setRecoveryCodeInput(e.target.value.toUpperCase())}
 						placeholder="XXXX-XXXX"
 						autoComplete="off"
-						disabled={loginMfaRecoveryMutation.isPending}
+						disabled={mfaVerifyMutation.isPending}
 						className="h-13 font-mono text-center tracking-widest"
 					/>
 					<p className="text-xs text-muted-foreground">
@@ -1125,11 +992,9 @@ export function LoginPage() {
 				<Button
 					className="w-full py-3.5 text-md"
 					type="submit"
-					disabled={
-						loginMfaRecoveryMutation.isPending || !recoveryCodeInput.trim()
-					}
+					disabled={mfaVerifyMutation.isPending || !recoveryCodeInput.trim()}
 				>
-					{loginMfaRecoveryMutation.isPending ? (
+					{mfaVerifyMutation.isPending ? (
 						<>
 							<Loader2 className="mr-2 h-4 w-4 animate-spin" />
 							Verifying...
@@ -1155,7 +1020,7 @@ export function LoginPage() {
 						className="inline-flex items-center justify-center gap-1 text-xs font-semibold text-primary hover:underline"
 					>
 						<ArrowLeft className="h-3 w-3" />
-						Use a different email
+						Use a different account
 					</button>
 				</div>
 			</form>
@@ -1170,7 +1035,7 @@ export function LoginPage() {
 				account={mfaAccount}
 				secret={mfaSecret}
 				otpauthUrl={mfaOtpAuthUrl}
-				isSubmitting={loginMfaSetupVerifyMutation.isPending}
+				isSubmitting={mfaEnrollVerifyMutation.isPending}
 				onSubmit={handleMfaSetupSubmit}
 				onReset={resetFlow}
 				showRememberDevice={rememberDeviceAllowed}
@@ -1200,8 +1065,7 @@ export function LoginPage() {
 							Sign in to SOLE
 						</CardTitle>
 						<CardDescription className="text-sm">
-							Continue with your email and complete multi-factor verification
-							when required.
+							Enter your credentials to access your workspace.
 						</CardDescription>
 					</CardHeader>
 					<CardContent className="flex-1 space-y-6 sm:px-8 overflow-y-auto">

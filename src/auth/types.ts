@@ -36,58 +36,56 @@ export interface AuthContextValue {
 	getTokensForOrg: (orgId?: string | null) => TokenPair | null;
 }
 
-export interface LoginStartPayload {
+// ─── Identity-first login flow types ─────────────────────────────────────────
+
+export interface LoginPayload {
 	email: string;
+	password: string;
 }
 
-export interface OrgDiscoveryPayload {
-	email: string;
+export interface LoginResponse {
+	pre_org_token: string;
+	must_change_password?: boolean;
 }
 
-export interface OrgDiscoveryOrg {
+export interface AuthOrgSummary {
 	org_id: string;
 	name: string;
-	slug?: string;
+	slug?: string | null;
 }
 
-export interface OrgDiscoveryResponse {
-	orgs: OrgDiscoveryOrg[];
+export interface AuthOrgsResponse {
+	orgs: AuthOrgSummary[];
+	auto_selected?: boolean;
 }
 
-export interface LoginEmailFormValues {
-	email: string;
-}
-
-export interface LoginStartResponse {
-	challenge_token: string;
-}
-
-export interface LoginCompletePayload {
-	challenge_token: string;
-	password: string;
+export interface SelectOrgPayload {
+	org_id: string;
 	remember_device_token?: string | null;
 }
 
-export interface LoginCompleteResponse {
+export interface SelectOrgResponse {
 	access_token?: string;
-	token_type?: "bearer";
 	refresh_token?: string;
+	token_type?: "bearer";
 	csrf_token?: string | null;
 	mfa_required?: boolean;
 	mfa_setup_required?: boolean;
-	mfa_token?: string | null;
+	challenge_token?: string | null;
 	setup_token?: string | null;
 	remember_device_days?: number | null;
 }
 
-export interface LoginMfaPayload {
-	mfa_token: string;
+export interface MfaVerifyPayload {
+	challenge_token: string;
 	code: string;
+	code_type?: "totp" | "recovery";
 	remember_device?: boolean;
 }
 
-export interface LoginMfaResponse extends TokenPair {
+export interface MfaVerifyResponse extends TokenPair {
 	remember_device_token?: string | null;
+	recovery_codes?: string[] | null;
 }
 
 export interface MfaSetupCompleteResponse extends TokenPair {
@@ -95,19 +93,19 @@ export interface MfaSetupCompleteResponse extends TokenPair {
 	recovery_codes: string[];
 }
 
-export interface LoginMfaRecoveryPayload {
-	mfa_token: string;
-	recovery_code: string;
-}
-
-export interface LoginMfaSetupStartPayload {
+export interface MfaEnrollStartPayload {
 	setup_token: string;
 }
 
-export interface LoginMfaSetupVerifyPayload {
+export interface MfaEnrollVerifyPayload {
 	setup_token: string;
 	code: string;
 	remember_device?: boolean;
+}
+
+export interface LoginCredentialsFormValues {
+	email: string;
+	password: string;
 }
 
 export interface MfaSetupStartResponse {
@@ -123,18 +121,9 @@ export interface MfaSetupVerifyPayload {
 	remember_device?: boolean;
 }
 
-export interface LoginPasswordFormValues {
-	password: string;
-}
-
 export interface LoginMfaFormValues {
 	code: string;
 	remember_device?: boolean;
-}
-
-export interface LoginResponse {
-	tokens: TokenPair;
-	user: AuthUser;
 }
 
 export interface PersistedSession {

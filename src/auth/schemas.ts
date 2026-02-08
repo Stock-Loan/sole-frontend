@@ -1,6 +1,11 @@
 import { z } from "zod";
 import { nonEmptyString } from "@/shared/lib/validators";
 
+export const credentialsSchema = z.object({
+	email: z.string().email("Enter a valid email").toLowerCase(),
+	password: nonEmptyString.min(8, "Password must be at least 8 characters"),
+});
+
 export const emailSchema = z.object({
 	email: z.string().email("Enter a valid email").toLowerCase(),
 });

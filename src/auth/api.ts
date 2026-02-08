@@ -2,141 +2,97 @@ import { apiClient } from "@/shared/api/http";
 import { unwrapApiResponse } from "@/shared/api/response";
 import { refreshSessionWithRetry } from "@/shared/api/refresh";
 import type {
+	AuthOrgsResponse,
 	AuthUser,
 	ChangePasswordPayload,
-	LoginCompletePayload,
-	LoginCompleteResponse,
-	LoginMfaPayload,
-	LoginMfaRecoveryPayload,
-	LoginMfaResponse,
-	LoginMfaSetupStartPayload,
-	LoginMfaSetupVerifyPayload,
-	LoginStartPayload,
-	LoginStartResponse,
+	LoginPayload,
+	LoginResponse,
+	MfaEnrollStartPayload,
+	MfaEnrollVerifyPayload,
 	MfaSetupCompleteResponse,
 	MfaSetupStartResponse,
 	MfaSetupVerifyPayload,
-	OrgDiscoveryPayload,
-	OrgDiscoveryResponse,
+	MfaVerifyPayload,
+	MfaVerifyResponse,
 	RecoveryCodesCountResponse,
 	RegenerateRecoveryCodesResponse,
+	SelectOrgPayload,
+	SelectOrgResponse,
 	SelfContextResponse,
 	StepUpVerifyPayload,
 	StepUpVerifyResponse,
 	TokenPair,
 } from "@/auth/types";
-import type { OrgSummary } from "@/entities/org/types";
 
-const ORG_DISCOVERY_TTL_MS = 60_000;
-const orgDiscoveryCache = new Map<
-	string,
-	{ expiresAt: number; orgs: OrgSummary[] }
->();
+// ─── Identity-first login flow ──────────────────────────────────────────────
 
-function getOrgDiscoveryCacheKey(email: string) {
-	return email.trim().toLowerCase();
+export async function login(payload: LoginPayload): Promise<LoginResponse> {
+	const { data } = await apiClient.post<LoginResponse>("/auth/login", payload);
+	return unwrapApiResponse<LoginResponse>(data) as LoginResponse;
 }
 
-function getCachedOrgDiscovery(email: string): OrgSummary[] | null {
-	const key = getOrgDiscoveryCacheKey(email);
-	const cached = orgDiscoveryCache.get(key);
-	if (!cached) return null;
-	if (cached.expiresAt < Date.now()) {
-		orgDiscoveryCache.delete(key);
-		return null;
-	}
-	return cached.orgs;
+export async function getAuthOrgs(
+	preOrgToken: string,
+): Promise<AuthOrgsResponse> {
+	const { data } = await apiClient.get<AuthOrgsResponse>("/auth/orgs", {
+		headers: { Authorization: `Bearer ${preOrgToken}` },
+	});
+	return unwrapApiResponse<AuthOrgsResponse>(data) as AuthOrgsResponse;
 }
 
-function setCachedOrgDiscovery(email: string, orgs: OrgSummary[]) {
-	const key = getOrgDiscoveryCacheKey(email);
-	orgDiscoveryCache.set(key, { expiresAt: Date.now() + ORG_DISCOVERY_TTL_MS, orgs });
-}
-
-export async function discoverOrg(
-	payload: OrgDiscoveryPayload,
-): Promise<OrgSummary[]> {
-	const cached = getCachedOrgDiscovery(payload.email);
-	if (cached) return cached;
-	const { data } = await apiClient.post<OrgDiscoveryResponse>(
-		"/auth/org-discovery",
+export async function selectOrg(
+	payload: SelectOrgPayload,
+	preOrgToken: string,
+): Promise<SelectOrgResponse> {
+	const { data } = await apiClient.post<SelectOrgResponse>(
+		"/auth/select-org",
 		payload,
+		{ headers: { Authorization: `Bearer ${preOrgToken}` } },
 	);
-	const response = unwrapApiResponse<OrgDiscoveryResponse>(data);
-	const orgs = (response?.orgs ?? []).map((org) => ({
-		id: org.org_id,
-		name: org.name,
-		slug: org.slug,
-	}));
-	setCachedOrgDiscovery(payload.email, orgs);
-	return orgs;
+	return unwrapApiResponse<SelectOrgResponse>(data) as SelectOrgResponse;
 }
 
-export async function startLogin(payload: LoginStartPayload, orgId?: string) {
-	const { data } = await apiClient.post<LoginStartResponse>(
-		"/auth/login/start",
+export async function mfaVerify(
+	payload: MfaVerifyPayload,
+	preOrgToken: string,
+): Promise<MfaVerifyResponse> {
+	const { data } = await apiClient.post<MfaVerifyResponse>(
+		"/auth/mfa/verify",
 		payload,
-		orgId ? { headers: { "X-Org-Id": orgId } } : undefined,
+		{ headers: { Authorization: `Bearer ${preOrgToken}` } },
 	);
-	return unwrapApiResponse<LoginStartResponse>(data);
+	return unwrapApiResponse<MfaVerifyResponse>(data) as MfaVerifyResponse;
 }
 
-export async function completeLogin(
-	payload: LoginCompletePayload,
-	orgId?: string,
-) {
-	const { data } = await apiClient.post<LoginCompleteResponse>(
-		"/auth/login/complete",
-		payload,
-		orgId ? { headers: { "X-Org-Id": orgId } } : undefined,
-	);
-	return unwrapApiResponse<LoginCompleteResponse>(data);
-}
-
-export async function loginMfa(payload: LoginMfaPayload, orgId?: string) {
-	const { data } = await apiClient.post<LoginMfaResponse>(
-		"/auth/login/mfa",
-		payload,
-		orgId ? { headers: { "X-Org-Id": orgId } } : undefined,
-	);
-	return unwrapApiResponse<LoginMfaResponse>(data);
-}
-
-export async function loginMfaSetupStart(
-	payload: LoginMfaSetupStartPayload,
-	orgId?: string,
-) {
+export async function mfaEnrollStart(
+	payload: MfaEnrollStartPayload,
+	preOrgToken: string,
+): Promise<MfaSetupStartResponse> {
 	const { data } = await apiClient.post<MfaSetupStartResponse>(
-		"/auth/login/mfa/setup/start",
+		"/auth/mfa/enroll/start",
 		payload,
-		orgId ? { headers: { "X-Org-Id": orgId } } : undefined,
+		{ headers: { Authorization: `Bearer ${preOrgToken}` } },
 	);
-	return unwrapApiResponse<MfaSetupStartResponse>(data);
+	return unwrapApiResponse<MfaSetupStartResponse>(
+		data,
+	) as MfaSetupStartResponse;
 }
 
-export async function loginMfaSetupVerify(
-	payload: LoginMfaSetupVerifyPayload,
-	orgId?: string,
-) {
+export async function mfaEnrollVerify(
+	payload: MfaEnrollVerifyPayload,
+	preOrgToken: string,
+): Promise<MfaSetupCompleteResponse> {
 	const { data } = await apiClient.post<MfaSetupCompleteResponse>(
-		"/auth/login/mfa/setup/verify",
+		"/auth/mfa/enroll/verify",
 		payload,
-		orgId ? { headers: { "X-Org-Id": orgId } } : undefined,
+		{ headers: { Authorization: `Bearer ${preOrgToken}` } },
 	);
-	return unwrapApiResponse<MfaSetupCompleteResponse>(data);
+	return unwrapApiResponse<MfaSetupCompleteResponse>(
+		data,
+	) as MfaSetupCompleteResponse;
 }
 
-export async function loginMfaRecovery(
-	payload: LoginMfaRecoveryPayload,
-	orgId?: string,
-) {
-	const { data } = await apiClient.post<LoginMfaResponse>(
-		"/auth/login/mfa/recovery",
-		payload,
-		orgId ? { headers: { "X-Org-Id": orgId } } : undefined,
-	);
-	return unwrapApiResponse<LoginMfaResponse>(data);
-}
+// ─── Session management ─────────────────────────────────────────────────────
 
 export async function logout(): Promise<void> {
 	await apiClient.post<null>("/auth/logout");
@@ -172,6 +128,8 @@ export async function changePassword(payload: ChangePasswordPayload) {
 	);
 	return unwrapApiResponse<TokenPair>(data);
 }
+
+// ─── Post-login MFA management ──────────────────────────────────────────────
 
 export async function mfaSetupStart() {
 	const { data } = await apiClient.post<MfaSetupStartResponse>(
@@ -236,6 +194,8 @@ export async function getSelfContext() {
 	const { data } = await apiClient.get<SelfContextResponse>("/self/context");
 	return unwrapApiResponse<SelfContextResponse>(data);
 }
+
+// ─── Step-up MFA ─────────────────────────────────────────────────────────────
 
 export async function verifyStepUpMfa(
 	payload: StepUpVerifyPayload,

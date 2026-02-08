@@ -56,14 +56,9 @@ apiClient.interceptors.request.use((config) => {
 		: rawUrl;
 	const isRefreshRequest = normalizedUrl.startsWith("/auth/refresh");
 	const isAuthHeaderExcluded =
-		normalizedUrl.startsWith("/auth/login/") ||
-		normalizedUrl.startsWith("/auth/org-discovery") ||
-		normalizedUrl.startsWith("/auth/orgs/resolve") ||
+		normalizedUrl === "/auth/login" ||
 		normalizedUrl.startsWith("/auth/refresh");
-	const isOrgHeaderExcluded =
-		normalizedUrl.startsWith("/auth/login/") ||
-		normalizedUrl.startsWith("/auth/org-discovery") ||
-		normalizedUrl.startsWith("/auth/orgs/resolve");
+	const isOrgHeaderExcluded = normalizedUrl === "/auth/login";
 
 	if (
 		!config.headers ||

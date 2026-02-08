@@ -20,7 +20,7 @@ import { isRefreshAuthFailure } from "@/shared/api/refresh";
 import { tenancyKeys } from "@/features/tenancy/keys";
 import type { OrgSummary, PersistedTenancy, TenantContextValue } from "./types";
 import type { TokenPair } from "@/auth/types";
-import { discoverTenants, listTenants } from "./tenantApi";
+import { listTenants } from "./tenantApi";
 import { routes } from "@/shared/lib/routes";
 
 const STORAGE_KEY = "sole.tenancy";
@@ -190,28 +190,6 @@ export function TenantProvider({ children }: PropsWithChildren) {
 		},
 		[currentOrgId, getTokensForOrg, setSessionForOrg, user],
 	);
-
-	useEffect(() => {
-		if (!user?.email) return;
-		if (orgs.length > 1) return;
-
-		let isActive = true;
-		discoverTenants(user.email)
-			.then((found) => {
-				if (!isActive || found.length === 0) return;
-				setOrgs(found);
-				if (!currentOrgId) {
-					setCurrentOrgId(found[0].id);
-				}
-			})
-			.catch((error) => {
-				console.warn("Failed to discover orgs for super admin", error);
-			});
-
-		return () => {
-			isActive = false;
-		};
-	}, [user?.email, orgs.length, currentOrgId]);
 
 	useEffect(() => {
 		persistTenancy({ orgs, currentOrgId });

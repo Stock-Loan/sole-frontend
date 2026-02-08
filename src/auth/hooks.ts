@@ -10,17 +10,16 @@ import { useTenant } from "@/features/tenancy/hooks";
 import {
 	changePassword,
 	changePasswordWithToken,
-	completeLogin,
-	discoverOrg,
+	getAuthOrgs,
 	getMe,
 	getSelfContext,
-	loginMfa,
-	loginMfaRecovery,
-	loginMfaSetupStart,
-	loginMfaSetupVerify,
+	login,
+	mfaEnrollStart,
+	mfaEnrollVerify,
 	mfaSetupStart,
 	mfaSetupVerify,
-	startLogin,
+	mfaVerify,
+	selectOrg,
 } from "@/auth/api";
 import {
 	AuthContext,
@@ -28,23 +27,22 @@ import {
 	StepUpMfaContext,
 } from "@/auth/context";
 import type {
+	AuthOrgsResponse,
 	AuthUser,
 	ChangePasswordPayload,
-	LoginCompletePayload,
-	LoginMfaPayload,
-	LoginMfaRecoveryPayload,
-	LoginMfaResponse,
-	LoginMfaSetupStartPayload,
-	LoginMfaSetupVerifyPayload,
-	LoginStartPayload,
-	LoginStartResponse,
+	LoginPayload,
+	LoginResponse,
+	MfaEnrollStartPayload,
+	MfaEnrollVerifyPayload,
 	MfaSetupCompleteResponse,
 	MfaSetupStartResponse,
 	MfaSetupVerifyPayload,
-	OrgDiscoveryPayload,
+	MfaVerifyPayload,
+	MfaVerifyResponse,
 	RememberDeviceMap,
+	SelectOrgPayload,
+	SelectOrgResponse,
 } from "@/auth/types";
-import type { OrgSummary } from "@/entities/org/types";
 
 export function useAuthContext() {
 	const ctx = useContext(AuthContext);
@@ -110,73 +108,63 @@ export function useMe(
 	});
 }
 
-export function useStartLogin() {
+// ─── Identity-first login flow hooks ────────────────────────────────────────
+
+export function useLogin() {
+	return useMutation<LoginResponse, unknown, LoginPayload>({
+		mutationFn: (payload) => login(payload),
+	});
+}
+
+export function useAuthOrgs() {
+	return useMutation<AuthOrgsResponse, unknown, string>({
+		mutationFn: (preOrgToken) => getAuthOrgs(preOrgToken),
+	});
+}
+
+export function useSelectOrg() {
 	return useMutation<
-		LoginStartResponse,
+		SelectOrgResponse,
 		unknown,
-		{ payload: LoginStartPayload; orgId?: string }
+		{ payload: SelectOrgPayload; preOrgToken: string }
 	>({
-		mutationFn: ({ payload, orgId }) => startLogin(payload, orgId),
+		mutationFn: ({ payload, preOrgToken }) => selectOrg(payload, preOrgToken),
 	});
 }
 
-export function useCompleteLogin() {
-	return useMutation({
-		mutationFn: ({
-			payload,
-			orgId,
-		}: {
-			payload: LoginCompletePayload;
-			orgId?: string;
-		}) => completeLogin(payload, orgId),
-	});
-}
-
-export function useLoginMfa() {
+export function useMfaVerify() {
 	return useMutation<
-		LoginMfaResponse,
+		MfaVerifyResponse,
 		unknown,
-		{ payload: LoginMfaPayload; orgId?: string }
+		{ payload: MfaVerifyPayload; preOrgToken: string }
 	>({
-		mutationFn: ({ payload, orgId }) => loginMfa(payload, orgId),
+		mutationFn: ({ payload, preOrgToken }) => mfaVerify(payload, preOrgToken),
 	});
 }
 
-export function useLoginMfaSetupStart() {
+export function useMfaEnrollStart() {
 	return useMutation<
 		MfaSetupStartResponse,
 		unknown,
-		{ payload: LoginMfaSetupStartPayload; orgId?: string }
+		{ payload: MfaEnrollStartPayload; preOrgToken: string }
 	>({
-		mutationFn: ({ payload, orgId }) => loginMfaSetupStart(payload, orgId),
+		mutationFn: ({ payload, preOrgToken }) =>
+			mfaEnrollStart(payload, preOrgToken),
 	});
 }
 
-export function useLoginMfaSetupVerify() {
+export function useMfaEnrollVerify() {
 	return useMutation<
 		MfaSetupCompleteResponse,
 		unknown,
-		{ payload: LoginMfaSetupVerifyPayload; orgId?: string }
+		{ payload: MfaEnrollVerifyPayload; preOrgToken: string }
 	>({
-		mutationFn: ({ payload, orgId }) => loginMfaSetupVerify(payload, orgId),
+		mutationFn: ({ payload, preOrgToken }) =>
+			mfaEnrollVerify(payload, preOrgToken),
 	});
 }
 
-export function useLoginMfaRecovery() {
-	return useMutation<
-		LoginMfaResponse,
-		unknown,
-		{ payload: LoginMfaRecoveryPayload; orgId?: string }
-	>({
-		mutationFn: ({ payload, orgId }) => loginMfaRecovery(payload, orgId),
-	});
-}
-
-export function useOrgDiscovery() {
-	return useMutation<OrgSummary[], unknown, OrgDiscoveryPayload>({
-		mutationFn: (payload) => discoverOrg(payload),
-	});
-}
+// ─── Post-login hooks ───────────────────────────────────────────────────────
 
 export function useChangePassword() {
 	return useMutation({
