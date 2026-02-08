@@ -9,6 +9,7 @@ import { roleKeys } from "@/entities/role/keys";
 import {
 	assignRolesToUser,
 	createRole,
+	deleteRole,
 	listRoles,
 	removeRolesFromUser,
 	updateRole,
@@ -232,6 +233,28 @@ export function useUpdateRole(
 			queryClient.invalidateQueries({ queryKey: roleKeys.list() });
 			queryClient.invalidateQueries({ queryKey: roleKeys.detail(data.id) });
 			options.onSuccess?.(data, variables, onMutateResult, context);
+		},
+		onError: (error, variables, onMutateResult, context) => {
+			options.onError?.(error, variables, onMutateResult, context);
+		},
+		...options,
+	});
+}
+
+export function useDeleteRole(
+	options: Omit<
+		UseMutationOptions<void, unknown, string>,
+		"mutationFn"
+	> = {},
+) {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: (roleId: string) => deleteRole(roleId),
+		onSuccess: (data, roleId, onMutateResult, context) => {
+			queryClient.invalidateQueries({ queryKey: roleKeys.list() });
+			queryClient.removeQueries({ queryKey: roleKeys.detail(roleId) });
+			options.onSuccess?.(data, roleId, onMutateResult, context);
 		},
 		onError: (error, variables, onMutateResult, context) => {
 			options.onError?.(error, variables, onMutateResult, context);

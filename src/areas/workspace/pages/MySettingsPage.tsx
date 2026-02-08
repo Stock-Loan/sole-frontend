@@ -8,6 +8,7 @@ import { Separator } from "@/shared/ui/separator";
 import { Skeleton } from "@/shared/ui/Skeleton";
 import { routes } from "@/shared/lib/routes";
 import { formatDate } from "@/shared/lib/format";
+import { normalizeDisplay } from "@/shared/lib/utils";
 import { TabButton } from "@/shared/ui/TabButton";
 import { useAuth } from "@/auth/hooks";
 import { useUserSettings } from "@/features/user-settings/hooks";
@@ -37,14 +38,22 @@ export function MySettingsPage() {
 	const user = profileUser ?? cachedUser;
 	const securityUser = cachedUser ?? null;
 
-	const roleLabels = profile?.roles?.length
-		? profile.roles
-				.map((role) => role.name || role.id)
-				.filter(Boolean)
+	const roleLabels = profile?.role_names?.length
+		? profile.role_names
+				.map((role) => normalizeDisplay(role))
+				.filter((role) => role !== "—")
 				.join(", ")
-		: cachedUser?.roles?.length
-			? cachedUser.roles.join(", ")
-			: "—";
+		: profile?.roles?.length
+			? profile.roles
+					.map((role) => normalizeDisplay(role.name || role.id))
+					.filter((role) => role !== "—")
+					.join(", ")
+			: cachedUser?.roles?.length
+				? cachedUser.roles
+						.map((role) => normalizeDisplay(role))
+						.filter((role) => role !== "—")
+						.join(", ")
+				: "—";
 
 	const personalItems = [
 		{ label: "First name", value: profileUser?.first_name || "—" },
@@ -67,8 +76,14 @@ export function MySettingsPage() {
 		{ label: "Address line 2", value: profileUser?.address_line2 || "—" },
 		{ label: "Postal code", value: profileUser?.postal_code || "—" },
 		{
-			label: "Org ID",
-			value: profileUser?.org_id || membership?.org_id || user?.org_id || "—",
+			label: "Organization",
+			value:
+				profile?.organization_name ||
+				profileUser?.org_name ||
+				profileUser?.org_id ||
+				membership?.org_id ||
+				user?.org_id ||
+				"—",
 		},
 		{ label: "User ID", value: profileUser?.id || user?.id || "—" },
 		{

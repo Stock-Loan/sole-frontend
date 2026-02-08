@@ -1,4 +1,5 @@
 import type { Role } from "@/entities/role/types";
+import { normalizeDisplay } from "@/shared/lib/utils";
 import type { MembershipRole, OrgMembershipDto } from "./types";
 type SelfContextRole = {
 	id: string;
@@ -43,7 +44,8 @@ export function getMembershipRoleNames(
 	const normalized = combined
 		.map((name) => name.trim())
 		.filter(Boolean)
-		.map((name) => name.replace(/\b\w/g, (c) => c.toUpperCase()));
+		.map((name) => normalizeDisplay(name))
+		.filter((name) => name !== "—");
 
 	return Array.from(new Set(normalized));
 }
@@ -66,7 +68,8 @@ export function getSelfContextRoleNames(
 			context.roles
 				.map((role) => role.name || role.id)
 				.filter(Boolean)
-				.map((name) => name.replace(/\b\w/g, (c) => c.toUpperCase())),
+				.map((name) => normalizeDisplay(name))
+				.filter((name) => name !== "—"),
 		),
 	);
 }

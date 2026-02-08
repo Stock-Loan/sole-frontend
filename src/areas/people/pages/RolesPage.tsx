@@ -3,6 +3,14 @@ import { PageContainer } from "@/shared/ui/PageContainer";
 import { PageHeader } from "@/shared/ui/PageHeader";
 import { Button } from "@/shared/ui/Button";
 import { ToolbarButton } from "@/shared/ui/toolbar";
+import {
+	Dialog,
+	DialogBody,
+	DialogContent,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@/shared/ui/Dialog/dialog";
 import { useToast } from "@/shared/ui/use-toast";
 import { useApiErrorToast } from "@/shared/api/useApiErrorToast";
 import { DataTable } from "@/shared/ui/Table/DataTable";
@@ -14,6 +22,7 @@ import { authKeys } from "@/auth/constants";
 import { useTenant } from "@/features/tenancy/hooks";
 import {
 	useCreateRole,
+	useDeleteRole,
 	useInvalidateOrgPermissions,
 	useRolesList,
 	useUpdateRole,
@@ -22,6 +31,7 @@ import { RolePermissionsDialog } from "@/entities/role/components/RolePermission
 import { RoleFormDialog } from "@/entities/role/components/RoleFormDialog";
 import { ROLE_TYPE_LABELS, ROLE_TYPE_STYLES } from "@/entities/role/constants";
 import { formatDate } from "@/shared/lib/format";
+import { normalizeDisplay } from "@/shared/lib/utils";
 import { loadDataTablePreferences } from "@/shared/ui/Table/constants";
 import { useSearchParams } from "react-router-dom";
 import type {
@@ -39,6 +49,14 @@ function parsePositiveInt(value: string | null, fallback: number) {
 	const parsed = Number.parseInt(value, 10);
 	if (Number.isNaN(parsed) || parsed <= 0) return fallback;
 	return parsed;
+}
+
+function formatRoleLabel(value?: string | null) {
+	const normalized = normalizeDisplay(value);
+	if (normalized === "—") return normalized;
+	return normalized
+		.toLowerCase()
+		.replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
 export function RolesPage() {
@@ -71,6 +89,7 @@ export function RolesPage() {
 	const [formDialogOpen, setFormDialogOpen] = useState(false);
 	const [formMode, setFormMode] = useState<RoleFormMode>("create");
 	const [editingRole, setEditingRole] = useState<Role | null>(null);
+	const [deletingRole, setDeletingRole] = useState<Role | null>(null);
 
 	const page = parsePositiveInt(searchParams.get("page"), DEFAULT_PAGE);
 	const pageSize = parsePositiveInt(
@@ -171,6 +190,19 @@ export function RolesPage() {
 			apiErrorToast(err, "Unable to update role. Please try again.");
 		},
 	});
+	const deleteMutation = useDeleteRole({
+		onSuccess: () => {
+			toast({
+				title: "Role deleted",
+				description: "The custom role has been removed.",
+			});
+			setDeletingRole(null);
+			void refetch();
+		},
+		onError: (err) => {
+			apiErrorToast(err, "Unable to delete role. Please try again.");
+		},
+	});
 	const invalidatePermissionsMutation = useInvalidateOrgPermissions({
 		onSuccess: (data) => {
 			queryClient.invalidateQueries({
@@ -211,6 +243,16 @@ export function RolesPage() {
 		setFormDialogOpen(true);
 	};
 
+	const handleDeleteClick = (role: Role) => {
+		if (role.is_system_role) return;
+		setDeletingRole(role);
+	};
+
+	const handleConfirmDelete = () => {
+		if (!deletingRole) return;
+		deleteMutation.mutate(deletingRole.id);
+	};
+
 	const handleSubmit = async (values: RoleFormValues, roleId?: string) => {
 		if (formMode === "edit" && roleId) {
 			await updateMutation.mutateAsync({ id: roleId, payload: values });
@@ -234,9 +276,9 @@ export function RolesPage() {
 			{
 				id: "name",
 				header: "Name",
-				accessor: (role) => role.name,
-				filterAccessor: (role) => role.name,
-				cell: (role) => role.name,
+				accessor: (role) => formatRoleLabel(role.name),
+				filterAccessor: (role) => formatRoleLabel(role.name),
+				cell: (role) => formatRoleLabel(role.name),
 				headerClassName: "min-w-[180px]",
 				cellClassName: "font-medium",
 			},
@@ -373,20 +415,38 @@ export function RolesPage() {
 									View permissions
 								</ToolbarButton>
 								{can("role.manage") ? (
-									<ToolbarButton
-										variant="secondary"
-										size="sm"
-										disabled={
-											!hasSingle || Boolean(selectedRole?.is_system_role)
-										}
-										onClick={() => {
-											if (selectedRole) {
-												handleEditClick(selectedRole);
+									<>
+										<ToolbarButton
+											variant="secondary"
+											size="sm"
+											disabled={
+												!hasSingle || Boolean(selectedRole?.is_system_role)
 											}
-										}}
-									>
-										Edit
-									</ToolbarButton>
+											onClick={() => {
+												if (selectedRole) {
+													handleEditClick(selectedRole);
+												}
+											}}
+										>
+											Edit
+										</ToolbarButton>
+										<ToolbarButton
+											variant="destructive"
+											size="sm"
+											disabled={
+												!hasSingle ||
+												Boolean(selectedRole?.is_system_role) ||
+												deleteMutation.isPending
+											}
+											onClick={() => {
+												if (selectedRole) {
+													handleDeleteClick(selectedRole);
+												}
+											}}
+										>
+											Delete
+										</ToolbarButton>
+									</>
 								) : null}
 							</>
 						);
@@ -418,6 +478,50 @@ export function RolesPage() {
 				onSubmit={handleSubmit}
 				isSubmitting={isSubmitting}
 			/>
+
+			<Dialog
+				open={Boolean(deletingRole)}
+				onOpenChange={(open) => {
+					if (!open && !deleteMutation.isPending) {
+						setDeletingRole(null);
+					}
+				}}
+			>
+				<DialogContent size="sm">
+					<DialogHeader>
+						<DialogTitle>Delete role</DialogTitle>
+					</DialogHeader>
+					<DialogBody className="space-y-2">
+						<p className="text-sm text-foreground">
+							Delete the custom role{" "}
+							<span className="font-semibold">
+								{formatRoleLabel(deletingRole?.name)}
+							</span>
+							?
+						</p>
+						<p className="text-xs text-muted-foreground">
+							This will remove the role and unassign it from all users in this
+							organization.
+						</p>
+					</DialogBody>
+					<DialogFooter>
+						<Button
+							variant="outline"
+							onClick={() => setDeletingRole(null)}
+							disabled={deleteMutation.isPending}
+						>
+							Cancel
+						</Button>
+						<Button
+							variant="destructive"
+							onClick={handleConfirmDelete}
+							disabled={deleteMutation.isPending}
+						>
+							{deleteMutation.isPending ? "Deleting..." : "Delete role"}
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 		</PageContainer>
 	);
 }

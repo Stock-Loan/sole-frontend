@@ -41,11 +41,17 @@ export function OrgUserSidePanel({
 
 	const userRolesForDisplay = useMemo(() => {
 		if (!user) return "—";
-		const baseNames = user.roles?.map((r) => r.name) ?? [];
+		const baseNames =
+			user.roles
+				?.map((r) => normalizeDisplay(r.name))
+				.filter((name) => name !== "—") ?? [];
 		const isSelf = Boolean(currentUserId && currentUserId === user.user.id);
+		const selfNames = selfContextRoleNames
+			.map((name) => normalizeDisplay(name))
+			.filter((name) => name !== "—");
 		const combined = isSelf
 			? Array.from(
-					new Set([...baseNames, ...selfContextRoleNames]),
+					new Set([...baseNames, ...selfNames]),
 				)
 			: baseNames;
 		return combined.sort().join(", ") || "—";

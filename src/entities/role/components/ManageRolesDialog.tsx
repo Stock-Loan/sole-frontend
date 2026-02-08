@@ -11,6 +11,7 @@ import { Button } from "@/shared/ui/Button";
 import { Checkbox } from "@/shared/ui/checkbox";
 import { useRolesList, useUpdateUserRoles } from "../hooks";
 import { useToast } from "@/shared/ui/use-toast";
+import { normalizeDisplay } from "@/shared/lib/utils";
 import type { ManageRolesDialogProps } from "@/entities/role/types";
 
 export function ManageRolesDialog({
@@ -69,7 +70,7 @@ export function ManageRolesDialog({
 	};
 
 	const allRoles = rolesData?.items ?? [];
-    const displayName = user ? (user.user.full_name || user.user.email) : "User";
+	const displayName = user ? (user.user.full_name || user.user.email) : "User";
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
@@ -96,7 +97,7 @@ export function ManageRolesDialog({
 										htmlFor={role.id}
 										className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex-1 cursor-pointer"
 									>
-										{role.name}
+										{normalizeDisplay(role.name)}
 										{role.is_system_role && <span className="ml-2 text-xs text-muted-foreground">(System)</span>}
 									</label>
 								</div>

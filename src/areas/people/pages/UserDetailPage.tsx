@@ -56,9 +56,13 @@ export function UserDetailPage() {
 
 	// Derive role names for display, merging self-context roles if viewing own profile
 	const assignedRoleNames = useMemo(() => {
-		const names = assignedRoles.map((r) => r.name);
+		const names = assignedRoles
+			.map((r) => normalizeDisplay(r.name))
+			.filter((name) => name !== "—");
 		if (authUser?.id === data?.user.id && selfContext?.roles) {
-			const selfNames = selfContext.roles.map((r) => r.name);
+			const selfNames = selfContext.roles
+				.map((r) => normalizeDisplay(r.name ?? r.id))
+				.filter((name) => name !== "—");
 			return Array.from(new Set([...names, ...selfNames])).sort();
 		}
 		return names.sort();

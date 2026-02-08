@@ -47,7 +47,7 @@ export const InvitationStatusSchema = z.enum([
 export const OrgUserDtoSchema = z.object({
 	id: z.string(),
 	org_id: z.string(),
-	org_name: z.string().optional(),
+	org_name: z.string().nullable().optional(),
 	email: z.string().email(),
 	full_name: z.string().nullable().optional(),
 	first_name: z.string().nullable().optional(),

@@ -4,6 +4,7 @@ import { Checkbox } from "@/shared/ui/checkbox";
 import { Label } from "@/shared/ui/label";
 import { useToast } from "@/shared/ui/use-toast";
 import { useApiErrorToast } from "@/shared/api/useApiErrorToast";
+import { normalizeDisplay } from "@/shared/lib/utils";
 import {
 	useAssignRolesToUser,
 	useRemoveRolesFromUser,
@@ -166,7 +167,7 @@ export function UserRoleAssignments({
 												isDisabled ? "opacity-50" : ""
 											}`}
 										>
-											{role.name}
+											{normalizeDisplay(role.name)}
 											{role.is_system_role && (
 												<span className="ml-2 text-[10px] uppercase text-muted-foreground">
 													System

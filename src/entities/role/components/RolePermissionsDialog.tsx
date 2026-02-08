@@ -7,6 +7,7 @@ import {
 	DialogTitle,
 } from "@/shared/ui/Dialog/dialog";
 import { ROLE_TYPE_LABELS, ROLE_TYPE_STYLES } from "../constants";
+import { normalizeDisplay } from "@/shared/lib/utils";
 import type { RolePermissionsDialogProps } from "../types";
 
 export function RolePermissionsDialog({
@@ -21,7 +22,7 @@ export function RolePermissionsDialog({
 			<DialogContent className="max-w-xl">
 				<DialogHeader>
 					<DialogTitle className="flex items-center gap-2">
-						<span>{role?.name ?? "Role"}</span>
+						<span>{normalizeDisplay(role?.name ?? "Role")}</span>
 						<span
 							className={`inline-flex items-center rounded-full border px-2 py-1 text-[11px] font-semibold ${ROLE_TYPE_STYLES[typeKey]}`}
 						>
