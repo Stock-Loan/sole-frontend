@@ -10,7 +10,7 @@ import { usePermissions, useAuth } from "@/auth/hooks";
 import { useApiErrorToast } from "@/shared/api/useApiErrorToast";
 import { useToast } from "@/shared/ui/use-toast";
 import { EmptyState } from "@/shared/ui/EmptyState";
-import { LoadingState } from "@/shared/ui/LoadingState";
+import { Skeleton } from "@/shared/ui/Skeleton";
 import { useOrgSettings, useUpdateOrgSettings } from "@/entities/org/hooks";
 import { OrgSettingsGeneralRetentionTab } from "@/entities/org/components/OrgSettingsGeneralRetentionTab";
 import { OrgSettingsStockLoanTab } from "@/entities/org/components/OrgSettingsStockLoanTab";
@@ -225,11 +225,7 @@ export function OrgSettingsPage() {
 	};
 
 	if (settingsQuery.isLoading) {
-		return (
-			<PageContainer>
-				<LoadingState label="Loading organization settings..." />
-			</PageContainer>
-		);
+		return <OrgSettingsPageSkeleton />;
 	}
 
 	if (settingsQuery.isError) {
@@ -309,6 +305,114 @@ export function OrgSettingsPage() {
 						</div>
 					</form>
 				</Form>
+			</div>
+		</PageContainer>
+	);
+}
+
+function OrgSettingsPageSkeleton() {
+	return (
+		<PageContainer className="flex min-h-0 flex-1 flex-col gap-4">
+			<PageHeader
+				title="Organization settings"
+				subtitle="Control profile editing, data export, and retention rules for this organization."
+			/>
+
+			<div className="inline-flex w-fit items-center gap-2 rounded-lg border bg-card px-2 py-2 shadow-sm">
+				<Skeleton className="h-9 w-44 rounded-md" />
+				<Skeleton className="h-9 w-32 rounded-md" />
+			</div>
+
+			<div className="grid min-h-0 flex-1 gap-6 lg:grid-cols-2">
+				<div className="flex min-h-0 flex-1 flex-col rounded-lg border border-border/70">
+					<div className="border-b border-border/70 px-6 py-3">
+						<div className="flex items-center gap-2">
+							<Skeleton className="h-8 w-8 rounded-md" />
+							<div className="space-y-1">
+								<Skeleton className="h-4 w-36" />
+								<Skeleton className="h-3 w-60" />
+							</div>
+						</div>
+					</div>
+					<div className="space-y-4 px-6 py-6">
+						{Array.from({ length: 2 }).map((_, index) => (
+							<div
+								key={`org-settings-access-toggle-${index}`}
+								className="flex items-center justify-between rounded-lg border p-4 shadow-sm"
+							>
+								<div className="space-y-1.5">
+									<Skeleton className="h-4 w-40" />
+									<Skeleton className="h-3 w-64" />
+								</div>
+								<Skeleton className="h-6 w-11 rounded-full" />
+							</div>
+						))}
+						<div className="grid gap-4 md:grid-cols-2">
+							{Array.from({ length: 2 }).map((_, index) => (
+								<div
+									key={`org-settings-access-input-${index}`}
+									className="space-y-2"
+								>
+									<Skeleton className="h-4 w-44" />
+									<Skeleton className="h-3 w-56" />
+									<Skeleton className="h-10 w-full" />
+								</div>
+							))}
+						</div>
+						<div className="space-y-3">
+							<Skeleton className="h-4 w-32" />
+							<div className="grid gap-3 md:grid-cols-2">
+								{Array.from({ length: 4 }).map((_, index) => (
+									<div
+										key={`org-settings-access-option-${index}`}
+										className="flex items-start gap-3 rounded-lg border border-border/70 p-4 shadow-sm"
+									>
+										<Skeleton className="mt-0.5 h-4 w-4 rounded-sm" />
+										<div className="space-y-1">
+											<Skeleton className="h-4 w-28" />
+											<Skeleton className="h-3 w-44" />
+										</div>
+									</div>
+								))}
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div className="flex min-h-0 flex-1 flex-col rounded-lg border border-border/70">
+					<div className="border-b border-border/70 px-6 py-3">
+						<div className="flex items-center gap-2">
+							<Skeleton className="h-8 w-8 rounded-md" />
+							<div className="space-y-1">
+								<Skeleton className="h-4 w-32" />
+								<Skeleton className="h-3 w-56" />
+							</div>
+						</div>
+					</div>
+					<div className="space-y-6 px-6 py-6">
+						<div className="flex items-center justify-between rounded-lg border p-4 shadow-sm">
+							<div className="space-y-1.5">
+								<Skeleton className="h-4 w-44" />
+								<Skeleton className="h-3 w-60" />
+							</div>
+							<Skeleton className="h-6 w-11 rounded-full" />
+						</div>
+						{Array.from({ length: 2 }).map((_, index) => (
+							<div
+								key={`org-settings-retention-input-${index}`}
+								className="space-y-2"
+							>
+								<Skeleton className="h-4 w-52" />
+								<Skeleton className="h-3 w-64" />
+								<Skeleton className="h-10 w-full" />
+							</div>
+						))}
+					</div>
+				</div>
+			</div>
+
+			<div className="mt-4 flex justify-end border-t border-border/70 px-4 py-2">
+				<Skeleton className="h-9 w-28" />
 			</div>
 		</PageContainer>
 	);

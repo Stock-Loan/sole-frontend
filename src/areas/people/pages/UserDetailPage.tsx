@@ -3,7 +3,6 @@ import { useParams, Link } from "react-router-dom";
 import { PageContainer } from "@/shared/ui/PageContainer";
 import { PageHeader } from "@/shared/ui/PageHeader";
 import { EmptyState } from "@/shared/ui/EmptyState";
-import { LoadingState } from "@/shared/ui/LoadingState";
 import { Skeleton } from "@/shared/ui/Skeleton";
 import { Button } from "@/shared/ui/Button";
 import { routes } from "@/shared/lib/routes";
@@ -136,11 +135,7 @@ export function UserDetailPage() {
 	}, [data, countries, subdivisions]);
 
 	if (isLoading) {
-		return (
-			<PageContainer>
-				<LoadingState label="Loading user..." />
-			</PageContainer>
-		);
+		return <UserDetailPageSkeleton />;
 	}
 
 	if (!data) {
@@ -350,6 +345,99 @@ export function UserDetailPage() {
 				membershipId={data.membership.id}
 				onUpdated={() => refetch()}
 			/>
+		</PageContainer>
+	);
+}
+
+function UserDetailPageSkeleton() {
+	return (
+		<PageContainer className="flex min-h-0 flex-1 flex-col gap-4">
+			<PageHeader
+				title="User profile"
+				subtitle="User profile and access"
+				actions={<Skeleton className="h-9 w-28" />}
+			/>
+
+			<div className="flex min-h-0 flex-1 flex-col rounded-lg border bg-card shadow-sm">
+				<div className="flex min-h-0 flex-1 flex-col">
+					<div className="border-b border-border/70 px-6 py-4">
+						<div className="flex flex-wrap items-start justify-between gap-3">
+							<div className="space-y-2">
+								<Skeleton className="h-6 w-48" />
+								<Skeleton className="h-4 w-72" />
+							</div>
+							<Skeleton className="h-9 w-24" />
+						</div>
+						<div className="mt-3 flex flex-wrap items-center gap-2">
+							{Array.from({ length: 3 }).map((_, index) => (
+								<Skeleton
+									key={`user-status-chip-skeleton-${index}`}
+									className="h-6 w-28 rounded-full"
+								/>
+							))}
+						</div>
+						<div className="mt-3 flex flex-wrap items-center gap-2">
+							{Array.from({ length: 4 }).map((_, index) => (
+								<Skeleton
+									key={`user-role-chip-skeleton-${index}`}
+									className="h-6 w-24 rounded-full"
+								/>
+							))}
+						</div>
+					</div>
+					<div className="min-h-0 flex-1 space-y-6 overflow-y-auto px-6 py-4">
+						<section className="space-y-3 rounded-lg border border-border/60 bg-card/50 p-4">
+							<div className="flex items-center justify-between">
+								<Skeleton className="h-4 w-40" />
+								<Skeleton className="h-4 w-20" />
+							</div>
+							<div className="flex flex-wrap items-center gap-3">
+								<Skeleton className="h-10 w-[240px] max-w-xs" />
+								<Skeleton className="h-3 w-72" />
+							</div>
+						</section>
+
+						<section className="w-full space-y-3 rounded-lg border border-border/60 bg-card/50 p-4 md:w-1/2">
+							<Skeleton className="h-4 w-20" />
+							<div className="flex items-center gap-2">
+								<Skeleton className="h-4 w-4 rounded-full" />
+								<Skeleton className="h-4 w-28" />
+							</div>
+							<Skeleton className="h-8 w-36" />
+						</section>
+
+						<section className="space-y-2">
+							<Skeleton className="h-4 w-20" />
+							<div className="grid gap-3 md:grid-cols-3">
+								{Array.from({ length: 9 }).map((_, index) => (
+									<div
+										key={`user-contact-skeleton-${index}`}
+										className="rounded-lg px-4 py-3"
+									>
+										<Skeleton className="h-3 w-24" />
+										<Skeleton className="mt-2 h-4 w-32" />
+									</div>
+								))}
+							</div>
+						</section>
+
+						<section className="space-y-2">
+							<Skeleton className="h-4 w-40" />
+							<div className="grid gap-3 md:grid-cols-3">
+								{Array.from({ length: 12 }).map((_, index) => (
+									<div
+										key={`user-employment-skeleton-${index}`}
+										className="rounded-lg px-4 py-3"
+									>
+										<Skeleton className="h-3 w-28" />
+										<Skeleton className="mt-2 h-4 w-36" />
+									</div>
+								))}
+							</div>
+						</section>
+					</div>
+				</div>
+			</div>
 		</PageContainer>
 	);
 }
