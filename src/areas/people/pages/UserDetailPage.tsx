@@ -49,7 +49,7 @@ export function UserDetailPage() {
 	const forcePasswordResetMutation = useForcePasswordReset();
 	const impersonation = useImpersonation();
 	const { data: countries } = useCountries();
-	const countryCode = data?.user.country || "";
+	const countryCode = data?.user.country_code || data?.user.country || "";
 	const { data: subdivisions } = useSubdivisions(countryCode || null);
 	const { data: selfContext } = useSelfContext();
 	const { user: authUser } = useAuth();
@@ -96,11 +96,15 @@ export function UserDetailPage() {
 
 	const infoItems = useMemo(() => {
 		if (!data) return [];
+		const normalizedCountryCode = data.user.country_code || data.user.country || "";
+		const normalizedStateCode = data.user.state_code || data.user.state || "";
 		const countryName =
-			countries?.find((c) => c.code === data.user.country)?.name ||
+			data.user.country_name ||
+			countries?.find((c) => c.code === normalizedCountryCode)?.name ||
 			data.user.country;
 		const subdivisionName =
-			subdivisions?.find((s) => s.code === data.user.state)?.name ||
+			data.user.state_name ||
+			subdivisions?.find((s) => s.code === normalizedStateCode)?.name ||
 			data.user.state;
 		const orgName = (data.user.org_name || data.user.org_id || "").trim();
 

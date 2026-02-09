@@ -84,8 +84,14 @@ export function OrgUserSidePanel({
 						value: formatDate(user.membership.employment_start_date),
 					},
 					{ label: "Marital status", value: user.user.marital_status },
-					{ label: "Country", value: user.user.country },
-					{ label: "State", value: user.user.state },
+					{
+						label: "Country",
+						value: user.user.country_name ?? user.user.country,
+					},
+					{
+						label: "State",
+						value: user.user.state_name ?? user.user.state,
+					},
 					{ label: "Address line 1", value: user.user.address_line1 },
 					{ label: "Address line 2", value: user.user.address_line2 },
 					{ label: "Postal code", value: user.user.postal_code },

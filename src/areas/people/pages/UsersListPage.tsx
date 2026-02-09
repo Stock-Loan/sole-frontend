@@ -87,6 +87,22 @@ function formatYesNo(value?: boolean | null) {
 	return value ? "Yes" : "No";
 }
 
+function getCountryName(user: OrgUserListItem["user"]) {
+	return user.country_name || user.country || "—";
+}
+
+function getStateName(user: OrgUserListItem["user"]) {
+	return user.state_name || user.state || "—";
+}
+
+function getCountryCode(user: OrgUserListItem["user"]) {
+	return user.country_code || "—";
+}
+
+function getStateCode(user: OrgUserListItem["user"]) {
+	return user.state_code || "—";
+}
+
 const columns: ColumnDefinition<OrgUserListItem>[] = [
 	{
 		id: "fullName",
@@ -222,14 +238,26 @@ const columns: ColumnDefinition<OrgUserListItem>[] = [
 	{
 		id: "country",
 		header: "Country",
-		accessor: (row) => row.user.country ?? "",
-		cell: (row) => row.user.country || "—",
+		accessor: (row) => getCountryName(row.user),
+		cell: (row) => getCountryName(row.user),
 	},
 	{
 		id: "state",
 		header: "State",
-		accessor: (row) => row.user.state ?? "",
-		cell: (row) => row.user.state || "—",
+		accessor: (row) => getStateName(row.user),
+		cell: (row) => getStateName(row.user),
+	},
+	{
+		id: "countryCode",
+		header: "Country code",
+		accessor: (row) => row.user.country_code ?? "",
+		cell: (row) => getCountryCode(row.user),
+	},
+	{
+		id: "stateCode",
+		header: "State code",
+		accessor: (row) => row.user.state_code ?? "",
+		cell: (row) => getStateCode(row.user),
 	},
 	{
 		id: "addressLine1",
@@ -297,6 +325,12 @@ const columns: ColumnDefinition<OrgUserListItem>[] = [
 		accessor: (row) => row.membership.org_id ?? row.user.org_id ?? "",
 		cell: (row) => row.membership.org_id ?? row.user.org_id ?? "—",
 	},
+	{
+		id: "orgName",
+		header: "Organization",
+		accessor: (row) => row.user.org_name ?? "",
+		cell: (row) => row.user.org_name ?? "—",
+	},
 ];
 
 export function UsersListPage() {
@@ -358,7 +392,8 @@ export function UsersListPage() {
 			employmentStartDate: false,
 			invitationStatus: false,
 			roles: false,
-			state: false,
+			countryCode: false,
+			stateCode: false,
 			addressLine1: false,
 			addressLine2: false,
 			postalCode: false,
@@ -370,6 +405,7 @@ export function UsersListPage() {
 			userId: false,
 			membershipId: false,
 			orgId: false,
+			orgName: false,
 		}),
 		[],
 	);
