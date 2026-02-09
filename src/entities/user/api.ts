@@ -117,3 +117,16 @@ export async function adminResetUserMfa(
 	);
 	return unwrapApiResponse<{ message: string }>(data);
 }
+
+export async function forcePasswordReset(
+	membershipId: string,
+): Promise<{ message: string; temporary_password: string }> {
+	const { data } = await apiClient.post<{
+		message: string;
+		temporary_password: string;
+	}>(`/org/users/${membershipId}/force-password-reset`);
+	return unwrapApiResponse<{
+		message: string;
+		temporary_password: string;
+	}>(data);
+}

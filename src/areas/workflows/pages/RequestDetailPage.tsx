@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { PageContainer } from "@/shared/ui/PageContainer";
 import { PageHeader } from "@/shared/ui/PageHeader";
 import { EmptyState } from "@/shared/ui/EmptyState";
-import { LoadingState } from "@/shared/ui/LoadingState";
+import { Skeleton } from "@/shared/ui/Skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { TabButton } from "@/shared/ui/TabButton";
 import { usePermissions } from "@/auth/hooks";
@@ -248,13 +248,10 @@ export function RequestDetailPage() {
 
 	if (activeDetailQuery.isLoading) {
 		return (
-			<PageContainer className="space-y-4">
-				<PageHeader
-					title="Request detail"
-					subtitle={`Request ID: ${requestId}`}
-				/>
-				<LoadingState label="Loading request details..." />
-			</PageContainer>
+			<RequestDetailPageSkeleton
+				requestId={requestId}
+				showReviewerTabs={roleTabs.length > 0}
+			/>
 		);
 	}
 
@@ -468,6 +465,117 @@ export function RequestDetailPage() {
 					<CardContent className="text-sm text-muted-foreground">
 						You have view access to this request, but you do not have workflow
 						permissions to update it.
+					</CardContent>
+				</Card>
+			)}
+		</PageContainer>
+	);
+}
+
+function RequestDetailPageSkeleton({
+	requestId,
+	showReviewerTabs,
+}: {
+	requestId: string;
+	showReviewerTabs: boolean;
+}) {
+	return (
+		<PageContainer className="flex min-h-0 flex-1 flex-col gap-6 pb-16">
+			<PageHeader
+				title="Request detail"
+				subtitle={`Request ID: ${requestId}`}
+			/>
+
+			<div className="space-y-4">
+				<div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+					{Array.from({ length: 4 }).map((_, index) => (
+						<Card key={`request-summary-skeleton-${index}`}>
+							<CardHeader className="pb-2">
+								<Skeleton className="h-3 w-24" />
+							</CardHeader>
+							<CardContent>
+								<Skeleton className="h-7 w-24" />
+							</CardContent>
+						</Card>
+					))}
+				</div>
+				<Card>
+					<CardContent className="space-y-2 pt-6">
+						<Skeleton className="h-4 w-40" />
+						<Skeleton className="h-3 w-72" />
+						<Skeleton className="h-3 w-56" />
+					</CardContent>
+				</Card>
+			</div>
+
+			<div className="grid gap-4 lg:grid-cols-2">
+				{Array.from({ length: 2 }).map((_, cardIndex) => (
+					<Card key={`request-detail-card-skeleton-${cardIndex}`}>
+						<CardHeader className="pb-2">
+							<Skeleton className="h-4 w-36" />
+						</CardHeader>
+						<CardContent className="space-y-3">
+							{Array.from({ length: 5 }).map((__, rowIndex) => (
+								<div
+									key={`request-detail-row-skeleton-${cardIndex}-${rowIndex}`}
+									className="flex items-center justify-between"
+								>
+									<Skeleton className="h-3 w-32" />
+									<Skeleton className="h-3 w-24" />
+								</div>
+							))}
+						</CardContent>
+					</Card>
+				))}
+			</div>
+
+			{showReviewerTabs ? (
+				<>
+					<div className="inline-flex w-fit items-center gap-2 rounded-lg border bg-card px-2 py-2 shadow-sm">
+						<Skeleton className="h-9 w-20 rounded-md" />
+						<Skeleton className="h-9 w-24 rounded-md" />
+						<Skeleton className="h-9 w-20 rounded-md" />
+					</div>
+					<Card>
+						<CardHeader className="pb-2">
+							<Skeleton className="h-4 w-36" />
+							<Skeleton className="h-3 w-72" />
+						</CardHeader>
+						<CardContent className="space-y-4">
+							<div className="grid gap-3 md:grid-cols-2">
+								{Array.from({ length: 2 }).map((_, index) => (
+									<div
+										key={`request-panel-meta-skeleton-${index}`}
+										className="space-y-2 rounded-md border border-border/70 p-3"
+									>
+										<Skeleton className="h-3 w-24" />
+										<Skeleton className="h-4 w-36" />
+									</div>
+								))}
+							</div>
+							<div className="space-y-2">
+								{Array.from({ length: 4 }).map((_, index) => (
+									<Skeleton
+										key={`request-panel-row-skeleton-${index}`}
+										className="h-10 w-full"
+									/>
+								))}
+							</div>
+							<div className="flex justify-end gap-2">
+								<Skeleton className="h-9 w-24" />
+								<Skeleton className="h-9 w-28" />
+							</div>
+						</CardContent>
+					</Card>
+				</>
+			) : (
+				<Card>
+					<CardHeader className="pb-2">
+						<Skeleton className="h-4 w-32" />
+					</CardHeader>
+					<CardContent className="space-y-2">
+						<Skeleton className="h-3 w-72" />
+						<Skeleton className="h-3 w-64" />
 					</CardContent>
 				</Card>
 			)}
