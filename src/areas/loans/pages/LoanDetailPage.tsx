@@ -3,6 +3,7 @@ import { useState } from "react";
 import { PageContainer } from "@/shared/ui/PageContainer";
 import { PageHeader } from "@/shared/ui/PageHeader";
 import { Button } from "@/shared/ui/Button";
+import { Skeleton } from "@/shared/ui/Skeleton";
 import { routes } from "@/shared/lib/routes";
 import {
 	useEditOrgLoanApplication,
@@ -62,6 +63,10 @@ export function LoanDetailPage() {
 		await editMutation.mutateAsync({ id: loanId, payload });
 	};
 
+	if (loanQuery.isLoading) {
+		return <LoanDetailPageSkeleton />;
+	}
+
 	return (
 		<PageContainer className="space-y-6">
 			<PageHeader
@@ -101,6 +106,77 @@ export function LoanDetailPage() {
 				onSubmit={handleEditSubmit}
 				isSubmitting={editMutation.isPending}
 			/>
+		</PageContainer>
+	);
+}
+
+function LoanDetailPageSkeleton() {
+	return (
+		<PageContainer className="space-y-6">
+			<PageHeader
+				title="Loan application"
+				subtitle="Review loan details and schedules."
+				actions={
+					<div className="flex items-center gap-2">
+						<Skeleton className="h-9 w-24" />
+						<Skeleton className="h-9 w-28" />
+					</div>
+				}
+			/>
+
+			<div className="space-y-6">
+				<div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+					{Array.from({ length: 4 }).map((_, index) => (
+						<div
+							key={`loan-page-summary-skeleton-${index}`}
+							className="rounded-lg border bg-card p-6 shadow-sm"
+						>
+							<Skeleton className="h-3 w-24" />
+							<Skeleton className="mt-3 h-7 w-28" />
+						</div>
+					))}
+				</div>
+
+				<div className="inline-flex w-fit items-center gap-2 rounded-lg border bg-card px-2 py-2 shadow-sm">
+					<Skeleton className="h-9 w-24 rounded-md" />
+					<Skeleton className="h-9 w-24 rounded-md" />
+					<Skeleton className="h-9 w-24 rounded-md" />
+				</div>
+
+				<div className="grid gap-4 lg:grid-cols-2">
+					{Array.from({ length: 2 }).map((_, cardIndex) => (
+						<div
+							key={`loan-page-overview-skeleton-${cardIndex}`}
+							className="rounded-lg border bg-card p-6 shadow-sm"
+						>
+							<Skeleton className="h-4 w-40" />
+							<div className="mt-4 space-y-3">
+								{Array.from({ length: 7 }).map((__, rowIndex) => (
+									<div
+										key={`loan-page-overview-row-${cardIndex}-${rowIndex}`}
+										className="flex items-center justify-between"
+									>
+										<Skeleton className="h-3 w-32" />
+										<Skeleton className="h-3 w-24" />
+									</div>
+								))}
+							</div>
+						</div>
+					))}
+				</div>
+
+				<div className="rounded-lg border bg-card p-6 shadow-sm">
+					<Skeleton className="h-4 w-36" />
+					<div className="mt-4 space-y-2">
+						{Array.from({ length: 5 }).map((_, index) => (
+							<Skeleton
+								key={`loan-page-table-row-skeleton-${index}`}
+								className="h-10 w-full"
+							/>
+						))}
+					</div>
+				</div>
+			</div>
 		</PageContainer>
 	);
 }
