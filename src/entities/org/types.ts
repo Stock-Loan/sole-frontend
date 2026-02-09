@@ -4,6 +4,7 @@ export interface OrgSettings {
 	org_id: string;
 	allow_user_data_export: boolean;
 	allow_profile_edit: boolean;
+	allow_impersonation: boolean;
 	require_two_factor: boolean;
 	mfa_required_actions: MfaEnforcementAction[];
 	remember_device_days: number;
@@ -30,6 +31,7 @@ export interface OrgSettings {
 export interface OrgSettingsUpdatePayload {
 	allow_user_data_export?: boolean;
 	allow_profile_edit?: boolean;
+	allow_impersonation?: boolean;
 	require_two_factor?: boolean;
 	mfa_required_actions?: MfaEnforcementAction[];
 	remember_device_days?: number;
@@ -54,6 +56,7 @@ export interface OrgSettingsUpdatePayload {
 export interface OrgSettingsFormValues {
 	allow_user_data_export: boolean;
 	allow_profile_edit: boolean;
+	allow_impersonation: boolean;
 	require_two_factor: boolean;
 	mfa_required_actions: MfaEnforcementAction[];
 	remember_device_days: number;
@@ -87,7 +90,8 @@ export type MfaEnforcementAction =
 	| "ORG_SETTINGS_CHANGE"
 	| "USER_PROFILE_EDIT"
 	| "ROLE_ASSIGNMENT"
-	| "ACL_ASSIGNMENT";
+	| "ACL_ASSIGNMENT"
+	| "USER_IMPERSONATE";
 
 export type LoanRepaymentMethod =
 	| "BALLOON"
@@ -123,6 +127,7 @@ export interface SelfOrgPolicy {
 	org_id: string;
 	allow_user_data_export?: boolean;
 	allow_profile_edit?: boolean;
+	allow_impersonation?: boolean;
 	require_two_factor?: boolean;
 	mfa_required_actions?: MfaEnforcementAction[];
 	remember_device_days?: number;

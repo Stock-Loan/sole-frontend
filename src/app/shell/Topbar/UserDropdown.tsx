@@ -8,9 +8,9 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, ShieldAlert } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/shared/ui/avatar";
-import { useAuth, useMe } from "@/auth/hooks";
+import { useAuth, useMe, useImpersonationOptional } from "@/auth/hooks";
 import { routes } from "@/shared/lib/routes";
 import { useUserSettings } from "@/features/user-settings/hooks";
 import type { UserDropdownProps } from "./types";
@@ -25,6 +25,8 @@ function truncateValue(value: string, maxChars: number) {
 
 export function UserDropdown({ showChevron = false }: UserDropdownProps) {
 	const { user, setUser, logout } = useAuth();
+	const impersonation = useImpersonationOptional();
+	const isImpersonating = impersonation?.isImpersonating ?? false;
 
 	const { data: profile } = useMe();
 
@@ -93,11 +95,16 @@ export function UserDropdown({ showChevron = false }: UserDropdownProps) {
 					type="button"
 					className="inline-flex items-center gap-3 bg-transparent p-0 text-foreground outline-none ring-0 ring-offset-0 hover:text-foreground focus-visible:outline-none focus-visible:ring-0"
 				>
-					<Avatar className="h-11 w-11 rounded-lg border border-border/60 bg-muted/50">
-						<AvatarFallback className="rounded-lg bg-primary/10 text-sm font-semibold text-primary">
+				<div className="relative">
+					<Avatar className={`h-11 w-11 rounded-lg border bg-muted/50 ${isImpersonating ? "border-red-400 ring-2 ring-red-400/40" : "border-border/60"}`}>
+						<AvatarFallback className={`rounded-lg text-sm font-semibold ${isImpersonating ? "bg-red-500/15 text-red-600" : "bg-primary/10 text-primary"}`}>
 							{initials}
 						</AvatarFallback>
 					</Avatar>
+					{isImpersonating ? (
+						<ShieldAlert className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full bg-white text-red-500 dark:bg-gray-900" />
+					) : null}
+				</div>
 					<div className="hidden text-left text-xs leading-tight sm:block">
 						<p className="font-semibold text-foreground">{displayName}</p>
 						<p className="text-muted-foreground" title={secondaryLabel}>
@@ -110,7 +117,16 @@ export function UserDropdown({ showChevron = false }: UserDropdownProps) {
 				</button>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="end" className="w-56">
-				<DropdownMenuLabel>Signed in</DropdownMenuLabel>
+				<DropdownMenuLabel>
+					{isImpersonating ? (
+						<span className="flex items-center gap-1.5 text-red-600">
+							<ShieldAlert className="h-3.5 w-3.5" />
+							Impersonating
+						</span>
+					) : (
+						"Signed in"
+					)}
+				</DropdownMenuLabel>
 				<DropdownMenuSeparator />
 				<DropdownMenuItem asChild>
 					<Link to={routes.workspaceSettings}>My profile</Link>

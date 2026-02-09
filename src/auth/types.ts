@@ -254,6 +254,38 @@ export interface InactivityContextValue {
 	isRefreshing: boolean;
 }
 
+// ─── Impersonation types ─────────────────────────────────────────────────────
+
+export interface ImpersonateStartPayload {
+	target_membership_id: string;
+}
+
+export interface ImpersonateStartResponse {
+	access_token: string;
+	token_type: "bearer";
+	refresh_token?: string;
+	csrf_token?: string | null;
+	target_user: AuthUser;
+	impersonator_user_id: string;
+}
+
+export interface ImpersonateStopResponse extends TokenPair {}
+
+export interface ImpersonationContextValue {
+	/** Whether the current session is an impersonation session */
+	isImpersonating: boolean;
+	/** The impersonator's user ID (admin who started impersonation) */
+	impersonatorUserId: string | null;
+	/** Basic info about the original admin (for banner display only) */
+	originalAdminInfo: { email: string; fullName: string | null } | null;
+	/** Start impersonating a user by membership ID */
+	startImpersonation: (membershipId: string) => Promise<void>;
+	/** Stop impersonating and return to the admin's own session */
+	stopImpersonation: () => Promise<void>;
+	/** Whether a start/stop operation is in progress */
+	isLoading: boolean;
+}
+
 export interface InactivityProviderProps {
 	children: import("react").ReactNode;
 }

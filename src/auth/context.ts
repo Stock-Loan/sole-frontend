@@ -1,6 +1,7 @@
 import { createContext } from "react";
 import type {
 	AuthContextValue,
+	ImpersonationContextValue,
 	InactivityContextValue,
 	StepUpMfaContextValue,
 } from "@/auth/types";
@@ -10,6 +11,10 @@ import type {
 export const AuthContext = createContext<AuthContextValue | undefined>(
 	undefined,
 );
+
+export const ImpersonationContext = createContext<
+	ImpersonationContextValue | undefined
+>(undefined);
 
 export const InactivityContext = createContext<
 	InactivityContextValue | undefined

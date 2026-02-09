@@ -17,6 +17,7 @@ const mfaEnforcementSchema = z.array(
 		"USER_PROFILE_EDIT",
 		"ROLE_ASSIGNMENT",
 		"ACL_ASSIGNMENT",
+		"USER_IMPERSONATE",
 	]),
 );
 
@@ -24,6 +25,7 @@ export const orgSettingsSchema = z
 	.object({
 		allow_user_data_export: z.boolean(),
 		allow_profile_edit: z.boolean(),
+		allow_impersonation: z.boolean(),
 		require_two_factor: z.boolean(),
 		mfa_required_actions: mfaEnforcementSchema,
 		remember_device_days: z

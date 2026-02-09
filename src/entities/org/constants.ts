@@ -43,6 +43,7 @@ export const SETTINGS_TAB_MAP: Partial<
 > = {
 	allow_user_data_export: "general",
 	allow_profile_edit: "general",
+	allow_impersonation: "general",
 	require_two_factor: "general",
 	mfa_required_actions: "general",
 	remember_device_days: "general",
@@ -131,5 +132,10 @@ export const mfaEnforcementOptions = [
 		value: "ACL_ASSIGNMENT",
 		label: "Managing ACL assignments",
 		description: "Require MFA before creating, updating, or removing ACL assignments.",
+	},
+	{
+		value: "USER_IMPERSONATE",
+		label: "Impersonating a user",
+		description: "Require MFA before an admin can impersonate another user.",
 	},
 ] as const;

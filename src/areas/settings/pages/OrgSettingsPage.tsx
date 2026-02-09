@@ -39,6 +39,7 @@ export function OrgSettingsPage() {
 		defaultValues: {
 			allow_user_data_export: true,
 			allow_profile_edit: true,
+			allow_impersonation: false,
 			require_two_factor: false,
 			mfa_required_actions: [],
 			remember_device_days: 30,
@@ -67,6 +68,7 @@ export function OrgSettingsPage() {
 			form.reset({
 				allow_user_data_export: Boolean(data.allow_user_data_export),
 				allow_profile_edit: Boolean(data.allow_profile_edit),
+				allow_impersonation: Boolean(data.allow_impersonation),
 				require_two_factor: Boolean(data.require_two_factor),
 				mfa_required_actions: data.require_two_factor
 					? (data.mfa_required_actions ?? [])
@@ -149,6 +151,7 @@ export function OrgSettingsPage() {
 			form.reset({
 				allow_user_data_export: updated.allow_user_data_export,
 				allow_profile_edit: updated.allow_profile_edit,
+				allow_impersonation: Boolean(updated.allow_impersonation),
 				require_two_factor: updated.require_two_factor,
 				mfa_required_actions: updated.require_two_factor
 					? (updated.mfa_required_actions ?? [])

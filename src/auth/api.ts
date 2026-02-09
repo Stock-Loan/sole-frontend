@@ -5,6 +5,8 @@ import type {
 	AuthOrgsResponse,
 	AuthUser,
 	ChangePasswordPayload,
+	ImpersonateStartPayload,
+	ImpersonateStartResponse,
 	LoginPayload,
 	LoginResponse,
 	MfaEnrollStartPayload,
@@ -205,6 +207,27 @@ export async function verifyStepUpMfa(
 		payload,
 	);
 	return unwrapApiResponse<StepUpVerifyResponse>(data) as StepUpVerifyResponse;
+}
+
+// ─── Impersonation ───────────────────────────────────────────────────────────
+
+export async function startImpersonation(
+	payload: ImpersonateStartPayload,
+): Promise<ImpersonateStartResponse> {
+	const { data } = await apiClient.post<ImpersonateStartResponse>(
+		"/auth/impersonate/start",
+		payload,
+	);
+	return unwrapApiResponse<ImpersonateStartResponse>(
+		data,
+	) as ImpersonateStartResponse;
+}
+
+export async function stopImpersonation(): Promise<TokenPair> {
+	const { data } = await apiClient.post<TokenPair>(
+		"/auth/impersonate/stop",
+	);
+	return unwrapApiResponse<TokenPair>(data) as TokenPair;
 }
 
 export async function retryRequestWithStepUpToken<T>(

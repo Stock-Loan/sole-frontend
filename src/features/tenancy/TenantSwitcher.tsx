@@ -1,4 +1,4 @@
-import { Building2, ChevronDown } from "lucide-react";
+import { Building2, ChevronDown, Lock } from "lucide-react";
 import { useMemo } from "react";
 import { Button } from "@/shared/ui/Button";
 import {
@@ -8,10 +8,13 @@ import {
 	DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
 import { useTenant } from "@/features/tenancy/hooks";
+import { useImpersonationOptional } from "@/auth/hooks";
 import { cn } from "@/shared/lib/utils";
 
 export function TenantSwitcher({ className }: { className?: string }) {
 	const { orgs, currentOrgId, switchOrg } = useTenant();
+	const impersonation = useImpersonationOptional();
+	const isImpersonating = impersonation?.isImpersonating ?? false;
 
 	const currentOrg = useMemo(
 		() => orgs.find((org) => org.id === currentOrgId) ?? orgs[0],
@@ -23,18 +26,33 @@ export function TenantSwitcher({ className }: { className?: string }) {
 		? currentOrg.name.replace(/^\w/, (c) => c.toUpperCase())
 		: "Organization";
 
-	if (!isMultiTenant) {
+	// During impersonation, always show a static non-interactive org badge
+	// (impersonation is org-scoped — switching orgs is not allowed)
+	if (!isMultiTenant || isImpersonating) {
 		return (
 			<div
 				className={cn(
 					"inline-flex items-center gap-2 rounded-full bg-muted/50 px-3 py-2 text-sm font-semibold text-foreground",
+					isImpersonating && "opacity-70 cursor-not-allowed",
 					className,
 				)}
+				title={
+					isImpersonating
+						? "Org switching is disabled during impersonation"
+						: undefined
+				}
 			>
-				<Building2
-					className="h-4 w-4 text-muted-foreground"
-					aria-hidden="true"
-				/>
+				{isImpersonating ? (
+					<Lock
+						className="h-4 w-4 text-muted-foreground"
+						aria-hidden="true"
+					/>
+				) : (
+					<Building2
+						className="h-4 w-4 text-muted-foreground"
+						aria-hidden="true"
+					/>
+				)}
 				<span>{label}</span>
 			</div>
 		);

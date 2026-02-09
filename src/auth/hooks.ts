@@ -23,6 +23,7 @@ import {
 } from "@/auth/api";
 import {
 	AuthContext,
+	ImpersonationContext,
 	InactivityContext,
 	StepUpMfaContext,
 } from "@/auth/context";
@@ -78,6 +79,20 @@ export function useStepUpMfa() {
 
 export function useStepUpMfaOptional() {
 	return useContext(StepUpMfaContext);
+}
+
+export function useImpersonation() {
+	const ctx = useContext(ImpersonationContext);
+	if (!ctx) {
+		throw new Error(
+			"useImpersonation must be used within an ImpersonationProvider",
+		);
+	}
+	return ctx;
+}
+
+export function useImpersonationOptional() {
+	return useContext(ImpersonationContext);
 }
 
 export function useSelfContext() {
