@@ -277,7 +277,7 @@ export interface ImpersonationContextValue {
 	/** The impersonator's user ID (admin who started impersonation) */
 	impersonatorUserId: string | null;
 	/** Basic info about the original admin (for banner display only) */
-	originalAdminInfo: { email: string; fullName: string | null } | null;
+	originalAdminInfo: { email?: string | null; fullName: string | null } | null;
 	/** Start impersonating a user by membership ID */
 	startImpersonation: (membershipId: string) => Promise<void>;
 	/** Stop impersonating and return to the admin's own session */

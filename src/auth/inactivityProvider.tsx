@@ -14,6 +14,7 @@ import { refreshSession } from "./api";
 import { useSelfContext, useAuth } from "./hooks";
 import { useTenant } from "@/features/tenancy/hooks";
 import { isRefreshAuthFailure } from "@/shared/api/refresh";
+import { isAuthTransitionInProgress } from "@/auth/transition";
 
 export function InactivityProvider({ children }: InactivityProviderProps) {
 	const { tokens, setSession, user, clearSession } = useAuth();
@@ -95,7 +96,9 @@ export function InactivityProvider({ children }: InactivityProviderProps) {
 
 			if (elapsed >= sessionTimeoutMs) {
 				// Session expired - log out
-				clearSession();
+				if (!isAuthTransitionInProgress()) {
+					clearSession();
+				}
 				setIsWarningVisible(false);
 				setSecondsRemaining(null);
 			} else if (elapsed >= warningTimeMs) {
@@ -140,7 +143,7 @@ export function InactivityProvider({ children }: InactivityProviderProps) {
 			setSecondsRemaining(null);
 		} catch (error) {
 			// Only clear session for authentication failures, not transient outages.
-			if (isRefreshAuthFailure(error)) {
+			if (isRefreshAuthFailure(error) && !isAuthTransitionInProgress()) {
 				clearSession();
 			}
 		} finally {

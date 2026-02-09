@@ -15,10 +15,8 @@ export function ImpersonationBanner() {
 		return null;
 	}
 
-	const impersonatedName =
-		auth.user?.full_name || auth.user?.email || "Unknown user";
-	const adminName =
-		ctx.originalAdminInfo?.fullName ?? ctx.originalAdminInfo?.email;
+	const impersonatedName = auth.user?.full_name?.trim() || "Impersonated user";
+	const adminName = ctx.originalAdminInfo?.fullName?.trim() || "Administrator";
 
 	return (
 		<div className="fixed bottom-6 left-1/2 z-[110] -translate-x-1/2 animate-in slide-in-from-bottom duration-300">

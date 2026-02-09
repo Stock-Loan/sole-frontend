@@ -18,6 +18,12 @@ import { setCsrfToken } from "@/shared/api/csrf";
 import { getJwtExpiry } from "@/shared/api/jwt";
 import { isRefreshAuthFailure } from "@/shared/api/refresh";
 import {
+	beginAuthTransition,
+	clearAuthTransition,
+	isAuthTransitionInProgress,
+} from "@/auth/transition";
+import { queryClient } from "@/shared/api/queryClient";
+import {
 	getMeWithToken,
 	logout as logoutApi,
 	refreshSession,
@@ -142,6 +148,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 		} catch (error) {
 			console.warn("Logout failed", error);
 		} finally {
+			clearAuthTransition();
 			clearSession();
 		}
 	}, [clearSession]);
@@ -171,6 +178,9 @@ export function AuthProvider({ children }: PropsWithChildren) {
 		});
 
 		setUnauthorizedHandler(() => {
+			if (isAuthTransitionInProgress()) {
+				return;
+			}
 			clearSession();
 			window.location.assign(routes.login);
 		});
@@ -192,7 +202,9 @@ export function AuthProvider({ children }: PropsWithChildren) {
 				const refreshed = await refreshSession(orgId ?? undefined);
 				if (!isMounted) return;
 				if (!refreshed?.access_token) {
-					clearSession();
+					if (!isAuthTransitionInProgress()) {
+						clearSession();
+					}
 					return;
 				}
 				const nextTokens: TokenPair = {
@@ -209,9 +221,12 @@ export function AuthProvider({ children }: PropsWithChildren) {
 				);
 				if (!isMounted) return;
 				setSession(nextTokens, nextUser);
+				clearAuthTransition();
 			} catch {
 				if (isMounted) {
-					clearSession();
+					if (!isAuthTransitionInProgress()) {
+						clearSession();
+					}
 				}
 			} finally {
 				if (isMounted) {
@@ -248,7 +263,9 @@ export function AuthProvider({ children }: PropsWithChildren) {
 				const orgId = user.org_id ?? loadPersistedOrgId() ?? undefined;
 				const refreshed = await refreshSession(orgId);
 				if (!refreshed?.access_token) {
-					clearSession();
+					if (!isAuthTransitionInProgress()) {
+						clearSession();
+					}
 					return;
 				}
 				const nextTokens: TokenPair = {
@@ -260,7 +277,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 				}
 				setSession(nextTokens, user);
 			} catch (error) {
-				if (isRefreshAuthFailure(error)) {
+				if (isRefreshAuthFailure(error) && !isAuthTransitionInProgress()) {
 					clearSession();
 				}
 			}
@@ -317,12 +334,13 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
 // ─── Impersonation Provider ───────────────────────────────────────────────────
 
-const IMPERSONATION_STORAGE_KEY = "sole.impersonation";
+const IMPERSONATION_STORAGE_KEY = "sole.impersonation.v2";
 
 interface PersistedImpersonation {
 	impersonatorUserId: string;
-	originalUserEmail: string;
-	originalUserFullName: string | null;
+	originalUserFullName: string;
+	impersonatedUserFullName: string;
+	targetMembershipId: string;
 }
 
 function loadPersistedImpersonation(): PersistedImpersonation | null {
@@ -330,7 +348,21 @@ function loadPersistedImpersonation(): PersistedImpersonation | null {
 	try {
 		const raw = localStorage.getItem(IMPERSONATION_STORAGE_KEY);
 		if (!raw) return null;
-		return JSON.parse(raw) as PersistedImpersonation;
+		const parsed = JSON.parse(raw) as PersistedImpersonation;
+		if (
+			typeof parsed?.impersonatorUserId !== "string" ||
+			!parsed.impersonatorUserId.trim() ||
+			typeof parsed?.originalUserFullName !== "string" ||
+			!parsed.originalUserFullName.trim() ||
+			typeof parsed?.impersonatedUserFullName !== "string" ||
+			!parsed.impersonatedUserFullName.trim() ||
+			typeof parsed?.targetMembershipId !== "string" ||
+			!parsed.targetMembershipId.trim()
+		) {
+			localStorage.removeItem(IMPERSONATION_STORAGE_KEY);
+			return null;
+		}
+		return parsed;
 	} catch {
 		return null;
 	}
@@ -349,15 +381,22 @@ function persistImpersonation(data: PersistedImpersonation | null) {
 	}
 }
 
+function navigateWithinApp(path: string) {
+	if (typeof window === "undefined") return;
+	window.history.pushState({}, "", path);
+	window.dispatchEvent(new PopStateEvent("popstate"));
+}
+
 export function ImpersonationProvider({ children }: PropsWithChildren) {
 	const [isLoading, setIsLoading] = useState(false);
 	const persisted = loadPersistedImpersonation();
 	const impersonatorUserId = persisted?.impersonatorUserId ?? null;
+	const authCtx = useAuthContextSafe();
+	const currentUserId = authCtx?.user?.id ?? null;
 	const originalAdminInfo = useMemo(
 		() =>
 			persisted
 				? {
-						email: persisted.originalUserEmail,
 						fullName: persisted.originalUserFullName,
 					}
 				: null,
@@ -365,6 +404,13 @@ export function ImpersonationProvider({ children }: PropsWithChildren) {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 		[persisted?.impersonatorUserId],
 	);
+
+	useEffect(() => {
+		if (!impersonatorUserId || !currentUserId) return;
+		if (impersonatorUserId === currentUserId) {
+			persistImpersonation(null);
+		}
+	}, [impersonatorUserId, currentUserId]);
 
 	// We need to get the auth context from parent - use a ref to avoid re-renders
 	const authRef = useRef<AuthContextValue | null>(null);
@@ -377,32 +423,51 @@ export function ImpersonationProvider({ children }: PropsWithChildren) {
 
 		setIsLoading(true);
 		try {
+			beginAuthTransition("impersonation-start");
 			const result = await startImpersonationApi({
 				target_membership_id: membershipId,
 			});
+
+			const orgId =
+				result.target_user.org_id ??
+				auth.user.org_id ??
+				loadPersistedOrgId() ??
+				undefined;
+			const nextUser = await getMeWithToken(result.access_token, orgId);
+			const nextTokens: TokenPair = {
+				access_token: result.access_token,
+				token_type: result.token_type ?? "bearer",
+			};
+			if (result.refresh_token !== undefined) {
+				nextTokens.refresh_token = result.refresh_token;
+			}
+			if (result.csrf_token !== undefined) {
+				nextTokens.csrf_token = result.csrf_token;
+				setCsrfToken(result.csrf_token ?? null);
+			}
 
 			// Persist impersonation metadata for page reloads.
 			// SECURITY: Do NOT store admin tokens — they would be
 			// accessible to XSS in the impersonated context.
 			persistImpersonation({
 				impersonatorUserId: result.impersonator_user_id,
-				originalUserEmail: auth.user.email,
-				originalUserFullName: auth.user.full_name ?? null,
+				originalUserFullName:
+					auth.user.full_name?.trim() || "Administrator",
+				impersonatedUserFullName:
+					nextUser.full_name?.trim() ||
+					result.target_user.full_name?.trim() ||
+					"Impersonated User",
+				targetMembershipId: membershipId,
 			});
 
-			// Persist the CSRF token from the impersonation response so the
-			// bootstrap refresh after page reload can pass CSRF validation.
-			if (result.csrf_token) {
-				setCsrfToken(result.csrf_token);
-			}
-
-			// Full page reload — the bootstrap will refresh from the
-			// impersonation cookie and set up the session correctly.
-			// Do NOT call auth.setSession() or queryClient.resetQueries()
-			// before navigating: both trigger API calls with the stale
-			// admin access token, risking a 401 → refresh rotation that
-			// can revoke the impersonation session.
-			window.location.assign("/app/workspace");
+			auth.setSession(nextTokens, nextUser);
+			await queryClient.cancelQueries();
+			queryClient.clear();
+			clearAuthTransition();
+			navigateWithinApp(routes.workspace);
+		} catch (error) {
+			clearAuthTransition();
+			throw error;
 		} finally {
 			setIsLoading(false);
 		}
@@ -416,25 +481,48 @@ export function ImpersonationProvider({ children }: PropsWithChildren) {
 
 		setIsLoading(true);
 		try {
+			beginAuthTransition("impersonation-stop");
 			const result = await stopImpersonationApi();
+			const latestPersisted = loadPersistedImpersonation();
+			const returnPath = latestPersisted
+				? routes.peopleUserDetail.replace(
+						":membershipId",
+						latestPersisted.targetMembershipId,
+					)
+				: routes.workspace;
+			const orgId = auth.user?.org_id ?? loadPersistedOrgId() ?? undefined;
+			const nextUser = await getMeWithToken(result.access_token, orgId);
+			const nextTokens: TokenPair = {
+				access_token: result.access_token,
+				token_type: result.token_type ?? "bearer",
+			};
+			if (result.refresh_token !== undefined) {
+				nextTokens.refresh_token = result.refresh_token;
+			}
+			if (result.csrf_token !== undefined) {
+				nextTokens.csrf_token = result.csrf_token;
+				setCsrfToken(result.csrf_token ?? null);
+			}
 
 			// Clear persisted impersonation state before navigating
 			persistImpersonation(null);
-
-			// Persist the CSRF token from the stop response
-			if (result.csrf_token) {
-				setCsrfToken(result.csrf_token);
-			}
-
-			// Full page reload — bootstrap will refresh from the admin's
-			// cookie and restore the admin session.
-			window.location.assign("/app/workspace");
+			auth.setSession(nextTokens, nextUser);
+			await queryClient.cancelQueries();
+			queryClient.clear();
+			clearAuthTransition();
+			navigateWithinApp(returnPath);
+		} catch (error) {
+			clearAuthTransition();
+			throw error;
 		} finally {
 			setIsLoading(false);
 		}
 	}, []);
 
-	const isImpersonating = impersonatorUserId !== null;
+	const isImpersonating =
+		impersonatorUserId !== null &&
+		Boolean(currentUserId) &&
+		currentUserId !== impersonatorUserId;
 
 	const value = useMemo<ImpersonationContextValue>(
 		() => ({
@@ -481,7 +569,6 @@ function ImpersonationAuthSync({
 }
 
 function useAuthContextSafe(): AuthContextValue | null {
-	 
 	const ctx = useContext(AuthContext);
 	return ctx ?? null;
 }
