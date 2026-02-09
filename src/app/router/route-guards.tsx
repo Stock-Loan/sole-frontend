@@ -1,9 +1,9 @@
 import type { PropsWithChildren } from "react";
 import { Navigate, useLocation } from "react-router-dom";
-import { LoadingState } from "@/shared/ui/LoadingState";
 import { useTenant } from "@/features/tenancy/hooks";
 import { routes } from "@/shared/lib/routes";
 import { useAuth, usePermissions } from "@/auth/hooks";
+import { AppShellLoading } from "@/app/shell/AppShellLoading";
 import type { RequirePermissionProps } from "./types";
 
 export function RequireAuth({ children }: PropsWithChildren) {
@@ -11,7 +11,7 @@ export function RequireAuth({ children }: PropsWithChildren) {
 	const { user, isAuthenticating } = useAuth();
 
 	if (isAuthenticating) {
-		return <LoadingState label="Authenticating..." />;
+		return <AppShellLoading label="Authenticating..." />;
 	}
 
 	if (!user) {
@@ -64,7 +64,7 @@ export function RequireTenant({ children }: PropsWithChildren) {
 	const { currentOrgId, isLoading } = useTenant();
 
 	if (isLoading) {
-		return <LoadingState label="Loading tenant context..." />;
+		return <AppShellLoading label="Loading tenant context..." />;
 	}
 
 	if (!currentOrgId) {
