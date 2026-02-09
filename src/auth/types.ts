@@ -267,6 +267,7 @@ export interface ImpersonateStartResponse {
 	csrf_token?: string | null;
 	target_user: AuthUser;
 	impersonator_user_id: string;
+	impersonator_name: string;
 }
 
 export type ImpersonateStopResponse = TokenPair;
@@ -278,8 +279,13 @@ export interface ImpersonationContextValue {
 	impersonatorUserId: string | null;
 	/** Basic info about the original admin (for banner display only) */
 	originalAdminInfo: { fullName: string } | null;
+	/** Basic info about the impersonated user (for banner display only) */
+	impersonatedUserInfo: { fullName: string } | null;
 	/** Start impersonating a user by membership ID */
-	startImpersonation: (membershipId: string) => Promise<void>;
+	startImpersonation: (
+		membershipId: string,
+		options?: { targetDisplayName?: string | null },
+	) => Promise<void>;
 	/** Stop impersonating and return to the admin's own session */
 	stopImpersonation: () => Promise<void>;
 	/** Whether a start/stop operation is in progress */

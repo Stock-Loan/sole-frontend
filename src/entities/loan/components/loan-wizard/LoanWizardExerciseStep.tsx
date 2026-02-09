@@ -1,5 +1,5 @@
-import { LoadingState } from "@/shared/ui/LoadingState";
 import { EmptyState } from "@/shared/ui/EmptyState";
+import { Skeleton } from "@/shared/ui/Skeleton";
 import { TabButton } from "@/shared/ui/TabButton";
 import { Input } from "@/shared/ui/input";
 import { formatCurrency } from "@/shared/lib/format";
@@ -24,7 +24,7 @@ export function LoanWizardExerciseStep({
 	estimatedPurchasePrice,
 }: LoanWizardExerciseStepProps) {
 	if (isLoading) {
-		return <LoadingState label="Loading stock summary..." />;
+		return <LoanWizardExerciseStepSkeleton />;
 	}
 
 	if (isError) {
@@ -135,6 +135,50 @@ export function LoanWizardExerciseStep({
 								: "—"}
 						</span>
 					</div>
+				</div>
+			</div>
+		</div>
+	);
+}
+
+function LoanWizardExerciseStepSkeleton() {
+	return (
+		<div className="space-y-6">
+			<div className="rounded-xl border border-border/60 bg-card/70 p-5 shadow-sm">
+				<Skeleton className="h-5 w-44" />
+				<div className="mt-3 space-y-2">
+					{Array.from({ length: 3 }).map((_, index) => (
+						<div
+							key={`exercise-summary-skeleton-${index}`}
+							className="flex items-center justify-between"
+						>
+							<Skeleton className="h-3 w-28" />
+							<Skeleton className="h-4 w-16" />
+						</div>
+					))}
+				</div>
+				<div className="mt-4 inline-flex items-center gap-2 rounded-full border border-border/70 bg-muted/30 p-1 shadow-sm">
+					<Skeleton className="h-8 w-24 rounded-full" />
+					<Skeleton className="h-8 w-24 rounded-full" />
+				</div>
+				<div className="mt-4 max-w-sm space-y-2">
+					<Skeleton className="h-4 w-48" />
+					<Skeleton className="h-10 w-full" />
+				</div>
+			</div>
+
+			<div className="rounded-xl border border-border/60 bg-card/70 p-5 shadow-sm">
+				<Skeleton className="h-5 w-24" />
+				<div className="mt-3 space-y-2">
+					{Array.from({ length: 2 }).map((_, index) => (
+						<div
+							key={`exercise-estimate-skeleton-${index}`}
+							className="flex items-center justify-between"
+						>
+							<Skeleton className="h-3 w-36" />
+							<Skeleton className="h-4 w-24" />
+						</div>
+					))}
 				</div>
 			</div>
 		</div>

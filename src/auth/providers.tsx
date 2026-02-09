@@ -343,6 +343,15 @@ interface PersistedImpersonation {
 	targetMembershipId: string;
 }
 
+function sanitizeImpersonationName(
+	value: string | null | undefined,
+	fallback: string,
+): string {
+	const normalized = value?.trim();
+	if (!normalized || normalized.includes("@")) return fallback;
+	return normalized;
+}
+
 function loadPersistedImpersonation(): PersistedImpersonation | null {
 	if (typeof localStorage === "undefined") return null;
 	try {
@@ -362,7 +371,17 @@ function loadPersistedImpersonation(): PersistedImpersonation | null {
 			localStorage.removeItem(IMPERSONATION_STORAGE_KEY);
 			return null;
 		}
-		return parsed;
+		return {
+			...parsed,
+			originalUserFullName: sanitizeImpersonationName(
+				parsed.originalUserFullName,
+				"Administrator",
+			),
+			impersonatedUserFullName: sanitizeImpersonationName(
+				parsed.impersonatedUserFullName,
+				"Impersonated user",
+			),
+		};
 	} catch {
 		return null;
 	}
@@ -404,6 +423,17 @@ export function ImpersonationProvider({ children }: PropsWithChildren) {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 		[persisted?.impersonatorUserId],
 	);
+	const impersonatedUserInfo = useMemo(
+		() =>
+			persisted
+				? {
+						fullName: persisted.impersonatedUserFullName,
+					}
+				: null,
+		// persisted is derived from localStorage and only changes across page loads
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[persisted?.impersonatorUserId],
+	);
 
 	useEffect(() => {
 		if (!impersonatorUserId || !currentUserId) return;
@@ -415,7 +445,10 @@ export function ImpersonationProvider({ children }: PropsWithChildren) {
 	// We need to get the auth context from parent - use a ref to avoid re-renders
 	const authRef = useRef<AuthContextValue | null>(null);
 
-	const startImpersonation = useCallback(async (membershipId: string) => {
+	const startImpersonation = useCallback(async (
+		membershipId: string,
+		options?: { targetDisplayName?: string | null },
+	) => {
 		const auth = authRef.current;
 		if (!auth?.user || !auth?.tokens) {
 			throw new Error("Not authenticated");
@@ -451,12 +484,16 @@ export function ImpersonationProvider({ children }: PropsWithChildren) {
 			// accessible to XSS in the impersonated context.
 			persistImpersonation({
 				impersonatorUserId: result.impersonator_user_id,
-				originalUserFullName:
-					auth.user.full_name?.trim() || "Administrator",
-				impersonatedUserFullName:
-					nextUser.full_name?.trim() ||
-					result.target_user.full_name?.trim() ||
-					"Impersonated User",
+				originalUserFullName: sanitizeImpersonationName(
+					result.impersonator_name || auth.user.full_name,
+					"Administrator",
+				),
+				impersonatedUserFullName: sanitizeImpersonationName(
+					options?.targetDisplayName ||
+						nextUser.full_name ||
+						result.target_user.full_name,
+					"Impersonated user",
+				),
 				targetMembershipId: membershipId,
 			});
 
@@ -529,6 +566,7 @@ export function ImpersonationProvider({ children }: PropsWithChildren) {
 			isImpersonating,
 			impersonatorUserId,
 			originalAdminInfo,
+			impersonatedUserInfo,
 			startImpersonation,
 			stopImpersonation,
 			isLoading,
@@ -537,6 +575,7 @@ export function ImpersonationProvider({ children }: PropsWithChildren) {
 			isImpersonating,
 			impersonatorUserId,
 			originalAdminInfo,
+			impersonatedUserInfo,
 			startImpersonation,
 			stopImpersonation,
 			isLoading,

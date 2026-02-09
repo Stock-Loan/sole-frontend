@@ -346,10 +346,13 @@ export function UserDetailPage() {
 												try {
 													await impersonation.startImpersonation(
 														data.membership.id,
+														{
+															targetDisplayName: displayName,
+														},
 													);
 													toast({
 														title: "Impersonation started",
-														description: `You are now acting as ${data.user.full_name || data.user.email}.`,
+														description: `You are now acting as ${displayName}.`,
 													});
 												} catch (err) {
 													apiErrorToast(err, "Unable to start impersonation.");

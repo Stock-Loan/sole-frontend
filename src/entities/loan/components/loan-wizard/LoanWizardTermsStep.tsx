@@ -1,5 +1,5 @@
 import { EmptyState } from "@/shared/ui/EmptyState";
-import { LoadingState } from "@/shared/ui/LoadingState";
+import { Skeleton } from "@/shared/ui/Skeleton";
 import { Input } from "@/shared/ui/input";
 import { cn } from "@/shared/lib/utils";
 import { formatCurrency, formatPercent } from "@/shared/lib/format";
@@ -31,7 +31,7 @@ export function LoanWizardTermsStep({
 	onRetryQuote,
 }: LoanWizardTermsStepProps) {
 	if (isLoading) {
-		return <LoadingState label="Loading loan policy..." />;
+		return <LoanWizardTermsStepSkeleton />;
 	}
 
 	if (isError) {
@@ -191,7 +191,7 @@ export function LoanWizardTermsStep({
 				</div>
 				<div className="mt-3">
 					{quoteLoading ? (
-						<LoadingState label="Calculating quote..." />
+						<LoanWizardQuoteSkeleton />
 					) : quoteError ? (
 						<EmptyState
 							title="Unable to calculate quote"
@@ -296,6 +296,88 @@ export function LoanWizardTermsStep({
 						</p>
 					)}
 				</div>
+			</div>
+		</div>
+	);
+}
+
+function LoanWizardTermsStepSkeleton() {
+	return (
+		<div className="space-y-6">
+			<Skeleton className="h-3 w-80 max-w-full" />
+
+			<div className="grid gap-4 lg:grid-cols-2">
+				{Array.from({ length: 2 }).map((_, index) => (
+					<div
+						key={`terms-selection-skeleton-${index}`}
+						className="rounded-xl border border-border/60 bg-card/70 p-5 shadow-sm"
+					>
+						<Skeleton className="h-4 w-32" />
+						<div className="mt-3 grid gap-3">
+							{Array.from({ length: 2 }).map((__, optionIndex) => (
+								<div
+									key={`terms-option-skeleton-${index}-${optionIndex}`}
+									className="rounded-xl border border-border/70 bg-background px-4 py-3"
+								>
+									<Skeleton className="h-4 w-28" />
+									<Skeleton className="mt-2 h-3 w-56 max-w-full" />
+								</div>
+							))}
+						</div>
+					</div>
+				))}
+			</div>
+
+			<div className="grid gap-4 md:grid-cols-2">
+				<div className="rounded-xl border border-border/60 bg-card/70 p-5 shadow-sm">
+					<Skeleton className="h-4 w-32" />
+					<Skeleton className="mt-2 h-10 w-full" />
+					<Skeleton className="mt-2 h-3 w-44" />
+				</div>
+				<div className="rounded-xl border border-border/60 bg-card/70 p-5 shadow-sm">
+					<Skeleton className="h-4 w-24" />
+					<Skeleton className="mt-2 h-3 w-44" />
+				</div>
+			</div>
+
+			<div className="rounded-xl border border-border/60 bg-card/70 p-5 shadow-sm">
+				<div className="flex items-center justify-between">
+					<Skeleton className="h-4 w-14" />
+					<Skeleton className="h-3 w-24" />
+				</div>
+				<div className="mt-3">
+					<LoanWizardQuoteSkeleton />
+				</div>
+			</div>
+		</div>
+	);
+}
+
+function LoanWizardQuoteSkeleton() {
+	return (
+		<div className="space-y-4">
+			<div className="grid gap-3 md:grid-cols-2">
+				{Array.from({ length: 2 }).map((_, index) => (
+					<div
+						key={`quote-option-skeleton-${index}`}
+						className="rounded-xl border border-border/70 bg-background px-4 py-3"
+					>
+						<Skeleton className="h-4 w-40" />
+						<Skeleton className="mt-2 h-3 w-32" />
+						<Skeleton className="mt-2 h-4 w-28" />
+					</div>
+				))}
+			</div>
+			<div className="grid gap-2">
+				{Array.from({ length: 6 }).map((_, index) => (
+					<div
+						key={`quote-row-skeleton-${index}`}
+						className="flex items-center justify-between"
+					>
+						<Skeleton className="h-3 w-36" />
+						<Skeleton className="h-4 w-24" />
+					</div>
+				))}
 			</div>
 		</div>
 	);

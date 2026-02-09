@@ -1,6 +1,6 @@
 import { Button } from "@/shared/ui/Button";
 import { EmptyState } from "@/shared/ui/EmptyState";
-import { LoadingState } from "@/shared/ui/LoadingState";
+import { Skeleton } from "@/shared/ui/Skeleton";
 import { cn } from "@/shared/lib/utils";
 import type { LoanWizardMaritalStepProps } from "@/entities/loan/types";
 
@@ -18,7 +18,7 @@ export function LoanWizardMaritalStep({
 	children,
 }: LoanWizardMaritalStepProps) {
 	if (isLoading) {
-		return <LoadingState label="Loading profile..." />;
+		return <LoanWizardMaritalStepSkeleton />;
 	}
 
 	if (isError) {
@@ -125,6 +125,33 @@ export function LoanWizardMaritalStep({
 			) : null}
 
 			{children}
+		</div>
+	);
+}
+
+function LoanWizardMaritalStepSkeleton() {
+	return (
+		<div className="space-y-6">
+			<div className="rounded-xl border border-border/60 bg-card/70 p-5 shadow-sm">
+				<Skeleton className="h-5 w-64 max-w-full" />
+				<Skeleton className="mt-2 h-4 w-36" />
+				<Skeleton className="mt-3 h-3 w-80 max-w-full" />
+				<div className="mt-4 grid gap-3 md:grid-cols-2">
+					{Array.from({ length: 2 }).map((_, index) => (
+						<div
+							key={`marital-option-skeleton-${index}`}
+							className="rounded-xl border border-border/70 bg-background px-4 py-3"
+						>
+							<Skeleton className="h-4 w-32" />
+							<Skeleton className="mt-2 h-3 w-56 max-w-full" />
+						</div>
+					))}
+				</div>
+			</div>
+			<div className="rounded-xl border border-border/60 bg-card/70 p-5 shadow-sm">
+				<Skeleton className="h-4 w-48" />
+				<Skeleton className="mt-3 h-10 w-full" />
+			</div>
 		</div>
 	);
 }
