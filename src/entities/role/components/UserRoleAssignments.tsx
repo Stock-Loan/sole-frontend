@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Button } from "@/shared/ui/Button";
 import { Checkbox } from "@/shared/ui/checkbox";
 import { Label } from "@/shared/ui/label";
+import { Skeleton } from "@/shared/ui/Skeleton";
 import { useToast } from "@/shared/ui/use-toast";
 import { useApiErrorToast } from "@/shared/api/useApiErrorToast";
 import { normalizeDisplay } from "@/shared/lib/utils";
@@ -120,7 +121,20 @@ export function UserRoleAssignments({
 			</div>
 
 			{isLoading ? (
-				<p className="text-sm text-muted-foreground">Loading roles…</p>
+				<div className="space-y-2">
+					{Array.from({ length: 6 }).map((_, index) => (
+						<div
+							key={`user-role-assignment-skeleton-${index}`}
+							className="flex items-center gap-2 rounded border border-transparent p-2"
+						>
+							<Skeleton className="h-4 w-4 rounded-sm" />
+							<div className="space-y-1">
+								<Skeleton className="h-4 w-32" />
+								<Skeleton className="h-3 w-56" />
+							</div>
+						</div>
+					))}
+				</div>
 			) : isError ? (
 				<div className="flex items-center justify-between rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
 					<span>Unable to load roles.</span>

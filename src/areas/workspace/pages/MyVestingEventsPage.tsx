@@ -45,8 +45,6 @@ export function MyVestingEventsPage() {
 					title="Vesting events unavailable"
 					message="You do not have permission to view your vesting events."
 				/>
-			) : summaryQuery.isLoading ? (
-				<EmptyState title="Loading vesting events" message="Please wait..." />
 			) : summaryQuery.isError ? (
 				<EmptyState
 					title="Unable to load vesting events"
@@ -59,7 +57,7 @@ export function MyVestingEventsPage() {
 					data={events}
 					columns={columns}
 					getRowId={(event) => `${event.vest_date}-${event.shares}`}
-					isLoading={summaryQuery.isFetching}
+					isLoading={summaryQuery.isLoading || summaryQuery.isFetching}
 					emptyMessage="No upcoming vesting events."
 					enableRowSelection={false}
 					enableExport={false}

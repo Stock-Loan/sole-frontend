@@ -4,6 +4,7 @@ import { PageContainer } from "@/shared/ui/PageContainer";
 import { PageHeader } from "@/shared/ui/PageHeader";
 import { EmptyState } from "@/shared/ui/EmptyState";
 import { LoadingState } from "@/shared/ui/LoadingState";
+import { Skeleton } from "@/shared/ui/Skeleton";
 import { Button } from "@/shared/ui/Button";
 import { routes } from "@/shared/lib/routes";
 import { OrgUserProfileDialog } from "@/entities/user/components/OrgUserProfileDialog";
@@ -239,9 +240,7 @@ export function UserDetailPage() {
 							<div className="flex items-center justify-between">
 								<h3 className="text-sm font-semibold">Department assignment</h3>
 								{isDepartmentsLoading ? (
-									<span className="text-xs text-muted-foreground">
-										Loading…
-									</span>
+									<Skeleton className="h-4 w-20" />
 								) : null}
 							</div>
 							<div className="flex flex-wrap items-center gap-3">

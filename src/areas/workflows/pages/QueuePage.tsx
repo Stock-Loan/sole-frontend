@@ -16,6 +16,7 @@ import { Input } from "@/shared/ui/input";
 import { AppDialog } from "@/shared/ui/Dialog/dialog";
 import { formatCurrency, formatDate } from "@/shared/lib/format";
 import { normalizeDisplay } from "@/shared/lib/utils";
+import { Skeleton } from "@/shared/ui/Skeleton";
 import { useToast } from "@/shared/ui/use-toast";
 import { parseApiError } from "@/shared/api/errors";
 import { routes } from "@/shared/lib/routes";
@@ -538,9 +539,14 @@ export function QueuePage() {
 									Start typing to find eligible users.
 								</p>
 							) : rolesQuery.isLoading ? (
-								<p className="px-2 py-3 text-xs text-muted-foreground">
-									Loading role members…
-								</p>
+								<div className="space-y-2 px-1 py-1.5">
+									{Array.from({ length: 3 }).map((_, index) => (
+										<Skeleton
+											key={`role-members-skeleton-${index}`}
+											className="h-14 w-full"
+										/>
+									))}
+								</div>
 							) : rolesQuery.isError ? (
 								<p className="px-2 py-3 text-xs text-muted-foreground">
 									Unable to load roles for assignment.
@@ -550,9 +556,14 @@ export function QueuePage() {
 									No role configured for this queue.
 								</p>
 							) : usersQuery.isLoading ? (
-								<p className="px-2 py-3 text-xs text-muted-foreground">
-									Loading users…
-								</p>
+								<div className="space-y-2 px-1 py-1.5">
+									{Array.from({ length: 4 }).map((_, index) => (
+										<Skeleton
+											key={`queue-users-skeleton-${index}`}
+											className="h-14 w-full"
+										/>
+									))}
+								</div>
 							) : sortedAssignees.length === 0 ? (
 								<p className="px-2 py-3 text-xs text-muted-foreground">
 									No eligible users found for this queue.

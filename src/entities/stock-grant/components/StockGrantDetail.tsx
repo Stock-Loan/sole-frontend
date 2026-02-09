@@ -1,6 +1,7 @@
 import { Badge } from "@/shared/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { EmptyState } from "@/shared/ui/EmptyState";
+import { Skeleton } from "@/shared/ui/Skeleton";
 import {
 	Table,
 	TableBody,
@@ -41,7 +42,7 @@ export function StockGrantDetail({
 	showOrgFields = false,
 }: StockGrantDetailProps) {
 	if (isLoading) {
-		return <EmptyState title="Loading grant" message="Please wait..." />;
+		return <StockGrantDetailSkeleton />;
 	}
 
 	if (isError || !grant) {
@@ -187,6 +188,49 @@ export function StockGrantDetail({
 							</TableBody>
 						</Table>
 					)}
+				</CardContent>
+			</Card>
+		</div>
+	);
+}
+
+function StockGrantDetailSkeleton() {
+	return (
+		<div className="space-y-4">
+			<Card>
+				<CardHeader className="pb-2">
+					<Skeleton className="h-5 w-32" />
+				</CardHeader>
+				<CardContent className="space-y-4">
+					<div className="flex items-center gap-2">
+						<Skeleton className="h-6 w-24 rounded-full" />
+						<Skeleton className="h-4 w-44" />
+					</div>
+					<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+						{Array.from({ length: 9 }).map((_, index) => (
+							<div
+								key={`stock-grant-summary-skeleton-${index}`}
+								className="space-y-2"
+							>
+								<Skeleton className="h-3 w-24" />
+								<Skeleton className="h-4 w-32" />
+							</div>
+						))}
+					</div>
+					<Skeleton className="h-16 w-full" />
+				</CardContent>
+			</Card>
+			<Card>
+				<CardHeader className="pb-2">
+					<Skeleton className="h-5 w-28" />
+				</CardHeader>
+				<CardContent className="space-y-2">
+					{Array.from({ length: 3 }).map((_, index) => (
+						<Skeleton
+							key={`stock-grant-events-skeleton-${index}`}
+							className="h-10 w-full"
+						/>
+					))}
 				</CardContent>
 			</Card>
 		</div>

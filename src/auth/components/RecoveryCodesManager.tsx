@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Key, Loader2, RefreshCcw, ShieldOff } from "lucide-react";
 import { Button } from "@/shared/ui/Button";
+import { Skeleton } from "@/shared/ui/Skeleton";
 import { useToast } from "@/shared/ui/use-toast";
 import { Dialog, DialogContent } from "@/shared/ui/Dialog/dialog";
 import {
@@ -80,9 +81,10 @@ export function RecoveryCodesManager() {
 
 	if (isLoading) {
 		return (
-			<div className="flex items-center gap-2 text-sm text-muted-foreground">
-				<Loader2 className="h-4 w-4 animate-spin" />
-				Loading...
+			<div className="space-y-2">
+				<Skeleton className="h-4 w-36" />
+				<Skeleton className="h-3 w-64" />
+				<Skeleton className="h-9 w-40" />
 			</div>
 		);
 	}

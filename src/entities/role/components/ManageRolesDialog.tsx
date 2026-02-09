@@ -8,6 +8,7 @@ import {
 	DialogTitle,
 } from "@/shared/ui/Dialog/dialog";
 import { Button } from "@/shared/ui/Button";
+import { Skeleton } from "@/shared/ui/Skeleton";
 import { Checkbox } from "@/shared/ui/checkbox";
 import { useRolesList, useUpdateUserRoles } from "../hooks";
 import { useToast } from "@/shared/ui/use-toast";
@@ -40,12 +41,14 @@ export function ManageRolesDialog({
 
 	const handleSave = () => {
 		if (!user) return;
-		
+
 		const currentIds = initialRoleIds;
 		const nextIds = selectedRoleIds;
 
 		const addRoleIds = Array.from(nextIds).filter((id) => !currentIds.has(id));
-		const removeRoleIds = Array.from(currentIds).filter((id) => !nextIds.has(id));
+		const removeRoleIds = Array.from(currentIds).filter(
+			(id) => !nextIds.has(id),
+		);
 
 		if (addRoleIds.length === 0 && removeRoleIds.length === 0) {
 			onOpenChange(false);
@@ -80,16 +83,30 @@ export function ManageRolesDialog({
 				</DialogHeader>
 				<DialogBody className="space-y-4">
 					<div className="text-sm text-muted-foreground">
-						Select roles for <span className="font-medium text-foreground">{displayName}</span>.
+						Select roles for{" "}
+						<span className="font-medium text-foreground">{displayName}</span>.
 					</div>
 					<div className="space-y-2 max-h-[300px] overflow-y-auto border rounded-md p-2">
 						{isLoading ? (
-							<div className="p-2 text-sm text-muted-foreground">Loading roles...</div>
+							<div className="space-y-2 p-1">
+								{Array.from({ length: 6 }).map((_, index) => (
+									<div
+										key={`manage-roles-skeleton-${index}`}
+										className="flex items-center gap-2 p-1"
+									>
+										<Skeleton className="h-4 w-4 rounded-sm" />
+										<Skeleton className="h-4 w-40" />
+									</div>
+								))}
+							</div>
 						) : (
 							allRoles.map((role) => (
-								<div key={role.id} className="flex items-center space-x-2 p-1 hover:bg-muted/50 rounded">
-									<Checkbox 
-										id={role.id} 
+								<div
+									key={role.id}
+									className="flex items-center space-x-2 rounded p-1 hover:bg-muted/50"
+								>
+									<Checkbox
+										id={role.id}
 										checked={selectedRoleIds.has(role.id)}
 										onCheckedChange={() => toggleRole(role.id)}
 									/>
@@ -98,7 +115,11 @@ export function ManageRolesDialog({
 										className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex-1 cursor-pointer"
 									>
 										{normalizeDisplay(role.name)}
-										{role.is_system_role && <span className="ml-2 text-xs text-muted-foreground">(System)</span>}
+										{role.is_system_role && (
+											<span className="ml-2 text-xs text-muted-foreground">
+												(System)
+											</span>
+										)}
 									</label>
 								</div>
 							))

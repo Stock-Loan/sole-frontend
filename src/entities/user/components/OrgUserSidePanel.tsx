@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect } from "react";
-import { Loader2 } from "lucide-react";
 import { SideModal } from "@/shared/ui/Dialog/side-modal";
+import { Skeleton } from "@/shared/ui/Skeleton";
 import { toast } from "@/shared/ui/use-toast";
 import { formatDate } from "@/shared/lib/format";
 import { OrgUserProfileDialog } from "./OrgUserProfileDialog";
@@ -137,9 +137,16 @@ export function OrgUserSidePanel({
 				}
 			>
 				{isLoading || !user ? (
-					<div className="flex items-center gap-2 text-sm text-muted-foreground">
-						<Loader2 className="h-4 w-4 animate-spin" />
-						Loading user…
+					<div className="space-y-3">
+						{Array.from({ length: 6 }).map((_, index) => (
+							<div
+								key={`org-user-side-panel-skeleton-${index}`}
+								className="space-y-1"
+							>
+								<Skeleton className="h-3 w-24" />
+								<Skeleton className="h-4 w-48" />
+							</div>
+						))}
 					</div>
 				) : (
 					<div className="space-y-4">

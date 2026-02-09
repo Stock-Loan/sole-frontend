@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { ShieldCheck, ShieldOff, UserCircle2 } from "lucide-react";
+import { ShieldCheck, ShieldOff, UserCircle2, Download } from "lucide-react";
 import { PageHeader } from "@/shared/ui/PageHeader";
 import { PageContainer } from "@/shared/ui/PageContainer";
 import { Button } from "@/shared/ui/Button";
@@ -12,6 +12,7 @@ import { normalizeDisplay } from "@/shared/lib/utils";
 import { TabButton } from "@/shared/ui/TabButton";
 import { useAuth } from "@/auth/hooks";
 import { useUserSettings } from "@/features/user-settings/hooks";
+import { useExportSelfData } from "@/features/user-settings/hooks";
 import { useSelfOrgPolicy } from "@/entities/org/hooks";
 import { SelfProfileDialog } from "@/features/user-settings/components/SelfProfileDialog";
 import { RecoveryCodesManager } from "@/auth/components/RecoveryCodesManager";
@@ -32,6 +33,8 @@ export function MySettingsPage() {
 	const { data: policy } = useSelfOrgPolicy();
 	const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
 	const canEditProfile = Boolean(policy?.allow_profile_edit);
+	const canExportData = Boolean(policy?.allow_user_data_export);
+	const exportMutation = useExportSelfData();
 
 	const profileUser = profile?.user;
 	const membership = profile?.membership;
@@ -196,6 +199,20 @@ export function MySettingsPage() {
 											onClick={() => setIsProfileDialogOpen(true)}
 										>
 											Edit profile
+										</Button>
+									)}
+									{canExportData && (
+										<Button
+											variant="outline"
+											size="sm"
+											className={canEditProfile ? "" : "ml-auto"}
+											disabled={exportMutation.isPending}
+											onClick={() => exportMutation.mutate()}
+										>
+											<Download className="mr-1.5 h-4 w-4" />
+											{exportMutation.isPending
+												? "Exporting…"
+												: "Export my data"}
 										</Button>
 									)}
 								</div>

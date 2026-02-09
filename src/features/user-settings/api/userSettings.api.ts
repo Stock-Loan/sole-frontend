@@ -9,11 +9,18 @@ export async function getUserSettings(): Promise<UserSettingsProfile> {
 }
 
 export async function updateSelfProfile(
-	payload: UpdateSelfProfilePayload
+	payload: UpdateSelfProfilePayload,
 ): Promise<UserSettingsProfile> {
 	const { data } = await apiClient.patch<UserSettingsProfile>(
 		"/self/profile",
-		payload
+		payload,
 	);
 	return unwrapApiResponse<UserSettingsProfile>(data);
+}
+
+export async function exportSelfData(): Promise<Blob> {
+	const response = await apiClient.get<Blob>("/self/export", {
+		responseType: "blob",
+	});
+	return response.data;
 }

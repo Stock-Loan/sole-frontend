@@ -7,6 +7,7 @@ import {
 	SelectValue,
 } from "@/shared/ui/select";
 import { Button } from "@/shared/ui/Button";
+import { Skeleton } from "@/shared/ui/Skeleton";
 import { cn } from "@/shared/lib/utils";
 import { useTimezones } from "../useTimezones";
 import type { TimezoneSelectProps } from "../types";
@@ -75,7 +76,7 @@ export function TimezoneSelect({
 				) : null}
 			</div>
 			{isLoading ? (
-				<p className="text-xs text-muted-foreground">Loading timezones…</p>
+				<Skeleton className="h-3 w-28" />
 			) : null}
 			{isError ? (
 				<p className="text-xs text-destructive">Unable to load timezones.</p>

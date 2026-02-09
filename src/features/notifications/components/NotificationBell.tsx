@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Bell, Loader2 } from "lucide-react";
+import { Bell } from "lucide-react";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -9,6 +9,7 @@ import {
 	DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
 import { Button } from "@/shared/ui/Button";
+import { Skeleton } from "@/shared/ui/Skeleton";
 import { cn } from "@/shared/lib/utils";
 import { useToast } from "@/shared/ui/use-toast";
 import { formatDate } from "@/shared/lib/format";
@@ -85,9 +86,12 @@ export function NotificationBell() {
 						Sign in to view announcements.
 					</DropdownMenuItem>
 				) : unreadListQuery.isLoading ? (
-					<DropdownMenuItem className="text-muted-foreground" disabled>
-						<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-						Loading…
+					<DropdownMenuItem disabled>
+						<div className="w-full space-y-2 py-1">
+							<Skeleton className="h-4 w-32" />
+							<Skeleton className="h-3 w-full" />
+							<Skeleton className="h-3 w-[88%]" />
+						</div>
 					</DropdownMenuItem>
 				) : announcements.length === 0 && recentRead.length === 0 ? (
 					<DropdownMenuItem className="text-muted-foreground" disabled>

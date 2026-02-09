@@ -107,8 +107,6 @@ export function MyGrantsPage() {
 					title="Grants unavailable"
 					message="You do not have permission to view your grants."
 				/>
-			) : summaryQuery.isLoading ? (
-				<EmptyState title="Loading grants" message="Please wait..." />
 			) : summaryQuery.isError ? (
 				<EmptyState
 					title="Unable to load grants"
@@ -121,7 +119,7 @@ export function MyGrantsPage() {
 					data={grants}
 					columns={columns}
 					getRowId={(grant) => grant.grant_id}
-					isLoading={summaryQuery.isFetching}
+					isLoading={summaryQuery.isLoading || summaryQuery.isFetching}
 					emptyMessage="No grants found."
 					enableRowSelection={false}
 					enableExport={false}

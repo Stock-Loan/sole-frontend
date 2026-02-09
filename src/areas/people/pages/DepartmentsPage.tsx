@@ -4,6 +4,7 @@ import { AlertTriangle, Users } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import { PageContainer } from "@/shared/ui/PageContainer";
 import { PageHeader } from "@/shared/ui/PageHeader";
+import { Skeleton } from "@/shared/ui/Skeleton";
 import { DataTable } from "@/shared/ui/Table/DataTable";
 import type { ColumnDefinition } from "@/shared/ui/Table/types";
 import { Button } from "@/shared/ui/Button";
@@ -453,7 +454,20 @@ export function DepartmentsPage() {
 							{memberDept?.name ?? "Department"}
 						</p>
 						{membersLoading ? (
-							<p className="text-sm text-muted-foreground">Loading members…</p>
+							<div className="space-y-2">
+								{Array.from({ length: 3 }).map((_, index) => (
+									<div
+										key={`department-members-skeleton-${index}`}
+										className="flex items-center justify-between rounded-md border border-border/70 bg-muted/20 px-3 py-2"
+									>
+										<div className="space-y-1">
+											<Skeleton className="h-4 w-36" />
+											<Skeleton className="h-3 w-44" />
+										</div>
+										<Skeleton className="h-3 w-16" />
+									</div>
+								))}
+							</div>
 						) : members.length === 0 ? (
 							<p className="text-sm text-muted-foreground">
 								No members are assigned to this department.
