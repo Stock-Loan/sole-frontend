@@ -17,8 +17,8 @@ import { normalizeDisplay } from "@/shared/lib/utils";
 import { useSelfContext, useAuth, usePermissions } from "@/auth/hooks";
 import { useToast } from "@/shared/ui/use-toast";
 import { useApiErrorToast } from "@/shared/api/useApiErrorToast";
-import { useOrgUserDetail } from "@/entities/user/hooks";
-import { ShieldCheck, ShieldOff } from "lucide-react";
+import { useOrgUserDetail, useForcePasswordReset } from "@/entities/user/hooks";
+import { ShieldCheck, ShieldOff, KeyRound } from "lucide-react";
 import {
 	useDepartmentsList,
 	useUpdateUserDepartment,
@@ -41,6 +41,7 @@ export function UserDetailPage() {
 	const { data, isLoading, refetch } = useOrgUserDetail(membershipId ?? null);
 
 	const [profileDialogOpen, setProfileDialogOpen] = useState(false);
+	const forcePasswordResetMutation = useForcePasswordReset();
 	const { data: countries } = useCountries();
 	const countryCode = data?.user.country || "";
 	const { data: subdivisions } = useSubdivisions(countryCode || null);
@@ -305,6 +306,23 @@ export function UserDetailPage() {
 										/>
 									</div>
 								)}
+							{can("user.manage") && authUser?.id !== data.user.id && (
+								<div className="pt-2">
+									<Button
+										variant="outline"
+										size="sm"
+										disabled={forcePasswordResetMutation.isPending}
+										onClick={() =>
+											forcePasswordResetMutation.mutate(data.membership.id)
+										}
+									>
+										<KeyRound className="mr-1.5 h-4 w-4" />
+										{forcePasswordResetMutation.isPending
+											? "Resetting…"
+											: "Force password reset"}
+									</Button>
+								</div>
+							)}
 						</section>
 
 						<section className="space-y-2">

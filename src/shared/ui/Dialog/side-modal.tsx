@@ -24,10 +24,10 @@ export function SideModal({
 				<DialogPrimitive.Trigger asChild>{trigger}</DialogPrimitive.Trigger>
 			) : null}
 			<DialogPrimitive.Portal>
-				<DialogPrimitive.Overlay className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
+				<DialogPrimitive.Overlay className="fixed inset-0 z-40 bg-black/40 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 motion-safe:duration-150 will-change-[opacity]" />
 				<DialogPrimitive.Content
 					className={cn(
-						"fixed inset-y-0 right-0 z-50 flex h-full w-full max-w-xl flex-col border-l bg-background shadow-2xl outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:slide-in-from-right data-[state=closed]:slide-out-to-right",
+						"fixed inset-y-0 right-0 z-50 flex h-full w-full max-w-xl flex-col border-l bg-background shadow-2xl outline-none transform-gpu ease-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:slide-in-from-right data-[state=closed]:slide-out-to-right motion-safe:duration-200 will-change-transform",
 					)}
 				>
 					<div className="flex items-start justify-between border-b px-6 py-4">

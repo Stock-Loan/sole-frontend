@@ -52,7 +52,7 @@ export function useOrgUsersSearch(
 		pageSize?: number;
 		maxPages?: number;
 		staleTime?: number;
-	} = {}
+	} = {},
 ) {
 	const {
 		enabled = true,
@@ -65,7 +65,7 @@ export function useOrgUsersSearch(
 		enabled: enabled && Boolean(searchTerm),
 		queryKey: userKeys.search(
 			{ search: searchTerm, page: 1, page_size: pageSize },
-			fullTerm
+			fullTerm,
 		),
 		queryFn: async () => {
 			if (!searchTerm) {
@@ -107,7 +107,10 @@ export function useOrgUsersSearch(
 					if (normalizedFull.length > 0 && items.some(matchesFullTerm)) {
 						break;
 					}
-					if (items.length >= total || (lastResponse.items ?? []).length === 0) {
+					if (
+						items.length >= total ||
+						(lastResponse.items ?? []).length === 0
+					) {
 						break;
 					}
 					page += 1;
@@ -150,9 +153,7 @@ export function useOrgUserByEmail(email: string, enabled = true) {
 				page: 1,
 				page_size: 5,
 			});
-			return (
-				response.items?.find((item) => item.user.email === email) ?? null
-			);
+			return response.items?.find((item) => item.user.email === email) ?? null;
 		},
 		enabled: Boolean(email) && enabled,
 		staleTime: 5 * 60 * 1000,
@@ -355,6 +356,31 @@ export function useBulkDeleteOrgUsers() {
 			toast({
 				variant: "destructive",
 				title: "Failed to delete users",
+				description: apiError.message,
+			});
+		},
+	});
+}
+
+export function useForcePasswordReset() {
+	const queryClient = useQueryClient();
+	const { toast } = useToast();
+
+	return useMutation({
+		mutationFn: forcePasswordReset,
+		onSuccess: () => {
+			toast({
+				title: "Password reset required",
+				description:
+					"The user will be prompted to change their password on next login.",
+			});
+			queryClient.invalidateQueries({ queryKey: userKeys.list() });
+		},
+		onError: (error) => {
+			const apiError = parseApiError(error);
+			toast({
+				variant: "destructive",
+				title: "Password reset failed",
 				description: apiError.message,
 			});
 		},

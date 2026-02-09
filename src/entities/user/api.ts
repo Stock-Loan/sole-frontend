@@ -30,8 +30,12 @@ export async function listOrgUsers(
 	return OrgUsersListResponseSchema.parse(payload);
 }
 
-export async function getOrgUser(membershipId: string): Promise<OrgUserListItem> {
-	const response = await apiClient.get<OrgUserListItem>(`/org/users/${membershipId}`);
+export async function getOrgUser(
+	membershipId: string,
+): Promise<OrgUserListItem> {
+	const response = await apiClient.get<OrgUserListItem>(
+		`/org/users/${membershipId}`,
+	);
 	const payload = unwrapApiResponse<OrgUserListItem>(response.data);
 	return OrgUserListItemSchema.parse(payload);
 }
@@ -63,7 +67,10 @@ export async function updateOrgUserProfile(
 export async function onboardOrgUser(
 	payload: OnboardUserPayload,
 ): Promise<OnboardUserResponse> {
-	const response = await apiClient.post<OnboardUserResponse>("/org/users", payload);
+	const response = await apiClient.post<OnboardUserResponse>(
+		"/org/users",
+		payload,
+	);
 	const payloadResponse = unwrapApiResponse<OnboardUserResponse>(response.data);
 	return OnboardUserResponseSchema.parse(payloadResponse);
 }
@@ -75,15 +82,23 @@ export async function downloadOnboardingTemplate(): Promise<Blob> {
 	return response.data;
 }
 
-export async function uploadOnboardingCsv(file: File): Promise<BulkOnboardingResult> {
+export async function uploadOnboardingCsv(
+	file: File,
+): Promise<BulkOnboardingResult> {
 	const formData = new FormData();
 	formData.append("file", file);
-	const response = await apiClient.post<BulkOnboardingResult>("/org/users/bulk", formData, {
-		headers: {
-			"Content-Type": "multipart/form-data",
+	const response = await apiClient.post<BulkOnboardingResult>(
+		"/org/users/bulk",
+		formData,
+		{
+			headers: {
+				"Content-Type": "multipart/form-data",
+			},
 		},
-	});
-	const payloadResponse = unwrapApiResponse<BulkOnboardingResult>(response.data);
+	);
+	const payloadResponse = unwrapApiResponse<BulkOnboardingResult>(
+		response.data,
+	);
 	return BulkOnboardingResultSchema.parse(payloadResponse);
 }
 
@@ -98,7 +113,8 @@ export async function bulkDeleteOrgUsers(
 		"/org/users/bulk/delete",
 		{ membership_ids: membershipIds },
 	);
-	const payloadResponse = unwrapApiResponse<BulkDeleteMembershipsResponse>(data);
+	const payloadResponse =
+		unwrapApiResponse<BulkDeleteMembershipsResponse>(data);
 	return BulkDeleteMembershipsResponseSchema.parse(payloadResponse);
 }
 
@@ -120,13 +136,9 @@ export async function adminResetUserMfa(
 
 export async function forcePasswordReset(
 	membershipId: string,
-): Promise<{ message: string; temporary_password: string }> {
-	const { data } = await apiClient.post<{
-		message: string;
-		temporary_password: string;
-	}>(`/org/users/${membershipId}/force-password-reset`);
-	return unwrapApiResponse<{
-		message: string;
-		temporary_password: string;
-	}>(data);
+): Promise<{ message: string }> {
+	const { data } = await apiClient.post<{ message: string }>(
+		`/org/users/${membershipId}/force-password-reset`,
+	);
+	return unwrapApiResponse<{ message: string }>(data);
 }
