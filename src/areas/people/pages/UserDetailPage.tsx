@@ -14,7 +14,12 @@ import { formatDate } from "@/shared/lib/format";
 import type { OrgUserInfoRowProps } from "@/entities/user/types";
 import { Badge } from "@/shared/ui/badge";
 import { normalizeDisplay } from "@/shared/lib/utils";
-import { useSelfContext, useAuth, usePermissions, useImpersonation } from "@/auth/hooks";
+import {
+	useSelfContext,
+	useAuth,
+	usePermissions,
+	useImpersonation,
+} from "@/auth/hooks";
 import { useToast } from "@/shared/ui/use-toast";
 import { useApiErrorToast } from "@/shared/api/useApiErrorToast";
 import { useOrgUserDetail, useForcePasswordReset } from "@/entities/user/hooks";
@@ -343,10 +348,7 @@ export function UserDetailPage() {
 														description: `You are now acting as ${data.user.full_name || data.user.email}.`,
 													});
 												} catch (err) {
-													apiErrorToast(
-														err,
-														"Unable to start impersonation.",
-													);
+													apiErrorToast(err, "Unable to start impersonation.");
 												}
 											}}
 										>

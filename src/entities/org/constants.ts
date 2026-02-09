@@ -131,7 +131,8 @@ export const mfaEnforcementOptions = [
 	{
 		value: "ACL_ASSIGNMENT",
 		label: "Managing ACL assignments",
-		description: "Require MFA before creating, updating, or removing ACL assignments.",
+		description:
+			"Require MFA before creating, updating, or removing ACL assignments.",
 	},
 	{
 		value: "USER_IMPERSONATE",

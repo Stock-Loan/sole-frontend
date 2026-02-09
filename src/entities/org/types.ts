@@ -93,9 +93,7 @@ export type MfaEnforcementAction =
 	| "ACL_ASSIGNMENT"
 	| "USER_IMPERSONATE";
 
-export type LoanRepaymentMethod =
-	| "BALLOON"
-	| "PRINCIPAL_AND_INTEREST";
+export type LoanRepaymentMethod = "BALLOON" | "PRINCIPAL_AND_INTEREST";
 
 export type LoanInterestType = "FIXED" | "VARIABLE";
 

@@ -59,7 +59,11 @@ export function UserDropdown({ showChevron = false }: UserDropdownProps) {
 			displayUser?.id ||
 			"email@domain"
 		);
-	}, [selfProfile?.membership.employee_id, displayUser?.email, displayUser?.id]);
+	}, [
+		selfProfile?.membership.employee_id,
+		displayUser?.email,
+		displayUser?.id,
+	]);
 
 	const secondaryDisplay = useMemo(
 		() => truncateValue(secondaryLabel, USER_ID_MAX_CHARS),
@@ -95,16 +99,20 @@ export function UserDropdown({ showChevron = false }: UserDropdownProps) {
 					type="button"
 					className="inline-flex items-center gap-3 bg-transparent p-0 text-foreground outline-none ring-0 ring-offset-0 hover:text-foreground focus-visible:outline-none focus-visible:ring-0"
 				>
-				<div className="relative">
-					<Avatar className={`h-11 w-11 rounded-lg border bg-muted/50 ${isImpersonating ? "border-red-400 ring-2 ring-red-400/40" : "border-border/60"}`}>
-						<AvatarFallback className={`rounded-lg text-sm font-semibold ${isImpersonating ? "bg-red-500/15 text-red-600" : "bg-primary/10 text-primary"}`}>
-							{initials}
-						</AvatarFallback>
-					</Avatar>
-					{isImpersonating ? (
-						<ShieldAlert className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full bg-white text-red-500 dark:bg-gray-900" />
-					) : null}
-				</div>
+					<div className="relative">
+						<Avatar
+							className={`h-11 w-11 rounded-lg border bg-muted/50 ${isImpersonating ? "border-red-400 ring-2 ring-red-400/40" : "border-border/60"}`}
+						>
+							<AvatarFallback
+								className={`rounded-lg text-sm font-semibold ${isImpersonating ? "bg-red-500/15 text-red-600" : "bg-primary/10 text-primary"}`}
+							>
+								{initials}
+							</AvatarFallback>
+						</Avatar>
+						{isImpersonating ? (
+							<ShieldAlert className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full bg-white text-red-500 dark:bg-gray-900" />
+						) : null}
+					</div>
 					<div className="hidden text-left text-xs leading-tight sm:block">
 						<p className="font-semibold text-foreground">{displayName}</p>
 						<p className="text-muted-foreground" title={secondaryLabel}>

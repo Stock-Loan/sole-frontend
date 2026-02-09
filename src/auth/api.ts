@@ -224,9 +224,7 @@ export async function startImpersonation(
 }
 
 export async function stopImpersonation(): Promise<TokenPair> {
-	const { data } = await apiClient.post<TokenPair>(
-		"/auth/impersonate/stop",
-	);
+	const { data } = await apiClient.post<TokenPair>("/auth/impersonate/stop");
 	return unwrapApiResponse<TokenPair>(data) as TokenPair;
 }
 

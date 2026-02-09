@@ -2,7 +2,11 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import type { PropsWithChildren } from "react";
 import { Toaster } from "@/shared/ui/toaster";
-import { AuthProvider, ImpersonationProvider, StepUpMfaProvider } from "@/auth/providers";
+import {
+	AuthProvider,
+	ImpersonationProvider,
+	StepUpMfaProvider,
+} from "@/auth/providers";
 import { StepUpMfaModal } from "@/auth/components/StepUpMfaModal";
 import { InactivityProvider } from "@/auth/inactivityProvider";
 import { InactivityWarningBanner } from "@/auth/components/InactivityWarningBanner";

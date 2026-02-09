@@ -138,7 +138,9 @@ export function OrgSettingsGeneralRetentionTab({
 												onChange={(event) =>
 													field.onChange(event.target.valueAsNumber)
 												}
-												disabled={!canManage || isSubmitting || loginMfaRequired}
+												disabled={
+													!canManage || isSubmitting || loginMfaRequired
+												}
 											/>
 										</FormControl>
 										<FormMessage />

@@ -43,10 +43,7 @@ export function TenantSwitcher({ className }: { className?: string }) {
 				}
 			>
 				{isImpersonating ? (
-					<Lock
-						className="h-4 w-4 text-muted-foreground"
-						aria-hidden="true"
-					/>
+					<Lock className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
 				) : (
 					<Building2
 						className="h-4 w-4 text-muted-foreground"
