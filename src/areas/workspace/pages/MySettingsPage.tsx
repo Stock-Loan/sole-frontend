@@ -149,138 +149,138 @@ export function MySettingsPage() {
 	return (
 		<>
 			<PageContainer className="flex min-h-0 flex-1 flex-col gap-4">
-			<PageHeader
-				title="User settings"
-				subtitle="Manage your account details, security, and credentials."
-			/>
-
-			<div className="inline-flex w-fit items-center gap-2 rounded-lg border bg-card px-2 py-2 shadow-sm">
-				<TabButton
-					label="Profile"
-					value="profile"
-					active={tab === "profile"}
-					onSelect={setTab}
+				<PageHeader
+					title="User settings"
+					subtitle="Manage your account details, security, and credentials."
 				/>
-				<TabButton
-					label="Security"
-					value="security"
-					active={tab === "security"}
-					onSelect={setTab}
-				/>
-			</div>
 
-			<div className="flex min-h-0 flex-1 flex-col rounded-lg border bg-card shadow-sm">
-				{isLoading ? (
-					<SettingsSkeleton />
-				) : isError ? (
-					<div className="p-6 text-sm text-destructive">
-						Unable to load your profile right now. Please retry in a moment.
-					</div>
-				) : tab === "profile" ? (
-					<div className="flex min-h-0 flex-1 flex-col">
-						<div className="border-b border-border/70 px-6 py-4">
-							<div className="flex items-center gap-3">
-								<div className="flex h-12 w-12 items-center justify-center rounded-md bg-primary/10 text-primary">
-									<UserCircle2 className="h-6 w-6" />
-								</div>
-								<div>
-									<h2 className="text-lg font-semibold">Profile</h2>
-									<p className="text-sm text-muted-foreground">
-										Your basic account information and org context.
-									</p>
-								</div>
-								{canEditProfile && (
-									<Button
-										className="ml-auto"
-										size="sm"
-										onClick={() => setIsProfileDialogOpen(true)}
-									>
-										Edit profile
-									</Button>
-								)}
-							</div>
+				<div className="inline-flex w-fit items-center gap-2 rounded-lg border bg-card px-2 py-2 shadow-sm">
+					<TabButton
+						label="Profile"
+						value="profile"
+						active={tab === "profile"}
+						onSelect={setTab}
+					/>
+					<TabButton
+						label="Security"
+						value="security"
+						active={tab === "security"}
+						onSelect={setTab}
+					/>
+				</div>
+
+				<div className="flex min-h-0 flex-1 flex-col rounded-lg border bg-card shadow-sm">
+					{isLoading ? (
+						<SettingsSkeleton />
+					) : isError ? (
+						<div className="p-6 text-sm text-destructive">
+							Unable to load your profile right now. Please retry in a moment.
 						</div>
-						<div className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
-							<div className="mb-4 rounded-lg border border-amber-200 bg-amber-50/70 px-4 py-3 text-sm text-amber-900">
-								<p className="font-medium">Admin-managed fields</p>
-								<p className="text-xs text-amber-900/80">
-									Email, legal name, employee ID, and employment start date can only
-									be updated by your organization admin.
-								</p>
-								{!canEditProfile ? (
-									<p className="mt-2 text-xs text-amber-900/80">
-										Profile editing is disabled by your organization settings.
-									</p>
-								) : null}
-							</div>
-							<SectionGrid items={personalItems} />
-							<Separator className="my-4" />
-							<div>
-								<h3 className="mb-3 text-sm font-semibold text-foreground">
-									Employment
-								</h3>
-								<SectionGrid items={employmentItems} />
-							</div>
-						</div>
-					</div>
-				) : (
-					<div className="flex min-h-0 flex-1 flex-col">
-						<div className="border-b border-border/70 px-6 py-4">
-							<div className="flex items-center gap-3">
-								<div className="flex h-12 w-12 items-center justify-center rounded-md bg-primary/10 text-primary">
-									<ShieldCheck className="h-6 w-6" />
-								</div>
-								<div>
-									<h2 className="text-lg font-semibold">Security</h2>
-									<p className="text-sm text-muted-foreground">
-										Review sign-in protections and update your password.
-									</p>
-								</div>
-							</div>
-						</div>
-						<div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 py-4">
-							<div className="space-y-2 text-sm text-muted-foreground">
-								<div className="flex items-center gap-2">
-									{securityUser?.mfa_enabled ? (
-										<ShieldCheck className="h-4 w-4 text-emerald-600" />
-									) : (
-										<ShieldOff className="h-4 w-4 text-amber-500" />
+					) : tab === "profile" ? (
+						<div className="flex min-h-0 flex-1 flex-col">
+							<div className="border-b border-border/70 px-6 py-4">
+								<div className="flex items-center gap-3">
+									<div className="flex h-12 w-12 items-center justify-center rounded-md bg-primary/10 text-primary">
+										<UserCircle2 className="h-6 w-6" />
+									</div>
+									<div>
+										<h2 className="text-lg font-semibold">Profile</h2>
+										<p className="text-sm text-muted-foreground">
+											Your basic account information and org context.
+										</p>
+									</div>
+									{canEditProfile && (
+										<Button
+											className="ml-auto"
+											size="sm"
+											onClick={() => setIsProfileDialogOpen(true)}
+										>
+											Edit profile
+										</Button>
 									)}
-									<span className="font-medium text-foreground">MFA</span>
 								</div>
-								<p>
-									{securityUser?.mfa_enabled
-										? "Multi-factor authentication is active on your account."
-										: "Add MFA in the identity provider to increase account protection."}
-								</p>
-								<p className="text-xs text-muted-foreground">
-									Status:{" "}
-									{securityUser?.mfa_enabled ? "Enabled" : "Not enabled"}
-								</p>
-								{!securityUser?.mfa_enabled ? (
-									<Button asChild size="sm" className="w-fit">
-										<Link to={routes.mfaSetup}>Enroll MFA</Link>
-									</Button>
-								) : null}
 							</div>
-							{securityUser?.mfa_enabled && (
-								<>
-									<Separator />
-									<RecoveryCodesManager />
-								</>
-							)}
-							<Separator />
-							<div className="space-y-2 text-sm text-muted-foreground">
-								<p className="font-medium text-foreground">Password</p>
-								<p>Update your password to keep your account secure.</p>
-								<Button asChild variant="outline" size="sm">
-									<Link to={routes.changePassword}>Change password</Link>
-								</Button>
+							<div className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
+								<div className="mb-4 rounded-lg border border-amber-200 bg-amber-50/70 px-4 py-3 text-sm text-amber-900">
+									<p className="font-medium">Admin-managed fields</p>
+									<p className="text-xs text-amber-900/80">
+										Email, legal name, employee ID, and employment start date
+										can only be updated by your organization admin.
+									</p>
+									{!canEditProfile ? (
+										<p className="mt-2 text-xs text-amber-900/80">
+											Profile editing is disabled by your organization settings.
+										</p>
+									) : null}
+								</div>
+								<SectionGrid items={personalItems} />
+								<Separator className="my-4" />
+								<div>
+									<h3 className="mb-3 text-sm font-semibold text-foreground">
+										Employment
+									</h3>
+									<SectionGrid items={employmentItems} />
+								</div>
 							</div>
 						</div>
-					</div>
-				)}
-			</div>
+					) : (
+						<div className="flex min-h-0 flex-1 flex-col">
+							<div className="border-b border-border/70 px-6 py-4">
+								<div className="flex items-center gap-3">
+									<div className="flex h-12 w-12 items-center justify-center rounded-md bg-primary/10 text-primary">
+										<ShieldCheck className="h-6 w-6" />
+									</div>
+									<div>
+										<h2 className="text-lg font-semibold">Security</h2>
+										<p className="text-sm text-muted-foreground">
+											Review sign-in protections and update your password.
+										</p>
+									</div>
+								</div>
+							</div>
+							<div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 py-4">
+								<div className="space-y-2 text-sm text-muted-foreground">
+									<div className="flex items-center gap-2">
+										{securityUser?.mfa_enabled ? (
+											<ShieldCheck className="h-4 w-4 text-emerald-600" />
+										) : (
+											<ShieldOff className="h-4 w-4 text-amber-500" />
+										)}
+										<span className="font-medium text-foreground">MFA</span>
+									</div>
+									<p>
+										{securityUser?.mfa_enabled
+											? "Multi-factor authentication is active on your account."
+											: "Add MFA in the identity provider to increase account protection."}
+									</p>
+									<p className="text-xs text-muted-foreground">
+										Status:{" "}
+										{securityUser?.mfa_enabled ? "Enabled" : "Not enabled"}
+									</p>
+									{!securityUser?.mfa_enabled ? (
+										<Button asChild size="sm" className="w-fit">
+											<Link to={routes.mfaSetup}>Enroll MFA</Link>
+										</Button>
+									) : null}
+								</div>
+								{securityUser?.mfa_enabled && (
+									<>
+										<Separator />
+										<RecoveryCodesManager />
+									</>
+								)}
+								<Separator />
+								<div className="space-y-2 text-sm text-muted-foreground">
+									<p className="font-medium text-foreground">Password</p>
+									<p>Update your password to keep your account secure.</p>
+									<Button asChild variant="outline" size="sm">
+										<Link to={routes.changePassword}>Change password</Link>
+									</Button>
+								</div>
+							</div>
+						</div>
+					)}
+				</div>
 			</PageContainer>
 			<SelfProfileDialog
 				open={isProfileDialogOpen}
