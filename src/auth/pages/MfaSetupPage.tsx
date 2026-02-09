@@ -5,17 +5,23 @@ import { useForm } from "react-hook-form";
 import { MfaEnrollmentPage } from "@/auth/pages/MfaEnrollmentPage";
 import { RecoveryCodesDisplay } from "@/auth/components/RecoveryCodesDisplay";
 import { mfaCodeSchema } from "@/auth/schemas";
-import { useAuth, useMfaSetupStart, useMfaSetupVerify } from "@/auth/hooks";
+import { useAuth, useMfaSetupStart, useMfaSetupVerify, useImpersonationOptional } from "@/auth/hooks";
 import { getMeWithToken } from "@/auth/api";
 import { storeRememberDeviceToken } from "@/auth/hooks";
 import { useTenant } from "@/features/tenancy/hooks";
 import { routes } from "@/shared/lib/routes";
 import { useToast } from "@/shared/ui/use-toast";
 import { useApiErrorToast } from "@/shared/api/useApiErrorToast";
+import { Button } from "@/shared/ui/Button";
+import { ShieldCheck } from "lucide-react";
+import { PageContainer } from "@/shared/ui/PageContainer";
+import { PublicHeader } from "@/shared/ui/PublicHeader";
 import type { LoginMfaFormValues, TokenPair } from "@/auth/types";
 
 export function MfaSetupPage() {
 	const { tokens, setSessionForOrg } = useAuth();
+	const impersonation = useImpersonationOptional();
+	const isImpersonating = impersonation?.isImpersonating ?? false;
 	const { currentOrgId } = useTenant();
 	const navigate = useNavigate();
 	const { toast } = useToast();
@@ -117,6 +123,26 @@ export function MfaSetupPage() {
 			},
 		);
 	};
+
+	if (isImpersonating) {
+		return (
+			<>
+				<PublicHeader />
+				<PageContainer className="flex min-h-[75vh] flex-col items-center justify-center pt-10">
+					<div className="w-full max-w-lg space-y-4 rounded-xl border bg-card p-8 shadow-sm text-center">
+						<ShieldCheck className="mx-auto h-10 w-10 text-muted-foreground" />
+						<h1 className="text-xl font-semibold">Action not available</h1>
+						<p className="text-sm text-muted-foreground">
+							MFA setup is not allowed while impersonating a user.
+						</p>
+						<Button variant="outline" onClick={() => navigate(routes.workspaceSettings, { replace: true, state: { tab: "security" } })}>
+							Back to settings
+						</Button>
+					</div>
+				</PageContainer>
+			</>
+		);
+	}
 
 	if (step === "recovery-codes") {
 		return (

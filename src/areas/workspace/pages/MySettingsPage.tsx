@@ -10,7 +10,7 @@ import { routes } from "@/shared/lib/routes";
 import { formatDate } from "@/shared/lib/format";
 import { normalizeDisplay } from "@/shared/lib/utils";
 import { TabButton } from "@/shared/ui/TabButton";
-import { useAuth } from "@/auth/hooks";
+import { useAuth, useImpersonationOptional } from "@/auth/hooks";
 import { useUserSettings } from "@/features/user-settings/hooks";
 import { useExportSelfData } from "@/features/user-settings/hooks";
 import { useSelfOrgPolicy } from "@/entities/org/hooks";
@@ -24,6 +24,8 @@ import type {
 
 export function MySettingsPage() {
 	const { user: cachedUser } = useAuth();
+	const impersonation = useImpersonationOptional();
+	const isImpersonating = impersonation?.isImpersonating ?? false;
 	const location = useLocation();
 	const initialTab =
 		(location.state as { tab?: UserSettingsTabKey } | null)?.tab ?? "profile";
@@ -192,7 +194,7 @@ export function MySettingsPage() {
 											Your basic account information and org context.
 										</p>
 									</div>
-									{canEditProfile && (
+									{canEditProfile && !isImpersonating && (
 										<Button
 											className="ml-auto"
 											size="sm"
@@ -274,26 +276,28 @@ export function MySettingsPage() {
 										Status:{" "}
 										{securityUser?.mfa_enabled ? "Enabled" : "Not enabled"}
 									</p>
-									{!securityUser?.mfa_enabled ? (
+									{!securityUser?.mfa_enabled && !isImpersonating ? (
 										<Button asChild size="sm" className="w-fit">
 											<Link to={routes.mfaSetup}>Enroll MFA</Link>
 										</Button>
 									) : null}
 								</div>
-								{securityUser?.mfa_enabled && (
+								{securityUser?.mfa_enabled && !isImpersonating && (
 									<>
 										<Separator />
 										<RecoveryCodesManager />
 									</>
 								)}
 								<Separator />
-								<div className="space-y-2 text-sm text-muted-foreground">
-									<p className="font-medium text-foreground">Password</p>
-									<p>Update your password to keep your account secure.</p>
-									<Button asChild variant="outline" size="sm">
-										<Link to={routes.changePassword}>Change password</Link>
-									</Button>
-								</div>
+								{!isImpersonating && (
+									<div className="space-y-2 text-sm text-muted-foreground">
+										<p className="font-medium text-foreground">Password</p>
+										<p>Update your password to keep your account secure.</p>
+										<Button asChild variant="outline" size="sm">
+											<Link to={routes.changePassword}>Change password</Link>
+										</Button>
+									</div>
+								)}
 							</div>
 						</div>
 					)}

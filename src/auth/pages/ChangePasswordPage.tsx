@@ -18,12 +18,14 @@ import { Input } from "@/shared/ui/input";
 import { useToast } from "@/shared/ui/use-toast";
 import { useApiErrorToast } from "@/shared/api/useApiErrorToast";
 import { routes } from "@/shared/lib/routes";
-import { useAuth, useChangePasswordWithToken } from "@/auth/hooks";
+import { useAuth, useChangePasswordWithToken, useImpersonationOptional } from "@/auth/hooks";
 import { changePasswordSchema } from "@/auth/schemas";
 import type { ChangePasswordFormValues } from "@/auth/types";
 
 export function ChangePasswordPage() {
 	const { tokens, logout } = useAuth();
+	const impersonation = useImpersonationOptional();
+	const isImpersonating = impersonation?.isImpersonating ?? false;
 	const { toast } = useToast();
 	const apiErrorToast = useApiErrorToast();
 	const navigate = useNavigate();
@@ -82,6 +84,26 @@ export function ChangePasswordPage() {
 			},
 		);
 	};
+
+	if (isImpersonating) {
+		return (
+			<>
+				<PublicHeader />
+				<PageContainer className="flex min-h-[75vh] flex-col items-center justify-center pt-10">
+					<div className="w-full max-w-lg space-y-4 rounded-xl border bg-card p-8 shadow-sm text-center">
+						<ShieldCheck className="mx-auto h-10 w-10 text-muted-foreground" />
+						<h1 className="text-xl font-semibold">Action not available</h1>
+						<p className="text-sm text-muted-foreground">
+							Changing passwords is not allowed while impersonating a user.
+						</p>
+						<Button variant="outline" onClick={() => navigate(routes.workspaceSettings, { replace: true })}>
+							Back to settings
+						</Button>
+					</div>
+				</PageContainer>
+			</>
+		);
+	}
 
 	return (
 		<>

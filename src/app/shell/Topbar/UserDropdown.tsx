@@ -139,13 +139,17 @@ export function UserDropdown({ showChevron = false }: UserDropdownProps) {
 				<DropdownMenuItem asChild>
 					<Link to={routes.workspaceSettings}>My profile</Link>
 				</DropdownMenuItem>
-				<DropdownMenuItem asChild>
-					<Link to={routes.changePassword}>Change password</Link>
-				</DropdownMenuItem>
+				{!isImpersonating && (
+					<DropdownMenuItem asChild>
+						<Link to={routes.changePassword}>Change password</Link>
+					</DropdownMenuItem>
+				)}
 				<DropdownMenuSeparator />
-				<DropdownMenuItem onClick={() => void logout()}>
-					Log out
-				</DropdownMenuItem>
+				{!isImpersonating && (
+					<DropdownMenuItem onClick={() => void logout()}>
+						Log out
+					</DropdownMenuItem>
+				)}
 			</DropdownMenuContent>
 		</DropdownMenu>
 	);

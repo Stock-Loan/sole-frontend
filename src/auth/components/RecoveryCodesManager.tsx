@@ -12,13 +12,15 @@ import {
 } from "@/auth/api";
 import { RecoveryCodesDisplay } from "@/auth/components/RecoveryCodesDisplay";
 import { useApiErrorToast } from "@/shared/api/useApiErrorToast";
-import { useAuth } from "@/auth/hooks";
+import { useAuth, useImpersonationOptional } from "@/auth/hooks";
 
 export function RecoveryCodesManager() {
 	const { toast } = useToast();
 	const apiErrorToast = useApiErrorToast();
 	const queryClient = useQueryClient();
 	const { setUser, user } = useAuth();
+	const impersonation = useImpersonationOptional();
+	const isImpersonating = impersonation?.isImpersonating ?? false;
 	const [showCodesDialog, setShowCodesDialog] = useState(false);
 	const [newCodes, setNewCodes] = useState<string[]>([]);
 
@@ -128,7 +130,7 @@ export function RecoveryCodesManager() {
 						variant="outline"
 						size="sm"
 						onClick={handleRegenerate}
-						disabled={regenerateMutation.isPending}
+						disabled={regenerateMutation.isPending || isImpersonating}
 						className="mt-2"
 					>
 						{regenerateMutation.isPending ? (
@@ -159,7 +161,7 @@ export function RecoveryCodesManager() {
 						variant="outline"
 						size="sm"
 						onClick={handleDeactivate}
-						disabled={deactivateMutation.isPending}
+						disabled={deactivateMutation.isPending || isImpersonating}
 						className="mt-2 text-destructive hover:text-destructive"
 					>
 						{deactivateMutation.isPending ? (
