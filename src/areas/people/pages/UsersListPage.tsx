@@ -74,14 +74,12 @@ function getDepartmentLabel(membership: OrgUserListItem["membership"]) {
 
 function getRoleLabels(roles: OrgUserListItem["roles"]) {
 	if (!roles || roles.length === 0) return "—";
-	return roles
-		.map((role) =>
-			normalizeDisplay(
-				typeof role === "string" ? role : (role.name ?? role.id),
-			),
-		)
-		.filter(Boolean)
-		.join(", ");
+	const labels = roles
+		.map((role) => (typeof role === "string" ? role : (role.name ?? role.id)))
+		.filter((value): value is string => Boolean(value?.trim()))
+		.map((value) => normalizeDisplay(value.toLowerCase()));
+
+	return labels.length > 0 ? labels.join(", ") : "—";
 }
 
 function formatYesNo(value?: boolean | null) {
