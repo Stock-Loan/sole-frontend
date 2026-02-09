@@ -189,14 +189,15 @@ export function MySettingsPage() {
 										Your basic account information and org context.
 									</p>
 								</div>
-								<Button
-									className="ml-auto"
-									size="sm"
-									disabled={!canEditProfile}
-									onClick={() => setIsProfileDialogOpen(true)}
-								>
-									Edit profile
-								</Button>
+								{canEditProfile && (
+									<Button
+										className="ml-auto"
+										size="sm"
+										onClick={() => setIsProfileDialogOpen(true)}
+									>
+										Edit profile
+									</Button>
+								)}
 							</div>
 						</div>
 						<div className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
