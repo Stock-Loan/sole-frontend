@@ -269,7 +269,7 @@ export interface ImpersonateStartResponse {
 	impersonator_user_id: string;
 }
 
-export interface ImpersonateStopResponse extends TokenPair {}
+export type ImpersonateStopResponse = TokenPair;
 
 export interface ImpersonationContextValue {
 	/** Whether the current session is an impersonation session */

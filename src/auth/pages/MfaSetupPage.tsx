@@ -5,7 +5,12 @@ import { useForm } from "react-hook-form";
 import { MfaEnrollmentPage } from "@/auth/pages/MfaEnrollmentPage";
 import { RecoveryCodesDisplay } from "@/auth/components/RecoveryCodesDisplay";
 import { mfaCodeSchema } from "@/auth/schemas";
-import { useAuth, useMfaSetupStart, useMfaSetupVerify, useImpersonationOptional } from "@/auth/hooks";
+import {
+	useAuth,
+	useMfaSetupStart,
+	useMfaSetupVerify,
+	useImpersonationOptional,
+} from "@/auth/hooks";
 import { getMeWithToken } from "@/auth/api";
 import { storeRememberDeviceToken } from "@/auth/hooks";
 import { useTenant } from "@/features/tenancy/hooks";
@@ -51,8 +56,7 @@ export function MfaSetupPage() {
 				setSetupData(data);
 				form.reset({ code: "", remember_device: false });
 			},
-			onError: (error) =>
-				apiErrorToast(error, "Unable to start MFA setup."),
+			onError: (error) => apiErrorToast(error, "Unable to start MFA setup."),
 		});
 	}, [tokens?.access_token, setupData, setupStart, form, apiErrorToast]);
 
@@ -135,7 +139,15 @@ export function MfaSetupPage() {
 						<p className="text-sm text-muted-foreground">
 							MFA setup is not allowed while impersonating a user.
 						</p>
-						<Button variant="outline" onClick={() => navigate(routes.workspaceSettings, { replace: true, state: { tab: "security" } })}>
+						<Button
+							variant="outline"
+							onClick={() =>
+								navigate(routes.workspaceSettings, {
+									replace: true,
+									state: { tab: "security" },
+								})
+							}
+						>
 							Back to settings
 						</Button>
 					</div>

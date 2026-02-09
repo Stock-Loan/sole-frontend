@@ -45,7 +45,6 @@ import type {
 	PendingStepUpRequest,
 	StepUpChallengeData,
 } from "@/shared/api/types";
-import { queryClient } from "@/shared/api/queryClient";
 import { routes } from "@/shared/lib/routes";
 
 // ─── Auth Provider ───────────────────────────────────────────────────────────
@@ -352,22 +351,20 @@ function persistImpersonation(data: PersistedImpersonation | null) {
 
 export function ImpersonationProvider({ children }: PropsWithChildren) {
 	const [isLoading, setIsLoading] = useState(false);
-	const [impersonatorUserId, setImpersonatorUserId] = useState<string | null>(
-		() => loadPersistedImpersonation()?.impersonatorUserId ?? null,
+	const persisted = loadPersistedImpersonation();
+	const impersonatorUserId = persisted?.impersonatorUserId ?? null;
+	const originalAdminInfo = useMemo(
+		() =>
+			persisted
+				? {
+						email: persisted.originalUserEmail,
+						fullName: persisted.originalUserFullName,
+					}
+				: null,
+		// persisted is derived from localStorage and only changes across page loads
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[persisted?.impersonatorUserId],
 	);
-	const [originalAdminInfo, setOriginalAdminInfo] = useState<{
-		email: string;
-		fullName: string | null;
-	} | null>(() => {
-		const persisted = loadPersistedImpersonation();
-		if (persisted) {
-			return {
-				email: persisted.originalUserEmail,
-				fullName: persisted.originalUserFullName,
-			};
-		}
-		return null;
-	});
 
 	// We need to get the auth context from parent - use a ref to avoid re-renders
 	const authRef = useRef<AuthContextValue | null>(null);
@@ -477,12 +474,14 @@ function ImpersonationAuthSync({
 }) {
 	// Sync the AuthContext ref — this component is rendered inside AuthProvider
 	const ctx = useAuthContextSafe();
-	authRef.current = ctx;
+	useEffect(() => {
+		authRef.current = ctx;
+	}, [authRef, ctx]);
 	return null;
 }
 
 function useAuthContextSafe(): AuthContextValue | null {
-	// eslint-disable-next-line react-hooks/rules-of-hooks
+	 
 	const ctx = useContext(AuthContext);
 	return ctx ?? null;
 }

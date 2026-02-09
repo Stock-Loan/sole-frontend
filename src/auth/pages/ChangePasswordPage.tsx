@@ -18,7 +18,11 @@ import { Input } from "@/shared/ui/input";
 import { useToast } from "@/shared/ui/use-toast";
 import { useApiErrorToast } from "@/shared/api/useApiErrorToast";
 import { routes } from "@/shared/lib/routes";
-import { useAuth, useChangePasswordWithToken, useImpersonationOptional } from "@/auth/hooks";
+import {
+	useAuth,
+	useChangePasswordWithToken,
+	useImpersonationOptional,
+} from "@/auth/hooks";
 import { changePasswordSchema } from "@/auth/schemas";
 import type { ChangePasswordFormValues } from "@/auth/types";
 
@@ -96,7 +100,12 @@ export function ChangePasswordPage() {
 						<p className="text-sm text-muted-foreground">
 							Changing passwords is not allowed while impersonating a user.
 						</p>
-						<Button variant="outline" onClick={() => navigate(routes.workspaceSettings, { replace: true })}>
+						<Button
+							variant="outline"
+							onClick={() =>
+								navigate(routes.workspaceSettings, { replace: true })
+							}
+						>
 							Back to settings
 						</Button>
 					</div>

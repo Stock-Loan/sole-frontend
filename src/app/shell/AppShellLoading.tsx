@@ -1,9 +1,6 @@
 import { Skeleton } from "@/shared/ui/Skeleton";
 import { PageContainer } from "@/shared/ui/PageContainer";
-
-type AppShellLoadingProps = {
-	label?: string;
-};
+import type { AppShellLoadingProps } from "./types";
 
 export function AppShellLoading({
 	label = "Loading workspace...",
