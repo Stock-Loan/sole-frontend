@@ -72,6 +72,7 @@ import { Checkbox } from "@/shared/ui/checkbox";
 import { MfaEnrollmentPage } from "@/auth/pages/MfaEnrollmentPage";
 import { OtpInput } from "@/auth/components/OtpInput";
 import { RecoveryCodesDisplay } from "@/auth/components/RecoveryCodesDisplay";
+import { parseOtpAuthUrl } from "@/auth/otpauth";
 
 function buildTokensFromResponse(response: {
 	access_token?: string;
@@ -153,9 +154,6 @@ export function LoginPage() {
 	const [availableOrgs, setAvailableOrgs] = useState<AuthOrgSummary[]>([]);
 	const [challengeToken, setChallengeToken] = useState<string | null>(null);
 	const [setupToken, setSetupToken] = useState<string | null>(null);
-	const [mfaSecret, setMfaSecret] = useState<string | null>(null);
-	const [mfaIssuer, setMfaIssuer] = useState<string | null>(null);
-	const [mfaAccount, setMfaAccount] = useState<string | null>(null);
 	const [mfaOtpAuthUrl, setMfaOtpAuthUrl] = useState<string | null>(null);
 	const [rememberDeviceDays, setRememberDeviceDays] = useState<number | null>(
 		null,
@@ -300,9 +298,6 @@ export function LoginPage() {
 								},
 								{
 									onSuccess: (setupData) => {
-										setMfaSecret(setupData.secret);
-										setMfaIssuer(setupData.issuer);
-										setMfaAccount(setupData.account);
 										setMfaOtpAuthUrl(setupData.otpauth_url);
 										setRememberDeviceDays(
 											setupData.remember_device_days ?? null,
@@ -634,9 +629,6 @@ export function LoginPage() {
 		setPreOrgToken(null);
 		setChallengeToken(null);
 		setSetupToken(null);
-		setMfaSecret(null);
-		setMfaIssuer(null);
-		setMfaAccount(null);
 		setMfaOtpAuthUrl(null);
 		setRememberDeviceDays(null);
 		setRecoveryCodes([]);
@@ -691,6 +683,10 @@ export function LoginPage() {
 	};
 
 	const rememberDeviceAllowed = (rememberDeviceDays ?? 1) > 0;
+	const parsedMfaOtpAuth = useMemo(
+		() => parseOtpAuthUrl(mfaOtpAuthUrl),
+		[mfaOtpAuthUrl],
+	);
 
 	const statusMessage = useMemo(() => {
 		if (loginMutation.isPending || isLoadingOrgs) return "Signing you in...";
@@ -1031,9 +1027,9 @@ export function LoginPage() {
 		return (
 			<MfaEnrollmentPage
 				form={mfaForm}
-				issuer={mfaIssuer}
-				account={mfaAccount}
-				secret={mfaSecret}
+				issuer={parsedMfaOtpAuth.issuer}
+				account={parsedMfaOtpAuth.account}
+				secret={parsedMfaOtpAuth.secret}
 				otpauthUrl={mfaOtpAuthUrl}
 				isSubmitting={mfaEnrollVerifyMutation.isPending}
 				onSubmit={handleMfaSetupSubmit}

@@ -22,6 +22,7 @@ import { ShieldCheck } from "lucide-react";
 import { PageContainer } from "@/shared/ui/PageContainer";
 import { PublicHeader } from "@/shared/ui/PublicHeader";
 import type { LoginMfaFormValues, TokenPair } from "@/auth/types";
+import { parseOtpAuthUrl } from "@/auth/otpauth";
 
 export function MfaSetupPage() {
 	const { tokens, setSessionForOrg } = useAuth();
@@ -34,10 +35,7 @@ export function MfaSetupPage() {
 	const [step, setStep] = useState<"setup" | "recovery-codes">("setup");
 	const [recoveryCodes, setRecoveryCodes] = useState<string[]>([]);
 	const [setupData, setSetupData] = useState<{
-		secret?: string;
-		issuer?: string;
-		account?: string;
-		otpauth_url?: string;
+		otpauth_url: string;
 		remember_device_days?: number | null;
 	} | null>(null);
 
@@ -63,6 +61,10 @@ export function MfaSetupPage() {
 	const rememberDeviceAllowed = useMemo(
 		() => Boolean(setupData?.remember_device_days),
 		[setupData?.remember_device_days],
+	);
+	const parsedSetupOtpAuth = useMemo(
+		() => parseOtpAuthUrl(setupData?.otpauth_url),
+		[setupData?.otpauth_url],
 	);
 
 	const handleSubmit = (values: LoginMfaFormValues) => {
@@ -174,9 +176,9 @@ export function MfaSetupPage() {
 	return (
 		<MfaEnrollmentPage
 			form={form}
-			issuer={setupData?.issuer}
-			account={setupData?.account}
-			secret={setupData?.secret}
+			issuer={parsedSetupOtpAuth.issuer}
+			account={parsedSetupOtpAuth.account}
+			secret={parsedSetupOtpAuth.secret}
 			otpauthUrl={setupData?.otpauth_url}
 			isSubmitting={setupVerify.isPending}
 			onSubmit={handleSubmit}

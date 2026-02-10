@@ -109,10 +109,7 @@ export interface LoginCredentialsFormValues {
 }
 
 export interface MfaSetupStartResponse {
-	secret: string;
 	otpauth_url: string;
-	issuer: string;
-	account: string;
 	remember_device_days?: number | null;
 }
 

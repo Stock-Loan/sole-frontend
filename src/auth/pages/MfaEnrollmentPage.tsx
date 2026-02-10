@@ -58,7 +58,7 @@ export function MfaEnrollmentPage({
 										barcode.
 									</p>
 									<p className="rounded-md border bg-card px-3 py-2 font-mono text-sm">
-										{secret ?? ""}
+										{secret || "Unavailable"}
 									</p>
 								</div>
 								<Form {...form}>
