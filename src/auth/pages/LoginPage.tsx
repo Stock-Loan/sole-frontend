@@ -1,6 +1,13 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isAxiosError } from "axios";
-import { ArrowLeft, Eye, EyeOff, Loader2, Shield } from "lucide-react";
+import {
+	ArrowLeft,
+	CheckCircle2,
+	Eye,
+	EyeOff,
+	Loader2,
+	Shield,
+} from "lucide-react";
 import {
 	useCallback,
 	useEffect,
@@ -684,10 +691,19 @@ export function LoginPage() {
 		() => parseOtpAuthUrl(mfaOtpAuthUrl),
 		[mfaOtpAuthUrl],
 	);
+	const isCredentialProgressVisible =
+		step === "credentials" &&
+		(loginMutation.isPending ||
+			isLoadingOrgs ||
+			selectOrgMutation.isPending);
 
 	const statusMessage = useMemo(() => {
-		if (loginMutation.isPending || isLoadingOrgs) return "Signing you in...";
-		if (selectOrgMutation.isPending) return "Connecting to organization...";
+		if (loginMutation.isPending)
+			return "Validating your email and password.";
+		if (isLoadingOrgs)
+			return "Loading organizations linked to your account.";
+		if (selectOrgMutation.isPending)
+			return "Applying organization security checks.";
 		if (mfaVerifyMutation.isPending) return "Verifying MFA code...";
 		if (mfaEnrollStartMutation.isPending) return "Preparing MFA setup...";
 		if (mfaEnrollVerifyMutation.isPending) return "Confirming MFA setup...";
@@ -719,6 +735,84 @@ export function LoginPage() {
 
 	let stepContent: ReactNode = null;
 	if (step === "credentials") {
+		if (isCredentialProgressVisible) {
+			const stages = [
+				{
+					label: "Validate credentials",
+					description: "Checking your email and password.",
+					done:
+						!loginMutation.isPending &&
+						(isLoadingOrgs || selectOrgMutation.isPending),
+					active: loginMutation.isPending,
+				},
+				{
+					label: "Load organizations",
+					description: "Finding organizations linked to your account.",
+					done: selectOrgMutation.isPending,
+					active: isLoadingOrgs,
+				},
+				{
+					label: "Prepare secure access",
+					description: "Applying organization security requirements.",
+					done: false,
+					active: selectOrgMutation.isPending,
+				},
+			];
+
+			const progressDescription = loginMutation.isPending
+				? "Validating your credentials."
+				: isLoadingOrgs
+					? "Loading your organizations."
+					: "Preparing your next verification step.";
+
+			stepContent = (
+				<div className="space-y-5 py-2">
+					<div className="flex flex-col items-center gap-2 text-center">
+						<div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+							<Loader2 className="h-6 w-6 animate-spin" />
+						</div>
+						<p className="text-sm font-semibold text-foreground">
+							{email ? `Signing in as ${email}` : "Signing you in"}
+						</p>
+						<p className="text-xs text-muted-foreground">
+							{progressDescription}
+						</p>
+					</div>
+					<div className="space-y-2 rounded-lg border border-border/60 bg-muted/20 p-3">
+						{stages.map((stage) => (
+							<div
+								key={stage.label}
+								className="flex items-start gap-3 rounded-md px-1 py-1.5"
+							>
+								<div className="mt-0.5">
+									{stage.done ? (
+										<CheckCircle2 className="h-4 w-4 text-emerald-600" />
+									) : stage.active ? (
+										<Loader2 className="h-4 w-4 animate-spin text-primary" />
+									) : (
+										<span className="block h-2.5 w-2.5 rounded-full bg-muted-foreground/40" />
+									)}
+								</div>
+								<div className="space-y-0.5">
+									<p
+										className={
+											stage.active
+												? "text-sm font-medium text-foreground"
+												: "text-sm text-foreground"
+										}
+									>
+										{stage.label}
+									</p>
+									<p className="text-xs text-muted-foreground">
+										{stage.description}
+									</p>
+								</div>
+							</div>
+						))}
+					</div>
+				</div>
+			);
+		} else {
 		stepContent = (
 			<Form {...credentialsForm}>
 				<form
@@ -801,6 +895,7 @@ export function LoginPage() {
 				</form>
 			</Form>
 		);
+		}
 	} else if (step === "org-select") {
 		stepContent = (
 			<div className="space-y-4">
