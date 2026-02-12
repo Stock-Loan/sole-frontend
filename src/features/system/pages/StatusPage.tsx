@@ -2,10 +2,10 @@ import { Database, RefreshCcw, Server, WifiOff } from "lucide-react";
 import { Button } from "@/shared/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { EmptyState } from "@/shared/ui/EmptyState";
-import { LoadingState } from "@/shared/ui/LoadingState";
 import { PageHeader } from "@/shared/ui/PageHeader";
 import { PageContainer } from "@/shared/ui/PageContainer";
 import { PublicHeader } from "@/shared/ui/PublicHeader";
+import { Skeleton } from "@/shared/ui/Skeleton";
 import type { ServiceCardProps, ServiceStatus } from "@/features/system/types";
 import { statusCopy } from "@/features/system/types";
 import { useStatusSummary } from "@/features/system/hooks";
@@ -27,14 +27,7 @@ export function StatusPage() {
 	};
 
 	if (isLoading) {
-		return (
-			<>
-				<PublicHeader />
-				<PageContainer className="mx-auto flex max-w-5xl min-h-[60vh] items-center justify-center px-4">
-					<LoadingState label="Checking platform status..." />
-				</PageContainer>
-			</>
-		);
+		return <StatusPageSkeleton />;
 	}
 
 	if (isError || !data) {
@@ -52,6 +45,12 @@ export function StatusPage() {
 			</>
 		);
 	}
+
+	const checks = data.checks ?? {};
+	const apiCheck = checks.api;
+	const databaseCheck = checks.database;
+	const redisCheck = checks.redis;
+	const checkEntries = Object.entries(checks).filter(([, check]) => Boolean(check));
 
 	return (
 		<>
@@ -100,21 +99,21 @@ export function StatusPage() {
 					<CardContent className="grid gap-4 p-6 sm:grid-cols-3">
 						<ServiceCard
 							name="API"
-							status={data.checks.api?.status || "down"}
-							version={data.checks.api?.version}
-							message={data.checks.api?.message}
+							status={normalizeServiceStatus(apiCheck?.status)}
+							version={apiCheck?.version}
+							message={apiCheck?.message}
 							icon={Server}
 						/>
 						<ServiceCard
 							name="Database"
-							status={data.checks.database?.status || "down"}
-							message={data.checks.database?.message}
+							status={normalizeServiceStatus(databaseCheck?.status)}
+							message={databaseCheck?.message}
 							icon={Database}
 						/>
 						<ServiceCard
 							name="Redis"
-							status={data.checks.redis?.status || "down"}
-							message={data.checks.redis?.message}
+							status={normalizeServiceStatus(redisCheck?.status)}
+							message={redisCheck?.message}
 							icon={WifiOff}
 						/>
 					</CardContent>
@@ -137,10 +136,12 @@ export function StatusPage() {
 									</tr>
 								</thead>
 								<tbody>
-								{Object.entries(data.checks).map(([name, check]) => {
+								{checkEntries.length ? (
+									checkEntries.map(([name, check]) => {
 									if (!check) return null;
 									const copy =
-										statusCopy[check.status as ServiceStatus] ?? statusCopy.down;
+										statusCopy[normalizeServiceStatus(check.status)] ??
+										statusCopy.down;
 									const Icon = copy.icon;
 										return (
 											<tr key={name} className="border-b last:border-b-0">
@@ -163,7 +164,18 @@ export function StatusPage() {
 												</td>
 											</tr>
 										);
-									})}
+									})
+								) : (
+									<tr>
+										<td
+											colSpan={4}
+											className="px-4 py-6 text-center text-sm text-muted-foreground"
+										>
+											No dependency check details available in this
+											environment.
+										</td>
+									</tr>
+								)}
 								</tbody>
 							</table>
 						</div>
@@ -211,4 +223,108 @@ function ServiceCard({
 			</div>
 		</div>
 	);
+}
+
+function StatusPageSkeleton() {
+	return (
+		<>
+			<PublicHeader />
+			<PageContainer className="mx-auto max-w-5xl space-y-8 px-4 py-8 sm:px-6 lg:px-8">
+				<div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+					<PageHeader
+						title="Platform status"
+						subtitle="Live health for API, database, and Redis."
+						actions={<Skeleton className="h-9 w-24" />}
+					/>
+					<div className="flex flex-wrap items-center gap-2 pb-1">
+						<Skeleton className="h-6 w-40 rounded-full" />
+						<Skeleton className="h-6 w-20 rounded-full" />
+						<Skeleton className="h-6 w-16 rounded-full" />
+					</div>
+				</div>
+
+				<Card>
+					<CardHeader className="flex flex-col gap-2 border-b bg-muted/20 sm:flex-row sm:items-center sm:justify-between">
+						<div className="space-y-2">
+							<Skeleton className="h-4 w-16" />
+							<Skeleton className="h-3 w-48" />
+						</div>
+						<Skeleton className="h-6 w-24 rounded-full" />
+					</CardHeader>
+					<CardContent className="grid gap-4 p-6 sm:grid-cols-3">
+						{Array.from({ length: 3 }).map((_, index) => (
+							<div
+								key={`status-service-skeleton-${index}`}
+								className="rounded-lg border bg-card p-4 shadow-sm"
+							>
+								<div className="space-y-2">
+									<Skeleton className="h-4 w-16" />
+									<Skeleton className="h-3 w-40" />
+									<Skeleton className="h-3 w-24" />
+								</div>
+							</div>
+						))}
+					</CardContent>
+				</Card>
+
+				<Card>
+					<CardHeader className="border-b bg-muted/10">
+						<Skeleton className="h-4 w-36" />
+					</CardHeader>
+					<CardContent className="p-0">
+						<div className="w-full overflow-x-auto">
+							<table className="min-w-[520px] w-full text-sm">
+								<thead>
+									<tr className="border-b">
+										<th className="px-4 py-3">
+											<Skeleton className="h-3 w-20" />
+										</th>
+										<th className="px-4 py-3">
+											<Skeleton className="h-3 w-16" />
+										</th>
+										<th className="px-4 py-3">
+											<Skeleton className="h-3 w-16" />
+										</th>
+										<th className="px-4 py-3">
+											<Skeleton className="h-3 w-16" />
+										</th>
+									</tr>
+								</thead>
+								<tbody>
+									{Array.from({ length: 3 }).map((_, index) => (
+										<tr
+											key={`status-table-skeleton-${index}`}
+											className="border-b last:border-b-0"
+										>
+											<td className="px-4 py-3">
+												<Skeleton className="h-4 w-20" />
+											</td>
+											<td className="px-4 py-3">
+												<Skeleton className="h-4 w-24" />
+											</td>
+											<td className="px-4 py-3">
+												<Skeleton className="h-4 w-12" />
+											</td>
+											<td className="px-4 py-3">
+												<Skeleton className="h-4 w-44" />
+											</td>
+										</tr>
+									))}
+								</tbody>
+							</table>
+						</div>
+					</CardContent>
+				</Card>
+
+				<div className="flex items-center gap-4 text-xs text-muted-foreground">
+					<Skeleton className="h-3 w-48" />
+					<Skeleton className="h-3 w-20" />
+				</div>
+			</PageContainer>
+		</>
+	);
+}
+
+function normalizeServiceStatus(status?: string): ServiceStatus {
+	return status === "ok" || status === "degraded" ? status : "down";
 }
