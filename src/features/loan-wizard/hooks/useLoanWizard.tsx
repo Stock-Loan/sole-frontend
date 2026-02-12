@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useBlocker, useNavigate } from "react-router-dom";
+import { isAxiosError } from "axios";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { routes } from "@/shared/lib/routes";
@@ -115,7 +116,12 @@ export function useLoanWizard({ id }: UseLoanWizardArgs): LoanWizardState {
 			setHasUnsavedChanges(false);
 			toast({ title: "Draft updated" });
 		},
-		onError: (error) => apiErrorToast(error, "Unable to save draft."),
+		onError: (error) => {
+			if (!isEdit && isLoanApplicationNotFoundError(error)) {
+				return;
+			}
+			apiErrorToast(error, "Unable to save draft.");
+		},
 	});
 	const submitMutation = useSubmitMyLoanApplication({
 		onSuccess: () => {
@@ -299,17 +305,37 @@ export function useLoanWizard({ id }: UseLoanWizardArgs): LoanWizardState {
 			desired_term_months: payloadTermMonths,
 		};
 		const payload = mergeDraftOverrides(basePayload, overrides);
+		const currentDraftId = effectiveDraftId;
 
-		if (effectiveDraftId) {
-			await updateDraftMutation.mutateAsync({
-				id: effectiveDraftId,
-				payload,
-			});
+		try {
+			if (currentDraftId) {
+				await updateDraftMutation.mutateAsync({
+					id: currentDraftId,
+					payload,
+				});
+				return true;
+			}
+
+			const createdDraft = await createDraftMutation.mutateAsync(payload);
+			setCreatedDraftId(createdDraft.id);
 			return true;
+		} catch (error) {
+			if (
+				!isEdit &&
+				currentDraftId &&
+				isLoanApplicationNotFoundError(error)
+			) {
+				try {
+					const recreatedDraft =
+						await createDraftMutation.mutateAsync(payload);
+					setCreatedDraftId(recreatedDraft.id);
+					return true;
+				} catch {
+					return false;
+				}
+			}
+			return false;
 		}
-
-		await createDraftMutation.mutateAsync(payload);
-		return true;
 	};
 
 	const handleNext = async () => {
@@ -609,4 +635,8 @@ function mergeDraftOverrides(
 	setIfDefined("spouse_address", overrides.spouse_address);
 
 	return merged;
+}
+
+function isLoanApplicationNotFoundError(error: unknown) {
+	return isAxiosError(error) && error.response?.status === 404;
 }
