@@ -813,88 +813,88 @@ export function LoginPage() {
 				</div>
 			);
 		} else {
-		stepContent = (
-			<Form {...credentialsForm}>
-				<form
-					className="space-y-4"
-					onSubmit={credentialsForm.handleSubmit(handleCredentialsSubmit)}
-				>
-					<FormField
-						control={credentialsForm.control}
-						name="email"
-						render={({ field }) => (
-							<FormItem>
-								<FormLabel>Email address</FormLabel>
-								<FormControl>
-									<Input
-										{...field}
-										type="email"
-										autoComplete="email"
-										placeholder="you@example.com"
-										disabled={loginMutation.isPending || isLoadingOrgs}
-										className="h-13"
-									/>
-								</FormControl>
-								<FormMessage />
-							</FormItem>
-						)}
-					/>
-					<FormField
-						control={credentialsForm.control}
-						name="password"
-						render={({ field }) => (
-							<FormItem>
-								<FormLabel>Password</FormLabel>
-								<FormControl>
-									<div className="relative">
+			stepContent = (
+				<Form {...credentialsForm}>
+					<form
+						className="space-y-4"
+						onSubmit={credentialsForm.handleSubmit(handleCredentialsSubmit)}
+					>
+						<FormField
+							control={credentialsForm.control}
+							name="email"
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>Email address</FormLabel>
+									<FormControl>
 										<Input
 											{...field}
-											type={showPassword ? "text" : "password"}
-											autoComplete="current-password"
-											placeholder="Enter your password"
+											type="email"
+											autoComplete="email"
+											placeholder="you@example.com"
 											disabled={loginMutation.isPending || isLoadingOrgs}
-											className="h-13 pr-11"
+											className="h-13"
 										/>
-										<Button
-											type="button"
-											variant="ghost"
-											size="icon"
-											className="absolute right-1 top-1/2 h-9 w-9 -translate-y-1/2"
-											onClick={() => setShowPassword((prev) => !prev)}
-											aria-label={
-												showPassword ? "Hide password" : "Show password"
-											}
-											disabled={loginMutation.isPending || isLoadingOrgs}
-										>
-											{showPassword ? (
-												<EyeOff className="h-4 w-4" />
-											) : (
-												<Eye className="h-4 w-4" />
-											)}
-										</Button>
-									</div>
-								</FormControl>
-								<FormMessage />
-							</FormItem>
-						)}
-					/>
-					<Button
-						className="w-full py-3.5 text-md"
-						type="submit"
-						disabled={loginMutation.isPending || isLoadingOrgs}
-					>
-						{loginMutation.isPending || isLoadingOrgs ? (
-							<>
-								<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-								Signing in...
-							</>
-						) : (
-							"Sign in"
-						)}
-					</Button>
-				</form>
-			</Form>
-		);
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+						<FormField
+							control={credentialsForm.control}
+							name="password"
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>Password</FormLabel>
+									<FormControl>
+										<div className="relative">
+											<Input
+												{...field}
+												type={showPassword ? "text" : "password"}
+												autoComplete="current-password"
+												placeholder="Enter your password"
+												disabled={loginMutation.isPending || isLoadingOrgs}
+												className="h-13 pr-11"
+											/>
+											<Button
+												type="button"
+												variant="ghost"
+												size="icon"
+												className="absolute right-1 top-1/2 h-9 w-9 -translate-y-1/2"
+												onClick={() => setShowPassword((prev) => !prev)}
+												aria-label={
+													showPassword ? "Hide password" : "Show password"
+												}
+												disabled={loginMutation.isPending || isLoadingOrgs}
+											>
+												{showPassword ? (
+													<EyeOff className="h-4 w-4" />
+												) : (
+													<Eye className="h-4 w-4" />
+												)}
+											</Button>
+										</div>
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+						<Button
+							className="w-full py-3.5 text-md"
+							type="submit"
+							disabled={loginMutation.isPending || isLoadingOrgs}
+						>
+							{loginMutation.isPending || isLoadingOrgs ? (
+								<>
+									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+									Signing in...
+								</>
+							) : (
+								"Sign in"
+							)}
+						</Button>
+					</form>
+				</Form>
+			);
 		}
 	} else if (step === "org-select") {
 		stepContent = (
@@ -1153,7 +1153,9 @@ export function LoginPage() {
 							Sign in to SOLE
 						</CardTitle>
 						<CardDescription className="text-sm">
-							Enter your credentials to access your workspace.
+							{isCredentialProgressVisible
+								? "Please wait while we prepare your secure sign-in."
+								: "Enter your credentials to access your workspace."}
 						</CardDescription>
 					</CardHeader>
 					<CardContent className="flex-1 space-y-6 sm:px-8 overflow-y-auto">
