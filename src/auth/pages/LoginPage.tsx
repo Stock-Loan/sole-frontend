@@ -161,7 +161,6 @@ export function LoginPage() {
 	const [recoveryCodes, setRecoveryCodes] = useState<string[]>([]);
 	const [pendingLoginData, setPendingLoginData] = useState<{
 		tokens: TokenPair;
-		user: AuthUser;
 	} | null>(null);
 	const [isLoadingOrgs, setIsLoadingOrgs] = useState(false);
 
@@ -578,18 +577,17 @@ export function LoginPage() {
 							response.remember_device_token,
 						);
 					}
+					if (response.recovery_codes && response.recovery_codes.length > 0) {
+						setRecoveryCodes(response.recovery_codes);
+						setPendingLoginData({ tokens });
+						setStep("recovery-codes");
+						return;
+					}
 					try {
 						const user = await getMeWithToken(
 							tokens.access_token,
 							currentOrgId,
 						);
-
-						if (response.recovery_codes && response.recovery_codes.length > 0) {
-							setRecoveryCodes(response.recovery_codes);
-							setPendingLoginData({ tokens, user });
-							setStep("recovery-codes");
-							return;
-						}
 
 						if (user.must_change_password) {
 							handlePasswordChangeRequired(tokens);
@@ -645,41 +643,40 @@ export function LoginPage() {
 		mfaForm.reset({ code: "", remember_device: false });
 	};
 
-	const handleRecoveryCodesContinue = () => {
+	const handleRecoveryCodesContinue = async () => {
 		if (!pendingLoginData || !currentOrgId) {
 			resetFlow();
 			return;
 		}
-		const { tokens, user } = pendingLoginData;
+		const { tokens } = pendingLoginData;
 
-		if (user.must_change_password) {
+		try {
+			const user = await getMeWithToken(tokens.access_token, currentOrgId);
+			if (user.must_change_password) {
+				handlePasswordChangeRequired(tokens);
+				return;
+			}
 			setSessionForOrg(currentOrgId, tokens, user);
 			if (typeof localStorage !== "undefined") {
 				localStorage.removeItem(PENDING_EMAIL_KEY);
 				localStorage.removeItem(PENDING_ORG_SWITCH_KEY);
 			}
 			toast({
-				title: "Password change required",
-				description: "Please update your password to finish signing in.",
+				title: "MFA enabled",
+				description: "You are now signed in.",
 			});
-			navigate(routes.changePassword, { replace: true });
-			return;
+			const from = (location.state as { from?: Location })?.from;
+			const destination = from?.pathname
+				? `${from.pathname}${from.search ?? ""}${from.hash ?? ""}`
+				: routes.workspace;
+			navigate(destination, { replace: true });
+		} catch (error) {
+			if (isPasswordChangeRequiredError(error)) {
+				handlePasswordChangeRequired(tokens);
+				return;
+			}
+			apiErrorToast(error, "Unable to load your profile.");
 		}
-
-		setSessionForOrg(currentOrgId, tokens, user);
-		if (typeof localStorage !== "undefined") {
-			localStorage.removeItem(PENDING_EMAIL_KEY);
-			localStorage.removeItem(PENDING_ORG_SWITCH_KEY);
-		}
-		toast({
-			title: "MFA enabled",
-			description: "You are now signed in.",
-		});
-		const from = (location.state as { from?: Location })?.from;
-		const destination = from?.pathname
-			? `${from.pathname}${from.search ?? ""}${from.hash ?? ""}`
-			: routes.workspace;
-		navigate(destination, { replace: true });
 	};
 
 	const rememberDeviceAllowed = (rememberDeviceDays ?? 1) > 0;

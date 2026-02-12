@@ -82,8 +82,7 @@ export function OrgSettingsGeneralRetentionTab({
 										</FormLabel>
 										<div className="text-sm text-muted-foreground">
 											When enabled, authorized admins can impersonate other
-											users. Step-up MFA is always required. All impersonation
-											actions are fully audited.
+											users.
 										</div>
 									</div>
 									<FormControl>

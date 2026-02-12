@@ -35,6 +35,7 @@ export function MySettingsPage() {
 	const { data: policy } = useSelfOrgPolicy();
 	const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
 	const canEditProfile = Boolean(policy?.allow_profile_edit);
+	const canShowEditProfile = canEditProfile && !isImpersonating;
 	const canExportData = Boolean(policy?.allow_user_data_export);
 	const exportMutation = useExportSelfData();
 
@@ -194,7 +195,7 @@ export function MySettingsPage() {
 											Your basic account information and org context.
 										</p>
 									</div>
-									{canEditProfile && !isImpersonating && (
+									{canShowEditProfile && (
 										<Button
 											className="ml-auto"
 											size="sm"
@@ -207,7 +208,7 @@ export function MySettingsPage() {
 										<Button
 											variant="outline"
 											size="sm"
-											className={canEditProfile ? "" : "ml-auto"}
+											className={canShowEditProfile ? "" : "ml-auto"}
 											disabled={exportMutation.isPending}
 											onClick={() => exportMutation.mutate()}
 										>
