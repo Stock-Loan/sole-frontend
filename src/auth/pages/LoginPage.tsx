@@ -170,6 +170,8 @@ export function LoginPage() {
 		tokens: TokenPair;
 	} | null>(null);
 	const [isLoadingOrgs, setIsLoadingOrgs] = useState(false);
+	const [isCredentialTransitioning, setIsCredentialTransitioning] =
+		useState(false);
 
 	const credentialsForm = useForm<LoginCredentialsFormValues>({
 		resolver: zodResolver(credentialsSchema),
@@ -239,6 +241,7 @@ export function LoginPage() {
 					handlePasswordChangeRequired(tokens);
 					return;
 				}
+				setIsCredentialTransitioning(false);
 				apiErrorToast(error, "Unable to load your profile.");
 			}
 		},
@@ -288,6 +291,7 @@ export function LoginPage() {
 
 						if (response.mfa_setup_required) {
 							if (!response.setup_token) {
+								setIsCredentialTransitioning(false);
 								toast({
 									variant: "destructive",
 									title: "MFA setup failed",
@@ -296,6 +300,7 @@ export function LoginPage() {
 								return;
 							}
 							setSetupToken(response.setup_token);
+							setIsCredentialTransitioning(false);
 							setStep("mfa-setup");
 							mfaEnrollStartMutation.mutate(
 								{
@@ -326,6 +331,7 @@ export function LoginPage() {
 								storeRememberDeviceToken(orgId, null);
 							}
 							if (!response.challenge_token) {
+								setIsCredentialTransitioning(false);
 								toast({
 									variant: "destructive",
 									title: "MFA required",
@@ -334,6 +340,7 @@ export function LoginPage() {
 								return;
 							}
 							setChallengeToken(response.challenge_token);
+							setIsCredentialTransitioning(false);
 							setStep("mfa");
 							mfaForm.reset({ code: "", remember_device: false });
 							return;
@@ -341,6 +348,7 @@ export function LoginPage() {
 
 						const tokens = buildTokensFromResponse(response);
 						if (!tokens) {
+							setIsCredentialTransitioning(false);
 							toast({
 								variant: "destructive",
 								title: "Login failed",
@@ -351,6 +359,7 @@ export function LoginPage() {
 						await completeLogin(tokens, orgId);
 					},
 					onError: (error) => {
+						setIsCredentialTransitioning(false);
 						apiErrorToast(
 							error,
 							"Unable to select organization. Please try again.",
@@ -372,6 +381,7 @@ export function LoginPage() {
 
 	const handleCredentialsSubmit = (values: LoginCredentialsFormValues) => {
 		setEmail(values.email);
+		setIsCredentialTransitioning(true);
 		if (typeof localStorage !== "undefined") {
 			localStorage.setItem(PENDING_EMAIL_KEY, values.email);
 		}
@@ -389,6 +399,7 @@ export function LoginPage() {
 						setIsLoadingOrgs(false);
 
 						if (!orgs.length) {
+							setIsCredentialTransitioning(false);
 							toast({
 								variant: "destructive",
 								title: "No organization found",
@@ -427,13 +438,16 @@ export function LoginPage() {
 						}
 
 						setCurrentOrgId(orgs[0].org_id);
+						setIsCredentialTransitioning(false);
 						setStep("org-select");
 					} catch (error) {
 						setIsLoadingOrgs(false);
+						setIsCredentialTransitioning(false);
 						apiErrorToast(error, "Unable to load organizations.");
 					}
 				},
 				onError: (error) => {
+					setIsCredentialTransitioning(false);
 					apiErrorToast(error, "Invalid email or password. Please try again.");
 				},
 			},
@@ -640,6 +654,7 @@ export function LoginPage() {
 		setPendingLoginData(null);
 		setRecoveryCodeInput("");
 		setAvailableOrgs([]);
+		setIsCredentialTransitioning(false);
 		setOrgs([]);
 		setCurrentOrgId(null);
 		if (typeof localStorage !== "undefined") {
@@ -691,11 +706,18 @@ export function LoginPage() {
 		() => parseOtpAuthUrl(mfaOtpAuthUrl),
 		[mfaOtpAuthUrl],
 	);
+	const isFinalizingCredentialSignIn =
+		step === "credentials" &&
+		isCredentialTransitioning &&
+		!loginMutation.isPending &&
+		!isLoadingOrgs &&
+		!selectOrgMutation.isPending;
 	const isCredentialProgressVisible =
 		step === "credentials" &&
 		(loginMutation.isPending ||
 			isLoadingOrgs ||
-			selectOrgMutation.isPending);
+			selectOrgMutation.isPending ||
+			isCredentialTransitioning);
 
 	const statusMessage = useMemo(() => {
 		if (loginMutation.isPending)
@@ -704,6 +726,8 @@ export function LoginPage() {
 			return "Loading organizations linked to your account.";
 		if (selectOrgMutation.isPending)
 			return "Applying organization security checks.";
+		if (isFinalizingCredentialSignIn)
+			return "Finalizing sign-in and loading your workspace.";
 		if (mfaVerifyMutation.isPending) return "Verifying MFA code...";
 		if (mfaEnrollStartMutation.isPending) return "Preparing MFA setup...";
 		if (mfaEnrollVerifyMutation.isPending) return "Confirming MFA setup...";
@@ -720,6 +744,7 @@ export function LoginPage() {
 		loginMutation.isPending,
 		isLoadingOrgs,
 		selectOrgMutation.isPending,
+		isFinalizingCredentialSignIn,
 		mfaVerifyMutation.isPending,
 		mfaEnrollStartMutation.isPending,
 		mfaEnrollVerifyMutation.isPending,
@@ -740,21 +765,19 @@ export function LoginPage() {
 				{
 					label: "Validate credentials",
 					description: "Checking your email and password.",
-					done:
-						!loginMutation.isPending &&
-						(isLoadingOrgs || selectOrgMutation.isPending),
+					done: !loginMutation.isPending,
 					active: loginMutation.isPending,
 				},
 				{
 					label: "Load organizations",
 					description: "Finding organizations linked to your account.",
-					done: selectOrgMutation.isPending,
+					done: !loginMutation.isPending && !isLoadingOrgs,
 					active: isLoadingOrgs,
 				},
 				{
 					label: "Prepare secure access",
 					description: "Applying organization security requirements.",
-					done: false,
+					done: isFinalizingCredentialSignIn,
 					active: selectOrgMutation.isPending,
 				},
 			];
@@ -763,6 +786,8 @@ export function LoginPage() {
 				? "Validating your credentials."
 				: isLoadingOrgs
 					? "Loading your organizations."
+					: isFinalizingCredentialSignIn
+						? "Finishing secure sign-in."
 					: "Preparing your next verification step.";
 
 			stepContent = (
