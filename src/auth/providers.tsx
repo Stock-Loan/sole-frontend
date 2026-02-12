@@ -56,6 +56,7 @@ import { routes } from "@/shared/lib/routes";
 // ─── Auth Provider ───────────────────────────────────────────────────────────
 
 const TENANCY_STORAGE_KEY = "sole.tenancy";
+const STOCK_SEARCH_SESSION_PREFIX = "sole.stock-search.";
 
 function loadPersistedOrgId(): string | null {
 	if (typeof localStorage === "undefined") return null;
@@ -137,6 +138,22 @@ export function AuthProvider({ children }: PropsWithChildren) {
 		setTokensByOrgId({});
 		setCsrfToken(null);
 		setIsAuthenticating(false);
+		if (typeof sessionStorage !== "undefined") {
+			try {
+				const keysToRemove: string[] = [];
+				for (let i = 0; i < sessionStorage.length; i += 1) {
+					const key = sessionStorage.key(i);
+					if (key?.startsWith(STOCK_SEARCH_SESSION_PREFIX)) {
+						keysToRemove.push(key);
+					}
+				}
+				for (const key of keysToRemove) {
+					sessionStorage.removeItem(key);
+				}
+			} catch {
+				// ignore storage errors
+			}
+		}
 		// Clear any persisted impersonation state so stale data doesn't
 		// interfere with the next login session.
 		persistImpersonation(null);
