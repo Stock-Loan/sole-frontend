@@ -13,15 +13,15 @@ export function AppShellLoading({
 			aria-busy="true"
 			aria-label={label}
 		>
-			<aside className="hidden h-full w-50 flex-col border border-border/60 bg-background/80 shadow-sm backdrop-blur lg:flex lg:rounded-3xl">
-				<div className="space-y-2 px-6 py-5">
+			<aside className="hidden h-full w-[14.75rem] flex-col border border-border/60 bg-background/80 shadow-sm backdrop-blur lg:flex lg:rounded-3xl">
+				<div className="space-y-2 px-3 py-5 text-center">
 					<Skeleton className="h-6 w-28" />
 					<Skeleton className="h-3 w-20" />
 				</div>
-				<div className="px-6 pb-2">
+				<div className="px-2 pb-2 text-center">
 					<Skeleton className="h-3 w-16" />
 				</div>
-				<nav className="mt-6 space-y-2 px-4">
+				<nav className="mx-auto mt-6 w-full max-w-[12.75rem] space-y-2 px-2">
 					{Array.from({ length: 7 }).map((_, index) => (
 						<div
 							key={`app-shell-nav-skeleton-${index}`}

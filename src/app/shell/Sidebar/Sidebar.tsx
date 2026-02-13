@@ -99,7 +99,7 @@ export function Sidebar({
 			className={cn(
 				"fixed inset-y-0 left-0 z-50 flex h-[100dvh] w-72 flex-col border border-border/60 bg-background/80 shadow-sm backdrop-blur transition-transform duration-300 lg:static lg:h-full lg:translate-x-0 lg:rounded-3xl lg:transition-[width] lg:duration-300",
 				mobileOpen ? "translate-x-0" : "-translate-x-full",
-				effectiveCollapsed ? "lg:w-24" : "lg:w-50",
+				effectiveCollapsed ? "lg:w-24" : "lg:w-[14.75rem]",
 			)}
 		>
 			<Button
@@ -119,8 +119,8 @@ export function Sidebar({
 
 			<div
 				className={cn(
-					"flex items-center px-6 py-5 overflow-hidden",
-					effectiveCollapsed && "px-2 justify-center",
+					"flex items-center justify-center py-5 overflow-hidden transition-all duration-300",
+					effectiveCollapsed ? "px-2" : "px-3",
 				)}
 			>
 				<Logo showTagline={!effectiveCollapsed} size="sm" />
@@ -128,8 +128,8 @@ export function Sidebar({
 
 			<div
 				className={cn(
-					"px-6 pb-2 transition-all duration-300",
-					effectiveCollapsed ? "px-0 text-center" : "px-6",
+					"pb-2 text-center transition-all duration-300",
+					effectiveCollapsed ? "px-0" : "px-2",
 				)}
 			>
 				<p
@@ -146,7 +146,7 @@ export function Sidebar({
 			<nav
 				className={cn(
 					"flex-1 space-y-1 mt-6 transition-all duration-300",
-					effectiveCollapsed ? "px-2" : "pl-6 pr-3",
+					effectiveCollapsed ? "px-2" : "mx-auto w-full max-w-[12.75rem] px-2",
 				)}
 			>
 				{" "}
