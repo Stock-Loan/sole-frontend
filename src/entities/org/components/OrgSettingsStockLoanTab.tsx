@@ -62,7 +62,7 @@ export function OrgSettingsStockLoanTab({
 						</div>
 					</div>
 				</div>
-				<div className="min-h-0 flex-1 overflow-y-auto px-6 py-6">
+				<div className="min-h-0 flex-1 overflow-y-auto scrollbar-hidden px-6 py-6">
 					<div className="space-y-6">
 						<div className="space-y-4 rounded-lg border p-4 shadow-sm">
 							<FormField
@@ -220,7 +220,7 @@ export function OrgSettingsStockLoanTab({
 						</div>
 					</div>
 				</div>
-				<div className="min-h-0 flex-1 overflow-y-auto px-6 py-6">
+				<div className="min-h-0 flex-1 overflow-y-auto scrollbar-hidden px-6 py-6">
 					<div className="space-y-6">
 						<FormField
 							control={form.control}
