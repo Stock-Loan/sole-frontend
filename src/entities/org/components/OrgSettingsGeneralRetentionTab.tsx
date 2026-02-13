@@ -179,62 +179,57 @@ export function OrgSettingsGeneralRetentionTab({
 								)}
 							/>
 						</div>
-						<FormField
-							control={form.control}
-							name="mfa_required_actions"
-							render={({ field }) => (
-								<FormItem>
-									<FormLabel>Require MFA for</FormLabel>
-									<div className="mb-2 text-sm text-muted-foreground">
-										Choose when MFA is compulsory for users in this
-										organization.
-									</div>
-									{!requireTwoFactor ? (
-										<p className="text-xs text-muted-foreground">
-											Enable “Require MFA” to configure these enforcement rules.
-										</p>
-									) : null}
-									<div className="mt-3 grid gap-3 md:grid-cols-2">
-										{mfaEnforcementOptions.map((option) => {
-											const checked = field.value?.includes(option.value);
-											return (
-												<label
-													key={option.value}
-													className="flex items-start gap-3 rounded-lg border border-border/70 p-4 text-sm shadow-sm"
-												>
-													<Checkbox
-														checked={checked}
-														onCheckedChange={(value) => {
-															const updated = toggleValue(
-																field.value ?? [],
-																option.value,
-																Boolean(value),
-															);
-															form.setValue("mfa_required_actions", updated, {
-																shouldDirty: true,
-																shouldValidate: true,
-															});
-														}}
-														disabled={
-															!canManage || isSubmitting || !requireTwoFactor
-														}
-													/>
-													<div>
-														<p className="font-medium text-foreground">
-															{option.label}
-														</p>
-														<p className="text-xs text-muted-foreground">
-															{option.description}
-														</p>
-													</div>
-												</label>
-											);
-										})}
-									</div>
-									<FormMessage />
-								</FormItem>
-							)}
-						/>
+						{requireTwoFactor ? (
+							<FormField
+								control={form.control}
+								name="mfa_required_actions"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Require MFA for</FormLabel>
+										<div className="mb-2 text-sm text-muted-foreground">
+											Choose when MFA is compulsory for users in this
+											organization.
+										</div>
+										<div className="mt-3 grid gap-3 md:grid-cols-2">
+											{mfaEnforcementOptions.map((option) => {
+												const checked = field.value?.includes(option.value);
+												return (
+													<label
+														key={option.value}
+														className="flex items-start gap-3 rounded-lg border border-border/70 p-4 text-sm shadow-sm"
+													>
+														<Checkbox
+															checked={checked}
+															onCheckedChange={(value) => {
+																const updated = toggleValue(
+																	field.value ?? [],
+																	option.value,
+																	Boolean(value),
+																);
+																form.setValue("mfa_required_actions", updated, {
+																	shouldDirty: true,
+																	shouldValidate: true,
+																});
+															}}
+															disabled={!canManage || isSubmitting}
+														/>
+														<div>
+															<p className="font-medium text-foreground">
+																{option.label}
+															</p>
+															<p className="text-xs text-muted-foreground">
+																{option.description}
+															</p>
+														</div>
+													</label>
+												);
+											})}
+										</div>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+						) : null}
 					</div>
 				</div>
 			</div>
