@@ -2,12 +2,24 @@ import { useMemo, useState } from "react";
 import type { PropsWithChildren } from "react";
 import type { OrgUserListItem } from "@/entities/user/types";
 import { useSessionStorage } from "@/shared/hooks/useSessionStorage";
-import { useTenantOptional } from "@/features/tenancy/hooks";
 import { StockSearchContext } from "./context";
 
+const TENANCY_STORAGE_KEY = "sole.tenancy";
+
+function loadCurrentOrgId(): string | null {
+	if (typeof localStorage === "undefined") return null;
+	try {
+		const raw = localStorage.getItem(TENANCY_STORAGE_KEY);
+		if (!raw) return null;
+		const parsed = JSON.parse(raw) as { currentOrgId?: string | null };
+		return parsed.currentOrgId ?? null;
+	} catch {
+		return null;
+	}
+}
+
 export function StockSearchProvider({ children }: PropsWithChildren) {
-	const tenant = useTenantOptional();
-	const storageScope = tenant?.currentOrgId ?? "global";
+	const storageScope = loadCurrentOrgId() ?? "global";
 	const [searchValue, setSearchValue] = useSessionStorage<string>(
 		`sole.stock-search.value.${storageScope}`,
 		"",

@@ -93,7 +93,7 @@ export function ChangePasswordPage() {
 		return (
 			<>
 				<PublicHeader />
-				<PageContainer className="flex min-h-[75vh] flex-col items-center justify-center pt-10">
+				<PageContainer className="flex min-h-[calc(100vh-8rem)] flex-col items-center px-4 py-6">
 					<div className="w-full max-w-lg space-y-4 rounded-xl border bg-card p-8 shadow-sm text-center">
 						<ShieldCheck className="mx-auto h-10 w-10 text-muted-foreground" />
 						<h1 className="text-xl font-semibold">Action not available</h1>
@@ -117,7 +117,7 @@ export function ChangePasswordPage() {
 	return (
 		<>
 			<PublicHeader />
-			<PageContainer className="flex min-h-[75vh] flex-col items-center justify-center pt-10">
+			<PageContainer className="flex min-h-[calc(100vh-8rem)] flex-col items-center px-4 py-6">
 				<div className="w-full max-w-lg space-y-6 rounded-xl border bg-card p-8 shadow-sm">
 					<div className="flex items-center gap-2">
 						<span className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">

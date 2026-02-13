@@ -1168,8 +1168,8 @@ export function LoginPage() {
 	return (
 		<>
 			<PublicHeader />
-			<PageContainer className="flex min-h-[calc(100vh-8rem)] flex-col items-center justify-center px-4 py-6">
-				<Card className="flex w-full max-w-lg max-h-[calc(100vh-10rem)] flex-col overflow-hidden border border-border/60 bg-card/95 shadow-xl backdrop-blur sm:rounded-2xl">
+			<PageContainer className="flex min-h-[calc(100vh-8rem)] flex-col items-center px-4 py-6">
+				<Card className="flex w-full max-w-lg flex-col border border-border/60 bg-card/95 shadow-xl backdrop-blur sm:rounded-2xl">
 					<CardHeader className="space-y-3 text-center">
 						<div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
 							<Shield className="h-6 w-6" />
@@ -1183,7 +1183,7 @@ export function LoginPage() {
 								: "Enter your credentials to access your workspace."}
 						</CardDescription>
 					</CardHeader>
-					<CardContent className="flex-1 space-y-6 sm:px-8 overflow-y-auto">
+					<CardContent className="flex-1 space-y-6 sm:px-8">
 						{stepLabel ? (
 							<div className="flex items-center justify-center">
 								<span className="rounded-full border border-border/70 bg-background px-3 py-1 text-xs font-semibold text-muted-foreground">
