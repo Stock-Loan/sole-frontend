@@ -15,6 +15,7 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
+	DialogDescription,
 } from "@/shared/ui/Dialog/dialog";
 import {
 	Form,
@@ -44,7 +45,7 @@ function toDateTimeLocal(value?: string | null) {
 	if (Number.isNaN(date.getTime())) return "";
 	const pad = (n: number) => String(n).padStart(2, "0");
 	return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
-		date.getDate()
+		date.getDate(),
 	)}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
@@ -85,6 +86,11 @@ export function AnnouncementFormDialog({
 					<DialogTitle>
 						{initialData ? "Edit announcement" : "Create announcement"}
 					</DialogTitle>
+					<DialogDescription>
+						{initialData
+							? "Update the details of your announcement and save to apply changes."
+							: "Fill in the details of your announcement and save to publish."}
+					</DialogDescription>
 				</DialogHeader>
 				<Form {...form}>
 					<form
@@ -148,7 +154,7 @@ export function AnnouncementFormDialog({
 																	{value.charAt(0) +
 																		value.slice(1).toLowerCase()}
 																</SelectItem>
-															)
+															),
 														)}
 													</SelectContent>
 												</Select>
