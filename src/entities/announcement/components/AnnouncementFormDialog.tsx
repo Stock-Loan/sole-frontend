@@ -36,6 +36,7 @@ import {
 	ANNOUNCEMENT_TYPE_COLORS,
 } from "../constants";
 import { announcementFormSchema } from "../schemas";
+import { AnnouncementBodyEditor } from "./AnnouncementBodyEditor";
 
 function toDateTimeLocal(value?: string | null) {
 	if (!value) return "";
@@ -86,8 +87,11 @@ export function AnnouncementFormDialog({
 					</DialogTitle>
 				</DialogHeader>
 				<Form {...form}>
-					<form onSubmit={form.handleSubmit(handleSubmit)}>
-						<DialogBody className="space-y-4">
+					<form
+						onSubmit={form.handleSubmit(handleSubmit)}
+						className="flex min-h-0 flex-1 flex-col"
+					>
+						<DialogBody className="min-h-0 flex-1 space-y-4 overflow-y-auto">
 							<FormField
 								control={form.control}
 								name="title"
@@ -112,10 +116,9 @@ export function AnnouncementFormDialog({
 									<FormItem>
 										<FormLabel>Body</FormLabel>
 										<FormControl>
-											<textarea
-												{...field}
-												className="flex min-h-[140px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-												placeholder="Add the announcement body"
+											<AnnouncementBodyEditor
+												value={field.value ?? ""}
+												onChange={field.onChange}
 												disabled={isSubmitting}
 											/>
 										</FormControl>

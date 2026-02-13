@@ -102,3 +102,14 @@ export interface AnnouncementsTableProps {
 	isUpdatingStatus?: boolean;
 	isFetching?: boolean;
 }
+
+export interface AnnouncementMarkdownProps {
+	value?: string | null;
+	className?: string;
+}
+
+export interface AnnouncementBodyEditorProps {
+	value: string;
+	onChange: (value: string) => void;
+	disabled?: boolean;
+}

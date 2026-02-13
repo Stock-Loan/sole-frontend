@@ -33,6 +33,8 @@ import {
 import { notificationToasts } from "../toasts";
 import { useAuth } from "@/auth/hooks";
 import type { Announcement } from "@/entities/announcement/types";
+import { AnnouncementMarkdown } from "@/entities/announcement/components/AnnouncementMarkdown";
+import { announcementMarkdownToPlainText } from "@/entities/announcement/lib/markdown";
 
 export function NotificationBell() {
 	const { user } = useAuth();
@@ -143,7 +145,7 @@ export function NotificationBell() {
 								/>
 							</div>
 							<p className="text-xs text-muted-foreground line-clamp-2">
-								{item.body}
+								{announcementMarkdownToPlainText(item.body)}
 							</p>
 							<p className="text-[11px] text-muted-foreground">
 								Published {formatDate(item.published_at)}
@@ -176,7 +178,7 @@ export function NotificationBell() {
 										) : null}
 									</div>
 									<p className="text-xs text-muted-foreground line-clamp-2">
-										{item.body}
+										{announcementMarkdownToPlainText(item.body)}
 									</p>
 									<p className="text-[11px] text-muted-foreground">
 										Published {formatDate(item.published_at)}
@@ -221,9 +223,7 @@ export function NotificationBell() {
 							</div>
 						) : null}
 						<div className="max-h-[55vh] overflow-auto rounded-lg border border-border/70 bg-muted/20 p-4">
-							<p className="text-sm leading-6 whitespace-pre-wrap">
-								{selectedAnnouncement?.body ?? ""}
-							</p>
+							<AnnouncementMarkdown value={selectedAnnouncement?.body} />
 						</div>
 					</DialogBody>
 					<DialogFooter>

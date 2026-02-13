@@ -30,6 +30,8 @@ import {
 	useUpdateAnnouncement,
 } from "@/entities/announcement/hooks";
 import { AnnouncementFormDialog } from "@/entities/announcement/components/AnnouncementFormDialog";
+import { AnnouncementMarkdown } from "@/entities/announcement/components/AnnouncementMarkdown";
+import { announcementMarkdownToPlainText } from "@/entities/announcement/lib/markdown";
 import {
 	ANNOUNCEMENT_STATUS_LABELS,
 	ANNOUNCEMENT_STATUS_TONE,
@@ -303,7 +305,7 @@ export function AnnouncementsPage() {
 				cell: (item) => (
 					<div className="flex flex-col gap-1">
 						<p className="line-clamp-2 text-xs text-muted-foreground whitespace-pre-wrap">
-							{item.body}
+							{announcementMarkdownToPlainText(item.body)}
 						</p>
 						<button
 							type="button"
@@ -566,9 +568,7 @@ export function AnnouncementsPage() {
 							) : null}
 						</div>
 						<div className="max-h-[55vh] overflow-auto rounded-lg border border-border/70 bg-muted/20 p-4">
-							<p className="text-sm leading-6 whitespace-pre-wrap">
-								{viewingAnnouncement?.body ?? ""}
-							</p>
+							<AnnouncementMarkdown value={viewingAnnouncement?.body} />
 						</div>
 					</DialogBody>
 					<DialogFooter>
