@@ -1168,7 +1168,7 @@ export function LoginPage() {
 	return (
 		<>
 			<PublicHeader />
-			<PageContainer className="flex min-h-[calc(100vh-8rem)] flex-col items-center px-4 py-6">
+			<PageContainer className="flex min-h-[calc(100vh-8rem)] flex-col items-center justify-center px-4 py-6">
 				<Card className="flex w-full max-w-lg flex-col border border-border/60 bg-card/95 shadow-xl backdrop-blur sm:rounded-2xl">
 					<CardHeader className="space-y-3 text-center">
 						<div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
