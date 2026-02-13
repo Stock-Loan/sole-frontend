@@ -87,6 +87,12 @@ export function StockUserSearch() {
 					setTimeout(() => setIsSearchOpen(false), 200);
 				}}
 				placeholder="Search employee by name or email"
+				name="stock-user-search"
+				autoComplete="off"
+				autoCorrect="off"
+				autoCapitalize="none"
+				spellCheck={false}
+				inputMode="search"
 				className="h-12 pl-9"
 			/>
 			{showSuggestions ? (
