@@ -120,11 +120,16 @@ export function UserDropdown({ showChevron = false }: UserDropdownProps) {
 						</p>
 					</div>
 					{showChevron ? (
-						<ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+						<ChevronDown className="hidden h-3.5 w-3.5 text-muted-foreground sm:block" />
 					) : null}
 				</button>
 			</DropdownMenuTrigger>
-			<DropdownMenuContent align="end" className="w-56">
+			<DropdownMenuContent
+				align="end"
+				sideOffset={8}
+				collisionPadding={12}
+				className="w-[min(14rem,calc(100vw-1rem))]"
+			>
 				<DropdownMenuLabel>
 					{isImpersonating ? (
 						<span className="flex items-center gap-1.5 text-red-600">

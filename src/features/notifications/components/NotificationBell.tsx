@@ -101,7 +101,12 @@ export function NotificationBell() {
 						) : null}
 					</Button>
 				</DropdownMenuTrigger>
-				<DropdownMenuContent align="end" className="w-96">
+				<DropdownMenuContent
+					align="end"
+					sideOffset={8}
+					collisionPadding={12}
+					className="w-[min(24rem,calc(100vw-1rem))] max-h-[70vh] overflow-y-auto"
+				>
 					<DropdownMenuLabel>Announcements</DropdownMenuLabel>
 					<DropdownMenuSeparator />
 					{!canView ? (
@@ -197,7 +202,10 @@ export function NotificationBell() {
 					}
 				}}
 			>
-				<DialogContent size="md">
+				<DialogContent
+					size="md"
+					className="w-[calc(100%-2rem)] sm:w-[calc(100%-1.5rem)]"
+				>
 					<DialogHeader>
 						<DialogTitle>
 							{selectedAnnouncement?.title ?? "Announcement"}

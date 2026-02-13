@@ -51,9 +51,9 @@ export function AreaSwitcher() {
 	if (visibleAreas.length <= 1) {
 		const Icon = currentArea.icon;
 		return (
-			<div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/80 px-3 py-2 text-sm font-semibold">
+			<div className="inline-flex max-w-[10rem] items-center gap-2 rounded-full border border-border/60 bg-background/80 px-2 py-2 text-sm font-semibold sm:max-w-none sm:px-3">
 				<Icon className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
-				<span>{currentArea.label}</span>
+				<span className="hidden sm:inline">{currentArea.label}</span>
 			</div>
 		);
 	}
@@ -66,14 +66,24 @@ export function AreaSwitcher() {
 				<Button
 					variant="outline"
 					size="sm"
-					className="inline-flex items-center gap-2 rounded-full border-border/70 bg-background/80"
+					className="inline-flex min-w-0 items-center gap-1 rounded-full border-border/70 bg-background/80 px-2 sm:gap-2 sm:px-4"
 				>
 					<Icon className="h-4 w-4" aria-hidden="true" />
-					<span className="text-sm font-medium">{currentArea.label}</span>
-					<ChevronDown className="h-4 w-4" aria-hidden="true" />
+					<span className="text-sm font-medium sm:inline">
+						{currentArea.label}
+					</span>
+					<ChevronDown
+						className="h-4 w-4 text-muted-foreground"
+						aria-hidden="true"
+					/>
 				</Button>
 			</DropdownMenuTrigger>
-			<DropdownMenuContent align="start" className="w-80 flex flex-col gap-1.5">
+			<DropdownMenuContent
+				align="start"
+				sideOffset={8}
+				collisionPadding={12}
+				className="flex w-[min(20rem,calc(100vw-1rem))] flex-col gap-1.5 data-[state=open]:zoom-in-100 data-[state=closed]:zoom-out-100 data-[side=bottom]:slide-in-from-top-0 data-[side=left]:slide-in-from-right-0 data-[side=right]:slide-in-from-left-0 data-[side=top]:slide-in-from-bottom-0"
+			>
 				{visibleAreas.map((area) => {
 					const AreaIcon = area.icon;
 					return (

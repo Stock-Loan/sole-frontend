@@ -36,6 +36,7 @@ export function Sidebar({
 		false,
 	);
 	const collapsed = collapsedProp ?? storedCollapsed;
+	const effectiveCollapsed = mobileOpen ? false : collapsed;
 
 	const handleToggle = () => {
 		const next = !collapsed;
@@ -96,15 +97,15 @@ export function Sidebar({
 	return (
 		<aside
 			className={cn(
-				"fixed inset-y-0 left-0 z-50 flex h-[100dvh] w-72 flex-col border border-border/60 bg-background/80 shadow-sm backdrop-blur transition-transform duration-300 md:static md:h-full md:translate-x-0 md:rounded-3xl md:transition-[width] md:duration-300",
+				"fixed inset-y-0 left-0 z-50 flex h-[100dvh] w-72 flex-col border border-border/60 bg-background/80 shadow-sm backdrop-blur transition-transform duration-300 lg:static lg:h-full lg:translate-x-0 lg:rounded-3xl lg:transition-[width] lg:duration-300",
 				mobileOpen ? "translate-x-0" : "-translate-x-full",
-				collapsed ? "md:w-24" : "md:w-50",
+				effectiveCollapsed ? "lg:w-24" : "lg:w-50",
 			)}
 		>
 			<Button
 				variant="ghost"
 				size="icon"
-				className="absolute -right-3 top-20 z-50 hidden h-6 w-6 rounded-full border border-border bg-background p-0 shadow-sm hover:bg-accent focus-visible:ring-offset-0 md:inline-flex"
+				className="absolute -right-3 top-20 z-50 hidden h-6 w-6 rounded-full border border-border bg-background p-0 shadow-sm hover:bg-accent focus-visible:ring-offset-0 lg:inline-flex"
 				onClick={handleToggle}
 				aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
 			>
@@ -119,33 +120,33 @@ export function Sidebar({
 			<div
 				className={cn(
 					"flex items-center px-6 py-5 overflow-hidden",
-					collapsed && "px-2 justify-center",
+					effectiveCollapsed && "px-2 justify-center",
 				)}
 			>
-				<Logo showTagline={!collapsed} size="sm" />
+				<Logo showTagline={!effectiveCollapsed} size="sm" />
 			</div>
 
 			<div
 				className={cn(
 					"px-6 pb-2 transition-all duration-300",
-					collapsed ? "px-0 text-center" : "px-6",
+					effectiveCollapsed ? "px-0 text-center" : "px-6",
 				)}
 			>
 				<p
 					className={cn(
 						"text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground whitespace-nowrap transition-all duration-300 ease-in-out",
 
-						collapsed ? "opacity-50" : "opacity-100",
+						effectiveCollapsed ? "opacity-50" : "opacity-100",
 					)}
 				>
-					{collapsed ? "..." : activeArea.label}
+					{effectiveCollapsed ? "..." : activeArea.label}
 				</p>
 			</div>
 
 			<nav
 				className={cn(
 					"flex-1 space-y-1 mt-6 transition-all duration-300",
-					collapsed ? "px-2" : "pl-6 pr-3",
+					effectiveCollapsed ? "px-2" : "pl-6 pr-3",
 				)}
 			>
 				{" "}
@@ -153,17 +154,17 @@ export function Sidebar({
 					<div
 						className={cn(
 							"rounded-lg border border-dashed border-border/60 px-3 py-3 text-xs text-muted-foreground",
-							collapsed && "px-2 text-center",
+							effectiveCollapsed && "px-2 text-center",
 						)}
 					>
-						{collapsed ? "—" : "No visible sections"}
+						{effectiveCollapsed ? "—" : "No visible sections"}
 					</div>
 				) : (
 					visibleItems.map((item) => (
 						<SidebarItem
 							key={item.id}
 							item={item}
-							collapsed={collapsed}
+							collapsed={effectiveCollapsed}
 							isActive={item.id === activeItemId}
 							onNavigate={handleNavigate}
 						/>

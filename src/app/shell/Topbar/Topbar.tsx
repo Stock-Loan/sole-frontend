@@ -15,13 +15,13 @@ export function Topbar({ onToggleSidebar }: TopbarProps) {
 	const searchItems = useMemo(() => getSearchItems(can), [can]);
 
 	return (
-		<header className="sticky top-0 z-40 flex items-center justify-between gap-4 px-6 py-3">
-			<div className="flex items-center gap-3 shrink-0">
+		<header className="sticky top-0 z-40 flex items-center justify-between gap-2 px-3 py-3 sm:gap-4 sm:px-6">
+			<div className="flex min-w-0 items-center gap-2 shrink-0 sm:gap-3">
 				<Button
 					type="button"
 					variant="ghost"
 					size="icon"
-					className="md:hidden"
+					className="lg:hidden"
 					onClick={onToggleSidebar}
 					aria-label="Open navigation"
 				>
@@ -30,7 +30,7 @@ export function Topbar({ onToggleSidebar }: TopbarProps) {
 				<AreaSwitcher />
 			</div>
 
-			<div className="flex flex-1 items-center justify-center gap-4 px-4">
+			<div className="hidden md:flex flex-1 items-center justify-center gap-4 px-4">
 				<div className="hidden lg:block xl:w-full xl:max-w-md">
 					<GlobalSearch items={searchItems} className="xl:w-full" />
 				</div>
@@ -39,7 +39,7 @@ export function Topbar({ onToggleSidebar }: TopbarProps) {
 				</div>
 			</div>
 
-			<div className="flex items-center gap-3 shrink-0">
+			<div className="flex items-center gap-2 shrink-0 sm:gap-3">
 				<NotificationBell />
 				<UserMenu />
 			</div>

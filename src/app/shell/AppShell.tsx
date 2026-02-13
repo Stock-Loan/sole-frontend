@@ -15,11 +15,11 @@ export function AppShell() {
 	}, [location.pathname]);
 
 	return (
-		<div className="relative flex h-[100dvh] overflow-hidden bg-muted/30 md:py-4 md:px-4">
+		<div className="relative flex h-[100dvh] overflow-hidden bg-muted/30 lg:py-4 lg:px-4">
 			{mobileNavOpen ? (
 				<button
 					type="button"
-					className="fixed inset-0 z-40 bg-black/30 md:hidden"
+					className="fixed inset-0 z-40 bg-black/30 lg:hidden"
 					onClick={() => setMobileNavOpen(false)}
 					aria-label="Close navigation"
 				/>

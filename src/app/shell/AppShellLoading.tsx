@@ -7,13 +7,13 @@ export function AppShellLoading({
 }: AppShellLoadingProps) {
 	return (
 		<div
-			className="relative flex h-[100dvh] overflow-hidden bg-muted/30 md:px-4 md:py-4"
+			className="relative flex h-[100dvh] overflow-hidden bg-muted/30 lg:px-4 lg:py-4"
 			role="status"
 			aria-live="polite"
 			aria-busy="true"
 			aria-label={label}
 		>
-			<aside className="hidden h-full w-50 flex-col border border-border/60 bg-background/80 shadow-sm backdrop-blur md:flex md:rounded-3xl">
+			<aside className="hidden h-full w-50 flex-col border border-border/60 bg-background/80 shadow-sm backdrop-blur lg:flex lg:rounded-3xl">
 				<div className="space-y-2 px-6 py-5">
 					<Skeleton className="h-6 w-28" />
 					<Skeleton className="h-3 w-20" />
