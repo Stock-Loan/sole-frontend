@@ -184,9 +184,9 @@ export interface OnboardUserPayload {
 export interface OnboardUserResponse {
 	user: OrgUserDto;
 	membership: OrgMembershipDto;
-	user_status?: "new" | "existing";
-	membership_status?: "created" | "already_exists";
-	temporary_password?: string;
+	user_status: "new" | "existing";
+	membership_status: "created" | "already_exists";
+	credentials_issued: boolean;
 }
 
 export interface UpdateOrgUserProfilePayload {
@@ -222,29 +222,19 @@ export interface UpdateOrgUserProfileWithStatusPayload {
 	statusPayload?: UpdateOrgUserStatusPayload;
 }
 
-export type BulkOnboardingRowStatus = "success" | "failure";
-
 export type OrgUserDetailTabKey = "info" | "grants";
-
-export interface BulkOnboardingRowResult {
-	row: number;
-	email?: string;
-	employee_id?: string;
-	status: BulkOnboardingRowStatus;
-	message?: string;
-}
 
 export interface BulkOnboardingSuccessItem {
 	row_number: number;
 	user?: OrgUserDto;
 	membership?: OrgMembershipDto;
-	user_status?: "new" | "existing";
-	membership_status?: "created" | "already_exists";
+	user_status: "new" | "existing";
+	membership_status: "created" | "already_exists";
+	credentials_issued: boolean;
 	email?: string;
 	first_name?: string;
 	last_name?: string;
 	employee_id?: string;
-	temporary_password?: string;
 	message?: string;
 }
 
@@ -258,12 +248,8 @@ export interface BulkOnboardingErrorItem {
 }
 
 export interface BulkOnboardingResult {
-	results?: BulkOnboardingRowResult[];
-	errors?: BulkOnboardingErrorItem[];
-	successes?: BulkOnboardingSuccessItem[];
-	total_rows?: number;
-	success_count?: number;
-	failure_count?: number;
+	errors: BulkOnboardingErrorItem[];
+	successes: BulkOnboardingSuccessItem[];
 }
 
 export interface BulkDeleteMembershipsResponse {

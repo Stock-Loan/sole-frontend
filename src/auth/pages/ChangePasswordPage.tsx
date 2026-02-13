@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, EyeOff, ShieldCheck } from "lucide-react";
-import { useForm } from "react-hook-form";
+import { AlertCircle, CheckCircle2, Eye, EyeOff, ShieldCheck } from "lucide-react";
+import { useForm, useWatch } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { PublicHeader } from "@/shared/ui/PublicHeader";
 import { PageContainer } from "@/shared/ui/PageContainer";
 import { Button } from "@/shared/ui/Button";
+import { PasswordPolicyChecklist } from "@/shared/ui/PasswordPolicyChecklist";
 import {
 	Form,
 	FormControl,
@@ -53,6 +54,17 @@ export function ChangePasswordPage() {
 			confirm_password: "",
 		},
 	});
+	const newPasswordValue = useWatch({
+		control: form.control,
+		name: "new_password",
+	});
+	const confirmPasswordValue = useWatch({
+		control: form.control,
+		name: "confirm_password",
+	});
+	const hasConfirmPassword = Boolean(confirmPasswordValue?.length);
+	const passwordsMatch =
+		hasConfirmPassword && newPasswordValue === confirmPasswordValue;
 
 	const changePasswordMutation = useChangePasswordWithToken();
 
@@ -214,6 +226,7 @@ export function ChangePasswordPage() {
 									</FormItem>
 								)}
 							/>
+							<PasswordPolicyChecklist password={newPasswordValue} />
 							<FormField
 								control={form.control}
 								name="confirm_password"
@@ -254,6 +267,32 @@ export function ChangePasswordPage() {
 											</div>
 										</FormControl>
 										<FormMessage />
+										<div
+											className={`mt-1 flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-xs ${
+												hasConfirmPassword
+													? passwordsMatch
+														? "border-emerald-200 bg-emerald-50 text-emerald-700"
+														: "border-amber-200 bg-amber-50 text-amber-700"
+													: "border-border/70 bg-muted/30 text-muted-foreground"
+											}`}
+										>
+											{hasConfirmPassword ? (
+												passwordsMatch ? (
+													<CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
+												) : (
+													<AlertCircle className="h-3.5 w-3.5 shrink-0" />
+												)
+											) : (
+												<AlertCircle className="h-3.5 w-3.5 shrink-0" />
+											)}
+											<span>
+												{hasConfirmPassword
+													? passwordsMatch
+														? "Passwords match"
+														: "Passwords do not match yet"
+													: "Re-enter your new password to confirm match"}
+											</span>
+										</div>
 									</FormItem>
 								)}
 							/>

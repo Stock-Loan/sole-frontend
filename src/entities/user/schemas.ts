@@ -1,5 +1,9 @@
 import { z } from "zod";
 import type { Role } from "@/entities/role/types";
+import {
+	isPasswordPolicySatisfied,
+	PASSWORD_POLICY_ERROR_MESSAGE,
+} from "@/shared/lib/password-policy";
 
 export const EmploymentStatusSchema = z.enum([
 	"ACTIVE",
@@ -132,30 +136,22 @@ export const OrgUsersListResponseSchema = z.object({
 export const OnboardUserResponseSchema = z.object({
 	user: OrgUserDtoSchema,
 	membership: OrgMembershipDtoSchema,
-	user_status: z.enum(["new", "existing"]).optional(),
-	membership_status: z.enum(["created", "already_exists"]).optional(),
-	temporary_password: z.string().optional(),
-});
-
-export const BulkOnboardingRowResultSchema = z.object({
-	row: z.number(),
-	email: z.string().optional(),
-	employee_id: z.string().optional(),
-	status: z.enum(["success", "failure"]),
-	message: z.string().optional(),
+	user_status: z.enum(["new", "existing"]),
+	membership_status: z.enum(["created", "already_exists"]),
+	credentials_issued: z.boolean(),
 });
 
 export const BulkOnboardingSuccessSchema = z.object({
 	row_number: z.number(),
 	user: OrgUserDtoSchema.optional(),
 	membership: OrgMembershipDtoSchema.optional(),
-	user_status: z.enum(["new", "existing"]).optional(),
-	membership_status: z.enum(["created", "already_exists"]).optional(),
+	user_status: z.enum(["new", "existing"]),
+	membership_status: z.enum(["created", "already_exists"]),
+	credentials_issued: z.boolean(),
 	email: z.string().optional(),
 	first_name: z.string().optional(),
 	last_name: z.string().optional(),
 	employee_id: z.string().optional(),
-	temporary_password: z.string().optional(),
 	message: z.string().optional(),
 });
 
@@ -169,12 +165,8 @@ export const BulkOnboardingErrorSchema = z.object({
 });
 
 export const BulkOnboardingResultSchema = z.object({
-	results: z.array(BulkOnboardingRowResultSchema).optional(),
-	errors: z.array(BulkOnboardingErrorSchema).optional(),
-	successes: z.array(BulkOnboardingSuccessSchema).optional(),
-	total_rows: z.number().optional(),
-	success_count: z.number().optional(),
-	failure_count: z.number().optional(),
+	errors: z.array(BulkOnboardingErrorSchema),
+	successes: z.array(BulkOnboardingSuccessSchema),
 });
 
 export const BulkDeleteMembershipsResponseSchema = z.object({
@@ -183,10 +175,10 @@ export const BulkDeleteMembershipsResponseSchema = z.object({
 });
 
 export const formSchema = z.object({
-	email: z.string().email("Enter a valid email"),
-	first_name: z.string().min(1, "First name is required"),
+	email: z.string().trim().email("Enter a valid email"),
+	first_name: z.string().trim().min(1, "First name is required"),
 	middle_name: z.string().optional(),
-	last_name: z.string().min(1, "Last name is required"),
+	last_name: z.string().trim().min(1, "Last name is required"),
 	preferred_name: z.string().optional(),
 	phone_number: z.string().optional(),
 	timezone: z.string().optional(),
@@ -196,8 +188,11 @@ export const formSchema = z.object({
 	address_line1: z.string().optional(),
 	address_line2: z.string().optional(),
 	postal_code: z.string().optional(),
-	employee_id: z.string().min(1, "Employee ID is required"),
-	employment_start_date: z.string().min(1, "Employment start date is required"),
+	employee_id: z.string().trim().min(1, "Employee ID is required"),
+	employment_start_date: z
+		.string()
+		.trim()
+		.min(1, "Employment start date is required"),
 	employment_status: z.enum([
 		"ACTIVE",
 		"ON_LEAVE",
@@ -207,8 +202,17 @@ export const formSchema = z.object({
 		"TERMINATED",
 		"RETIRED",
 		"RESIGNED",
-	]),
-	temporary_password: z.string().optional(),
+	]).optional(),
+	temporary_password: z
+		.string()
+		.optional()
+		.refine((value) => {
+			if (!value) return true;
+			if (!value.trim()) return true;
+			return isPasswordPolicySatisfied(value);
+		}, {
+			message: PASSWORD_POLICY_ERROR_MESSAGE,
+		}),
 });
 
 export const profileSchema = z.object({

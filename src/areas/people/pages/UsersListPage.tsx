@@ -353,7 +353,7 @@ export function UsersListPage() {
 	const [addUserOpen, setAddUserOpen] = useState(false);
 	const [tempPasswordInfo, setTempPasswordInfo] = useState<{
 		email: string;
-		password: string;
+		password: string | null;
 	} | null>(null);
 	const [showTempPasswordDialog, setShowTempPasswordDialog] = useState(false);
 	const [revealTempPassword, setRevealTempPassword] = useState(false);
@@ -585,14 +585,14 @@ export function UsersListPage() {
 
 	const handleAddUser = async (values: OnboardUserPayload) => {
 		const result = await onboardUserMutation.mutateAsync(values);
-		if (result?.temporary_password) {
-			setTempPasswordInfo({
-				email: result.user?.email ?? values.email,
-				password: result.temporary_password,
-			});
-			setRevealTempPassword(false);
-			setShowTempPasswordDialog(true);
-		}
+		if (!result.credentials_issued) return;
+		const providedPassword = values.temporary_password?.trim() || null;
+		setTempPasswordInfo({
+			email: result.user?.email ?? values.email,
+			password: providedPassword,
+		});
+		setRevealTempPassword(false);
+		setShowTempPasswordDialog(true);
 	};
 
 	const handleCopyTempPassword = async () => {
@@ -747,57 +747,75 @@ export function UsersListPage() {
 			>
 				<DialogContent size="sm">
 					<DialogHeader>
-						<DialogTitle>Temporary password created</DialogTitle>
+						<DialogTitle>
+							{tempPasswordInfo?.password
+								? "Temporary password created"
+								: "Credentials issued"}
+						</DialogTitle>
 					</DialogHeader>
 					<DialogBody>
 						<p className="text-sm text-muted-foreground">
-							Share this temporary password with{" "}
-							<span className="font-semibold text-foreground">
-								{tempPasswordInfo?.email ?? "the user"}
-							</span>
-							. They will be asked to change it on first login.
+							{tempPasswordInfo?.password ? (
+								<>
+									Share this temporary password with{" "}
+									<span className="font-semibold text-foreground">
+										{tempPasswordInfo?.email ?? "the user"}
+									</span>
+									. They will be asked to change it on first login.
+								</>
+							) : (
+								<>
+									Credentials were issued for{" "}
+									<span className="font-semibold text-foreground">
+										{tempPasswordInfo?.email ?? "this user"}
+									</span>
+									, but the generated temporary password is not returned by the
+									API. Provide a temporary password during onboarding if you
+									need to share it.
+								</>
+							)}
 						</p>
-						<div className="mt-4 space-y-2">
-							<label className="text-xs font-semibold text-muted-foreground">
-								Temporary password
-							</label>
-							<div className="relative">
-								<Input
-									readOnly
-									type={revealTempPassword ? "text" : "password"}
-									value={tempPasswordInfo?.password ?? ""}
-									className="pr-11"
-								/>
+						{tempPasswordInfo?.password ? (
+							<div className="mt-4 space-y-2">
+								<label className="text-xs font-semibold text-muted-foreground">
+									Temporary password
+								</label>
+								<div className="relative">
+									<Input
+										readOnly
+										type={revealTempPassword ? "text" : "password"}
+										value={tempPasswordInfo.password}
+										className="pr-11"
+									/>
+									<Button
+										type="button"
+										variant="ghost"
+										size="icon"
+										className="absolute right-1 top-1/2 h-9 w-9 -translate-y-1/2"
+										onClick={() => setRevealTempPassword((prev) => !prev)}
+										aria-label={
+											revealTempPassword
+												? "Hide temporary password"
+												: "Show temporary password"
+										}
+									>
+										{revealTempPassword ? (
+											<EyeOff className="h-4 w-4" />
+										) : (
+											<Eye className="h-4 w-4" />
+										)}
+									</Button>
+								</div>
 								<Button
 									type="button"
-									variant="ghost"
-									size="icon"
-									className="absolute right-1 top-1/2 h-9 w-9 -translate-y-1/2"
-									onClick={() => setRevealTempPassword((prev) => !prev)}
-									aria-label={
-										revealTempPassword
-											? "Hide temporary password"
-											: "Show temporary password"
-									}
-									disabled={!tempPasswordInfo?.password}
+									variant="outline"
+									size="sm"
+									onClick={handleCopyTempPassword}
 								>
-									{revealTempPassword ? (
-										<EyeOff className="h-4 w-4" />
-									) : (
-										<Eye className="h-4 w-4" />
-									)}
+									Copy password
 								</Button>
 							</div>
-							<Button
-								type="button"
-								variant="outline"
-								size="sm"
-								onClick={handleCopyTempPassword}
-								disabled={!tempPasswordInfo?.password}
-							>
-								Copy password
-							</Button>
-						</div>
+						) : null}
 					</DialogBody>
 					<DialogFooter>
 						<Button

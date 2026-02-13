@@ -144,23 +144,11 @@ export function UserOnboardingPage() {
 		uploadMutation.mutate(selectedFile, {
 			onSuccess: (result) => {
 				setBulkResult(result);
-				const successCount =
-					result.success_count ??
-					(result.successes ? result.successes.length : undefined) ??
-					(result.results
-						? result.results.filter((row) => row.status === "success").length
-						: 0);
-				const failureCount =
-					result.failure_count ??
-					(result.errors ? result.errors.length : undefined) ??
-					(result.results
-						? result.results.filter((row) => row.status === "failure").length
-						: 0);
+				const successCount = result.successes.length;
+				const failureCount = result.errors.length;
 				toast({
 					title: "Upload processed",
-					description: `${successCount ?? 0} succeeded, ${
-						failureCount ?? 0
-					} failed.`,
+					description: `${successCount} succeeded, ${failureCount} failed.`,
 				});
 			},
 			onError: (error) =>
@@ -172,55 +160,18 @@ export function UserOnboardingPage() {
 	};
 
 	const bulkSuccesses = useMemo<BulkOnboardingSuccessItem[]>(() => {
-		if (bulkResult?.successes?.length) {
-			return bulkResult.successes;
-		}
-		if (bulkResult?.results?.length) {
-			return bulkResult.results
-				.filter((row) => row.status === "success")
-				.map((row) => ({
-					row_number: row.row,
-					email: row.email,
-					employee_id: row.employee_id,
-					message: row.message,
-				}));
-		}
-		return [];
+		return bulkResult?.successes ?? [];
 	}, [bulkResult]);
 
 	const bulkErrors = useMemo<BulkOnboardingErrorItem[]>(() => {
-		if (bulkResult?.errors?.length) {
-			return bulkResult.errors;
-		}
-		if (bulkResult?.results?.length) {
-			return bulkResult.results
-				.filter((row) => row.status === "failure")
-				.map((row) => ({
-					row_number: row.row,
-					email: row.email,
-					employee_id: row.employee_id,
-					error: row.message ?? "Unable to process this row.",
-				}));
-		}
-		return [];
+		return bulkResult?.errors ?? [];
 	}, [bulkResult]);
 
 	const bulkSummary = useMemo(() => {
 		if (!bulkResult) return null;
-		const results = bulkResult.results;
-		const successCount =
-			bulkResult.success_count ??
-			(results
-				? results.filter((row) => row.status === "success").length
-				: bulkResult.successes?.length ?? 0);
-		const failureCount =
-			bulkResult.failure_count ??
-			(results
-				? results.filter((row) => row.status === "failure").length
-				: bulkResult.errors?.length ?? 0);
-		const totalRows =
-			bulkResult.total_rows ??
-			(results ? results.length : successCount + failureCount);
+		const successCount = bulkResult.successes.length;
+		const failureCount = bulkResult.errors.length;
+		const totalRows = successCount + failureCount;
 		return { successCount, failureCount, totalRows };
 	}, [bulkResult]);
 

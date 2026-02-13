@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { Eye, EyeOff } from "lucide-react";
+import { useForm, useWatch } from "react-hook-form";
 import { AppDialog } from "@/shared/ui/Dialog/dialog";
 import {
 	Form,
@@ -29,6 +30,7 @@ import type {
 } from "../types";
 import { extractErrorMessage } from "@/shared/lib/utils";
 import { formSchema } from "@/entities/user/schemas";
+import { PasswordPolicyChecklist } from "@/shared/ui/PasswordPolicyChecklist";
 import { defaultValues } from "../constants";
 
 export function AddUserDialog({
@@ -40,6 +42,7 @@ export function AddUserDialog({
 	const { toast } = useToast();
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [selectedCountry, setSelectedCountry] = useState<string>("");
+	const [showTemporaryPassword, setShowTemporaryPassword] = useState(false);
 
 	const form = useForm<AddUserFormValues>({
 		resolver: zodResolver(formSchema),
@@ -50,7 +53,13 @@ export function AddUserDialog({
 		if (open) return;
 		form.reset(defaultValues);
 		setSelectedCountry(defaultValues.country ?? "");
+		setShowTemporaryPassword(false);
 	}, [form, open]);
+
+	const temporaryPasswordValue = useWatch({
+		control: form.control,
+		name: "temporary_password",
+	});
 
 	const {
 		data: countries = [],
@@ -451,18 +460,44 @@ export function AddUserDialog({
 								<FormItem>
 									<FormLabel>Temporary password (optional)</FormLabel>
 									<FormControl>
-										<Input
-											type="text"
-											placeholder="TempPass123!"
-											autoComplete="new-password"
-											{...field}
-										/>
+										<div className="relative">
+											<Input
+												type={showTemporaryPassword ? "text" : "password"}
+												placeholder="TempPass123!"
+												autoComplete="new-password"
+												className="pr-11"
+												{...field}
+											/>
+											<button
+												type="button"
+												className="absolute right-1 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+												onClick={() => setShowTemporaryPassword((prev) => !prev)}
+												aria-label={
+													showTemporaryPassword
+														? "Hide temporary password"
+														: "Show temporary password"
+												}
+											>
+												{showTemporaryPassword ? (
+													<EyeOff className="h-4 w-4" />
+												) : (
+													<Eye className="h-4 w-4" />
+												)}
+											</button>
+										</div>
 									</FormControl>
 									<FormMessage />
+									<p className="text-[11px] text-muted-foreground">
+										Leave blank to auto-generate a temporary password.
+									</p>
 								</FormItem>
 							)}
 						/>
 					</div>
+					<PasswordPolicyChecklist
+						password={temporaryPasswordValue}
+						title="Temporary password requirements"
+					/>
 				</form>
 			</Form>
 		</AppDialog>

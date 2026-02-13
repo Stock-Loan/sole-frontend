@@ -1,8 +1,7 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { DataTable } from "@/shared/ui/Table/DataTable";
 import { normalizeDisplay } from "@/shared/lib/utils";
 import { Badge } from "@/shared/ui/badge";
-import { Button } from "@/shared/ui/Button";
 import type { ColumnDefinition } from "@/shared/ui/Table/types";
 import type {
 	BulkOnboardingErrorItem,
@@ -14,9 +13,8 @@ export function BulkOnboardingResultsTable({
 	successes,
 	errors,
 }: BulkOnboardingResultsTableProps) {
-	const [showPasswords, setShowPasswords] = useState(false);
-	const hasTemporaryPasswords = useMemo(
-		() => successes.some((row) => Boolean(row.temporary_password)),
+	const credentialsIssuedCount = useMemo(
+		() => successes.filter((row) => row.credentials_issued).length,
 		[successes],
 	);
 
@@ -118,14 +116,10 @@ export function BulkOnboardingResultsTable({
 				enableHiding: false,
 			},
 			{
-				id: "temporaryPassword",
-				header: "Temporary password",
-				accessor: (row) => row.temporary_password ?? "—",
-				cell: (row) => {
-					const value = row.temporary_password;
-					if (!value) return "—";
-					return showPasswords ? value : "********";
-				},
+				id: "credentialsIssued",
+				header: "Credentials issued",
+				accessor: (row) => (row.credentials_issued ? "Yes" : "No"),
+				cell: (row) => (row.credentials_issued ? "Yes" : "No"),
 				enableSorting: false,
 				enableFiltering: false,
 				enableHiding: false,
@@ -141,7 +135,7 @@ export function BulkOnboardingResultsTable({
 				cellClassName: "text-sm text-muted-foreground",
 			},
 		],
-		[showPasswords]
+		[]
 	);
 
 	const errorColumns = useMemo<ColumnDefinition<BulkOnboardingErrorItem>[]>(
@@ -229,19 +223,15 @@ export function BulkOnboardingResultsTable({
 						<Badge variant="outline">Already exists</Badge>
 						<span>User was already in this org</span>
 					</div>
+					<div className="flex flex-wrap items-center gap-2">
+						<span className="font-semibold text-foreground">
+							Credentials issued
+						</span>
+						<span>
+							{credentialsIssuedCount} of {successes.length} successful rows
+						</span>
+					</div>
 				</div>
-				{hasTemporaryPasswords ? (
-					<Button
-						type="button"
-						variant="ghost"
-						size="sm"
-						className="h-7 px-2 text-xs"
-						aria-pressed={showPasswords}
-						onClick={() => setShowPasswords((prev) => !prev)}
-					>
-						{showPasswords ? "Hide passwords" : "Reveal passwords"}
-					</Button>
-				) : null}
 			</div>
 			{successes.length ? (
 				<div className="space-y-2">
