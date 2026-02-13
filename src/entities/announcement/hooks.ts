@@ -61,20 +61,22 @@ export function useCreateAnnouncement(
 	const queryClient = useQueryClient();
 
 	return useMutation({
+		...options,
 		mutationFn: createAnnouncement,
-		onSuccess: (data, variables, onMutateResult, context) => {
-			void queryClient.invalidateQueries({
-				queryKey: ["announcements", "admin"],
-			});
-			void queryClient.invalidateQueries({
-				queryKey: ["announcements", "list"],
-			});
+		onSuccess: async (data, variables, onMutateResult, context) => {
+			await Promise.all([
+				queryClient.invalidateQueries({
+					queryKey: ["announcements", "admin"],
+				}),
+				queryClient.invalidateQueries({
+					queryKey: ["announcements", "list"],
+				}),
+			]);
 			options.onSuccess?.(data, variables, onMutateResult, context);
 		},
 		onError: (error, variables, onMutateResult, context) => {
 			options.onError?.(error, variables, onMutateResult, context);
 		},
-		...options,
 	});
 }
 

@@ -104,17 +104,17 @@ export function useRefreshPbgcRates(
 ) {
 	const queryClient = useQueryClient();
 	return useMutation({
+		...options,
 		mutationFn: refreshPbgcRates,
-		onSuccess: (data, variables, onMutateResult, context) => {
-			void queryClient.invalidateQueries({
-				queryKey: orgSettingsKeys.pbgcRates(null),
+		onSuccess: async (data, variables, onMutateResult, context) => {
+			await queryClient.invalidateQueries({
+				queryKey: ["org-settings", "pbgc-rates"],
 			});
 			options.onSuccess?.(data, variables, onMutateResult, context);
 		},
 		onError: (error, variables, onMutateResult, context) => {
 			options.onError?.(error, variables, onMutateResult, context);
 		},
-		...options,
 	});
 }
 

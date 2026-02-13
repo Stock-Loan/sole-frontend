@@ -207,15 +207,15 @@ export function useCreateRole(
 	const queryClient = useQueryClient();
 
 	return useMutation({
+		...options,
 		mutationFn: createRole,
-		onSuccess: (data, variables, onMutateResult, context) => {
-			queryClient.invalidateQueries({ queryKey: roleKeys.list() });
+		onSuccess: async (data, variables, onMutateResult, context) => {
+			await queryClient.invalidateQueries({ queryKey: ["roles", "list"] });
 			options.onSuccess?.(data, variables, onMutateResult, context);
 		},
 		onError: (error, variables, onMutateResult, context) => {
 			options.onError?.(error, variables, onMutateResult, context);
 		},
-		...options,
 	});
 }
 

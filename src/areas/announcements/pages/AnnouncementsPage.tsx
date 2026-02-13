@@ -12,6 +12,7 @@ import {
 	Dialog,
 	DialogBody,
 	DialogContent,
+	DialogDescription,
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
@@ -57,6 +58,8 @@ export function AnnouncementsPage() {
 	const [searchParams, setSearchParams] = useSearchParams();
 	const [isFormOpen, setIsFormOpen] = useState(false);
 	const [editingAnnouncement, setEditingAnnouncement] =
+		useState<Announcement | null>(null);
+	const [viewingAnnouncement, setViewingAnnouncement] =
 		useState<Announcement | null>(null);
 	const [statusDialog, setStatusDialog] = useState<{
 		target: Announcement | null;
@@ -297,9 +300,25 @@ export function AnnouncementsPage() {
 				header: "Body",
 				accessor: (item) => item.body,
 				filterAccessor: (item) => item.body,
-				cell: (item) => item.body,
+				cell: (item) => (
+					<div className="flex flex-col gap-1">
+						<p className="line-clamp-2 text-xs text-muted-foreground whitespace-pre-wrap">
+							{item.body}
+						</p>
+						<button
+							type="button"
+							className="w-fit text-xs font-medium text-primary hover:underline"
+							onClick={(event) => {
+								event.stopPropagation();
+								setViewingAnnouncement(item);
+							}}
+						>
+							Read full announcement
+						</button>
+					</div>
+				),
 				headerClassName: "min-w-[240px]",
-				cellClassName: "text-xs text-muted-foreground line-clamp-2",
+				cellClassName: "align-top",
 			},
 			{
 				id: "createdAt",
@@ -347,7 +366,6 @@ export function AnnouncementsPage() {
 		() => ({
 			id: false,
 			orgId: false,
-			body: false,
 			updatedAt: false,
 		}),
 		[],
@@ -357,7 +375,11 @@ export function AnnouncementsPage() {
 		<PageContainer className="flex min-h-0 flex-1 flex-col gap-4">
 			<PageHeader
 				title="Announcements"
-				subtitle="Create and manage organization-wide announcements."
+				subtitle={
+					canManage
+						? "Create and manage organization-wide announcements."
+						: "Read organization-wide announcements."
+				}
 			/>
 
 			{isError ? (
@@ -400,6 +422,7 @@ export function AnnouncementsPage() {
 					}
 					initialColumnVisibility={initialColumnVisibility}
 					preferences={preferencesConfig}
+					onRowClick={(announcement) => setViewingAnnouncement(announcement)}
 					renderToolbarActions={(selectedAnnouncements) => {
 						if (!canManage) return null;
 						const hasSingle = selectedAnnouncements.length === 1;
@@ -410,6 +433,18 @@ export function AnnouncementsPage() {
 						const canUnpublish = selected?.status === "PUBLISHED";
 						return (
 							<>
+								<ToolbarButton
+									variant="outline"
+									size="sm"
+									disabled={!hasSingle}
+									onClick={() => {
+										if (selected) {
+											setViewingAnnouncement(selected);
+										}
+									}}
+								>
+									View
+								</ToolbarButton>
 								<ToolbarButton
 									variant="outline"
 									size="sm"
@@ -490,6 +525,63 @@ export function AnnouncementsPage() {
 				onSubmit={handleSave}
 				isSubmitting={createMutation.isPending || updateMutation.isPending}
 			/>
+			<Dialog
+				open={Boolean(viewingAnnouncement)}
+				onOpenChange={(open) => {
+					if (!open) {
+						setViewingAnnouncement(null);
+					}
+				}}
+			>
+				<DialogContent size="lg">
+					<DialogHeader>
+						<DialogTitle>{viewingAnnouncement?.title ?? "Announcement"}</DialogTitle>
+						<DialogDescription>
+							{viewingAnnouncement?.published_at
+								? `Published ${formatDate(viewingAnnouncement.published_at)}`
+								: "Announcement details"}
+						</DialogDescription>
+					</DialogHeader>
+					<DialogBody className="space-y-4">
+						<div className="flex flex-wrap items-center gap-2">
+							{viewingAnnouncement?.status ? (
+								<span
+									className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-medium ${
+										ANNOUNCEMENT_STATUS_TONE[viewingAnnouncement.status]
+									}`}
+								>
+									{ANNOUNCEMENT_STATUS_LABELS[viewingAnnouncement.status]}
+								</span>
+							) : null}
+							{viewingAnnouncement?.type ? (
+								<span
+									className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-medium ${
+										ANNOUNCEMENT_TYPE_COLORS[viewingAnnouncement.type] ??
+										"border-border bg-muted/40 text-muted-foreground"
+									}`}
+								>
+									{viewingAnnouncement.type.charAt(0) +
+										viewingAnnouncement.type.slice(1).toLowerCase()}
+								</span>
+							) : null}
+						</div>
+						<div className="max-h-[55vh] overflow-auto rounded-lg border border-border/70 bg-muted/20 p-4">
+							<p className="text-sm leading-6 whitespace-pre-wrap">
+								{viewingAnnouncement?.body ?? ""}
+							</p>
+						</div>
+					</DialogBody>
+					<DialogFooter>
+						<Button
+							type="button"
+							variant="outline"
+							onClick={() => setViewingAnnouncement(null)}
+						>
+							Close
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 
 			<Dialog
 				open={Boolean(statusDialog.target && statusDialog.nextStatus)}
